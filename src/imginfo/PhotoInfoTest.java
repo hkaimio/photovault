@@ -442,7 +442,78 @@ public class PhotoInfoTest extends TestCase {
 
 	photo.delete();
     }
+
+    /**
+       PhotoInfoListener used for test cases
+    */
+    class TestListener implements PhotoInfoChangeListener {
+	public boolean isNotified = false;
 	
+	public void photoInfoChanged( PhotoInfoChangeEvent e ) {
+	    isNotified = true;
+	}
+    }
+    
+    /**
+       Tests that the listener is working correctly
+    */
+    public void testListener() {
+
+	PhotoInfo photo = PhotoInfo.create();
+	TestListener l1 = new TestListener();
+	TestListener l2 = new TestListener();
+	photo.addChangeListener( l1 );
+	photo.addChangeListener( l2 );
+
+	// Test that the listeners are notified
+	photo.setPhotographer( "TEST" );
+	assertTrue( "l1 was not notified", l1.isNotified );
+	assertTrue( "l2 was not notified", l2.isNotified );
+
+	// Test that the listeners are removed correctly
+	photo.removeChangeListener( l2 );
+	l1.isNotified = false;
+	l2.isNotified = false;
+	photo.setPhotographer( "TEST2" );
+	assertTrue( "l1 was not notified", l1.isNotified );
+	assertFalse( "l2 was not supposed to be notified", l2.isNotified );
+
+	// Test all object fields, one by one
+	l1.isNotified = false;
+	photo.setShootingPlace( "TEST" );
+	assertTrue( "no notification when changing shootingPlace", l1.isNotified );
+	l1.isNotified = false;
+	photo.setFStop( 12 );
+	assertTrue( "no notification when changing f-stop", l1.isNotified );
+	l1.isNotified = false;
+	photo.setFocalLength( 10 );
+	assertTrue( "no notification when changing focalLength", l1.isNotified );
+	l1.isNotified = false;
+	photo.setShootTime( new Date() );
+	assertTrue( "no notification when changing shooting time", l1.isNotified );
+	l1.isNotified = false;
+	photo.setShutterSpeed( 1.0 );
+	assertTrue( "no notification when changing shutter speed", l1.isNotified );
+	l1.isNotified = false;
+	photo.setCamera( "Leica" );
+	assertTrue( "no notification when changing camera", l1.isNotified );
+	l1.isNotified = false;
+	photo.setLens( "TESTLENS" );
+	assertTrue( "no notification when changing lens", l1.isNotified );
+	l1.isNotified = false;
+	photo.setFilm( "Pan-X"  );
+	assertTrue( "no notification when changing film", l1.isNotified );
+	l1.isNotified = false;
+	photo.setFilmSpeed( 160  );
+	assertTrue( "no notification when changing film speed", l1.isNotified );
+	l1.isNotified = false;
+	photo.setPrefRotation( 107 );
+	assertTrue( "no notification when changing preferred rotation", l1.isNotified );
+	l1.isNotified = false;
+	photo.setDescription( "Test with lots of characters" );
+	assertTrue( "no notification when changing description", l1.isNotified );
+	photo.delete();
+    }
     
     public static Test suite() {
 	return new TestSuite( PhotoInfoTest.class );

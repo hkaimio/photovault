@@ -20,6 +20,10 @@ import com.drew.imaging.jpeg.*;
 */
 public class PhotoInfo {
 
+    public PhotoInfo() {
+	changeListeners = new HashSet();
+    }
+    
     /**
        Static method to load photo info from database by photo id
        @param photoId ID of the photo to be retrieved
@@ -282,6 +286,39 @@ public class PhotoInfo {
 	}
     }
 
+    /**
+       Adds a new listener to the list that will be notified of modifications to this object
+       @param l reference to the listener
+    */
+    public void addChangeListener( PhotoInfoChangeListener l ) {
+	changeListeners.add( l );
+    }
+
+    /**
+       Removes a listenre
+    */
+    public void removeChangeListener( PhotoInfoChangeListener l ) {
+	changeListeners.remove( l );
+    }
+
+    private void notifyListeners( PhotoInfoChangeEvent e ) {
+	Iterator iter = changeListeners.iterator();
+	while ( iter.hasNext() ) {
+	    PhotoInfoChangeListener l = (PhotoInfoChangeListener) iter.next();
+	    l.photoInfoChanged( e );
+	}
+    }
+
+    protected void modified() {
+	notifyListeners( new PhotoInfoChangeEvent( this ) );
+    }
+
+    /**
+       set of the listeners that should be notified of any changes to this object
+    */
+    HashSet changeListeners = null;
+    
+    
     private int uid;
 
     /**
@@ -534,6 +571,7 @@ public class PhotoInfo {
      */
     public void setShootTime(java.util.Date  v) {
 	this.shootTime = v;
+	modified();
     }
     
     String desc;
@@ -552,6 +590,7 @@ public class PhotoInfo {
      */
     public void setDesc(String  v) {
 	this.desc = v;
+	modified();
     }
     double FStop;
     
@@ -569,6 +608,7 @@ public class PhotoInfo {
      */
     public void setFStop(double  v) {
 	this.FStop = v;
+	modified();
     }
     double focalLength;
     
@@ -586,6 +626,7 @@ public class PhotoInfo {
      */
     public void setFocalLength(double  v) {
 	this.focalLength = v;
+	modified();
     }
     String shootingPlace;
     
@@ -603,6 +644,7 @@ public class PhotoInfo {
      */
     public void setShootingPlace(String  v) {
 	this.shootingPlace = v;
+	modified();
     }
     String photographer;
     
@@ -620,6 +662,7 @@ public class PhotoInfo {
      */
     public void setPhotographer(String  v) {
 	this.photographer = v;
+	modified();
     }
     double shutterSpeed;
     
@@ -637,6 +680,7 @@ public class PhotoInfo {
      */
     public void setShutterSpeed(double  v) {
 	this.shutterSpeed = v;
+	modified();
     }
     String camera;
     
@@ -654,6 +698,7 @@ public class PhotoInfo {
      */
     public void setCamera(String  v) {
 	this.camera = v;
+	modified();
     }
     String lens;
     
@@ -671,6 +716,7 @@ public class PhotoInfo {
      */
     public void setLens(String  v) {
 	this.lens = v;
+	modified();
     }
     String film;
     
@@ -688,6 +734,7 @@ public class PhotoInfo {
      */
     public void setFilm(String  v) {
 	this.film = v;
+	modified();
     }
     int filmSpeed;
     
@@ -705,6 +752,7 @@ public class PhotoInfo {
      */
     public void setFilmSpeed(int  v) {
 	this.filmSpeed = v;
+	modified();
     }
 
     double prefRotation;
@@ -728,7 +776,7 @@ public class PhotoInfo {
 	    thumbnail = null;
 	}
 	this.prefRotation = v;
-	
+	modified();
     }
     
 
@@ -749,6 +797,7 @@ public class PhotoInfo {
      */
     public void setDescription(String  v) {
 	this.description = v;
+	modified();
     }
 
     static private boolean isEqual( Object o1, Object o2 ) {
