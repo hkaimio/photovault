@@ -18,7 +18,6 @@ import java.awt.font.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
 
@@ -638,6 +637,10 @@ public class PhotoCollectionThumbView
             } else {
                 photoClickedNoModifiers( clickedPhoto );
             }
+	    // If this was a doublke click open the selected photo(s)
+	    if ( mouseEvent.getClickCount() == 2 ) {
+		showSelectedPhotoAction.actionPerformed( new ActionEvent( this, 0, null ) );
+	    }
         } else {
             // The click was between photos. Clear the selection
             if ( !mouseEvent.isControlDown() ) {
