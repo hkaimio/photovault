@@ -346,15 +346,31 @@ public class PhotoCollectionThumbView
     */
     public void photoInfoChanged( PhotoInfoChangeEvent ev ) {
 	PhotoInfo photo = (PhotoInfo) ev.getSource();
+	repaintPhoto( photo );
 	// Find the location of the photo
-	int n = photos.indexOf( photo );
+
+    }
+
+    /**
+       Issues a repaint request for a certain photo.
+       @param n index of the photo in curren PhotoCollection
+    */
+    protected void repaintPhoto( int n ) {
 	if ( n >= 0 ) {
 	    int row = (int) (n / columnCount);
 	    int col = n - (row * columnCount);
 	    repaint( 0, col * columnWidth, row * rowHeight, columnWidth, rowHeight );
 	}
     }
-    
+
+    /**
+       Issues a repaint request for a certain photo.
+       @param photo Photo to be repainted
+    */
+    protected void repaintPhoto( PhotoInfo photo ) {
+	int n = photos.indexOf( photo );
+	repaintPhoto( n );
+    }
 
     /**
        Checks which photo is under the specified coordinates
@@ -423,10 +439,16 @@ public class PhotoCollectionThumbView
         } else {
             // The click was between photos. Clear the selection
             if ( !mouseEvent.isControlDown() ) {
-                selection.clear();
+		Object[] oldSelection = selection.toArray();
+		selection.clear();
+		for ( int n = 0; n < oldSelection.length; n++ ) {
+		    PhotoInfo photo = (PhotoInfo) oldSelection[n];
+		    repaintPhoto( photo );
+		}
+
             }
         }
-        repaint();
+        repaintPhoto( clickedPhoto );
     }
 
     private void photoClickedCtrlDown( PhotoInfo clickedPhoto ) {
@@ -439,7 +461,14 @@ public class PhotoCollectionThumbView
                  
 
     private void photoClickedNoModifiers( PhotoInfo clickedPhoto ) {
+	// Clear selection & issue repaint requests for all selected photos
+	Object[] oldSelection = selection.toArray();
         selection.clear();
+	for ( int n = 0; n < oldSelection.length; n++ ) {
+	    PhotoInfo photo = (PhotoInfo) oldSelection[n];
+	    repaintPhoto( photo );
+	}
+	    
         selection.add( clickedPhoto );
     }
     
