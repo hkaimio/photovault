@@ -132,9 +132,11 @@ public class PhotoFolder implements PhotoCollection {
 	}
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
-	photo.addedToFolder( this );
-	photos.add( photo );
-	modified();
+	if ( !photos.contains( photo ) ) {
+	    photo.addedToFolder( this );
+	    photos.add( photo );
+	    modified();
+	}
 	txw.commit();
     }
 

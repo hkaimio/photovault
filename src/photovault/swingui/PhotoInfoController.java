@@ -387,7 +387,8 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( PHOTO_FOLDERS, new FolderController( photos ) );
+	folderCtrl = new FolderController( photos );
+	modelFields.put( PHOTO_FOLDERS, folderCtrl );
 	
 	// TODO: Add other fields
 
@@ -480,6 +481,12 @@ public class PhotoInfoController {
  	return photo;
     }
 
+    public FolderController getFolderController() {
+	return folderCtrl;
+    }
+
+    FolderController folderCtrl;
+    
     /**
        Save the modifications made to the PhotoInfo record
        @throws PhotoNotFoundException if the original image cound not be located

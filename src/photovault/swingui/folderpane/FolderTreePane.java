@@ -6,9 +6,13 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.*;
+import photovault.swingui.PhotoFolderSelectionDlg;
+import photovault.folder.PhotoFolder;
 
-public class FolderTreePane extends JPanel implements TreeModelListener  {
+public class FolderTreePane extends JPanel implements TreeModelListener, ActionListener  {
 
     public FolderTreePane( FolderController ctrl ) {
 	super();
@@ -35,6 +39,8 @@ public class FolderTreePane extends JPanel implements TreeModelListener  {
 	add( scrollPane, c );
 	
 	JButton addFolderBtn = new JButton( "Add to folder..." );
+	addFolderBtn.setActionCommand( ADD_ALL_TO_FOLDER_CMD );
+	addFolderBtn.addActionListener( this );
 	c = new GridBagConstraints();
 	c.gridx = 1;
 	c.gridy = 0;
@@ -68,8 +74,35 @@ public class FolderTreePane extends JPanel implements TreeModelListener  {
 
     }
 
+    public void actionPerformed(ActionEvent e) {
+        String cmd = e.getActionCommand();
+	if ( cmd == ADD_ALL_TO_FOLDER_CMD ) {
+            queryForNewFolder();
+        }
+    }
+
+
+    /**
+       Queries the user for a new folder into which the photo will be added.
+    */
+    public void queryForNewFolder() {
+        // Try to find the frame in which this component is in
+        Frame frame = null;
+        Container c = getTopLevelAncestor();
+        if ( c instanceof Frame ) {
+            frame = (Frame) c;
+        }
+
+        PhotoFolderSelectionDlg dlg = new PhotoFolderSelectionDlg( frame, true );
+        if ( dlg.showDialog() ) {
+            PhotoFolder folder = dlg.getSelectedFolder();
+            // A folder was selected, so add the selected photo to this folder
+	    ctrl.addAllToFolder( folder );
+        }
+    }
     
     JTree folderTree = null;
     FolderController ctrl = null;
 
+    private static final String ADD_ALL_TO_FOLDER_CMD = "addAllToFolder";
 }

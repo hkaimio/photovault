@@ -34,8 +34,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     
     public PhotoInfoEditor( PhotoInfoController ctrl ) {
 	super();
-	createUI();
 	this.ctrl = ctrl;
+	createUI();
 	ctrl.setView( this );
     }
     
@@ -225,7 +225,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     protected void createFolderPaneUI() {
 	JPanel pane = new JPanel();
 	tabPane.addTab( "Folders", pane );
-	folderTreePane = new FolderTreePane( null );
+	folderTreePane = new FolderTreePane( ctrl.getFolderController() );
 	pane.add( folderTreePane, BorderLayout.NORTH );
 
     }

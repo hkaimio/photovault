@@ -6,6 +6,7 @@ import javax.swing.event.TreeModelListener;
 import photovault.swingui.*;
 import imginfo.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Collection;
 import java.util.Iterator;
 import photovault.folder.*;
@@ -18,6 +19,8 @@ public class FolderController extends FieldController {
     
     public FolderController( PhotoInfo[] model ) {
 	super( model );
+	addedToFolders = new HashSet();
+	removedFromFolders = new HashSet();
 	treeModel = new DefaultTreeModel( new DefaultMutableTreeNode() );
     }
 
@@ -60,7 +63,55 @@ public class FolderController extends FieldController {
 
     public void setModel( Object[] model, boolean preserveState ) {
 	this.model = model;
+	if ( !preserveState && addedToFolders != null  ) {
+	    addedToFolders.clear();
+	    removedFromFolders.clear();
+	}
 	initTree();
+    }
+
+    HashSet addedToFolders;
+    HashSet removedFromFolders;
+
+    /**
+       Mark all photos in model so that they will be added to specified folder
+       when committing the changes.
+    */
+    public void addAllToFolder( PhotoFolder f ) {
+	addedToFolders.add( f );
+	removedFromFolders.remove( f );
+	DefaultMutableTreeNode node = addFolder( f );
+	FolderNode fn = (FolderNode) node.getUserObject();
+	fn.addAllPhotos();
+    }
+    /**
+       Mark all photos in model so that they will be removed from specified folder
+       when committing the changes.
+    */
+
+    public void removeFromFolder( PhotoFolder f ) {
+	addedToFolders.remove( f );
+	removedFromFolders.add( f );
+    }
+
+    /**
+       Saves all modifications to database
+    */
+    public void save() {
+	Iterator iter = addedToFolders.iterator();
+	while ( iter.hasNext() ) {
+	    PhotoFolder folder = (PhotoFolder) iter.next();
+	    for ( int n = 0; n < model.length; n++ ) {
+		folder.addPhoto( (PhotoInfo) model[n] );
+	    }
+	}
+	iter = removedFromFolders.iterator();
+	while ( iter.hasNext() ) {
+	    PhotoFolder folder = (PhotoFolder) iter.next();
+	    for ( int n = 0; n < model.length; n++ ) {
+		folder.removePhoto( (PhotoInfo) model[n] );
+	    }
+	}	
     }
     
     /**
