@@ -1,5 +1,5 @@
 // TestFieldController.java
-
+ 
 package photovault.swingui;
 
 import java.io.*;
@@ -11,6 +11,7 @@ public class Test_FieldController extends TestCase {
 
     private class TestObject {
 	public String field;
+	public boolean isMultivalued;
 	public TestObject() {
 	    field = new String();
 	}
@@ -19,6 +20,10 @@ public class Test_FieldController extends TestCase {
 	}
 	public String getField() {
 	    return field;
+	}
+
+	public void setMultivalued( boolean mv ) {
+	    isMultivalued = mv;
 	}
     }
 
@@ -49,6 +54,13 @@ public class Test_FieldController extends TestCase {
 		    TestObject obj = (TestObject) view;
 		    obj.setField( (String) value );
 		}
+
+		protected void updateViewMultivalueState( Object view ) {
+		    TestObject obj = (TestObject) view;
+		    obj.setMultivalued( isMultiValued );
+
+		}
+
 		protected void updateValue( Object view ) {
 		    TestObject obj = (TestObject) view;
 		    value = obj.getField();

@@ -27,6 +27,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoEditor.class.getName() );
 
+    static Color multiValueColor = Color.LIGHT_GRAY;
+    static Color singleValueColor = Color.WHITE;
+    
     public PhotoInfoEditor( PhotoInfoController ctrl ) {
 	super();
 	createUI();
@@ -226,6 +229,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	return str;
     }
 
+    public void setPhotographerMultivalued( boolean mv ) {
+	photographerField.setBackground( mv ? multiValueColor : singleValueColor );
+    }
+
     public void setFuzzyDate( FuzzyDate d ) {
 	if ( d != null ) {
 	    fuzzyDateField.setText( d.format() );
@@ -241,6 +248,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	return d;
     }
     
+    public void setFuzzyDateMultivalued( boolean mv ) {
+	fuzzyDateField.setBackground( mv ? multiValueColor : singleValueColor );
+    }
     
     public void setShootTime( Date newValue ) {
 	log.warn( "setShootingTime: " + newValue );
@@ -250,6 +260,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public Date getShootTime( ) {
 	log.warn( "getShootingTime" );
 	return (Date) shootingDayField.getValue();
+    }
+
+    public void setShootTimeMultivalued( boolean mv ) {
+	shootingDayField.setBackground( mv ? multiValueColor : singleValueColor );
     }
 
     public void setTimeAccuracy( Number newValue ) {
@@ -268,6 +282,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	return shootingPlaceField.getText( );
     }
     
+    public void setShootPlaceMultivalued( boolean mv ) {
+	shootingPlaceField.setBackground( mv ? multiValueColor : singleValueColor );
+    }
+
     public void setFStop( Number newValue ) {
 	fStopField.setValue( newValue  );
     }
@@ -275,6 +293,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public Number getFStop( ) {
 	Number value = (Number) fStopField.getValue( );
 	return value;
+    }
+
+    public void setFStopMultivalued( boolean mv ) {
+	fStopField.setBackground( mv ? multiValueColor : singleValueColor );
     }
     
     public void setShutterSpeed( Number newValue ) {
@@ -286,6 +308,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	return value;
     }
     
+    public void setShutterSpeedMultivalued( boolean mv ) {
+	shutterSpeedField.setBackground( mv ? multiValueColor : singleValueColor );
+    }
+
     public void setFocalLength( Number newValue ) {
 	focalLengthField.setValue( newValue  );
     }
@@ -295,6 +321,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	return value;
     }
     
+    public void setFocalLengthMultivalued( boolean mv ) {
+	focalLengthField.setBackground( mv ? multiValueColor : singleValueColor );
+    }
+
     public void setFilmSpeed( Number newValue ) {
 	filmSpeedField.setValue( newValue );
     }
@@ -303,6 +333,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	Number value = (Number) filmSpeedField.getValue( );
 	return value;
     } 
+    public void setFilmSpeedMultivalued( boolean mv ) {
+	filmSpeedField.setBackground( mv ? multiValueColor : singleValueColor );
+    }
 
     public void setCamera( String newValue ) {
 	cameraField.setText( newValue );
@@ -310,6 +343,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     
     public String getCamera( ) {
 	return cameraField.getText( );
+    }
+    public void setCameraMultivalued( boolean mv ) {
+	cameraField.setBackground( mv ? multiValueColor : singleValueColor );
     }
     
     public void setLens( String newValue ) {
@@ -319,6 +355,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public String getLens( ) {
 	return lensField.getText( );
     }
+
+    public void setLensMultivalued( boolean mv ) {
+	lensField.setBackground( mv ? multiValueColor : singleValueColor );
+    }
     
     public void setFilm( String newValue ) {
 	filmField.setText( newValue );
@@ -327,6 +367,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public String getFilm( ) {
 	return filmField.getText( );
     }
+
+    public void setFilmMultivalued( boolean mv ) {
+	filmField.setBackground( mv ? multiValueColor : singleValueColor );
+    }
     
     public void setDescription( String newValue ) {
 	descriptionTextArea.setText( newValue );
@@ -334,6 +378,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     
     public String getDescription( ) {
 	return descriptionTextArea.getText( );
+    }
+
+    public void setDescriptionMultivalued( boolean mv ) {
+	descriptionTextArea.setBackground( mv ? multiValueColor : singleValueColor );
     }
 
     
@@ -345,6 +393,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	return technoteTextArea.getText( );
     }
     
+    public void setTechNoteMultivalued( boolean mv ) {
+	technoteTextArea.setBackground( mv ? multiValueColor : singleValueColor );
+    }
 
     public Number getQuality() {
 	int q = qualityField.getSelectedIndex();
@@ -364,6 +415,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	    
     }
 
+    public void setQualityMultivalued( boolean mv ) {
+    }
     
     
     // Important UI components

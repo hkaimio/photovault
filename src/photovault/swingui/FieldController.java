@@ -85,7 +85,7 @@ public abstract class FieldController {
 	    modified = true;
 	} else {
 	    // Check the value of all objects in the model. If these are all equal save it as the model value
-	    boolean allEqual = true;
+	    isMultiValued = false;
 	    Object valueCandidate = null;
 	    if ( model != null ) {
 		if ( model[0] != null ) {
@@ -95,18 +95,19 @@ public abstract class FieldController {
 		    Object modelObjectValue = getModelValue( model[n] );
 		    if ( modelObjectValue != null ) {
 			if ( !modelObjectValue.equals( valueCandidate ) ) {
-			    allEqual = false;
+			    isMultiValued = true;
 			}
 		    } else if ( valueCandidate != null ) {
-			allEqual = false;
+			isMultiValued = true;
+
 		    }
 		}
 	    }
 	    
-	    if ( allEqual ) {
-		value = valueCandidate;
-	    } else {
+	    if ( isMultiValued ) {
 		value = null;
+	    } else {
+		value = valueCandidate;
 	    }
 	    
 	    // Controller mathces model set flag accordingly
@@ -124,6 +125,7 @@ public abstract class FieldController {
     */
     public void setValue( Object newValue ) {
 	value = newValue;
+	isMultiValued = false;
 	modified = true;
 	// Update all associated views
 	updateViews( null );
@@ -144,6 +146,7 @@ public abstract class FieldController {
     public void viewChanged( Object view ) {
 	modified = true;
 	updateValue( view );
+	isMultiValued = false;
 	updateViews( view );
     }
 	
@@ -182,6 +185,9 @@ public abstract class FieldController {
 	    if ( view != source ) {
 		updateView( view );
 	    }
+	    // The multivalueState is upated anyway since it cannot be determined
+	    // the view
+	    updateViewMultivalueState( view );
 	}
     }
 	    
@@ -206,6 +212,9 @@ public abstract class FieldController {
     */
     protected abstract void updateValue( Object view );
 
+    /** This abstract method must be overridden to update view when isMultiValued changes */
+    protected abstract void updateViewMultivalueState( Object view );
+
     /**
        Array of th eobjects that comprise the model
     */
@@ -213,6 +222,7 @@ public abstract class FieldController {
     protected Object value;
     protected Collection views = null;
     protected boolean modified = false;       
+    protected boolean isMultiValued = false;
 }
        
 	

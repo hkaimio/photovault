@@ -47,6 +47,13 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setPhotographer( (String) value );
 		}
+
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setPhotographerMultivalued( isMultiValued );
+
+		}
+
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value = obj.getPhotographer();
@@ -78,6 +85,11 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setFuzzyDate( (FuzzyDate) value );
 		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFuzzyDateMultivalued( isMultiValued );
+
+		}
 		protected void updateValue( Object view ) {
 		    log.debug( "FUZZY_DATE - updateValue ({}) " );
 		    PhotoInfoView obj = (PhotoInfoView) view;
@@ -102,6 +114,11 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setQuality( (Number)value );
 		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setQualityMultivalued( isMultiValued );
+
+		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value =  obj.getQuality();
@@ -122,6 +139,11 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setShootPlace( (String) value );
 		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setShootPlaceMultivalued( isMultiValued );
+
+		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value = obj.getShootPlace();
@@ -140,6 +162,11 @@ public class PhotoInfoController {
 		protected void updateView( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setCamera( (String) value );
+		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setCameraMultivalued( isMultiValued );
+
 		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
@@ -160,6 +187,11 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setFilm( (String) value );
 		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFilmMultivalued( isMultiValued );
+
+		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value = obj.getFilm();
@@ -178,6 +210,11 @@ public class PhotoInfoController {
 		protected void updateView( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setLens( (String) value );
+		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setLensMultivalued( isMultiValued );
+
 		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
@@ -198,6 +235,11 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setDescription( (String) value );
 		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setDescriptionMultivalued( isMultiValued );
+
+		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value = obj.getDescription();
@@ -216,6 +258,11 @@ public class PhotoInfoController {
 		protected void updateView( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setTechNote( (String) value );
+		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setTechNoteMultivalued( isMultiValued );
+
 		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
@@ -243,6 +290,11 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setFStop( (Number)value );
 		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFStopMultivalued( isMultiValued );
+
+		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value =  obj.getFStop();
@@ -265,6 +317,11 @@ public class PhotoInfoController {
 		protected void updateView( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setShutterSpeed( (Number)value );
+		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setShutterSpeedMultivalued( isMultiValued );
+
 		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
@@ -289,6 +346,11 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setFocalLength( (Number)value );
 		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFocalLengthMultivalued( isMultiValued );
+
+		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value =  obj.getFocalLength(); 
@@ -311,6 +373,11 @@ public class PhotoInfoController {
 		protected void updateView( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setFilmSpeed( (Number)value );
+		}
+		protected void updateViewMultivalueState( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFilmSpeedMultivalued( isMultiValued );
+
 		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
