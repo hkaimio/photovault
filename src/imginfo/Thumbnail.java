@@ -48,8 +48,8 @@ public class Thumbnail {
        Creates a thumbnail from a given image instance
        @param photo The photoInfo which the thumbnail presents
        @param thumbnailFile File to be used as a thumbnail
-       @return A new Thumbnail object if the image instance represents a thumbnail. Otherwise
-       returns null
+       @return A new Thumbnail object if the image instance represents a thumbnail. Otherwise returns the
+       defauld thumbnail.
     */
 
     protected static Thumbnail createThumbnail( PhotoInfo photo, File thumbnailFile ) {

@@ -90,7 +90,7 @@ public class Test_PhotoFolder extends TestCase {
 	tx.begin();
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName() + " where name = \"Top\"" );
+	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
 	    folders = (DList) query.execute();
 	    tx.commit();
 	} catch ( Exception e ) {
@@ -105,7 +105,7 @@ public class Test_PhotoFolder extends TestCase {
 	    if ( folder.getName().equals( "Top" ) ) {
 		found = true;
 		log.debug( "found top, id = " + folder.getFolderId() );
-		assertEquals( "Folder with id 0 should be the top", folder.getName(), "Top" );
+		assertEquals( "Folder with id 1 should be the top", folder.getName(), "Top" );
 	    }
 	}
 	assertTrue( "Top folder not found", found );
@@ -130,7 +130,7 @@ public class Test_PhotoFolder extends TestCase {
 	PhotoFolder folder = null;
 	// Create a folder for the photo
 	try {
-	    folder = PhotoFolder.create( "Top", null );
+	    folder = PhotoFolder.create( "PhotoAdditionTest", PhotoFolder.getRoot() );
 	    folder.addPhoto( photo );
 	    
 	    assertEquals( "Photo not visible in folders' photo count", folder.getPhotoCount(), 1 );

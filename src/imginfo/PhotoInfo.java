@@ -406,7 +406,7 @@ public class PhotoInfo {
 	    return;
 	}
 
-	// add the created instance to this perdsisten object
+	// add the created instance to this persistent object
 	ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
 		     ImageInstance.INSTANCE_TYPE_THUMBNAIL );
 	thumbInstance.setRotated( prefRotation -original.getRotated() );

@@ -392,8 +392,6 @@ public class Test_PhotoInfo extends TestCase {
 	} catch ( PhotoNotFoundException e ) {
 	    fail( "Could not find photo: " + e.getMessage() );
 	}
-	// Create the thumbnail so that the database shows that such beast exist
-	photo.createThumbnail();
 
 	// Corrupt the database by deleting the actual image files
 	// that instances refer to
@@ -404,6 +402,8 @@ public class Test_PhotoInfo extends TestCase {
 	    instFile.delete();
 	}
 
+	// Create the thumbnail
+	photo.createThumbnail();
 
 	try {
 	    Thumbnail thumb = photo.getThumbnail();

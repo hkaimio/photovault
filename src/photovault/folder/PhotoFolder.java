@@ -378,7 +378,7 @@ public class PhotoFolder implements PhotoCollection {
     }
 
     /**
-       Returns the root folder for the PhotoFolder hierarchy, i.e. the folder with id 0.
+       Returns the root folder for the PhotoFolder hierarchy, i.e. the folder with id 1.
     */
     public static PhotoFolder getRoot() {
 	getODMGImplementation();

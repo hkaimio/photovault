@@ -136,7 +136,7 @@ public class BrowserWindow extends JFrame {
     
     
     protected TableCollectionView viewPane = null;
-
+  
     /**
        Simple main program for testing the compnent
     */

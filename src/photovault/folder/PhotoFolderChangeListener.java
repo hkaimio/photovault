@@ -7,7 +7,7 @@ import imginfo.*;
 
 
 /**
-   PhotoFolderChangeListener is an extension of PhotoColledtionChangeListener that
+   PhotoFolderChangeListener is an extension of PhotoCollectionChangeListener that
    contains methods to informa also about changes to subfolders or subfolder hierarchy
 */
 
