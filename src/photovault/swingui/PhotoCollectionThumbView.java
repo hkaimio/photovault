@@ -27,20 +27,22 @@ import java.awt.event.MouseEvent;
 /**
    This class implements the default thumbnail view for photo
    collections. Some of the planned features include:
-   <ul>
-   <li> Either vertically or horizontally scrollable view with multiple columns  </li>
+   
+   <ul> <li> Either vertically or horizontally scrollable view with
+   multiple columns </li>
 
    <li> Multiple selection for thumbnails </li>
 
-   <li> Automatic fetching and creation of thumbnails on background if these do not exist 
-   </li>
-   </ul>
+   <li> Automatic fetching and creation of thumbnails on background if
+   these do not exist </li> </ul>
 
    <h1> Selection & drag-n-drop logic</h1>
-   <ul>
-   <li> If mouse is pressed between images, the drag is interpreted as a drag selection </li>
-   <li> If mouse is pressed on top of a thumbnail the drag is interpreted as a drag-n-drop operation </li>
-   </ul>
+
+   <ul> <li> If mouse is pressed between images, the drag is
+   interpreted as a drag selection </li>
+
+   <li> If mouse is pressed on top of a thumbnail the drag is
+   interpreted as a drag-n-drop operation </li> </ul>
 
    @author Harri Kaimio
 
@@ -60,8 +62,12 @@ public class PhotoCollectionThumbView
     public PhotoCollectionThumbView() {
         super();
         createUI();
+	thumbCreatorThread = new ThumbCreatorThread( this );
+	thumbCreatorThread.start();
     }
 
+    ThumbCreatorThread thumbCreatorThread;
+    
     /**
      * Returns the currently displayed photo collection or <code>null</code> if none specified
      */
@@ -194,7 +200,9 @@ public class PhotoCollectionThumbView
     void createUI() {
       photoTransferHandler = new PhotoCollectionTransferHandler( this );
         setTransferHandler( photoTransferHandler );
-        
+
+	setAutoscrolls( true );
+	
         addMouseListener( this );
         addMouseMotionListener( this );
 
@@ -202,21 +210,28 @@ public class PhotoCollectionThumbView
 
         // Create the popup menu
         popup = new JPopupMenu();
-        JMenuItem propsItem = new JMenuItem( "Properties" );
-        propsItem.addActionListener( this );
-        propsItem.setActionCommand( PHOTO_PROPS_CMD );
-        JMenuItem showItem = new JMenuItem( "Show image" );
-        showItem.addActionListener( this );
-        showItem.setActionCommand( PHOTO_SHOW_CMD );
-        JMenuItem rotateCW = new JMenuItem( "Rotate 90 deg CW" );
-        rotateCW.addActionListener( this );
-        rotateCW.setActionCommand( PHOTO_ROTATE_CW_CMD );
-        JMenuItem rotateCCW = new JMenuItem( "Rotate 90 deg CCW" );
-        rotateCCW.addActionListener( this );
-        rotateCCW.setActionCommand( PHOTO_ROTATE_CCW_CMD );
-        JMenuItem rotate180deg = new JMenuItem( "Rotate 180 degrees" );
-        rotate180deg.addActionListener( this );
-        rotate180deg.setActionCommand( PHOTO_ROTATE_180_CMD );
+	editSelectionPropsAction = 
+	    new EditSelectionPropsAction( this, "Properties...", null, 
+					  "Edit properties of the selected photos",
+					  KeyEvent.VK_P );
+        JMenuItem propsItem = new JMenuItem( editSelectionPropsAction );
+	showSelectedPhotoAction =
+	    new ShowSelectedPhotoAction( this, "Show image", null,
+					 "Show the selected phot(s)",
+					 KeyEvent.VK_S );
+        JMenuItem showItem = new JMenuItem( showSelectedPhotoAction );
+	rotateCWAction =
+	    new RotateSelectedPhotoAction( this, 90, "Rotate 90 deg CW",
+					   null, "Rotates the selected photo",
+					   KeyEvent.VK_R );
+        JMenuItem rotateCW = new JMenuItem( rotateCWAction );
+	rotateCCWAction
+	    = new RotateSelectedPhotoAction( this, 270, "Rotate 90 deg CCW",
+					     null, "Rotates the selected photo",
+					     KeyEvent.VK_W );
+        JMenuItem rotateCCW = new JMenuItem( rotateCCWAction );
+	rotate180degAction = new RotateSelectedPhotoAction( this, 180, "Rotate 180 deg", null, "Rotates the selected photo", KeyEvent.VK_R );
+        JMenuItem rotate180deg = new JMenuItem( rotate180degAction );
         JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
         addToFolder.addActionListener( this );
         addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
@@ -236,18 +251,37 @@ public class PhotoCollectionThumbView
 
 
     // Popup menu actions
-    private static final String PHOTO_PROPS_CMD = "photoProps";
-    private static final String PHOTO_SHOW_CMD = "photoShow";
-    private static final String PHOTO_ROTATE_CW_CMD = "rotateCW";
-    private static final String PHOTO_ROTATE_CCW_CMD = "rotateCCW";
-    private static final String PHOTO_ROTATE_180_CMD = "rotate180";
     private static final String PHOTO_ADD_TO_FOLDER_CMD = "addToFolder";
     private AbstractAction exportSelectedAction;
+    private AbstractAction editSelectionPropsAction;
+    private AbstractAction showSelectedPhotoAction;
+    private AbstractAction rotateCWAction;
+    private AbstractAction rotateCCWAction;
+    private AbstractAction rotate180degAction;
 
     public AbstractAction getExportSelectedAction() {
 	return exportSelectedAction;
     }
 
+    public AbstractAction getEditSelectionPropsAction() {
+	return editSelectionPropsAction;
+    }
+
+    public AbstractAction getShowSelectedPhotoAction() {
+	return showSelectedPhotoAction;
+    }
+
+    public AbstractAction getRotateCWActionAction() {
+	return rotateCWAction;
+    }
+    
+    public AbstractAction getRotateCCWActionAction() {
+	return rotateCCWAction;
+    }
+    
+    public AbstractAction getRotate180degActionAction() {
+	return rotate180degAction;
+    }
     
     public void paint( Graphics g ) {
         super.paint( g );
@@ -299,61 +333,68 @@ public class PhotoCollectionThumbView
         int ypos = starty + rowHeight/2;
 
         if ( photo != null ) {
-            Thumbnail thumbnail = photo.getThumbnail();
-        
-            if ( thumbnail != null ) {
-                // Find the position for the thumbnail
-                BufferedImage img = thumbnail.getImage();
-                int x = startx + (columnWidth - img.getWidth())/(int)2;
-                int y = starty + (rowHeight -  img.getHeight())/(int)2;
-                
-                g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
-                if ( isSelected ) {
-                    Stroke prevStroke = g2.getStroke();
-                    Color prevColor = g2.getColor();
-                    g2.setStroke( new BasicStroke( 3.0f) );
-                    g2.setColor( Color.BLUE );
-                    g2.drawRect( x, y, img.getWidth(), img.getHeight() );
-                    g2.setColor( prevColor );
-                    g2.setStroke( prevStroke );
-                }
-                // Increase ypos so that attributes are drawn under the image
-                ypos += ((int)img.getHeight())/2 + 4;
-            }
+	    Thumbnail thumbnail = null;
+	    if ( photo.hasThumbnail() ) {
+		thumbnail = photo.getThumbnail();
+	    } else {
+		thumbnail = Thumbnail.getDefaultThumbnail();
+		if ( !thumbCreatorThread.isBusy() ) {
+		    thumbCreatorThread.createThumbnail( photo );
+		}
+	    }
+
+	    // Find the position for the thumbnail
+	    BufferedImage img = thumbnail.getImage();
+	    int x = startx + (columnWidth - img.getWidth())/(int)2;
+	    int y = starty + (rowHeight -  img.getHeight())/(int)2;
             
-            // Draw the attributes
-            Color prevBkg = g2.getBackground();
-            if ( isSelected ) {
-                g2.setBackground( Color.BLUE );
-            }
-            Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
-            FontRenderContext frc = g2.getFontRenderContext();
-            if ( showDate && photo.getShootTime() != null ) {
-                DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
-                String dateStr = df.format( photo.getShootTime() );
-                TextLayout txt = new TextLayout( dateStr, attrFont, frc );
-                // Calculate the position for the text
-                Rectangle2D bounds = txt.getBounds();
-                int xpos = startx + ((int)(columnWidth - bounds.getWidth()))/2 - (int)bounds.getMinX();
-                g2.clearRect( xpos-2, ypos-2,
-                              (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
-                txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
-                ypos += bounds.getHeight() + 4;
-            }
-            String shootPlace = photo.getShootingPlace();
-            if ( showPlace && shootPlace != null && shootPlace.length() > 0  ) {
-                TextLayout txt = new TextLayout( photo.getShootingPlace(), attrFont, frc );
-                // Calculate the position for the text
-                Rectangle2D bounds = txt.getBounds();
-                int xpos = startx + ((int)(columnWidth-bounds.getWidth()))/2 - (int)bounds.getMinX();
-                
-                g2.clearRect( xpos-2, ypos-2,
-                              (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
-                txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
-                ypos += bounds.getHeight() + 4;
-            }
-            g2.setBackground( prevBkg );
-        }
+	    g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
+	    if ( isSelected ) {
+		Stroke prevStroke = g2.getStroke();
+		Color prevColor = g2.getColor();
+		g2.setStroke( new BasicStroke( 3.0f) );
+		g2.setColor( Color.BLUE );
+		g2.drawRect( x, y, img.getWidth(), img.getHeight() );
+		g2.setColor( prevColor );
+		g2.setStroke( prevStroke );
+	    }
+	    // Increase ypos so that attributes are drawn under the image
+	    ypos += ((int)img.getHeight())/2 + 4;
+	    
+	
+	    // Draw the attributes
+	    Color prevBkg = g2.getBackground();
+	    if ( isSelected ) {
+		g2.setBackground( Color.BLUE );
+	    }
+	    Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
+	    FontRenderContext frc = g2.getFontRenderContext();
+	    if ( showDate && photo.getShootTime() != null ) {
+		DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
+		String dateStr = df.format( photo.getShootTime() );
+		TextLayout txt = new TextLayout( dateStr, attrFont, frc );
+		// Calculate the position for the text
+		Rectangle2D bounds = txt.getBounds();
+		int xpos = startx + ((int)(columnWidth - bounds.getWidth()))/2 - (int)bounds.getMinX();
+		g2.clearRect( xpos-2, ypos-2,
+			      (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
+		txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
+		ypos += bounds.getHeight() + 4;
+	    }
+	    String shootPlace = photo.getShootingPlace();
+	    if ( showPlace && shootPlace != null && shootPlace.length() > 0  ) {
+		TextLayout txt = new TextLayout( photo.getShootingPlace(), attrFont, frc );
+		// Calculate the position for the text
+		Rectangle2D bounds = txt.getBounds();
+		int xpos = startx + ((int)(columnWidth-bounds.getWidth()))/2 - (int)bounds.getMinX();
+		
+		g2.clearRect( xpos-2, ypos-2,
+			      (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
+		txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
+		ypos += bounds.getHeight() + 4;
+	    }
+	    g2.setBackground( prevBkg );
+	}
     }
 
 
@@ -375,17 +416,7 @@ public class PhotoCollectionThumbView
      */
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
-        if ( cmd == PHOTO_PROPS_CMD ) {
-            showSelectionPropsDialog();
-        } else if ( cmd == PHOTO_SHOW_CMD ) {
-            showSelectedPhoto();
-        } else if ( cmd == PHOTO_ROTATE_CW_CMD ) {
-            rotateSelectedPhoto( 90 );
-        } else if ( cmd == PHOTO_ROTATE_CCW_CMD ) {
-            rotateSelectedPhoto( -90 );
-        } else if ( cmd == PHOTO_ROTATE_180_CMD ) {
-            rotateSelectedPhoto( 180 );
-        } else if ( cmd == PHOTO_ADD_TO_FOLDER_CMD ) {
+	if ( cmd == PHOTO_ADD_TO_FOLDER_CMD ) {
             queryForNewFolder();
         }
     }
@@ -398,8 +429,9 @@ public class PhotoCollectionThumbView
     }
 
     /**
-       This method is called when a PhotoInfo that is visible in the view is changed. it redraws the
-       thumbnail & texts ascociated with it
+       This method is called when a PhotoInfo that is visible in the
+       view is changed. it redraws the thumbnail & texts ascociated
+       with it
     */
     public void photoInfoChanged( PhotoInfoChangeEvent ev ) {
 	PhotoInfo photo = (PhotoInfo) ev.getSource();
@@ -478,6 +510,48 @@ public class PhotoCollectionThumbView
 	return null;
     }
 
+
+    /**
+       This method is called by @see ThumbnailCreatorThread after it has
+       created a thumbnail. The method checks if there are still photos
+       with no thumbnail and if such a photo exists it orders the thread
+       to create a thumbnail for it.
+    */
+    public void thumbnailCreated( PhotoInfo photo ) {
+	Container parent = getParent();
+	Rectangle viewRect = null;
+	if ( parent instanceof JViewport ) {
+	    viewRect = ((JViewport)parent).getViewRect();
+	}
+
+	PhotoInfo nextPhoto = null;
+	
+	// Walk through all phoso until we find a photo that is visible
+	// and does not have a thumbnail
+	for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
+            PhotoInfo photoCandidate = photoCollection.getPhoto( n );
+	    if ( !photoCandidate.hasThumbnail() ) {
+		Rectangle photoRect = getPhotoBounds( n );
+		if ( photoRect.intersects( viewRect )  ) {
+		    // This photo is visible so it is a perfect candidate
+		    // for thumbnail creation. Do not look further
+		    nextPhoto = photoCandidate;
+		    break;
+		} else if ( nextPhoto == null ) {
+		    // Not visible but no photo without thumbnail has been
+		    // found previously. Store as a candidate and keep looking.
+		    nextPhoto = photoCandidate;
+		}		    
+	    }
+	}
+	if ( nextPhoto != null ) {
+	    thumbCreatorThread.createThumbnail( nextPhoto );
+	}
+
+	// Finally, draw the created thumbnail
+	repaintPhoto( photo );
+    }
+    
     /**
        The mouse press event that started current drag
      */
@@ -659,6 +733,8 @@ public class PhotoCollectionThumbView
 	default:
 	    log.error( "Invalid drag type" );
 	}
+        Rectangle r = new Rectangle(e.getX(), e.getY(), 1, 1);
+        scrollRectToVisible(r);	
     }
 
     protected void handleSelectionDragEvent( MouseEvent e ) {
@@ -718,78 +794,10 @@ public class PhotoCollectionThumbView
     
     PhotoInfoDlg propertyDlg = null;
     
-    /**
-       Show the PhotoInfoEditor dialog for the selected photo
-    */
-    public void showSelectionPropsDialog() {
-
-        if ( selection.size() == 0 ) {
-            return;
-        }
-        Iterator iter = selection.iterator();
-        PhotoInfo[] selectedPhotos = new PhotoInfo[selection.size()];
-        int i = 0;
-        while ( iter.hasNext() && i < selectedPhotos.length ) {
-            selectedPhotos[i++] = (PhotoInfo) iter.next();
-        }
-	
-        // Try to find the frame in which this component is in
-        Frame frame = null;
-        Container c = getTopLevelAncestor();
-        if ( c instanceof Frame ) {
-            frame = (Frame) c;
-        }
-
-        if (propertyDlg == null ) {
-            propertyDlg = new PhotoInfoDlg( frame, true, selectedPhotos );
-        } else {
-            propertyDlg.setPhotos( selectedPhotos );
-        }
-
-        propertyDlg.showDialog();
-    }
     
     JFrame frame = null;
     PhotoViewer viewer = null;
 
-    /**
-       Shows the selected photo in a popup window
-    */
-    public void showSelectedPhoto() {
-        try {
-            Collection selectedPhotos = getSelection();
-            Iterator iter = selectedPhotos.iterator();
-            while ( iter.hasNext() ) {
-                PhotoInfo photo = (PhotoInfo) iter.next();
-                JFrame frame = new JFrame( "Photo" );
-                final PhotoViewer viewer = new PhotoViewer();
-                frame.getContentPane().add( viewer, BorderLayout.CENTER );
-                frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-
-                // This is a WAR for a memory management problem. For
-                // some reason the frame and objects owned by it seem
-                // not to be garbage collected. So we free the large
-                // image buffers to avoid massive memory leak.
-                
-                frame.addWindowListener( new WindowAdapter() {
-                        public void windowClosing( WindowEvent e ) {
-                            viewer.setPhoto( null );
-                        }
-                    } );
-                log.warn( "Created frame" );
-                viewer.setPhoto( photo );
-                log.warn( "Photo set" );
-                frame.pack();
-                log.warn( "Frame packed" );
-                frame.setVisible( true );
-                log.warn( "Frame visible" );
-            }
-        } catch ( Throwable e ) {
-            System.err.println( "Out of memory error" );
-            log.warn( e );
-            e.printStackTrace();
-        }
-    }
 
     /**
        Queries the user for a new folder into which the photo will be added.
@@ -817,19 +825,4 @@ public class PhotoCollectionThumbView
         }
     }
 
-    /**
-       Rotate selected photo by specified amount
-       @param rot Rotation in degrees, positive means clockwise
-    */
-    public void rotateSelectedPhoto( double rot ) {
-        Collection selectedPhotos = getSelection();
-        Iterator iter = selectedPhotos.iterator();
-        while ( iter.hasNext() ) {
-            PhotoInfo photo = (PhotoInfo) iter.next();
-            if ( photo != null ) {
-                double curRot = photo.getPrefRotation();
-                photo.setPrefRotation( curRot + rot );
-            }
-        }
-    }
 }

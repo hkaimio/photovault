@@ -122,7 +122,7 @@ public class QueryPane extends JPanel implements ActionListener {
 	String desc = basicFields.getDescription();
 	if( desc.length() > 0 ) {
 	    query.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION,
-				   desc );
+				   "%" + desc + "%" );
 	}
 	String shootingPlace = basicFields.getShootingPlace();
 	if( shootingPlace.length() > 0 ) {

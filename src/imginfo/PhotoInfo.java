@@ -18,6 +18,7 @@ import com.drew.imaging.jpeg.*;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;
 import photovault.folder.*;
+
 /**
    PhotoInfo represents information about a single photograph
    TODO: write a decent doc!
@@ -341,10 +342,32 @@ public class PhotoInfo {
 	}
 	if ( thumbnail == null ) {
 	    // Thumbnail creating was not successful, most probably because there is no available instance
-	    return Thumbnail.getDefaultThumbnail();
+// 	    return Thumbnail.getDefaultThumbnail();
+	    thumbnail = Thumbnail.getDefaultThumbnail();
 	}
 	    
 	return thumbnail;
+    }
+
+    /**
+       Returns true if the photo has a Thumbnail already created,
+       false otherwise
+    */
+    public boolean hasThumbnail() {
+	log.debug( "Finding thumbnail for " + uid );
+	if ( thumbnail == null ) {
+	    // First try to find an instance from existing instances
+	    ImageInstance original = null;
+	    for ( int n = 0; n < instances.size(); n++ ) {
+		ImageInstance instance = (ImageInstance) instances.get( n );
+		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
+		     && instance.getRotated() == prefRotation ) {
+		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
+		    break;
+		} 
+	    }
+	}
+	return ( thumbnail != null );
     }
 
     Thumbnail thumbnail = null;
@@ -354,6 +377,7 @@ public class PhotoInfo {
     */
     protected void createThumbnail( Volume volume ) {
 
+	log.warn( "Creating thumbnail" );
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	
@@ -373,6 +397,7 @@ public class PhotoInfo {
 	    txw.commit();
 	    return;
 	}
+	log.warn( "Found original, reading it..." );
 	
 	// Read the image
 	BufferedImage origImage = null;
@@ -383,9 +408,11 @@ public class PhotoInfo {
 	    txw.abort();
 	    return;
 	}
+	log.warn( "Done, finding name" );
 	
 	// Find where to store the file in the target volume
 	File thumbnailFile = volume.getInstanceName( this, "jpg" );
+	log.warn( "name = " + thumbnailFile.getName() );
 	
 	// Shrink the image to desired state and save it
 	// Find first the correct transformation for doing this
@@ -401,9 +428,11 @@ public class PhotoInfo {
 	
 
 	// Create the target image
-	AffineTransformOp atOp = new AffineTransformOp( xform, AffineTransformOp.TYPE_BILINEAR );
+	AffineTransformOp atOp = new AffineTransformOp( xform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR );
+	log.warn( "Filtering..." );
 	
 	BufferedImage thumbImage = atOp.filter( origImage, null );
+	log.warn( "done Filtering..." );
 
 	// Save it
 	try {	    
@@ -418,6 +447,7 @@ public class PhotoInfo {
 	ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
 		     ImageInstance.INSTANCE_TYPE_THUMBNAIL );
 	thumbInstance.setRotated( prefRotation -original.getRotated() );
+	log.warn( "Loading thumbnail..." );
 	
 	thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
 	txw.commit();
@@ -507,21 +537,26 @@ public class PhotoInfo {
 		    writer.setOutput(ios);
 		    // Set some parameters
 		    ImageWriteParam param = writer.getDefaultWriteParam();
-		    // 		if (quality >= 0.0 && quality <= 1.0) 
-		    // 		    param.setCompressionQuality(quality);
-		    // if bi has type ARGB and alpha is false, we have to tell the writer to not use the alpha channel:
-		    // this is especially needed for jpeg files where imageio seems to produce wrong jpeg files right now...
+		    // if bi has type ARGB and alpha is false, we have
+		    // to tell the writer to not use the alpha
+		    // channel: this is especially needed for jpeg
+		    // files where imageio seems to produce wrong jpeg
+		    // files right now...
 		    if (exportImage.getType() == BufferedImage.TYPE_INT_ARGB ) {
-			// this is not so obvious:
-			// create a new ColorModel without OPAQUE transparency and no alpha channel.
+			// this is not so obvious: create a new
+			// ColorModel without OPAQUE transparency and
+			// no alpha channel.
 			ColorModel cm = new ComponentColorModel(exportImage.getColorModel().getColorSpace(), 
 								false, false, 
 								Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
 			// tell the writer to only use the first 3 bands (skip alpha)
 			int[] bands = {0, 1, 2};
 			param.setSourceBands(bands);
-			// although the java documentation says that SampleModel can be null, an exception is thrown in that case
-			// therefore a 1*1 SampleModel that is compatible to cm is created:
+			// although the java documentation says that
+			// SampleModel can be null, an exception is
+			// thrown in that case therefore a 1*1
+			// SampleModel that is compatible to cm is
+			// created:
 			param.setDestinationType(new ImageTypeSpecifier(cm, 
 									cm.createCompatibleSampleModel(1, 1)));
 		    }

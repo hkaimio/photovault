@@ -84,6 +84,7 @@ public class BrowserWindow extends JFrame {
 	// Create the menu bar & menus
 	JMenuBar menuBar = new JMenuBar();
 	setJMenuBar( menuBar );
+	// File menu
 	JMenu fileMenu = new JMenu( "File" );
 	fileMenu.setMnemonic(KeyEvent.VK_F);
 	menuBar.add( fileMenu );
@@ -105,12 +106,6 @@ public class BrowserWindow extends JFrame {
 	    });
 	fileMenu.add( importItem );
 
-// 	JMenuItem exportItem = new JMenuItem( "Export image...", KeyEvent.VK_E );
-// 	exportItem.addActionListener( new ActionListener() {
-// 		public void actionPerformed( ActionEvent e ) {
-// 		    exportSelected();
-// 		}
-// 	    });
 	JMenuItem exportItem = new JMenuItem( viewPane.getExportSelectedAction() );
 	fileMenu.add( exportItem );
 
@@ -122,15 +117,27 @@ public class BrowserWindow extends JFrame {
 		}
 	    });	
 	fileMenu.add( exitItem );
+
+	JMenu imageMenu = new JMenu( "Image" );
+	imageMenu.setMnemonic(KeyEvent.VK_I);
+	menuBar.add( imageMenu );
+
+	imageMenu.add( new JMenuItem( viewPane.getEditSelectionPropsAction() ) );
+	imageMenu.add( new JMenuItem( viewPane.getShowSelectedPhotoAction() ) );
+	imageMenu.add( new JMenuItem( viewPane.getRotateCWActionAction() ) );
+	imageMenu.add( new JMenuItem( viewPane.getRotateCCWActionAction() ) );
+	imageMenu.add( new JMenuItem( viewPane.getRotate180degActionAction() ) );
+
 	pack();
 	setVisible( true );
     }
 
-    /**
-       Shows an file selection dialog that allows user to select a file to import. After
-       that shows the PhotoInfo dialog to allow the user to edit the eriginal information
-       about the file.
+    /** 
+	Shows an file selection dialog that allows user to select a
+	file to import. After that shows the PhotoInfo dialog to allow the
+	user to edit the eriginal information about the file. 
     */
+
     protected void importFile() {
 	// Show the file chooser dialog
 	JFileChooser fc = new JFileChooser();
