@@ -26,9 +26,17 @@ public class PhotoView extends JPanel {
 	}
 	Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	int compWidth = getWidth();
+	int compHeight = getHeight();
 	
-	if ( xformImage != null ) {	    
-	    g2.drawImage( xformImage, new AffineTransform(1f,0f,0f,1f,0,0), null );
+	if ( xformImage != null ) {
+
+	    // Determine the place for the image. If the image is smaller that window, center it
+	    int imgWidth = xformImage.getWidth();
+	    int imgHeight = xformImage.getHeight();
+	    int x = (compWidth-imgWidth)/2;
+	    int y = (compHeight-imgHeight)/2;
+	    g2.drawImage( xformImage, new AffineTransform(1f,0f,0f,1f, x, y), null );
 	}
     }
 
@@ -55,6 +63,7 @@ public class PhotoView extends JPanel {
 	imgScale = newValue;
 	// Invalidate the existing scaled image
 	xformImage = null;
+	fitSize = false;
 	revalidate();
     }
     
@@ -76,7 +85,9 @@ public class PhotoView extends JPanel {
     private double imgRot;
     
     /**
-       Returns the width of the currently displayed image
+       Returns the width of the currently displayed image. Note that the original image may be rotated for
+       displaying it correctly, so this cannot be used to calculate e.g. scaling needed to fit the image
+       to certain dimensions.
     */
     public int getOrigWidth() {
 	if ( origImage == null ) {
@@ -94,6 +105,21 @@ public class PhotoView extends JPanel {
 	}
 	return origImage.getHeight();
     }
+
+    /**
+       Set the scaling so that the image fits inside given dimensions
+       @param maxWidth The maximum width of the scaled image
+       @param maxHeight The maximum height of the scaped image
+    */
+    public void fitToRect( double width, double height ) {
+	//	System.err.println( "Fitting to " + width + ", " + height );
+	fitSize = true;
+	maxWidth = width;
+	maxHeight = height;
+	// Revalidate the geometry & image size
+	xformImage = null;
+	revalidate();
+    }
     
     private void prepareXformImage() {
 	if ( origImage == null ) {
@@ -105,8 +131,14 @@ public class PhotoView extends JPanel {
 	setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
 	
 	// Create the zoom xform
-	AffineTransform at = photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
-									origImage.getWidth(), origImage.getHeight() );
+	AffineTransform at = null;
+	if ( fitSize ) {
+	    at = photovault.image.ImageXform.getFittingXform( (int)maxWidth, (int)maxHeight, imgRot,
+						       origImage.getWidth(), origImage.getHeight() );
+	} else {
+	    at = photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
+						       origImage.getWidth(), origImage.getHeight() );
+	}
 	AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
 
 	// Create the target image
@@ -146,5 +178,20 @@ public class PhotoView extends JPanel {
     BufferedImage xformImage = null;
     // scale of the image
     float imgScale = 1.0f;
+
+    /**
+       If true, fits the image size to a maximum.
+    */
+    boolean fitSize = false;
+
+    /**
+       Maximum width of the image if fitSize is true. Otherwise ignored
+    */
+    double maxWidth;
+    /**
+       Maximum height of the image if fitSize is true. Otherwise ignored
+    */
+    double maxHeight;
+    
 }
 	

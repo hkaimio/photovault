@@ -106,19 +106,20 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 
     public void fit() {
 	Dimension displaySize = scrollPane.getSize();
-	int origWidth = imageView.getOrigWidth();
-	int origHeight = imageView.getOrigHeight();
+	imageView.fitToRect( displaySize.getWidth(), displaySize.getHeight() );
+// 	int origWidth = imageView.getOrigWidth();
+// 	int origHeight = imageView.getOrigHeight();
 
-	if ( origWidth > 0 && origHeight > 0 ) {
-	    float widthScale = ((float)displaySize.getWidth())/(float)origWidth;
-	    float heightScale = ((float)displaySize.getHeight())/(float)origHeight;
+// 	if ( origWidth > 0 && origHeight > 0 ) {
+// 	    float widthScale = ((float)displaySize.getWidth())/(float)origWidth;
+// 	    float heightScale = ((float)displaySize.getHeight())/(float)origHeight;
 
-	    float scale = heightScale;
-	    if ( widthScale < heightScale ) {
-		scale = widthScale;
-	    }
-	    setScale( scale );
-	}
+// 	    float scale = heightScale;
+// 	    if ( widthScale < heightScale ) {
+// 		scale = widthScale;
+// 	    }
+// 	    setScale( scale );
+// 	}
     }
 
     public void setPhoto( PhotoInfo photo ) {
