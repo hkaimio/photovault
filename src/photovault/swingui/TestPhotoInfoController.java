@@ -16,7 +16,6 @@ public class TestPhotoInfoController extends TestCase {
 
 	photo.setPhotographer( "TESTIKUVAAJA" );
 	photo.setFStop( 5.6 );
-	photo.updateDB();
 
 	ctrl = new PhotoInfoController();
     }

@@ -67,37 +67,6 @@ public class PhotoInfo {
 	return photo;
     }
 
-
-    // Not needed with OJB
-
-//     /**
-//        This method reads a PhotoInfo structure from the current position in ResultSet.
-//        @param rs The ResultSet
-//        @return PhotoInfo object created or null if not succesful
-//     */
-//     public static PhotoInfo createFromResultSet( ResultSet rs ) {
-// 	PhotoInfo photo = null;
-// 	try {
-// 	    photo = new PhotoInfo();
-// 	    photo.uid = rs.getInt( "photo_id" );
-// 	    photo.shootingPlace = rs.getString( "shooting_place" );
-// 	    photo.photographer = rs.getString( "photographer" );
-// 	    photo.FStop = rs.getDouble( "f_stop" );
-// 	    photo.focalLength = rs.getDouble( "focal_length" );
-// 	    photo.shootTime = rs.getDate( "shoot_time" );
-// 	    photo.shutterSpeed = rs.getDouble( "shutter_speed" );
-// 	    photo.camera = rs.getString( "camera" );
-// 	    photo.lens = rs.getString( "lens" );
-// 	    photo.film = rs.getString( "film" );
-// 	    photo.filmSpeed = rs.getInt( "film_speed" );
-// 	    photo.prefRotation = rs.getDouble( "pref_rotation" );
-// 	    photo.description = rs.getString( "description" );
-// 	} catch ( SQLException e ) {
-// 	    log.warn( "Error fetching record: " + e.getMessage() );
-// 	}
-// 	return photo;
-//     }
-	    
     
     /**
        Createas a new persistent PhotoInfo object and stores it in database
@@ -231,9 +200,6 @@ public class PhotoInfo {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	
 	// First delete all instances
-	if ( instances == null ) {
-	    getInstances();
-	}
 	for ( int i = 0; i < instances.size(); i++ ) {
 	    ImageInstance f = (ImageInstance) instances.get( i );
 	    f.delete();
@@ -245,39 +211,6 @@ public class PhotoInfo {
     }
 	
 
-    // Not needed with OJB
-//     /**
-//        Updates  the object state to database
-//     */
-//     public void updateDB() {
-// 	String sql = "UPDATE photos SET shooting_place = ?, photographer = ?, f_stop = ?, focal_length = ?, shoot_time = ?, shutter_speed = ?, camera = ?, lens = ?, film = ?, film_speed = ?, pref_rotation = ?, description = ? WHERE photo_id = ?";
-// 	try {
-// 	    Connection conn = ImageDb.getConnection();
-// 	    PreparedStatement stmt = conn.prepareStatement( sql );
-// 	    stmt.setString( 1, shootingPlace );
-// 	    stmt.setString( 2, photographer );
-// 	    stmt.setDouble( 3, FStop );
-// 	    stmt.setDouble( 4, focalLength );
-// 	    // setDate requires a java.sql.Date object, so make a cast
-// 	    if ( shootTime != null ) {
-// 		stmt.setDate( 5, new java.sql.Date( shootTime.getTime() ) );
-// 	    } else {		
-// 		stmt.setDate( 5, null );
-// 	    }
-// 	    stmt.setDouble( 6, shutterSpeed );
-// 	    stmt.setString( 7, camera );
-// 	    stmt.setString( 8, lens );
-// 	    stmt.setString( 9, film );
-// 	    stmt.setInt( 10, filmSpeed );
-// 	    stmt.setDouble( 11, prefRotation );
-// 	    stmt.setString( 12, description );
-// 	    stmt.setInt( 13, uid );
-// 	    stmt.executeUpdate();
-// 	    stmt.close();
-// 	} catch (SQLException e ) {
-// 	    log.warn( "Error executing update: " + e.getMessage() );
-// 	}
-//     }
 
     /**
        Adds a new listener to the list that will be notified of modifications to this object
@@ -378,6 +311,7 @@ public class PhotoInfo {
        a default thumbnail image.
     */
     public Thumbnail getThumbnail() {
+	log.debug( "Finding thumbnail for " + uid );
 	if ( thumbnail == null ) {
 	    // First try to find an instance from existing instances
 	    ImageInstance original = null;
@@ -385,8 +319,9 @@ public class PhotoInfo {
 		ImageInstance instance = (ImageInstance) instances.get( n );
 		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
 		     && instance.getRotated() == prefRotation ) {
-		    log.debug( "Found existing thumbnail" );
+		    log.warn( "Found existing thumbnail instance, image file " + instance.getImageFile() );
 		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
+		    log.warn( "Thumbnail in use" );
 		    break;
 		} 
 	    }

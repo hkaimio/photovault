@@ -5,6 +5,7 @@ package photovault.swingui;
 import java.util.*;
 import java.io.*;
 import imginfo.*;
+import dbhelper.*;
 import org.apache.log4j.Logger;
 
 /**
@@ -333,6 +334,9 @@ public class PhotoInfoController {
        @throws PhotoNotFoundException if the original image cound not be located
     */
     public void save() throws PhotoNotFoundException {
+	// Get a transaction context (whole saving operation should be done in a single transaction)
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+
 	// Check if we already have a PhotoInfo object to control
 	if ( isCreatingNew ) {
 	    if ( originalFile != null ) {
@@ -353,9 +357,7 @@ public class PhotoInfoController {
 	    FieldController fieldCtrl = (FieldController) fieldIter.next();
 	    fieldCtrl.save();
 	}
-	if ( photo != null ) {
-	    photo.updateDB();
-	}
+	txw.commit();
     }
 
     /**

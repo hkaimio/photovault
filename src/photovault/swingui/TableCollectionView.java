@@ -224,7 +224,6 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	if ( photo != null ) {
 	    double curRot = photo.getPrefRotation();
 	    photo.setPrefRotation( curRot + rot );
-	    photo.updateDB();
 	}
     }
     

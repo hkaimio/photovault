@@ -44,13 +44,15 @@
   </class-descriptor>
 
   <!-- ImageInstance mappings -->
-  <class-descriptor class="imginfo.ImageInstance" table="image_instances">
+  <class-descriptor class="imginfo.ImageInstance" table="image_instances" row-reader="imginfo.ImageInstanceRowReader">
     <field-descriptor name="volumeId" column="volume_id" jdbc-type="VARCHAR" primarykey="true" nullable="false">
       <documentation></documentation>
     </field-descriptor>
     <field-descriptor name="fname" column="fname" jdbc-type="VARCHAR" primarykey="true" nullable="false">
     </field-descriptor>
     <field-descriptor name="photoUid" column="photo_id" jdbc-type="INTEGER">
+    </field-descriptor>
+    <field-descriptor name="instanceType" column="instance_type" jdbc-type="VARCHAR" conversion="imginfo.OJBInstanceTypeConversion">
     </field-descriptor>
     <field-descriptor name="width" column="width" jdbc-type="INTEGER">
     </field-descriptor>

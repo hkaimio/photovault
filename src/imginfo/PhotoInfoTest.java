@@ -550,6 +550,7 @@ public class PhotoInfoTest extends TestCase {
 	assertTrue( "no notification when changing description", l1.isNotified );
 	photo.delete();
     }
+
     public static void main( String[] args ) {
 	//	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );

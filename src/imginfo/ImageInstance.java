@@ -87,6 +87,21 @@ public class ImageInstance {
 	return instance;
     }
 
+    /**
+       Inits the complext attributes vulome and imageFile. Since these are not mapped directly to database columns,
+       this function will be called by OJB Rowreader to initialize these correctly after the object has been
+       read from database.
+    */
+    protected void initFileAttrs() {
+	volume = Volume.getVolume( volumeId );
+	try {
+	    imageFile = volume.mapFileName( fname );
+	} catch ( Exception e ) {
+	    log.warn( "Error while initializing imageFile: " + e.getMessage() );
+	}
+    }
+    
+    
     // Unnecessary when using OJB
 //     /**
 //        Retrieve all instances of a specified photo from DB
@@ -250,6 +265,7 @@ public class ImageInstance {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	this.volume = v;
+	volumeId = volume.getName();
 	txw.commit();
     }
 
@@ -284,6 +300,7 @@ public class ImageInstance {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	this.imageFile = v;
+	fname = imageFile.getName();
 	txw.commit();
     }
 
@@ -375,7 +392,7 @@ public class ImageInstance {
     */
     final public static int INSTANCE_TYPE_THUMBNAIL = 3;
     
-    int instanceType;
+    int instanceType = INSTANCE_TYPE_ORIGINAL;
     
     /**
      * Get the value of instanceType.

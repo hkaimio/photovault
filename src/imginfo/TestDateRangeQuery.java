@@ -33,7 +33,6 @@ public class TestDateRangeQuery extends TestCase {
     PhotoInfo makePhoto( Calendar cal ) {
 	PhotoInfo photo = PhotoInfo.create();
 	photo.setShootTime( cal.getTime() );
-	photo.updateDB();
 	int uid = photo.getUid();
 	log.debug( "Created photo " + uid + " " + photo.getShootTime() );
 	photos.add( photo );
@@ -159,6 +158,13 @@ public class TestDateRangeQuery extends TestCase {
 	assertFalse( "Removed listener notified", l1.notified );
     }
 	
+    public static void main( String[] args ) {
+	//	org.apache.log4j.BasicConfigurator.configure();
+	log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger photoLog = org.apache.log4j.Logger.getLogger( DateRangeQuery.class.getName() );
+	photoLog.setLevel( org.apache.log4j.Level.DEBUG );
+	junit.textui.TestRunner.run( suite() );
+    }
 	
 	
     public static Test suite() {

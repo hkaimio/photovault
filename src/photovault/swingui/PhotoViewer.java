@@ -133,7 +133,7 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 
 	// Find the original file
 	ImageInstance original = null;
-	ArrayList instances = photo.getInstances();
+	Vector instances = photo.getInstances();
 	for ( int n = 0; n < instances.size(); n++ ) {
 	    ImageInstance instance = (ImageInstance) instances.get( n );
 	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {

@@ -6,6 +6,7 @@ package imginfo;
 import java.util.*;
 import java.sql.*;
 import dbhelper.*;
+import org.odmg.*;
 
 /**
    DateRangeQuery is a simple query that retrieves all photos that have 
@@ -61,44 +62,53 @@ public class DateRangeQuery implements PhotoCollection {
     */
     protected void query() {
 	photos.clear();
-	StringBuffer sqlBuf = new StringBuffer( "select * from photos" );
+
+	// Set up the query
+	
+	StringBuffer oqlBuf = new StringBuffer( "select photos from " + PhotoInfo.class.getName() );
+
+	// Params for the OQL query
+	Vector params = new Vector();
+	int paramCount = 0;
+
+	// Sche if there is start or end date set and modify the query accordingly
 	if ( startDate != null || endDate != null ) {
-	    sqlBuf.append( " where " );
+	    oqlBuf.append( " where " );
 	    if ( startDate != null ) {
-		sqlBuf.append( "shoot_time >= ? " );
+		++ paramCount;
+		params.add( startDate );
+		oqlBuf.append( "shootTime >= $" + paramCount + " " );
 	    }
 	    if ( endDate != null ) {
 		if ( startDate != null ) {
-		    sqlBuf.append( "and " );
+		    oqlBuf.append( "and " );
 		}
-		sqlBuf.append( "shoot_time <= ?" );
+		++ paramCount;
+		params.add( endDate );
+		oqlBuf.append( "shootTime <= $" + paramCount + " " );
 	    }
 	}
-	log.debug( "Date rage query: " + sqlBuf.toString() );
+	log.debug( "Date rage query: " + oqlBuf.toString() );
+
+	// Get transaction context
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	Implementation odmg = ODMG.getODMGImplementation();
 
 	try {
-	    Connection conn = ImageDb.getConnection();
-	    PreparedStatement stmt = conn.prepareStatement( sqlBuf.toString() );
-	    int param = 1;
-	    if ( startDate != null ) {
-		stmt.setDate( param, new java.sql.Date( startDate.getTime() ) );
-		param++;
+	    OQLQuery query = odmg.newOQLQuery();
+	    query.create( oqlBuf.toString() );
+	    Iterator paramsIter = params.iterator();
+	    while ( paramsIter.hasNext() ) {
+		query.bind( paramsIter.next() );
 	    }
-	    if ( endDate != null ) {
-		stmt.setDate( param, new java.sql.Date( endDate.getTime() ) );
-		param++;
-	    }
-	    ResultSet rs = stmt.executeQuery();
-	    while( rs.next() ) {
-		PhotoInfo photo = PhotoInfo.createFromResultSet( rs );
-		if ( photo == null ) {
-		    log.warn( "Photo not created correctly" );
-		}
-		photos.add( photo );
-	    }
-	} catch ( SQLException e ) {
-	    log.warn( "Error executying dateRangeQuery: " + e.getMessage() );
+	    DList result = (DList) query.execute();
+	    photos.addAll( result );
+	    txw.commit();
+	} catch (Exception e ) {
+	    log.warn( "Error executing query: " + e.getMessage() );
+	    txw.abort();
 	}
+
 	rangeModified = false;
     }
 

@@ -112,6 +112,8 @@ public class TestImageInstance extends TestCase {
 	}
     }
 
+    // TODO: test case that demonstrates that imageFile & volume attributes are not
+    // initialized correctly if standard RowReader is used.
 
     
     /**
@@ -147,7 +149,7 @@ public class TestImageInstance extends TestCase {
 		assertEquals( "instance type does not match", "thumbnail", rs.getString( "instance_type" ) );
 		break;
 	    default:
-		fail( "Unknown image type" );
+		fail( "Unknown image type " + itype );
 	    }
 	} catch ( SQLException e ) {
 	    fail( e.getMessage() );
