@@ -4,6 +4,7 @@ package imginfo;
 
 import junit.framework.*;
 import java.util.*;
+import photovault.folder.*;
 
 public class Test_PhotoQuery extends TestCase {
 
@@ -11,6 +12,8 @@ public class Test_PhotoQuery extends TestCase {
 
     Vector photos = null;
     Vector uids = null;
+    PhotoFolder folder = null;
+    PhotoFolder subfolder = null;
     
     public void setUp() {
 
@@ -26,6 +29,13 @@ public class Test_PhotoQuery extends TestCase {
 	makePhoto( cal, "" );
 	cal.set( 2002, 11, 25 );
 	makePhoto( cal, "" );
+
+        folder = PhotoFolder.create( "QueryTest", PhotoFolder.getRoot() );
+	subfolder = PhotoFolder.create( "QueryTest subfolder", folder );
+	folder.addPhoto( (PhotoInfo)photos.get(0) );
+	subfolder.addPhoto( (PhotoInfo)photos.get(3) );
+	folder.addPhoto( (PhotoInfo)photos.get(2) );
+	
 
     }
 
@@ -47,6 +57,7 @@ public class Test_PhotoQuery extends TestCase {
 	    photo.delete();
 	}
 
+	folder.delete();
 	
     }
 
@@ -94,6 +105,22 @@ public class Test_PhotoQuery extends TestCase {
 	boolean[] expected3 = { true, true, false, false };
 	checkResults( q, expected3 );
     }
+
+    public void testFolderLimit() {
+	PhotoQuery q = new PhotoQuery();
+	q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "*Lassi*" );
+	q.limitToFolder( folder );
+	boolean[] expected3 = { true, false, false, false };
+	checkResults( q, expected3 );
+    }
+    
+    public void testFolderLimitSubfolders() {
+	PhotoQuery q = new PhotoQuery();
+	q.limitToFolder( folder );
+	boolean[] expected3 = { true, false, true, true };
+	checkResults( q, expected3 );
+    }
+    
     
     /**
        This query checks that query can be modified and that the results are shown correctly

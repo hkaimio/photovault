@@ -132,6 +132,7 @@ public class PhotoFolder implements PhotoCollection {
 	}
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
+	photo.addedToFolder( this );
 	photos.add( photo );
 	txw.commit();
     }
@@ -145,6 +146,7 @@ public class PhotoFolder implements PhotoCollection {
 	}
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
+	photo.removedFromFolder( this );
 	photos.remove( photo );
 	txw.commit();
     }
@@ -423,6 +425,15 @@ public class PhotoFolder implements PhotoCollection {
 	}
 	// First make sure that this object is deleted from its parent's subfolders list (if it has a parent)
 	setParentFolder( null );
+
+	// Then notify all photos belonging to this folder
+	if ( photos != null ) {
+	    Iterator photoIter = photos.iterator();
+	    while ( photoIter.hasNext() ) {
+		PhotoInfo photo = (PhotoInfo) photoIter.next();
+		photo.removedFromFolder( this );
+	    }
+	}
 	db.deletePersistent( this );
 
 	// If a new transaction was created, commit it

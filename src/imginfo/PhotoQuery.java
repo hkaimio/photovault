@@ -9,7 +9,7 @@ import org.odmg.*;
 import org.apache.ojb.broker.query.*;
 import org.apache.ojb.broker.*;
 import org.apache.ojb.odmg.*;
-
+import photovault.folder.PhotoFolder;
 
 
 /**
@@ -62,6 +62,16 @@ public class PhotoQuery implements PhotoCollection {
 	criterias[field] = c;
 	modified();
     }
+
+    /**
+       Limits query to photos that belong to a given fodler and its
+       subfolders
+       @param folder The folder into which the query is limited. If
+       null all photos will be included in the query
+    */
+    public void limitToFolder( PhotoFolder folder ) {
+	limitFolder = folder;
+    }
     
     /**
        Returns the type of criteria set for certain field
@@ -108,6 +118,12 @@ public class PhotoQuery implements PhotoCollection {
 		}
 	    }
 
+	    if ( limitFolder != null ) {
+ 		Collection folderIds = getSubfolderIds( limitFolder );
+// 		crit.addEqualTo( "folders.folderId", new Integer( limitFolder.getFolderId() ) );
+ 		crit.addIn( "folders.folderId", folderIds );
+	    }
+	    
 	    QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
 	    Collection result = broker.getCollectionByQuery( q );
 	    photos.addAll( result );
@@ -120,7 +136,28 @@ public class PhotoQuery implements PhotoCollection {
 	    
 	queryModified = false;
     }
+
+    /**
+       Returns a list of folderIds of all subfolders of a certain folder
+    */
+
+    private Collection getSubfolderIds( PhotoFolder folder ) {
+	Vector ids = new Vector();
+	ids.add( new Integer( folder.getFolderId() ) );
+	appendSubfolderIds( ids, folder );
+	return ids;
+    }
+
+    private void appendSubfolderIds( Collection ids, PhotoFolder folder ) {
+	for ( int n = 0; n < folder.getSubfolderCount(); n++ ) {
+	    PhotoFolder subfolder = folder.getSubfolder( n );
+	    ids.add( new Integer( subfolder.getFolderId() ) );
+	    appendSubfolderIds( ids, subfolder );
+	}
+    }
     
+		 
+		 
 
     // Implementation of imginfo.PhotoCollection
 
@@ -188,6 +225,7 @@ public class PhotoQuery implements PhotoCollection {
     boolean queryModified;
     Vector photos = null;
     Vector listeners = null;
+    PhotoFolder limitFolder = null;
 
     public static int FIELD_SHOOTING_TIME   = 0;
     public static int FIELD_FULLTEXT        = 1;

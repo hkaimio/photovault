@@ -102,6 +102,13 @@
       <inverse-foreignkey field-ref="photoUid">
       </inverse-foreignkey>
     </collection-descriptor>
+    <!-- folders collection -->
+    <collection-descriptor name="folders" element-class-ref="photovault.folder.PhotoFolder" indirection-table="collection_photos" proxy="true">
+      <fk-pointing-to-this-class column="photo_id"/>
+      <fk-pointing-to-element-class column="collection_id"/>
+    </collection-descriptor>
+
+
   </class-descriptor>
 
 </descriptor-repository>

@@ -15,7 +15,7 @@ import com.drew.metadata.exif.*;
 import com.drew.imaging.jpeg.*;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;
-
+import photovault.folder.*;
 /**
    PhotoInfo represents information about a single photograph
    TODO: write a decent doc!!!
@@ -748,6 +748,35 @@ public class PhotoInfo {
 	txw.commit();
     }
 
+    /**
+       List of folders this photo belongs to
+    */
+    Collection folders = null;
+
+    /**
+       This is called by PhotoFolder when the photo is added to a folder
+    */
+    public void addedToFolder( PhotoFolder folder ) {
+	if ( folders == null ) {
+	    folders = new Vector();
+	}
+
+	folders.add( folder );
+    }
+
+    /**
+       This is called by PhotoFolder when the photo is removed from a folder
+    */
+    public void removedFromFolder( PhotoFolder folder ) {
+	if ( folders == null ) {
+	    folders = new Vector();
+	}
+
+	folders.remove( folder );
+    }
+	    
+    
+    
     static private boolean isEqual( Object o1, Object o2 ) {
 	if ( o1 == null ) {
 	    if ( o2 == null ) {		
