@@ -1,4 +1,4 @@
-// $Id: PhotoFolder.java,v 1.4 2003/02/25 20:57:11 kaimio Exp $
+// $Id: PhotoFolder.java,v 1.5 2003/03/04 19:35:43 kaimio Exp $
 
 package photovault.folder;
 
@@ -18,7 +18,7 @@ public class PhotoFolder implements PhotoCollection {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
 
     public PhotoFolder() {
-	subfolders = new Vector();
+	//	subfolders = new Vector();
 	changeListeners = new Vector();
     }
     
@@ -93,13 +93,17 @@ public class PhotoFolder implements PhotoCollection {
 
     // Implementation of PhotoCollection interface
 
+    Collection photos = null;
+    
     /**
      * Returns the number of photos in the folder
      */
     public int getPhotoCount()
     {
-	// TODO: implement this imginfo.PhotoCollection method
-	return 0;
+	if ( photos == null ) {
+	    return 0;
+	}
+	return photos.size();
     }
 
     /**
@@ -107,9 +111,15 @@ public class PhotoFolder implements PhotoCollection {
      * @param param1 <description>
      * @return <description>
      */
-    public PhotoInfo getPhoto(int param1)
+    public PhotoInfo getPhoto(int num)
     {
-	// TODO: implement this imginfo.PhotoCollection method
+	if ( photos == null || num >= photos.size() ) {
+	    throw new ArrayIndexOutOfBoundsException();
+	}
+	if ( photos instanceof List ) {
+	    return (PhotoInfo) ((List)photos).get( num );
+	}
+	log.warn( "Cannot currently find photos if collection is not a list" );
 	return null;
     }
 
@@ -117,7 +127,26 @@ public class PhotoFolder implements PhotoCollection {
        Add a new photo to the folder
     */
     public void addPhoto( PhotoInfo photo ) {
-	// TODO: implement this method
+	if ( photos == null ) {
+	    photos = new Vector();
+	}
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	photos.add( photo );
+	txw.commit();
+    }
+
+    /**
+       remove a photo from the collection. If the photo does not exist in collection, does nothing
+    */
+    public void removePhoto( PhotoInfo photo ) {
+	if ( photos == null ) {
+	    return;
+	}
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	photos.remove( photo );
+	txw.commit();
     }
     
 
@@ -125,6 +154,9 @@ public class PhotoFolder implements PhotoCollection {
        Returns the numer of subfolders this folder has.
     */
     public int getSubfolderCount() {
+	if ( subfolders == null ) {
+	    return 0;
+	}
 	return subfolders.size();
     }
 
@@ -132,7 +164,14 @@ public class PhotoFolder implements PhotoCollection {
        Returns s subfolder with given order number.
     */
     public PhotoFolder getSubfolder( int num ) {
-	return (PhotoFolder) subfolders.get( num );
+	if ( subfolders == null || num >= subfolders.size() ) {
+	    throw new ArrayIndexOutOfBoundsException();
+	}
+	if ( subfolders instanceof List ) {
+	    return (PhotoFolder) ((List)subfolders).get( num );
+	}
+	log.warn( "Cannot currently find subfolders if collection si not a list" );
+	return null;
     }
 
     /**
@@ -141,6 +180,9 @@ public class PhotoFolder implements PhotoCollection {
     protected void addSubfolder( PhotoFolder subfolder ) {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
+	if ( subfolders == null ) {
+	    subfolders = new Vector();
+	}
 	subfolders.add( subfolder );
 	modified();
 	// Inform all parents & their that the structure has changed
@@ -152,6 +194,9 @@ public class PhotoFolder implements PhotoCollection {
        Removes a subfolder
     */
     protected void removeSubfolder( PhotoFolder subfolder ) {
+	if ( subfolder == null ) {
+	    return;
+	}
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	subfolders.remove( subfolder );
@@ -164,7 +209,7 @@ public class PhotoFolder implements PhotoCollection {
     /**
        All subfolders for this folder
     */
-    Vector subfolders = null;
+    Collection subfolders = null;
     
     /**
        Returns the parent of this folder or null if this is a top-level folder

@@ -1,4 +1,4 @@
-// $Id: TestPhotoFolder.java,v 1.5 2003/02/26 19:52:54 kaimio Exp $
+// $Id: TestPhotoFolder.java,v 1.6 2003/03/04 19:35:44 kaimio Exp $
 
 package photovault.folder;
 
@@ -110,6 +110,40 @@ public class TestPhotoFolder extends TestCase {
 	assertTrue( "Top folder not found", found );
     }
 
+    public void testPhotoRetrieval() {
+	// Find the corrent test case
+	DList folders = null;
+	Transaction tx = odmg.newTransaction();
+	tx.begin();
+	try {
+	    OQLQuery query = odmg.newOQLQuery();
+	    query.create( "select folders from " + PhotoFolder.class.getName() + " where name = \"testPhotoRetrieval\"" );
+	    folders = (DList) query.execute();
+	    tx.commit();
+	} catch ( Exception e ) {
+	    tx.abort();
+	    fail( e.getMessage() );
+	}
+	PhotoFolder folder = (PhotoFolder) folders.get(0);
+
+	assertEquals( "Number of photos in folder does not match", 2, folder.getPhotoCount() );
+	
+	// Check that the folder content is OK
+	boolean found = false;
+	for ( int i = 0; i < folder.getPhotoCount(); i++ ) {
+	    PhotoInfo photo = folder.getPhoto( i );
+	    if ( photo.getDescription().equals( "testPhotoretrieval1" ) ) {
+		found = true;
+	    }
+	}
+	assertTrue( "Photo testRetrieval1 not found", found );
+
+	// TODO: Check that a new photo added to the album is added to DB also
+
+	// TODO: check that removing a photo from the folder removes the link in DB also
+
+    }
+    
     /**
        Tests that persistence operations succeed.
     */

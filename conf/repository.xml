@@ -37,9 +37,15 @@
       <foreignkey field-ref="parentId">
       </foreignkey>
     </reference-descriptor>
-    <collection-descriptor name="subfolders" element-class-ref="photovault.folder.PhotoFolder" orderby="name" sort="ASC" proxy="false">
+    <collection-descriptor name="subfolders" element-class-ref="photovault.folder.PhotoFolder" orderby="name" sort="ASC" proxy="true">
       <inverse-foreignkey field-ref="parentId">
       </inverse-foreignkey>
+    </collection-descriptor>
+    <collection-descriptor name="photos" element-class-ref="imginfo.PhotoInfo" indirection-table="collection_photos" proxy="true">
+      <fk-pointing-to-this-class column="collection_id">
+      </fk-pointing-to-this-class>
+      <fk-pointing-to-element-class column="photo_id">
+      </fk-pointing-to-element-class>
     </collection-descriptor>
   </class-descriptor>
 
