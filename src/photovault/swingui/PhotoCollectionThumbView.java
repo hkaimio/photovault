@@ -36,6 +36,12 @@ import java.awt.event.MouseEvent;
    </li>
    </ul>
 
+   <h1> Selection & drag-n-drop logic</h1>
+   <ul>
+   <li> If mouse is pressed between images, the drag is interpreted as a drag selection </li>
+   <li> If mouse is pressed on top of a thumbnail the drag is interpreted as a drag-n-drop operation </li>
+   </ul>
+
    @author Harri Kaimio
 
 */
@@ -231,6 +237,18 @@ public class PhotoCollectionThumbView
                 col = 0;
             }
         }
+
+	// Paint the selection rectangle if needed
+	if ( dragSelectionRect != null ) {
+	    Stroke prevStroke = g2.getStroke();
+	    Color prevColor = g2.getColor();
+	    g2.setStroke( new BasicStroke( 1.0f) );
+	    g2.setColor( Color.BLACK );
+	    g2.draw( dragSelectionRect );
+	    g2.setColor( prevColor );
+	    g2.setStroke( prevStroke );
+	    lastDragSelectionRect = dragSelectionRect;
+	}
     }
 
     boolean showDate = true;
@@ -389,6 +407,16 @@ public class PhotoCollectionThumbView
         log.warn( "Located photo # " + photoNum ); 
         
         if ( photoNum < photoCollection.getPhotoCount() ) {
+            Rectangle imgRect = getPhotoBounds( photoNum );
+            if ( imgRect.contains( new Point( x, y ) ) ) {
+                photo = photoCollection.getPhoto( photoNum );
+            }
+        }
+        return photo;
+    }
+
+    protected Rectangle getPhotoBounds( int photoNum ) {
+        if ( photoNum < photoCollection.getPhotoCount() ) {
             PhotoInfo photoCandidate = photoCollection.getPhoto( photoNum );
             log.warn( "Checking bounds" );
 
@@ -401,16 +429,14 @@ public class PhotoCollectionThumbView
                 width = img.getWidth();
                 height = img.getHeight();
             }
+	    int row = (int) photoNum / columnCount;
+	    int col = photoNum - row*columnCount;
             int imgX = col * columnWidth + (columnWidth - width)/(int)2;
             int imgY = row * rowHeight + (rowHeight -  height)/(int)2;
             Rectangle imgRect = new Rectangle( imgX, imgY, width, height );
-            log.warn( "Checking in rectangle (" + imgX + ", " + imgY + ") - (" +
-                      width + ", " + height + ")" );
-            if ( imgRect.contains( new Point( x, y ) ) ) {
-                photo = photoCandidate;
-            }
-        }
-        return photo;
+	    return imgRect;
+	}
+	return null;
     }
 
     /**
@@ -428,7 +454,12 @@ public class PhotoCollectionThumbView
     public void mouseClicked(MouseEvent mouseEvent) {
         log.warn( "mouseClicked (" + mouseEvent.getX() + ", " + mouseEvent.getY() );
 
-
+	if ( dragJustEnded ) {
+	    // Selection was already handled by drag handler so do nothing
+	    dragJustEnded = false;
+	    return;
+	}
+	
         PhotoInfo clickedPhoto = getPhotoAtLocation( mouseEvent.getX(), mouseEvent.getY() );
         if ( clickedPhoto != null ) {
             if ( mouseEvent.isControlDown() ) {
@@ -499,8 +530,38 @@ public class PhotoCollectionThumbView
         // save the mouse press event so that we can later decide whether this gesture
         // is intended as a drag
         firstMouseEvent = mouseEvent;
+
+	PhotoInfo photo = getPhotoAtLocation( mouseEvent.getX(), mouseEvent.getY() );
+	if ( photo == null ) {
+	    dragType = DRAG_TYPE_SELECT;
+	    // If ctrl is not down clear the selection
+            if ( !mouseEvent.isControlDown() ) {
+		Object[] oldSelection = selection.toArray();
+		selection.clear();
+		for ( int n = 0; n < oldSelection.length; n++ ) {
+		    PhotoInfo p = (PhotoInfo) oldSelection[n];
+		    repaintPhoto( p );
+		}
+		
+            }
+	    dragSelectionRect = new Rectangle( mouseEvent.getX(), mouseEvent.getY(), 0, 0 );
+	} else {
+	    dragType = DRAG_TYPE_DND;
+	}
     }
 
+    int dragType = 0;
+    static final int DRAG_TYPE_SELECT = 1;
+    static final int DRAG_TYPE_DND = 2;
+
+    /**
+       Area covered by current selection drag
+    */
+    Rectangle dragSelectionRect = null;
+    Rectangle lastDragSelectionRect = null;
+
+    boolean dragJustEnded = false;
+    
     /**
      * 
      *
@@ -508,6 +569,31 @@ public class PhotoCollectionThumbView
      */
     public void mouseReleased(MouseEvent mouseEvent) {
         firstMouseEvent = null;
+	if ( dragType == DRAG_TYPE_SELECT ) {
+
+	    // Find out which photos are selected
+	    for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
+		Rectangle photoRect = getPhotoBounds( n );
+		if ( dragSelectionRect.intersects( photoRect ) ) {
+		    selection.add( photoCollection.getPhoto( n ) );
+		    repaintPhoto( photoCollection.getPhoto( n ) );
+		}
+	    }
+	    
+	    
+	    // Redrw the selection area so that the selection rectangle is not shown anymore
+	    Rectangle repaintRect = dragSelectionRect;
+	    if ( lastDragSelectionRect != null ) {
+		repaintRect = dragSelectionRect.union( lastDragSelectionRect );
+	    }
+	    repaint( (int) repaintRect.getX()-1, (int) repaintRect.getY()-1,
+		     (int) repaintRect.getWidth()+2, (int) repaintRect.getHeight()+2 );
+
+	    dragSelectionRect = null;
+	    lastDragSelectionRect = null;
+	    // Notify the mouse click handler that it has to do nothing
+	    dragJustEnded = true;
+	}
     }
 
 
@@ -519,6 +605,33 @@ public class PhotoCollectionThumbView
      * @param mouseEvent a <code>MouseEvent</code> value
      */
     public void mouseDragged(MouseEvent e ) {
+	switch ( dragType ) {
+	case DRAG_TYPE_SELECT:
+	    handleSelectionDragEvent( e );
+	    break;
+	case DRAG_TYPE_DND:
+	    handleDnDDragEvent( e );
+	    break;
+	default:
+	    log.error( "Invalid drag type" );
+	}
+    }
+
+    protected void handleSelectionDragEvent( MouseEvent e ) {
+	dragSelectionRect = new Rectangle( firstMouseEvent.getX(), firstMouseEvent.getY(), 0, 0 );
+	dragSelectionRect.add( e.getX(), e.getY() );
+
+	// Determine which area needs to be redrawn. If there is a selection marker rectangle already drawn
+	// the redraw are must be union of the previous and current areas (current area can be also smaller!
+	Rectangle repaintRect = dragSelectionRect;
+	if ( lastDragSelectionRect != null ) {
+	    repaintRect = dragSelectionRect.union( lastDragSelectionRect );
+	}
+	repaint( (int) repaintRect.getX()-1, (int) repaintRect.getY()-1,
+		 (int) repaintRect.getWidth()+2, (int) repaintRect.getHeight()+2 );
+    }
+    
+    protected void handleDnDDragEvent( MouseEvent e ) {
         //Don't bother to drag if no photo is selected
         if ( selection.size() == 0 ) {
             return;
@@ -549,7 +662,7 @@ public class PhotoCollectionThumbView
             }
         }   
     }
-
+    
     /**
      * Describe <code>mouseMoved</code> method here.
      *
