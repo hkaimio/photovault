@@ -1,0 +1,141 @@
+<!-- Please keep user defined mappings in this file only
+     to avoid mixing user defined and system mappings. -->
+<!-- Mapping of User defined classes starts here -->
+<class-descriptor class="photovault.folder.PhotoFolder" table="photo_collections">
+<field-descriptor name="folderId"
+		  column="collection_id"
+		  jdbc-type="INTEGER"
+		  primarykey="true"
+		  autoincrement="true"/>
+<field-descriptor name="name"
+		  column="collection_name"
+		  jdbc-type="VARCHAR"/>
+<field-descriptor name="name"
+		  column="collection_name"
+		  jdbc-type="VARCHAR"/>
+
+</class-descriptor>
+<!-- The mappings for the tutorial classes are placed here to make it
+     easier to find them for OJB newbies.
+     Please remove them if you don't need them in your environment. -->
+
+
+<!-- Definitions for org.apache.ojb.tutorial1.Product -->
+   <class-descriptor
+   	  class="org.apache.ojb.tutorial1.Product"
+   	  table="PRODUCT"
+   >
+      <field-descriptor 
+         name="id"
+         column="ID"
+         jdbc-type="INTEGER"
+         primarykey="true"
+         autoincrement="true"
+      />
+      <field-descriptor 
+         name="name"
+         column="NAME"
+         jdbc-type="VARCHAR"
+      />
+      <field-descriptor 
+         name="price"
+         column="PRICE"
+         jdbc-type="DOUBLE"
+      />
+      <field-descriptor 
+         name="stock"
+         column="STOCK"
+         jdbc-type="INTEGER"
+      />
+   </class-descriptor>
+
+<!-- Definitions for org.apache.ojb.tutorial2.Product -->
+   <class-descriptor
+   	  class="org.apache.ojb.tutorial2.Product"
+   	  table="PRODUCT"
+   >
+      <field-descriptor 
+         name="id"
+         column="ID"
+         jdbc-type="INTEGER"
+         primarykey="true"
+         autoincrement="true"
+      />
+      <field-descriptor 
+         name="name"
+         column="NAME"
+         jdbc-type="VARCHAR"
+      />
+      <field-descriptor 
+         name="price"
+         column="PRICE"
+         jdbc-type="DOUBLE"
+      />
+      <field-descriptor 
+         name="stock"
+         column="STOCK"
+         jdbc-type="INTEGER"
+      />
+   </class-descriptor>
+
+
+   <!-- Definitions for org.apache.ojb.tutorial4.Product -->
+   <class-descriptor
+   	  class="org.apache.ojb.tutorial4.Product"
+   	  table="PRODUCT"
+   >
+      <field-descriptor 
+         name="id"
+         column="ID"
+         jdbc-type="INTEGER"
+         primarykey="true"
+         autoincrement="true"
+      />
+      <field-descriptor 
+         name="name"
+         column="NAME"
+         jdbc-type="VARCHAR"
+      />
+      <field-descriptor 
+         name="price"
+         column="PRICE"
+         jdbc-type="DOUBLE"
+      />
+      <field-descriptor 
+         name="stock"
+         column="STOCK"
+         jdbc-type="INTEGER"
+      />
+   </class-descriptor>
+
+   <!-- Definitions for org.apache.ojb.tutorial5.Product -->
+   <class-descriptor
+   	  class="org.apache.ojb.tutorial5.Product"
+   	  table="PRODUCT"
+   >
+      <field-descriptor 
+         name="id"
+         column="ID"
+         jdbc-type="INTEGER"
+         primarykey="true"
+         autoincrement="true"
+      />
+      <field-descriptor 
+         name="name"
+         column="NAME"
+         jdbc-type="VARCHAR"
+      />
+      <field-descriptor 
+         name="price"
+         column="PRICE"
+         jdbc-type="DOUBLE"
+      />
+      <field-descriptor 
+         name="stock"
+         column="STOCK"
+         jdbc-type="INTEGER"
+      />
+   </class-descriptor>
+
+
+<!-- Mapping of User defined classes ends here -->

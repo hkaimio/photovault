@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This is a sample metadata repository for the ObJectBridge System.
+     Use this file as a template for building your own mappings-->
+
+<!-- defining entities for include-files -->
+<!DOCTYPE descriptor-repository SYSTEM "repository.dtd" [
+<!ENTITY database SYSTEM "repository_database.xml">
+<!ENTITY internal SYSTEM "repository_internal.xml">
+]>
+
+
+<descriptor-repository version="0.9.9" isolation-level="read-uncommitted">
+
+    <!-- include all used database connections -->
+    &database;
+
+    <!-- include ojb internal mappings here -->
+    &internal;
+
+    <!-- include user defined mappings here -->
+  <class-descriptor class="photovault.folder.PhotoFolder" table="photo_collections">
+
+    <!-- one of (field-descriptor extent-class) -->
+    <field-descriptor name="folderId" column="collection_id" jdbc-type="INTEGER" primarykey="true" autoincrement="true">
+    </field-descriptor>
+    <field-descriptor name="name" column="collection_name" jdbc-type="VARCHAR">
+    </field-descriptor>
+    <field-descriptor name="description" column="COLLECTION_DESC" jdbc-type="VARCHAR">
+    </field-descriptor>
+    <field-descriptor name="parentId" column="parent" jdbc-type="INTEGER">
+    </field-descriptor>
+    <reference-descriptor name="parent" class-ref="photovault.folder.PhotoFolder">
+      <documentation>Parent of this folder</documentation>
+      <foreignkey field-ref="parentId">
+      </foreignkey>
+    </reference-descriptor>
+    <collection-descriptor name="subfolders" element-class-ref="photovault.folder.PhotoFolder" orderby="name" sort="ASC" proxy="false">
+      <inverse-foreignkey field-ref="parentId">
+      </inverse-foreignkey>
+    </collection-descriptor>
+  </class-descriptor>
+
+
+</descriptor-repository>
