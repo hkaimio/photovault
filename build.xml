@@ -59,9 +59,48 @@
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}/lib"/>
 
-    <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/lib/MyProject-${DSTAMP}.jar" basedir="${build}"/>
+    <!-- Create the jar file  -->
+    <jar jarfile="${dist}/lib/photovault-latest.jar" basedir="${build}">
+      <manifest>
+         <attribute name="Main-Class" value="photovault.swingui.BrowserWindow"/>
+         <attribute name="Built-By" value="${user.name}"/>
+         <attribute name="Implementation-Version" value="build_${DSTAMP}"/>
+      </manifest>
+    </jar>
+    <!-- COpy the resulting jar file to a location to indicate the current build -->
+    <copy file="${dist}/lib/photovault-latest.jar" tofile="${dist}/lib/photovault-${DSTAMP}.jar"/>
+
   </target>
+
+    <target name="test" depends="dist">
+      <junit printsummary="yes">
+        <formatter type="xml"/>
+        <classpath>
+           <path refid="project.class.path"/>
+           <pathelement location="${build.dir}"/>
+           <pathelement location="${conf.dir}"/>
+        </classpath>
+        <!--<test name="imginfo.PhotoInfoTest" outfile="${reports.test}/imginfo"/>-->
+        <batchtest todir="${reports.test}">
+           <fileset dir="build">
+              <include name="**/*Test*.class"/>
+              <exclude name="**/TestPkg.class"/>
+              <!-- Exlude inner classes sinc ethese do not contain any test cases --> 
+              <exclude name="**/*$*.class"/>
+           </fileset>
+        </batchtest>
+      </junit>
+
+      <!-- Create a summary report -->
+      <junitreport todir="./reports">
+        <fileset dir="./reports">
+           <include name="TEST-*.xml"/>
+        </fileset>
+        <report format="frames" todir="./report/html"/>
+      </junitreport>
+
+    </target>
+
 
   <target name="doc">
     <javadoc packagenames = "*"

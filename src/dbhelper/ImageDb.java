@@ -30,7 +30,7 @@ public class ImageDb {
 	}
 
 	try {
-	    conn = DriverManager.getConnection( "jdbc:mysql:///pv_test", "harri", "r1t1rat1" );
+	    conn = DriverManager.getConnection( "jdbc:mysql:///pv_test", "", "" );
 	} catch ( SQLException e ) {
 	    System.err.println( "ERROR: Could not create DB connection: "
 				+ e.getMessage() );

@@ -9,7 +9,7 @@
 ]>
 
 
-<descriptor-repository version="0.9.9" isolation-level="read-uncommitted">
+<descriptor-repository version="1.0" isolation-level="read-uncommitted">
 
     <!-- include all used database connections -->
     &database;

@@ -12,12 +12,13 @@ import java.awt.geom.AffineTransform;
 import java.text.*;
 import java.util.*;
 
-public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
+public class PhotoViewer extends JPanel implements PhotoInfoChangeListener, ComponentListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoViewer.class.getName() );
 
     public PhotoViewer() {
 	super();
 	createUI();
+	addComponentListener( this );
     }
 
     public void createUI() {
@@ -39,6 +40,7 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 	JLabel zoomLabel = new JLabel( "Zoom" );
 	JComboBox zoomCombo = new JComboBox( defaultZooms );
 	zoomCombo.setEditable( true );
+	zoomCombo.setSelectedItem( "Fit" );
 
 	final PhotoViewer viewer = this;
 	zoomCombo.addActionListener(  new ActionListener() {
@@ -46,14 +48,16 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 		    JComboBox cb = (JComboBox) ev.getSource();
 		    String selected = (String)cb.getSelectedItem();
 		    log.debug( "Selected: " + selected );
+		    isFit = false;
 
 		    // Parse the pattern
 		    DecimalFormat percentFormat = new DecimalFormat( "#####.#%" );
 		    if ( selected == "Fit" ) {
+			isFit = true;
 			log.debug( "Fitting to window" );
 			fit();
 			float newScale = getScale();
-			String strNewScale = percentFormat.format( newScale );
+			String strNewScale = "Fit";
 			cb.setSelectedItem( strNewScale );
 		    } else {
 			// Parse the number. First remove all white space to ease the parsing
@@ -108,19 +112,19 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
     public void fit() {
 	Dimension displaySize = scrollPane.getSize();
 	imageView.fitToRect( displaySize.getWidth(), displaySize.getHeight() );
-// 	int origWidth = imageView.getOrigWidth();
-// 	int origHeight = imageView.getOrigHeight();
+	// 	int origWidth = imageView.getOrigWidth();
+	// 	int origHeight = imageView.getOrigHeight();
 
-// 	if ( origWidth > 0 && origHeight > 0 ) {
-// 	    float widthScale = ((float)displaySize.getWidth())/(float)origWidth;
-// 	    float heightScale = ((float)displaySize.getHeight())/(float)origHeight;
+	// 	if ( origWidth > 0 && origHeight > 0 ) {
+	// 	    float widthScale = ((float)displaySize.getWidth())/(float)origWidth;
+	// 	    float heightScale = ((float)displaySize.getHeight())/(float)origHeight;
 
-// 	    float scale = heightScale;
-// 	    if ( widthScale < heightScale ) {
-// 		scale = widthScale;
-// 	    }
-// 	    setScale( scale );
-// 	}
+	// 	    float scale = heightScale;
+	// 	    if ( widthScale < heightScale ) {
+	// 		scale = widthScale;
+	// 	    }
+	// 	    setScale( scale );
+	// 	}
     }
 
     public void setPhoto( PhotoInfo photo ) {
@@ -170,8 +174,30 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
     public PhotoInfo  getPhoto() {
 	return photo;
     }
+
+
+
+    public void componentHidden( ComponentEvent e) {
+    }
+
+    public void componentMoved( ComponentEvent e) {
+    }
+
+    public void componentResized( ComponentEvent e) {
+	if ( isFit ) {
+	    fit();
+	}
+			 
+    }
+
+    public void componentShown( ComponentEvent e) {
+    }
+    
+    
+    
     
     PhotoInfo photo = null;
+    boolean isFit = true;
 
     /**
        Implementation of the photoInfoChangeListener interface. Checks if the preferred rotation is changed

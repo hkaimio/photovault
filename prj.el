@@ -1,3 +1,12 @@
 (jde-project-file-version "1.0")
 (jde-set-variables
- '(jde-global-classpath (quote ("c:\\java\\junit3.8.1\\junit.jar" "c:\\java\\lib\\mysql-connector-java-3.0.2-beta-bin.jar" "c:\\java\\lib\\metadataExtractor.jar" "c:\\java\\lib\\log4j-1.2.7.jar" "c:\\java\\photovault\\build" "c:\\java\\lib\\jakarta-ojb-0.9.9.jar" "C:\\java\\jakarta-ojb\\lib\\commons-beanutils.jar"))))
+ '(jde-ant-enable-find t)
+ '(jde-ant-read-target t)
+ '(jde-run-option-jar nil)
+ '(jde-ant-use-global-classpath t)
+ '(jde-build-function (quote (jde-ant-build)))
+ '(jde-global-classpath (quote ("c:/java/photovault/build" "c:/java/photovault/conf" "c:/java/photovault/lib/abbot.jar" "c:/java/photovault/lib/antlr.jar" "c:/java/photovault/lib/btree.jar" "c:/java/photovault/lib/commons-beanutils.jar" "c:/java/photovault/lib/commons-collections.jar" "c:/java/photovault/lib/commons-dbcp-1.1.jar" "c:/java/photovault/lib/commons-lang-2.0.jar" "c:/java/photovault/lib/commons-logging.jar" "c:/java/photovault/lib/commons-pool-1.1.jar" "c:/java/photovault/lib/db-ojb-1.0.rc5.jar" "c:/java/photovault/lib/exif_extract.jar" "c:/java/photovault/lib/hsqldb.jar" "c:/java/photovault/lib/j2ee.jar" "c:/java/photovault/lib/jakarta-regexp-1.3.jar" "c:/java/photovault/lib/jcs.jar" "c:/java/photovault/lib/jdo.jar" "c:/java/photovault/lib/jdori-enhancer.jar" "c:/java/photovault/lib/jdori.jar" "c:/java/photovault/lib/junit.jar" "c:/java/photovault/lib/log4j-1.2.8.jar" "c:/java/photovault/lib/mysql-connector-java.jar" "c:/java/photovault/lib/p6spy.jar" "c:/java/photovault/lib/prevayler.jar" "c:/java/photovault/lib/xdoclet-1.2b3-dev.jar" "c:/java/photovault/lib/xdoclet-ojb-module-1.2b3-dev.jar" "c:/java/photovault/lib/xercesImpl.jar" "c:/java/photovault/lib/xjavadoc-1.0.jar" "c:/java/photovault/lib/xml-apis.jar")))
+ '(jde-run-application-class "photovault.swingui.BrowserWindow")
+ '(jde-run-working-directory "c:/java/photovault")
+ '(jde-ant-home "c:/java/apache-ant-1.6.1")
+ '(jde-ant-working-directory "c:/java/photovault/"))

@@ -24,8 +24,8 @@ using the MetadataManager.
    		protocol="jdbc"
    		subprotocol="mysql"
    		dbalias="///pv_test"
-   		username="harri"
-   		password="r1t1rat1"
+   		username=""
+   		password=""
    		batch-mode="false"
      >
 
