@@ -64,7 +64,32 @@ class PhotoInfo {
 	return photo;
     }
     
-    
+
+    /**
+       Deletes the PhotoInfo and all related instances from database
+    */
+    public void delete() {
+	String sql = "DELETE FROM photos WHERE photo_id = " + uid;
+	// First delete all instances
+	if ( instances == null ) {
+	    instances = ImageFile.retrieveInstances( this );
+	}
+	for ( int i = 0; i < instances.size(); i++ ) {
+	    ImageFile f = (ImageFile) instances.get( i );
+	    f.delete();
+	}
+
+	// Then delete the PhotoInfo itself
+	try {
+	    Connection conn = ImageDb.getConnection();
+	    Statement stmt = conn.createStatement( );
+	    stmt.executeUpdate( sql );
+	    stmt.close();
+	} catch ( SQLException e ) {
+	    System.err.println( "Error deletin image file from DB: " + e.getMessage() );
+	}
+    }
+	
 
     /**
        Updates  the object state to database

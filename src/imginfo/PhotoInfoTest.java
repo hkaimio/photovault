@@ -34,6 +34,7 @@ public class PhotoInfoTest extends TestCase {
 	    fail( "Photo " + photoId + " not found" );
 	}
 	// TODO: check some other properties of the object
+
     }
 
     /**
@@ -138,8 +139,31 @@ public class PhotoInfoTest extends TestCase {
 	} catch ( PhotoNotFoundException e ) {
 	    fail ( "inserted photo not found" );
 	}
+	// Clean the DB
+	photo.delete();
     }
 
+    public void testPhotoDeletion() {
+	PhotoInfo photo = PhotoInfo.create();
+	assertNotNull( photo );
+
+	// Check that the photo can be retrieved from DB
+	try {
+	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
+	} catch ( PhotoNotFoundException e ) {
+	    fail ( "inserted photo not found" );
+	}
+
+	photo.delete();
+	// Check that the photo can be retrieved from DB
+	try {
+	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
+	    fail ( "Photo found in DB after deletion" );
+	} catch ( PhotoNotFoundException e ) {
+	    // success!!!
+	}
+    }
+    
     public void testInstanceAddition() {
 	String dirname = "c:\\temp";
 	String fname = "instance.jpg";
@@ -159,6 +183,8 @@ public class PhotoInfoTest extends TestCase {
 	if ( found == false ) {
 	    fail( "Created instance not found" );
 	}
+	// Clean the DB
+	photo.delete();
     }
 	
 

@@ -26,7 +26,6 @@ public class TestImageFile extends TestCase {
        Tears down the testing environment
     */
     public void tearDown() {
-
     }
 
     public void testImageFileCreate() {
