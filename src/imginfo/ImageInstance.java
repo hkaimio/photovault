@@ -20,7 +20,7 @@ public class ImageInstance {
        @param volume Volume in which the instance is stored
        @param imageFile File object pointing to the image instance file
        @param photo PhotoInfo object that represents the content of the image file
-       @return A InageInstance object
+       @return A ImageInstance object
     */
     public static ImageInstance create( Volume volume, File imageFile, PhotoInfo photo ) {
 	String sql = "INSERT INTO image_instances VALUES ( ?, ?, ?, ?, ?, ? )";

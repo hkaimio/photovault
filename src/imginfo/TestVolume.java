@@ -221,7 +221,17 @@ public class TestVolume extends TestCase {
 	}
 	assertEquals( "Mapped file does not match", volFile, mappedFile );
     }
+
+    /**
+       Test a special case - creating a file name for a PhotoInfo in which the shooting date has not been set.
+       Criteria is simply that a valid file name is created and that no Exception is thrown.
+    */
     
+    public void testNamingWithNoDate() {
+	PhotoInfo photo = PhotoInfo.create();
+	File f = volume.getInstanceName( photo, "jpg" );
+    }
+	
     public static Test suite() {
 
 	return new TestSuite( TestVolume.class );

@@ -349,7 +349,41 @@ public class PhotoInfo {
 	return instance;
     }
 
-    
+    /**
+       Returns a thumbnail of this image. If no thumbnail instance is yetavailable, creates a
+       new instance on the default volume. Otherwise loads an existing thumbnail instance. <p>
+
+       If thumbnail creation fails of if there is no image instances available at all, returns
+       a default thumbnail image.
+    */
+    public Thumbnail getThumbnail() {
+	if ( thumbnail == null ) {
+	    // First try to find an instance from existing instances
+	    ImageInstance original = null;
+	    if ( instances == null ) {
+		getInstances();
+	    }
+	    for ( int n = 0; n < instances.size(); n++ ) {
+		ImageInstance instance = (ImageInstance) instances.get( n );
+		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL ) {
+		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
+		    break;
+		} 
+	    }
+	    if ( thumbnail == null ) {
+		// Next try to create a new thumbnail instance
+		createThumbnail();
+	    }
+	}
+	if ( thumbnail == null ) {
+	    // Thumbnail creating was not successful, most probably because there is no available instance
+	    return Thumbnail.getDefaultThumbnail();
+	}
+	    
+	return thumbnail;
+    }
+
+    Thumbnail thumbnail = null;
 
     /** Creates a new thumbnail for this image on specific volume
 	@param volume The volume in which the instance is to be created
@@ -369,7 +403,9 @@ public class PhotoInfo {
 	    } 
 	}
 	if ( original == null ) {
+	    // If there are no instances, no thumbnail can be created
 	    System.err.println( "Error - no original image was found!!!" );
+	    return;
 	}
 	
 	// Read the image
@@ -387,6 +423,7 @@ public class PhotoInfo {
 	// Shrink the image to desired state and save it
 	// Find first the correct transformation for doing this
 	int origWidth = origImage.getWidth();
+	
 	int origHeight = origImage.getHeight();
 	int maxThumbWidth = 100;
 	int maxThumbHeight = 100;
@@ -421,6 +458,7 @@ public class PhotoInfo {
 	// add the created instance to this perdsisten object
 	addInstance( volume, thumbnailFile,
 		     ImageInstance.INSTANCE_TYPE_THUMBNAIL );
+	thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
     }
 
     /** Creates a new thumbnail on the default volume

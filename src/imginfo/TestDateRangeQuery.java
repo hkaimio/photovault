@@ -79,6 +79,26 @@ public class TestDateRangeQuery extends TestCase {
 	checkResults( q, expected3 );
     }
 
+    /**
+       This query checks that query can be modified and that the results are shown correctly
+       Tjis is originally implemented to find demonstrate a defect in which the reuslt set was not cleaned
+       before the new query.
+    */
+    public void testQueryModification() {
+	DateRangeQuery q = new DateRangeQuery();
+	Calendar cal = Calendar.getInstance();
+	cal.set( 2002, 11, 24 );
+	// First the case in which there is only lower bound
+	q.setEndDate( cal.getTime() );
+	q.setStartDate( null );
+	boolean[] expected3 = { true, true, true, false };
+	checkResults( q, expected3 );
+	// Then add the lower bound, part of the photos should not be in result set this time
+	q.setStartDate( cal.getTime() );
+	boolean[] expected2 = { false, true, true, false };
+	checkResults( q, expected2 );
+    }
+
     void checkResults( DateRangeQuery q, boolean[] expected ) {
 	System.err.println( "Checking results" );
 	for( int n = 0; n < q.getPhotoCount(); n++ ) {

@@ -51,7 +51,12 @@ public class DateRangeQuery implements PhotoCollection {
 	return endDate;
     }
 
+    /**
+       Executes an SQL query towards the database according to the object state and stores
+       results in photos array.
+    */
     protected void query() {
+	photos.clear();
 	StringBuffer sqlBuf = new StringBuffer( "select * from photos" );
 	if ( startDate != null || endDate != null ) {
 	    sqlBuf.append( " where " );

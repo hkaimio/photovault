@@ -85,12 +85,17 @@ public class Volume {
     }
 
     /**
-       Constructs a file name that can be used as a name for an isntance for a given photo
+       Constructs a file name that can be used as a name for an instance for a given photo
        @param photo the photo whose isntance is to be created
        @extension String to use as extension for the file name
     */
     public File getInstanceName( PhotoInfo photo, String strExtension ) {
-	return getNewFname( photo.getShootTime(), strExtension );
+	java.util.Date d = photo.getShootTime();
+	// shooting time can in practice be null, use current date in this case (Date is used just for readability)
+	if ( d == null ) {
+	    d = new java.util.Date();
+	}
+	return getNewFname( d, strExtension );
 	
     }
     
