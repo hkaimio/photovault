@@ -26,14 +26,53 @@ public class PhotoInfo {
     */
     public static PhotoInfo retrievePhotoInfo( int photoId ) throws PhotoNotFoundException {
 	String sql = "SELECT * from photos where photo_id=\"" + photoId +"\"";
-	PhotoInfo photo = new PhotoInfo();
+	PhotoInfo photo = null;
 	try {
 	    Connection conn  = ImageDb.getConnection();
 	    Statement stmt = conn.createStatement();
 	    ResultSet rs = stmt.executeQuery( sql );
-	    if ( !rs.next() ) {
+	    if ( rs.next() ) {
+		photo = createFromResultSet( rs );
+	    }
+	    rs.close();
+	    stmt.close();
+	    if ( photo == null ) {
 		throw new PhotoNotFoundException();
 	    }
+// 	    if ( !rs.next() ) {
+// 		throw new PhotoNotFoundException();
+// 	    }
+// 	    photo.uid = rs.getInt( "photo_id" );
+// 	    photo.shootingPlace = rs.getString( "shooting_place" );
+// 	    photo.photographer = rs.getString( "photographer" );
+// 	    photo.FStop = rs.getDouble( "f_stop" );
+// 	    photo.focalLength = rs.getDouble( "focal_length" );
+// 	    photo.shootTime = rs.getDate( "shoot_time" );
+// 	    photo.shutterSpeed = rs.getDouble( "shutter_speed" );
+// 	    photo.camera = rs.getString( "camera" );
+// 	    photo.lens = rs.getString( "lens" );
+// 	    photo.film = rs.getString( "film" );
+// 	    photo.filmSpeed = rs.getInt( "film_speed" );
+// 	    photo.description = rs.getString( "description" );
+	    
+	} catch (SQLException e ) {
+	    System.err.println( "Error fetching record: " + e.getMessage() );
+	    // TODO: Actually this is not the right exception for this purpose
+	    throw new PhotoNotFoundException();
+	}
+	
+	return photo;
+    }
+
+    /**
+       This method reads a PhotoInfo structure from the current position in ResultSet.
+       @param rs The ResultSet
+       @return PhotoInfo object created or null if not succesful
+    */
+    public static PhotoInfo createFromResultSet( ResultSet rs ) {
+	PhotoInfo photo = null;
+	try {
+	    photo = new PhotoInfo();
 	    photo.uid = rs.getInt( "photo_id" );
 	    photo.shootingPlace = rs.getString( "shooting_place" );
 	    photo.photographer = rs.getString( "photographer" );
@@ -46,18 +85,13 @@ public class PhotoInfo {
 	    photo.film = rs.getString( "film" );
 	    photo.filmSpeed = rs.getInt( "film_speed" );
 	    photo.description = rs.getString( "description" );
-	    
-	    rs.close();
-	    stmt.close();
-	} catch (SQLException e ) {
+	} catch ( SQLException e ) {
 	    System.err.println( "Error fetching record: " + e.getMessage() );
-	    // TODO: Actually this is not the right exception for this purpose
-	    throw new PhotoNotFoundException();
 	}
-	
 	return photo;
     }
-
+	    
+    
     /**
        Createas a new persistent PhotoInfo object and stores it in database
        (just a dummy onject with no meaningful field values)

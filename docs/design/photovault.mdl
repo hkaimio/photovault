@@ -108,7 +108,7 @@
 			    location   	(400, 512)
 			    anchor_loc 	1
 			    nlines     	2
-			    max_width  	335
+			    max_width  	362
 			    justify    	0
 			    label      	"Photographer")
 			icon       	"Actor"
@@ -136,7 +136,7 @@
 			    location   	(2352, 1168)
 			    anchor_loc 	1
 			    nlines     	2
-			    max_width  	347
+			    max_width  	362
 			    justify    	0
 			    label      	"PhotoBrowser")
 			icon       	"Actor"
@@ -146,7 +146,7 @@
 			annotation 	8
 			autoResize 	TRUE)
 		    (object UseCaseView "Use Case View::Add photo to DB" @3
-			location   	(1392, 240)
+			location   	(1424, 208)
 			font       	(object Font
 			    size       	10
 			    face       	"Arial"
@@ -158,7 +158,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@3
-			    location   	(1392, 378)
+			    location   	(1424, 346)
 			    anchor_loc 	1
 			    nlines     	2
 			    max_width  	630
@@ -181,7 +181,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@4
-			    location   	(868, 296)
+			    location   	(885, 280)
 			    anchor_loc 	1
 			    nlines     	1
 			    max_width  	450
@@ -194,7 +194,7 @@
 			supplier   	@3
 			line_style 	0)
 		    (object UseCaseView "Use Case View::Find photo from DB" @5
-			location   	(1392, 1040)
+			location   	(1408, 1072)
 			font       	(object Font
 			    size       	10
 			    face       	"Arial"
@@ -206,7 +206,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@5
-			    location   	(1392, 1178)
+			    location   	(1408, 1210)
 			    anchor_loc 	1
 			    nlines     	2
 			    max_width  	630
@@ -218,7 +218,7 @@
 			quidu      	"3DF1A00B0025"
 			height     	118)
 		    (object UseCaseView "Use Case View::Modify photo information" @6
-			location   	(1392, 496)
+			location   	(1408, 496)
 			font       	(object Font
 			    size       	10
 			    face       	"Arial"
@@ -230,7 +230,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@6
-			    location   	(1392, 634)
+			    location   	(1408, 634)
 			    anchor_loc 	1
 			    nlines     	2
 			    max_width  	630
@@ -249,7 +249,7 @@
 			supplier   	@6
 			line_style 	0)
 		    (object UseCaseView "Use Case View::Create photo album" @8
-			location   	(1408, 784)
+			location   	(1424, 800)
 			font       	(object Font
 			    size       	10
 			    face       	"Arial"
@@ -261,7 +261,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@8
-			    location   	(1408, 922)
+			    location   	(1424, 938)
 			    anchor_loc 	1
 			    nlines     	2
 			    max_width  	630
@@ -287,7 +287,7 @@
 			supplier   	@5
 			line_style 	0)
 		    (object UseCaseView "Use Case View::Save photo outside DB" @11
-			location   	(1376, 1344)
+			location   	(1408, 1344)
 			font       	(object Font
 			    size       	10
 			    face       	"Arial"
@@ -299,7 +299,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@11
-			    location   	(1376, 1482)
+			    location   	(1408, 1482)
 			    anchor_loc 	1
 			    nlines     	2
 			    max_width  	630
@@ -422,6 +422,30 @@
 				quid       	"3DF1A671004C")))
 		    (object Class "ImageFile"
 			quid       	"3DF1A1AE02D9")
+		    (object Class "PhotoCollection"
+			quid       	"3E24619A0356"
+			documentation 	"Interface to manage a collection of photos - e.g. folder contents or query results"
+			stereotype 	"Interface"
+			operations 	(list Operations
+			    (object Operation "getPhotoCount"
+				quid       	"3E24636003B3"
+				documentation 	"Returns the number of photos in this collecttion"
+				result     	"Integer"
+				concurrency 	"Sequential"
+				opExportControl 	"Public"
+				uid        	0)
+			    (object Operation "getPhoto"
+				quid       	"3E24639E0041"
+				parameters 	(list Parameters
+				    (object Parameter "photoNum"
+					quid       	"3E2464010057"
+					documentation 	"The numbe rof the photo that will be retrieved"
+					type       	"Integer"))
+				result     	"PhotoCollection"
+				concurrency 	"Sequential"
+				opExportControl 	"Public"
+				uid        	0
+				quidu      	"3E24619A0356")))
 		    (object Mechanism @14
 			logical_models 	(list unit_reference_list
 			    (object Object "$UNNAMED$0"
@@ -429,7 +453,7 @@
 				class      	"Use Case View::Photographer"
 				quidu      	"3DF19F98036D"
 				persistence 	"Transient"
-				creationObj 	TRUE
+				creationObj 	FALSE
 				multi      	FALSE)
 			    (object Object "$UNNAMED$1"
 				quid       	"3DF1A95901E0"
@@ -490,7 +514,7 @@
 				    fill_color 	13434879
 				    anchor     	2
 				    nlines     	13
-				    max_width  	425)
+				    max_width  	434)
 				width      	446
 				height     	736
 				annotation 	8
@@ -548,7 +572,55 @@
 				quidu      	"3DF1A2430003"
 				client     	@15
 				supplier   	@16
-				line_style 	0)))
+				line_style 	0)
+			    (object ClassView "Class" "Logical View::Image infromation classes::PhotoCollection" @18
+				ShowCompartmentStereotypes 	TRUE
+				IncludeAttribute 	TRUE
+				IncludeOperation 	TRUE
+				location   	(1984, 1088)
+				font       	(object Font
+				    size       	10
+				    face       	"Arial"
+				    bold       	FALSE
+				    italics    	FALSE
+				    underline  	FALSE
+				    strike     	FALSE
+				    color      	0
+				    default_color 	TRUE)
+				label      	(object ItemLabel
+				    Parent_View 	@18
+				    location   	(1983, 1196)
+				    anchor_loc 	1
+				    nlines     	2
+				    max_width  	409
+				    justify    	0
+				    label      	"PhotoCollection")
+				icon       	"Interface"
+				icon_style 	"Icon"
+				line_color 	3342489
+				fill_color 	13434879
+				quidu      	"3E24619A0356"
+				compartment 	(object Compartment
+				    Parent_View 	@18
+				    location   	(1797, 1237)
+				    font       	(object Font
+					size       	10
+					face       	"Arial"
+					bold       	FALSE
+					italics    	FALSE
+					underline  	FALSE
+					strike     	FALSE
+					color      	0
+					default_color 	TRUE)
+				    icon_style 	"Icon"
+				    anchor     	2
+				    nlines     	3
+				    max_width  	369
+				    justify    	0)
+				width      	58
+				height     	58
+				annotation 	8
+				autoResize 	TRUE)))
 		    (object InteractionDiagram "Add photo to DB"
 			mechanism_ref 	@14
 			quid       	"3DF1A924027F"
@@ -559,8 +631,8 @@
 			origin_x   	0
 			origin_y   	0
 			items      	(list diagram_item_list
-			    (object InterObjView "$UNNAMED$0" @18
-				location   	(464, 352)
+			    (object InterObjView "$UNNAMED$0" @19
+				location   	(464, 224)
 				font       	(object Font
 				    size       	10
 				    face       	"Arial"
@@ -571,8 +643,8 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@18
-				    location   	(464, 377)
+				    Parent_View 	@19
+				    location   	(464, 249)
 				    anchor_loc 	1
 				    nlines     	2
 				    max_width  	360
@@ -584,18 +656,11 @@
 				fill_color 	13434879
 				quidu      	"3DF1A93801E0"
 				width      	336
-				height     	214
+				height     	162
 				icon_height 	162
 				icon_width 	120
 				icon_y_offset 	0
-				annotation 	1
-				Focus_Of_Control 	(object Focus_Of_Control "" @19
-				    location   	(464, 416)
-				    line_color 	3342489
-				    InterObjView 	@18
-				    height     	60
-				    y_coord    	0
-				    Nested     	FALSE))
+				annotation 	1)
 			    (object InterObjView "$UNNAMED$1" @20
 				location   	(1152, 224)
 				font       	(object Font
@@ -621,7 +686,7 @@
 				fill_color 	13434879
 				quidu      	"3DF1A95901E0"
 				width      	300
-				height     	342
+				height     	162
 				icon_height 	0
 				icon_width 	0
 				icon_y_offset 	0
@@ -630,7 +695,644 @@
 		quid       	"3DF1A17503A1"
 		exportControl 	"Public"
 		logical_models 	(list unit_reference_list)
-		logical_presentations 	(list unit_reference_list)))
+		logical_presentations 	(list unit_reference_list
+		    (object ClassDiagram "Main"
+			quid       	"3E24686902A8"
+			title      	"Main"
+			zoom       	100
+			max_height 	28350
+			max_width  	21600
+			origin_x   	0
+			origin_y   	0
+			items      	(list diagram_item_list))))
+	    (object Class_Category "Swing UI"
+		quid       	"3E2468700320"
+		exportControl 	"Public"
+		logical_models 	(list unit_reference_list
+		    (object Class "PhotoView"
+			quid       	"3E2468A80367")
+		    (object Class "PhotoViewer"
+			quid       	"3E2468B401A1"
+			operations 	(list Operations
+			    (object Operation "getScale"
+				quid       	"3E2468E5002F"
+				result     	"Double"
+				concurrency 	"Sequential"
+				opExportControl 	"Public"
+				uid        	0)
+			    (object Operation "setScale"
+				quid       	"3E2469100190"
+				parameters 	(list Parameters
+				    (object Parameter "scale"
+					quid       	"3E246919002A"
+					type       	"Double"))
+				concurrency 	"Sequential"
+				opExportControl 	"Public"
+				uid        	0)
+			    (object Operation "fit"
+				quid       	"3E24693E01D2"
+				concurrency 	"Sequential"
+				opExportControl 	"Public"
+				uid        	0)
+			    (object Operation "setPhoto"
+				quid       	"3E246955003A"
+				result     	"PhotoInfo"
+				concurrency 	"Sequential"
+				opExportControl 	"Public"
+				uid        	0
+				quidu      	"3DF1A19C001E")
+			    (object Operation "getPhoto"
+				quid       	"3E24697D0381"
+				result     	"PhotoInfo"
+				concurrency 	"Sequential"
+				opExportControl 	"Public"
+				uid        	0
+				quidu      	"3DF1A19C001E"))
+			statemachine 	(object State_Machine "State/Activity Model"
+			    quid       	"3E246A4402A1"
+			    states     	(list States
+				(object State "$UNNAMED$2"
+				    quid       	"3E246A500276"
+				    transitions 	(list transition_list
+					(object State_Transition
+					    quid       	"3E246A8600CF"
+					    supplier   	"No image"
+					    quidu      	"3E246A53034D"
+					    sendEvent  	(object sendEvent
+						quid       	"3E246A8600D2")))
+				    type       	"StartState")
+				(object State "No image"
+				    quid       	"3E246A53034D"
+				    transitions 	(list transition_list
+					(object State_Transition
+					    quid       	"3E246ACD0244"
+					    label      	""
+					    supplier   	"Image displayed unfitted"
+					    quidu      	"3E246A9A015A"
+					    Event      	(object Event "setImage"
+						quid       	"3E246ACD0245")
+					    sendEvent  	(object sendEvent
+						quid       	"3E246ACD0247"))
+					(object State_Transition
+					    quid       	"3E246BEE0041"
+					    label      	""
+					    supplier   	"Image displayed"
+					    quidu      	"3E246B5000BC"
+					    Event      	(object Event "setImage"
+						quid       	"3E246BEE0042")
+					    sendEvent  	(object sendEvent
+						quid       	"3E246BEE0044")))
+				    type       	"Normal")
+				(object State "Image displayed unfitted"
+				    quid       	"3E246A9A015A"
+				    transitions 	(list transition_list
+					(object State_Transition
+					    quid       	"3E246AF0015E"
+					    label      	""
+					    supplier   	"Image fitted to window size"
+					    quidu      	"3E246ABC002D"
+					    Event      	(object Event "fit()"
+						quid       	"3E246AF0015F")
+					    sendEvent  	(object sendEvent
+						quid       	"3E246AF00161")))
+				    type       	"Normal")
+				(object State "Image fitted to window size"
+				    quid       	"3E246ABC002D"
+				    transitions 	(list transition_list
+					(object State_Transition
+					    quid       	"3E246AFC024B"
+					    label      	""
+					    supplier   	"Image displayed unfitted"
+					    quidu      	"3E246A9A015A"
+					    Event      	(object Event "setScale"
+						quid       	"3E246AFC024C")
+					    sendEvent  	(object sendEvent
+						quid       	"3E246AFC024E"))
+					(object State_Transition
+					    quid       	"3E246B200366"
+					    label      	""
+					    supplier   	"Image fitted to window size"
+					    quidu      	"3E246ABC002D"
+					    Event      	(object Event "setImage()"
+						quid       	"3E246B200367")
+					    sendEvent  	(object sendEvent
+						quid       	"3E246B200369")))
+				    type       	"Normal")
+				(object State "Image displayed"
+				    quid       	"3E246B5000BC"
+				    transitions 	(list transition_list
+					(object State_Transition
+					    quid       	"3E246BC002D0"
+					    label      	""
+					    supplier   	"Image displayed"
+					    quidu      	"3E246B5000BC"
+					    Event      	(object Event "setImage"
+						quid       	"3E246BC002D1")
+					    sendEvent  	(object sendEvent
+						quid       	"3E246BC002D3")))
+				    statemachine 	(object State_Machine "State/Activity Model2"
+					quid       	"3E246B6100CA"
+					states     	(list States
+					    (object State "Unfitted"
+						quid       	"3E246B6100CB"
+						transitions 	(list transition_list
+						    (object State_Transition
+							quid       	"3E246B9401BE"
+							label      	""
+							supplier   	":Image displayed:Fitted"
+							quidu      	"3E246B6C0080"
+							Event      	(object Event "fit"
+							    quid       	"3E246B9401BF")
+							sendEvent  	(object sendEvent
+							    quid       	"3E246B9401C1"))
+						    (object State_Transition
+							quid       	"3E246BD20022"
+							label      	""
+							supplier   	":Image displayed:Unfitted"
+							quidu      	"3E246B6100CB"
+							Event      	(object Event "setScale"
+							    quid       	"3E246BD20023")
+							sendEvent  	(object sendEvent
+							    quid       	"3E246BD20025")))
+						type       	"Normal")
+					    (object State "Fitted"
+						quid       	"3E246B6C0080"
+						transitions 	(list transition_list
+						    (object State_Transition
+							quid       	"3E246B9A0018"
+							label      	""
+							supplier   	":Image displayed:Unfitted"
+							quidu      	"3E246B6100CB"
+							Event      	(object Event "setScale"
+							    quid       	"3E246B9A0019")
+							sendEvent  	(object sendEvent
+							    quid       	"3E246B9A001B")))
+						type       	"Normal")
+					    (object State "$UNNAMED$3"
+						quid       	"3E246B8B0002"
+						transitions 	(list transition_list
+						    (object State_Transition
+							quid       	"3E246B9000A0"
+							supplier   	":Image displayed:Unfitted"
+							quidu      	"3E246B6100CB"
+							sendEvent  	(object sendEvent
+							    quid       	"3E246B9000A3")))
+						type       	"StartState"))
+					partitions 	(list Partitions)
+					objects    	(list Objects)
+					statediagrams 	(list StateDiagrams))
+				    type       	"Normal"))
+			    partitions 	(list Partitions)
+			    objects    	(list Objects)
+			    statediagrams 	(list StateDiagrams
+				(object State_Diagram "NewDiagram"
+				    quid       	"3E246A4402AB"
+				    title      	"NewDiagram"
+				    zoom       	100
+				    max_height 	28350
+				    max_width  	21600
+				    origin_x   	0
+				    origin_y   	0
+				    items      	(list diagram_item_list
+					(object StateView "StartState" "$UNNAMED$2" @21
+					    location   	(608, 400)
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object ItemLabel
+						Parent_View 	@21
+						location   	(650, 370)
+						nlines     	2
+						max_width  	600
+						label      	"")
+					    icon_style 	"Icon"
+					    line_color 	3342489
+					    quidu      	"3E246A500276"
+					    autoResize 	TRUE)
+					(object StateView "Normal" "No image" @22
+					    location   	(1056, 400)
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object ItemLabel
+						Parent_View 	@22
+						location   	(1056, 389)
+						fill_color 	13434879
+						anchor_loc 	1
+						nlines     	2
+						max_width  	204
+						justify    	0
+						label      	"No image")
+					    icon_style 	"Icon"
+					    line_color 	3342489
+					    fill_color 	13434879
+					    quidu      	"3E246A53034D"
+					    autoResize 	TRUE)
+					(object TransView "" @23
+					    stereotype 	TRUE
+					    line_color 	3342489
+					    quidu      	"3E246A8600CF"
+					    client     	@21
+					    supplier   	@22
+					    line_style 	0
+					    x_offset   	FALSE)
+					(object StateView "Normal" "Image displayed" @24
+					    location   	(1952, 592)
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object ItemLabel
+						Parent_View 	@24
+						location   	(1952, 402)
+						fill_color 	13434879
+						anchor_loc 	1
+						nlines     	2
+						max_width  	796
+						justify    	0
+						label      	"Image displayed")
+					    icon_style 	"Label"
+					    line_color 	3342489
+					    fill_color 	13434879
+					    quidu      	"3E246B5000BC"
+					    width      	893
+					    height     	492
+					    autoResize 	TRUE)
+					(object StateView "Normal" "Unfitted" @25
+					    Parent_View 	@24
+					    location   	(1952, 480)
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object ItemLabel
+						Parent_View 	@25
+						location   	(1952, 469)
+						fill_color 	13434879
+						anchor_loc 	1
+						nlines     	2
+						max_width  	204
+						justify    	0
+						label      	"Unfitted")
+					    icon_style 	"Icon"
+					    line_color 	3342489
+					    fill_color 	13434879
+					    quidu      	"3E246B6100CB"
+					    autoResize 	TRUE)
+					(object StateView "Normal" "Fitted" @26
+					    Parent_View 	@24
+					    location   	(2048, 752)
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object ItemLabel
+						Parent_View 	@26
+						location   	(2048, 741)
+						fill_color 	13434879
+						anchor_loc 	1
+						nlines     	2
+						max_width  	204
+						justify    	0
+						label      	"Fitted")
+					    icon_style 	"Icon"
+					    line_color 	3342489
+					    fill_color 	13434879
+					    quidu      	"3E246B6C0080"
+					    autoResize 	TRUE)
+					(object StateView "StartState" "$UNNAMED$3" @27
+					    Parent_View 	@24
+					    location   	(1616, 544)
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object ItemLabel
+						Parent_View 	@27
+						location   	(1658, 514)
+						nlines     	2
+						max_width  	600
+						label      	"")
+					    icon_style 	"Icon"
+					    line_color 	3342489
+					    quidu      	"3E246B8B0002"
+					    autoResize 	TRUE)
+					(object TransView "" @28
+					    stereotype 	TRUE
+					    line_color 	3342489
+					    quidu      	"3E246B9000A0"
+					    client     	@27
+					    supplier   	@25
+					    line_style 	0
+					    x_offset   	FALSE)
+					(object TransView "" @29
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object SegLabel @30
+						Parent_View 	@29
+						location   	(2029, 571)
+						font       	(object Font
+						    size       	10
+						    face       	"Arial"
+						    bold       	FALSE
+						    italics    	FALSE
+						    underline  	FALSE
+						    strike     	FALSE
+						    color      	0
+						    default_color 	TRUE)
+						anchor_loc 	1
+						nlines     	1
+						max_width  	60
+						justify    	0
+						label      	"fit"
+						pctDist    	0.500000
+						height     	45
+						orientation 	0)
+					    stereotype 	TRUE
+					    line_color 	3342489
+					    quidu      	"3E246B9401BE"
+					    client     	@25
+					    supplier   	@26
+					    line_style 	0
+					    x_offset   	FALSE)
+					(object SelfTransView "" @31
+					    location   	(1952, 196)
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object SegLabel @32
+						Parent_View 	@31
+						location   	(1951, 137)
+						font       	(object Font
+						    size       	10
+						    face       	"Arial"
+						    bold       	FALSE
+						    italics    	FALSE
+						    underline  	FALSE
+						    strike     	FALSE
+						    color      	0
+						    default_color 	TRUE)
+						anchor_loc 	1
+						nlines     	1
+						max_width  	200
+						justify    	0
+						label      	"setImage"
+						pctDist    	0.500000
+						height     	210
+						orientation 	0)
+					    stereotype 	TRUE
+					    line_color 	3342489
+					    quidu      	"3E246BC002D0"
+					    client     	@24
+					    supplier   	@24
+					    line_style 	4)
+					(object TransView "" @33
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object SegLabel @34
+						Parent_View 	@33
+						location   	(1991, 609)
+						font       	(object Font
+						    size       	10
+						    face       	"Arial"
+						    bold       	FALSE
+						    italics    	FALSE
+						    underline  	FALSE
+						    strike     	FALSE
+						    color      	0
+						    default_color 	TRUE)
+						anchor_loc 	1
+						nlines     	1
+						max_width  	183
+						justify    	0
+						label      	"setScale"
+						pctDist    	0.500000
+						height     	45
+						orientation 	0)
+					    stereotype 	TRUE
+					    line_color 	3342489
+					    quidu      	"3E246B9A0018"
+					    client     	@26
+					    supplier   	@25
+					    vertices   	(list Points
+						(1989, 684)
+						(1934, 622)
+						(1943, 547))
+					    line_style 	0
+					    x_offset   	FALSE)
+					(object SelfTransView "" @35
+					    location   	(2252, 480)
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object SegLabel @36
+						Parent_View 	@35
+						location   	(2312, 480)
+						font       	(object Font
+						    size       	10
+						    face       	"Arial"
+						    bold       	FALSE
+						    italics    	FALSE
+						    underline  	FALSE
+						    strike     	FALSE
+						    color      	0
+						    default_color 	TRUE)
+						anchor_loc 	1
+						nlines     	1
+						max_width  	183
+						justify    	0
+						label      	"setScale"
+						pctDist    	0.500000
+						height     	210
+						orientation 	0)
+					    stereotype 	TRUE
+					    line_color 	3342489
+					    quidu      	"3E246BD20022"
+					    client     	@25
+					    supplier   	@25
+					    line_style 	32)
+					(object TransView "" @37
+					    font       	(object Font
+						size       	10
+						face       	"Arial"
+						bold       	FALSE
+						italics    	FALSE
+						underline  	FALSE
+						strike     	FALSE
+						color      	0
+						default_color 	TRUE)
+					    label      	(object SegLabel @38
+						Parent_View 	@37
+						location   	(1365, 421)
+						font       	(object Font
+						    size       	10
+						    face       	"Arial"
+						    bold       	FALSE
+						    italics    	FALSE
+						    underline  	FALSE
+						    strike     	FALSE
+						    color      	0
+						    default_color 	TRUE)
+						anchor_loc 	1
+						nlines     	1
+						max_width  	176
+						justify    	0
+						label      	"setImage"
+						pctDist    	0.500000
+						height     	45
+						orientation 	0)
+					    stereotype 	TRUE
+					    line_color 	3342489
+					    quidu      	"3E246BEE0041"
+					    client     	@22
+					    supplier   	@24
+					    line_style 	0
+					    x_offset   	FALSE)))))))
+		logical_presentations 	(list unit_reference_list
+		    (object ClassDiagram "Main"
+			quid       	"3E24687702BC"
+			title      	"Main"
+			zoom       	100
+			max_height 	28350
+			max_width  	21600
+			origin_x   	0
+			origin_y   	0
+			items      	(list diagram_item_list
+			    (object ClassView "Class" "Logical View::Swing UI::PhotoView" @39
+				ShowCompartmentStereotypes 	TRUE
+				IncludeAttribute 	TRUE
+				IncludeOperation 	TRUE
+				location   	(512, 272)
+				font       	(object Font
+				    size       	10
+				    face       	"Arial"
+				    bold       	FALSE
+				    italics    	FALSE
+				    underline  	FALSE
+				    strike     	FALSE
+				    color      	0
+				    default_color 	TRUE)
+				label      	(object ItemLabel
+				    Parent_View 	@39
+				    location   	(393, 221)
+				    fill_color 	13434879
+				    nlines     	1
+				    max_width  	238
+				    justify    	0
+				    label      	"PhotoView")
+				icon_style 	"Icon"
+				line_color 	3342489
+				fill_color 	13434879
+				quidu      	"3E2468A80367"
+				width      	256
+				height     	126
+				annotation 	8
+				autoResize 	TRUE)
+			    (object ClassView "Class" "Logical View::Swing UI::PhotoViewer" @40
+				ShowCompartmentStereotypes 	TRUE
+				IncludeAttribute 	TRUE
+				IncludeOperation 	TRUE
+				location   	(1024, 624)
+				font       	(object Font
+				    size       	10
+				    face       	"Arial"
+				    bold       	FALSE
+				    italics    	FALSE
+				    underline  	FALSE
+				    strike     	FALSE
+				    color      	0
+				    default_color 	TRUE)
+				label      	(object ItemLabel
+				    Parent_View 	@40
+				    location   	(894, 443)
+				    fill_color 	13434879
+				    nlines     	1
+				    max_width  	260
+				    justify    	0
+				    label      	"PhotoViewer")
+				icon_style 	"Icon"
+				line_color 	3342489
+				fill_color 	13434879
+				quidu      	"3E2468B401A1"
+				compartment 	(object Compartment
+				    Parent_View 	@40
+				    location   	(894, 504)
+				    font       	(object Font
+					size       	10
+					face       	"Arial"
+					bold       	FALSE
+					italics    	FALSE
+					underline  	FALSE
+					strike     	FALSE
+					color      	0
+					default_color 	TRUE)
+				    icon_style 	"Icon"
+				    fill_color 	13434879
+				    anchor     	2
+				    nlines     	6
+				    max_width  	238)
+				width      	278
+				height     	386
+				annotation 	8
+				autoResize 	TRUE))))))
 	logical_presentations 	(list unit_reference_list
 	    (object ClassDiagram "Main"
 		quid       	"3DF19F510015"
@@ -641,7 +1343,7 @@
 		origin_x   	0
 		origin_y   	0
 		items      	(list diagram_item_list
-		    (object CategoryView "Logical View::Image infromation classes" @21
+		    (object CategoryView "Logical View::Image infromation classes" @41
 			location   	(1152, 416)
 			font       	(object Font
 			    size       	10
@@ -653,7 +1355,7 @@
 			    color      	0
 			    default_color 	TRUE)
 			label      	(object ItemLabel
-			    Parent_View 	@21
+			    Parent_View 	@41
 			    location   	(985, 332)
 			    fill_color 	13434879
 			    nlines     	2
@@ -666,7 +1368,7 @@
 			quidu      	"3DF1A0EE02AE"
 			width      	346
 			height     	180)
-		    (object CategoryView "Logical View::Data base utilities" @22
+		    (object CategoryView "Logical View::Data base utilities" @42
 			location   	(816, 1136)
 			font       	(object Font
 			    size       	10
@@ -678,7 +1380,7 @@
 			    color      	0
 			    default_color 	TRUE)
 			label      	(object ItemLabel
-			    Parent_View 	@22
+			    Parent_View 	@42
 			    location   	(672, 1052)
 			    fill_color 	13434879
 			    nlines     	2
@@ -691,13 +1393,38 @@
 			quidu      	"3DF1A17503A1"
 			width      	300
 			height     	180)
-		    (object ImportView "" @23
+		    (object ImportView "" @43
 			stereotype 	TRUE
 			line_color 	3342489
 			quidu      	"3DF1A18B036A"
-			client     	@21
-			supplier   	@22
-			line_style 	0)))))
+			client     	@41
+			supplier   	@42
+			line_style 	0)
+		    (object CategoryView "Logical View::Swing UI" @44
+			location   	(1968, 784)
+			font       	(object Font
+			    size       	10
+			    face       	"Arial"
+			    bold       	FALSE
+			    italics    	FALSE
+			    underline  	FALSE
+			    strike     	FALSE
+			    color      	0
+			    default_color 	TRUE)
+			label      	(object ItemLabel
+			    Parent_View 	@44
+			    location   	(1824, 700)
+			    fill_color 	13434879
+			    nlines     	2
+			    max_width  	288
+			    justify    	0
+			    label      	"Swing UI")
+			icon_style 	"Icon"
+			line_color 	3342489
+			fill_color 	13434879
+			quidu      	"3E2468700320"
+			width      	300
+			height     	180)))))
     root_subsystem 	(object SubSystem "Component View"
 	quid       	"3DF19F510011"
 	physical_models 	(list unit_reference_list)
