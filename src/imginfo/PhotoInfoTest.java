@@ -132,13 +132,35 @@ public class PhotoInfoTest extends TestCase {
 	assertNotNull( photo );
 
 	photo.setPhotographer( "TESTIKUVAAJA" );
+	photo.setShootingPlace( "TESTPLACE" );
+	photo.setShootTime( new Date() );
 	photo.setFStop( 5.6 );
+	photo.setShutterSpeed( 0.04 );
+	photo.setFocalLength( 50 );
+	photo.setCamera( "Canon FTb" );
+	photo.setFilm( "Tri-X" );
+	photo.setFilmSpeed( 400 );
+	photo.setLens( "Canon FD 50mm/F1.4" );
+	photo.setDescription( "This is a long test description that tries to verify that the description mechanism really works" );
 	photo.updateDB();
 	try {
 	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
+
+	    assertEquals( photo.getPhotographer(), photo2.getPhotographer() );
+	    assertEquals( photo.getShootingPlace(), photo2.getShootingPlace() );
+	    // assertEquals( photo.getShootTime(), photo2.getShootTime() );
+	    assertEquals(photo.getDescription(), photo2.getDescription() );
+	    assertEquals( photo.getCamera(), photo2.getCamera() );
+	    assertEquals( photo.getLens(), photo2.getLens() );
+	    assertEquals( photo.getFilm(), photo2.getFilm() );
+	    assertTrue( photo.getShutterSpeed() == photo2.getShutterSpeed() );
+	    assertTrue( photo.getFilmSpeed() == photo2.getFilmSpeed() );
+	    assertTrue( photo.getFocalLength() == photo2.getFocalLength() );
+	    assertTrue( photo.getFStop() == photo2.getFStop() );
+	    assertTrue( photo.getUid() == photo2.getUid() );
 	    
-	    assertEquals( photo2.getPhotographer(), photo.getPhotographer() );
-	    assertTrue( photo2.getFStop() == photo.getFStop() );
+	    //	    assertTrue( photo.equals( photo2 ));
+			
 	} catch ( PhotoNotFoundException e ) {
 	    fail ( "inserted photo not found" );
 	}

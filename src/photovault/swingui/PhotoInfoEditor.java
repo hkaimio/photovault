@@ -77,7 +77,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	Border descBorder = BorderFactory.createEtchedBorder( EtchedBorder.LOWERED );
 	descBorder = BorderFactory.createTitledBorder( descBorder, "Description" );
         descScrollPane.setBorder( descBorder );
-
+	descriptionDoc = descriptionTextArea.getDocument();
+	descriptionDoc.putProperty( FIELD_NAME, PhotoInfoController.DESCRIPTION );
+	descriptionDoc.addDocumentListener( this );
+	
 	// Save button
 	JButton saveBtn = new JButton( "Save" );
 	saveBtn.setActionCommand( "save" );
@@ -128,6 +131,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	cameraField = new JTextField( 20 );
 	cameraDoc = cameraField.getDocument();
 	cameraDoc.addDocumentListener( this );
+	cameraDoc.putProperty( FIELD_NAME, PhotoInfoController.CAMERA_MODEL );
+	
+	JLabel lensLabel =  new JLabel( "Lens" );
+	lensField = new JTextField( 20 );
+	lensDoc = lensField.getDocument();
+	lensDoc.addDocumentListener( this );
+	lensDoc.putProperty( FIELD_NAME, PhotoInfoController.LENS_TYPE );
 
 	JLabel filmLabel =  new JLabel( "Film" );
 	filmField = new JTextField( 20 );
@@ -167,8 +177,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
 	pane.setLayout( layout );
-	JLabel[] labels     = { cameraLabel, focalLengthLabel, filmLabel, filmSpeedLabel, shutterSpeedLabel, fStopLabel };
-	JTextField[] fields = { cameraField, focalLengthField, filmField, filmSpeedField, shutterSpeedField, fStopField };
+	JLabel[] labels     = { cameraLabel, lensLabel, focalLengthLabel, filmLabel, filmSpeedLabel, shutterSpeedLabel, fStopLabel };
+	JTextField[] fields = { cameraField, lensField, focalLengthField, filmField, filmSpeedField, shutterSpeedField, fStopField };
 	addLabelTextRows( labels, fields, layout, pane );
     }
 	
@@ -226,15 +236,45 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     public void setFilmSpeed( Number newValue ) {
-	fStopField.setValue( newValue );
+	filmSpeedField.setValue( newValue );
     }
     
     public Number getFilmSpeed( ) {
-	Number value = (Number) fStopField.getValue( );
+	Number value = (Number) filmSpeedField.getValue( );
 	return value;
-    }
+    } 
 
+    public void setCamera( String newValue ) {
+	cameraField.setText( newValue );
+    }
     
+    public String getCamera( ) {
+	return cameraField.getText( );
+    }
+    
+    public void setLens( String newValue ) {
+	lensField.setText( newValue );
+    }
+    
+    public String getLens( ) {
+	return lensField.getText( );
+    }
+    
+    public void setFilm( String newValue ) {
+	filmField.setText( newValue );
+    }
+    
+    public String getFilm( ) {
+	return filmField.getText( );
+    }
+    
+    public void setDescription( String newValue ) {
+	descriptionTextArea.setText( newValue );
+    }
+    
+    public String getDescription( ) {
+	return descriptionTextArea.getText( );
+    }
     
     
     
@@ -250,6 +290,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     JTextField cameraField = null;
     Document cameraDoc = null;
+    JTextField lensField = null;
+    Document lensDoc = null;
 
     JTextField filmField = null;
     Document filmDoc = null;
@@ -267,7 +309,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     
     public void actionPerformed( ActionEvent evt ) {
 	if ( evt.getActionCommand().equals( "save" ) ) {
-	    System.out.println( "Saving data" );
 	    try {
 		ctrl.save();
 	    } catch ( Exception e ) {

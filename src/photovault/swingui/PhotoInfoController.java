@@ -87,10 +87,93 @@ public class PhotoInfoController {
 		}
 	    });
 
+	modelFields.put( CAMERA_MODEL, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setCamera( (String) value );
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return obj.getCamera();
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setCamera( (String) value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getCamera();
+		}
+	    });
+
+	modelFields.put( FILM_TYPE, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setFilm( (String) value );
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return obj.getFilm();
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFilm( (String) value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getFilm();
+		}
+	    });
+
+	modelFields.put( LENS_TYPE, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setLens( (String) value );
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return obj.getLens();
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setLens( (String) value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getLens();
+		}
+	    });
+
+	modelFields.put( DESCRIPTION, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setDescription( (String) value );
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return obj.getDescription();
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setDescription( (String) value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getDescription();
+		}
+	    });
+
+
+
+	
 	modelFields.put( F_STOP, new FieldController( photo ) {
 		protected void setModelValue() {
 		    PhotoInfo obj = (PhotoInfo) model;
-		    obj.setFStop( ((Number)value).doubleValue() );
+		    if ( value != null ) {
+			obj.setFStop( ((Number)value).doubleValue() );
+		    } else {
+			obj.setFStop( 0 );
+		    }
 		}
 		protected Object getModelValue() {
 		    PhotoInfo obj = (PhotoInfo) model;
@@ -106,10 +189,37 @@ public class PhotoInfoController {
 		}
 	    });
 
+	modelFields.put( SHUTTER_SPEED, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    if ( value != null ) {
+			obj.setShutterSpeed( ((Number)value).doubleValue() );
+		    } else {
+			obj.setShutterSpeed( 0 );
+		    }
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return new Double( obj.getShutterSpeed() );
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setShutterSpeed( (Number)value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value =  obj.getShutterSpeed();
+		}
+	    });
+
 	modelFields.put( FOCAL_LENGTH, new FieldController( photo ) {
 		protected void setModelValue() {
 		    PhotoInfo obj = (PhotoInfo) model;
-		    obj.setFocalLength( ((Number)value).doubleValue() );
+		    if ( value != null ) {
+			obj.setFocalLength( ((Number)value).doubleValue() );
+		    } else {
+			obj.setFocalLength( 0 );
+		    }
 		}
 		protected Object getModelValue() {
 		    PhotoInfo obj = (PhotoInfo) model;
@@ -124,6 +234,30 @@ public class PhotoInfoController {
 		    value =  obj.getFocalLength(); 
 		}
 	    });
+
+	modelFields.put( FILM_SPEED, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    if ( value != null ) {
+			obj.setFilmSpeed( ((Number)value).intValue() );
+		    } else {
+			obj.setFilmSpeed( 0 );
+		    }
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return new Double( obj.getFilmSpeed() );
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFilmSpeed( (Number)value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value =  obj.getFilmSpeed(); 
+		}
+	    });
+
 	// TODO: Add other fields
 
 	// Init the views in the fields
@@ -250,6 +384,7 @@ public class PhotoInfoController {
     public final static String CAMERA_MODEL = "Camera model";
     public final static String FILM_TYPE = "Film type";
     public final static String FILM_SPEED = "Film speed";
+    public final static String LENS_TYPE = "Lens type";
 
 
     protected HashMap modelFields = null;
@@ -259,7 +394,6 @@ public class PhotoInfoController {
     File originalFile = null;
 
     public void setField( String field, Object value ) {
-	System.err.println( "Set field " + field + ": " + value.toString() );
 	FieldController fieldCtrl = (FieldController) modelFields.get( field );
 	if ( fieldCtrl != null ) {
 	    fieldCtrl.setValue( value );

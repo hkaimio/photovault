@@ -80,6 +80,7 @@ public class TestPhotoInfoController extends TestCase {
 	try {
 	    ctrl.save();
 	} catch ( Exception e ) {
+	    e.printStackTrace();
 	    fail( "Exception while saving: " + e.getMessage() );
 	}
 	PhotoInfo photo = ctrl.getPhoto();

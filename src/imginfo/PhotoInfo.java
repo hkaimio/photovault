@@ -37,6 +37,13 @@ public class PhotoInfo {
 	    photo.FStop = rs.getDouble( "f_stop" );
 	    photo.focalLength = rs.getDouble( "focal_length" );
 	    photo.shootTime = rs.getDate( "shoot_time" );
+	    photo.shutterSpeed = rs.getDouble( "shutter_speed" );
+	    photo.camera = rs.getString( "camera" );
+	    photo.lens = rs.getString( "lens" );
+	    photo.film = rs.getString( "film" );
+	    photo.filmSpeed = rs.getInt( "film_speed" );
+	    photo.description = rs.getString( "description" );
+	    
 	    rs.close();
 	    stmt.close();
 	} catch (SQLException e ) {
@@ -62,7 +69,7 @@ public class PhotoInfo {
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    Statement stmt = conn.createStatement();
-	    stmt.executeUpdate( "INSERT INTO photos values ( " + photo.uid + ", NULL, NULL, NULL, NULL, NULL)" );
+	    stmt.executeUpdate( "INSERT INTO photos values ( " + photo.uid + ", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)" );
 	    stmt.close();
 	} catch ( SQLException e ) {
 	    System.err.println( "Error creating new PhotoInfo: " + e.getMessage() );
@@ -141,7 +148,7 @@ public class PhotoInfo {
        Updates  the object state to database
     */
     public void updateDB() {
-	String sql = "UPDATE photos SET shooting_place = ?, photographer = ?, f_stop = ?, focal_length = ?, shoot_time = ? WHERE photo_id = ?";
+	String sql = "UPDATE photos SET shooting_place = ?, photographer = ?, f_stop = ?, focal_length = ?, shoot_time = ?, shutter_speed = ?, camera = ?, lens = ?, film = ?, film_speed = ?, description = ? WHERE photo_id = ?";
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
@@ -155,7 +162,13 @@ public class PhotoInfo {
 	    } else {		
 		stmt.setDate( 5, null );
 	    }
-	    stmt.setInt( 6, uid );
+	    stmt.setDouble( 6, shutterSpeed );
+	    stmt.setString( 7, camera );
+	    stmt.setString( 8, lens );
+	    stmt.setString( 9, film );
+	    stmt.setInt( 10, filmSpeed );
+	    stmt.setString( 11, description );
+	    stmt.setInt( 12, uid );
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch (SQLException e ) {
@@ -419,5 +432,136 @@ public class PhotoInfo {
     public void setPhotographer(String  v) {
 	this.photographer = v;
     }
+    double shutterSpeed;
+    
+    /**
+     * Get the value of shutterSpeed.
+     * @return value of shutterSpeed.
+     */
+    public double getShutterSpeed() {
+	return shutterSpeed;
+    }
+    
+    /**
+     * Set the value of shutterSpeed.
+     * @param v  Value to assign to shutterSpeed.
+     */
+    public void setShutterSpeed(double  v) {
+	this.shutterSpeed = v;
+    }
+    String camera;
+    
+    /**
+     * Get the value of camera.
+     * @return value of camera.
+     */
+    public String getCamera() {
+	return camera;
+    }
+    
+    /**
+     * Set the value of camera.
+     * @param v  Value to assign to camera.
+     */
+    public void setCamera(String  v) {
+	this.camera = v;
+    }
+    String lens;
+    
+    /**
+     * Get the value of lens.
+     * @return value of lens.
+     */
+    public String getLens() {
+	return lens;
+    }
+    
+    /**
+     * Set the value of lens.
+     * @param v  Value to assign to lens.
+     */
+    public void setLens(String  v) {
+	this.lens = v;
+    }
+    String film;
+    
+    /**
+     * Get the value of film.
+     * @return value of film.
+     */
+    public String getFilm() {
+	return film;
+    }
+    
+    /**
+     * Set the value of film.
+     * @param v  Value to assign to film.
+     */
+    public void setFilm(String  v) {
+	this.film = v;
+    }
+    int filmSpeed;
+    
+    /**
+     * Get the value of filmSpeed.
+     * @return value of filmSpeed.
+     */
+    public int getFilmSpeed() {
+	return filmSpeed;
+    }
+    
+    /**
+     * Set the value of filmSpeed.
+     * @param v  Value to assign to filmSpeed.
+     */
+    public void setFilmSpeed(int  v) {
+	this.filmSpeed = v;
+    }
+    String description;
+    
+    /**
+     * Get the value of description.
+     * @return value of description.
+     */
+    public String getDescription() {
+	return description;
+    }
+    
+    /**
+     * Set the value of description.
+     * @param v  Value to assign to description.
+     */
+    public void setDescription(String  v) {
+	this.description = v;
+    }
 
+    static private boolean isEqual( Object o1, Object o2 ) {
+	if ( o1 == null ) {
+	    if ( o2 == null ) {		
+		return true;
+	    } else {
+		return false;		
+	    }
+	}
+	return o1.equals( o2 );
+    }
+    
+    public boolean equals( Object obj ) {
+	if ( obj.getClass() != this.getClass() ) {
+	    return false;
+	}
+	PhotoInfo p = (PhotoInfo)obj;
+	return ( isEqual( p.photographer, this.photographer )
+		 && isEqual( p.shootingPlace, this.shootingPlace )
+		 && isEqual( p.shootTime, this.shootTime )
+		 && isEqual(p.description, this.description )
+		 && isEqual( p.camera, this.camera )
+		 && isEqual( p.lens, this.lens )
+		 && isEqual( p.film, this.film )
+		 && p.shutterSpeed == this.shutterSpeed
+		 && p.filmSpeed == this.filmSpeed
+		 && p.focalLength == this.focalLength
+		 && p.FStop == this.FStop
+		 && p.uid == this.uid );
+    }
 }

@@ -5,7 +5,7 @@ A SQL script for creating the database tables.
 
 (c) 2002 Harri Kaimio
 
-Version: $Id: create_db.sql,v 1.4 2002/12/25 21:18:20 kaimio Exp $
+Version: $Id: create_db.sql,v 1.5 2003/01/11 13:37:54 kaimio Exp $
 */
 
 /* Create the photos table */
@@ -16,8 +16,15 @@ create table photos (
 	photographer varchar(30),
 	f_stop float,
 	focal_length float,
+	shutter_speed float,
+	camera varchar(30),
+	lens varchar(30),
+	film varchar(30),
+	film_speed float,
+	description text,
 
-	PRIMARY KEY( photo_id )
+	PRIMARY KEY( photo_id ),
+	FULLTEXT( shooting_place, description )
 );
 
 /* Create the image_files table */

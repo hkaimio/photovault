@@ -64,10 +64,9 @@ public abstract class FieldController {
 	    }
 	    // Controller mathces model set flag accordingly
 	    modified = false;
+	    // Update info in all views
+	    updateViews( null );
 	}
-	
-	// Update info in all views
-	updateViews( null );
     }
 
     /**
@@ -129,17 +128,13 @@ public abstract class FieldController {
 
     
     protected void updateViews( Object source ) {
-	System.err.println( "Updating views" );
 	if ( views == null ) {
-	    System.err.println( " no views!" );
 	    return;
 	}
 	Iterator iter = views.iterator();
 	while ( iter.hasNext() ) {
 	    Object view = iter.next();
-	    System.err.println( " view found" );
 	    if ( view != source ) {
-		System.err.println( "  update view" );
 		updateView( view );
 	    }
 	}
