@@ -130,7 +130,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	buttonPane.add(discardBtn);
 	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 	buttonPane.add(saveBtn);
-	add( buttonPane, BorderLayout.SOUTH );
+	//	add( buttonPane, BorderLayout.SOUTH );
 
     }
 

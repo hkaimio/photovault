@@ -300,6 +300,13 @@ public class PhotoInfoController {
     public void setView( PhotoInfoView view ) {
 	views.clear();
 	views.add( view );
+	// Inform all field controllers that the views collection has changed
+	Iterator iter = modelFields.values().iterator();
+	while( iter.hasNext() ) {
+	    FieldController fieldCtrl = (FieldController) iter.next();
+	    fieldCtrl.updateAllViews();
+	}
+	
     }
 
     protected void changeModelInFields( boolean preserveFieldState ) {

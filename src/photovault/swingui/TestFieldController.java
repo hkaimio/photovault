@@ -7,6 +7,7 @@ import junit.framework.*;
 import java.util.*;
 
 public class TestFieldController extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestFieldController.class.getName() );
 
     private class TestObject {
 	public String field;
@@ -88,6 +89,17 @@ public class TestFieldController extends TestCase {
 	assertEquals( "View1 should not be changed", "View1", view1.getField() );
     }
 
+    /**
+       Test that when a new view is added it is updated to match the controller state
+    */
+    public void testViewsModification() {
+	fieldCtrl.setValue( "value1" );
+	TestObject view3 = new TestObject();
+	views.add( view3 );
+	fieldCtrl.updateAllViews();
+	assertEquals( "view3 not updated to match model", "value1", view3.getField() );
+    }
+    
     public void testNullModel() {
 	fieldCtrl.setModel( null );
 	fieldCtrl.setValue( "Moi" );
@@ -116,6 +128,14 @@ public class TestFieldController extends TestCase {
 	assertEquals( "Views should be modified", "Modified", view1.getField() );
     }
 
+    public static void main( String[] args ) {
+	//	org.apache.log4j.BasicConfigurator.configure();
+	log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger fieldCtrlLog = org.apache.log4j.Logger.getLogger( FieldController.class.getName() );
+	fieldCtrlLog.setLevel( org.apache.log4j.Level.DEBUG );
+	junit.textui.TestRunner.run( suite() );
+    }
+    
     public static Test suite() {
 	return new TestSuite( TestFieldController.class );
     }

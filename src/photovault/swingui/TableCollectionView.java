@@ -172,26 +172,29 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	}
     }
 
+    PhotoInfoDlg propertyDlg = null;
+    
     /**
        Show the PhotoInfoEditor dialog for the selected photo
     */
     public void showSelectionPropsDialog() {
 	PhotoInfo photo = getSelected();
+	
+	// Try to find the frame in which this component is in
+	Frame frame = null;
+	Container c = getTopLevelAncestor();
+	if ( c instanceof Frame ) {
+	    frame = (Frame) c;
+	}
 
 	if ( photo != null ) {
-	    // TODO: Change PhotoInfoEditor to a dialog!!!
-	    final JFrame frame = new JFrame( "Photo properties" );
-	    PhotoInfoController ctrl = new PhotoInfoController();
-	    PhotoInfoEditor editor = new PhotoInfoEditor( ctrl );
-	    ctrl.setPhoto( photo );
-	    frame.getContentPane().add( editor, BorderLayout.CENTER );
-	    frame.addWindowListener(new WindowAdapter() {
-		    public void windowClosing(WindowEvent e) {
-			frame.dispose( );
-		    }
-		} );
-	    frame.pack();
-	    frame.setVisible( true );
+	    if (propertyDlg == null ) {
+		propertyDlg = new PhotoInfoDlg( frame, true, photo );
+	    } else {
+		propertyDlg.setPhoto( photo );
+	    }
+
+	    propertyDlg.showDialog();
 	}
     }
 

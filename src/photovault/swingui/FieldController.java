@@ -26,11 +26,17 @@ public abstract class FieldController {
     
     /**
        Sets the collection of views that this controller updates. Note that the collection is not owned by
-       FieldController.
+       FieldController. Therefore, if the views collection is changed the changer must call updateAllViews
+       to get the new views updated to match the state of controller!!!
        @param views Collection that contains the views that must be updated according to this field
     */
     public void setViews( Collection views ) {
 	this.views = views;
+	updateViews( null );
+    }
+
+    public void updateAllViews() {
+	updateViews( null );
     }
     
     /**
