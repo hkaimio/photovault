@@ -42,7 +42,8 @@ import java.awt.event.MouseEvent;
 
 public class PhotoCollectionThumbView
     extends JPanel
-    implements MouseMotionListener, MouseListener, ActionListener, PhotoCollectionChangeListener {
+    implements MouseMotionListener, MouseListener, ActionListener,
+	       PhotoCollectionChangeListener, PhotoInfoChangeListener {
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoCollectionThumbView.class.getName() );
     
@@ -56,7 +57,7 @@ public class PhotoCollectionThumbView
     }
 
     /**
-     * Returns the currently displayed photo collection or <code>null</code> of none specified
+     * Returns the currently displayed photo collection or <code>null</code> if none specified
      */
     public PhotoCollection getCollection() {
         return photoCollection;
@@ -77,13 +78,37 @@ public class PhotoCollectionThumbView
         
       photoCollection = v;
       photoCollection.addPhotoCollectionChangeListener( this );
+      refreshPhotoChangeListeners();
+      
       revalidate();
       repaint();
     }
 
+    /**
+       Removes all change listeners this photo has added, repopulates the photos array
+       from current photoCollection and adds change listeners to all photos in it.
+    */
+    private void refreshPhotoChangeListeners() {
+	// remove change listeners from all existing photos
+	Iterator iter = photos.iterator();
+	while ( iter.hasNext() ) {
+	    PhotoInfo photo = (PhotoInfo) iter.next();
+	    photo.removeChangeListener( this );
+	}
+	
+	photos.removeAllElements();
+	
+	// Add the change listeners to all photos so that we are aware of modifications
+	for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
+	    PhotoInfo photo = photoCollection.getPhoto( n );
+	    photo.addChangeListener( this );
+	    photos.add( photo );
+	}
+    }	
     
 
     PhotoCollection collection;
+    Vector photos = new Vector();
 
     
     /**
@@ -310,10 +335,26 @@ public class PhotoCollectionThumbView
     
 
     public void photoCollectionChanged( PhotoCollectionChangeEvent e ) {
+	refreshPhotoChangeListeners();
 	revalidate();
 	repaint();
     }
 
+    /**
+       This method is called when a PhotoInfo that is visible in the view is changed. it redraws the
+       thumbnail & texts ascociated with it
+    */
+    public void photoInfoChanged( PhotoInfoChangeEvent ev ) {
+	PhotoInfo photo = (PhotoInfo) ev.getSource();
+	// Find the location of the photo
+	int n = photos.indexOf( photo );
+	if ( n >= 0 ) {
+	    int row = (int) (n / columnCount);
+	    int col = n - (row * columnCount);
+	    repaint( 0, col * columnWidth, row * rowHeight, columnWidth, rowHeight );
+	}
+    }
+    
 
     /**
        Checks which photo is under the specified coordinates
