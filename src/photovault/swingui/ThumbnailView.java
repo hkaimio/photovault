@@ -70,6 +70,24 @@ public class ThumbnailView extends JPanel {
     boolean showDate = true;
     boolean showPlace = true;
 	
+    public void setShowShootingTime( boolean b ) {
+	showDate = b;
+	revalidate();
+    }
+
+    public boolean getShowShootingTime() {
+	return showDate;
+    }
+
+    public void setShowShootingPlace( boolean b ) {
+	showPlace = b;
+	revalidate();
+    }
+
+    public boolean getShowShootingPlace() {
+	return showPlace;
+    }
+    
     public Dimension getPreferredSize() {
 	return new Dimension( 150, 150 );
     }
