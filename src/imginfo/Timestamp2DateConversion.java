@@ -13,7 +13,7 @@ public class Timestamp2DateConversion implements FieldConversion {
 
     public Object javaToSql( Object src ) {
 
-	log.debug( "javaToSql: " + src.getClass().getName() + " " + src );
+	log.debug( "javaToSql: " + src );
 	if ( src instanceof Date ) {
 	    return new Timestamp( ((Date)src).getTime() );
 	}
@@ -21,7 +21,7 @@ public class Timestamp2DateConversion implements FieldConversion {
     } 
 
     public Object sqlToJava( Object src ) {
-	log.debug( "sqlToJava: " + src.getClass().getName() + " " + src );
+	log.debug( "sqlToJava: " + src );
 
 	if ( src instanceof Timestamp ) {
 	    return new Date( ((Timestamp)src).getTime() );

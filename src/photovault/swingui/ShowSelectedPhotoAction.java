@@ -42,51 +42,72 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
 	if ( c instanceof Frame ) {
 	    parentFrame = (Frame) c;
 	}
-        try {
-            Collection selectedPhotos = view.getSelection();
-	    if ( selectedPhotos.size() > 1 ) {
-		// If user wants to open many photos at once ask for confirmation
-		// Try to find the frame in which this component is in
-		int n = JOptionPane.showConfirmDialog( parentFrame,
-						       "You have selected " + selectedPhotos.size() + " photos\n" +
-						       "Are you sure that you want to\ndisplay all of them at once?",
-						       "Open multiple photos",
-						       JOptionPane.YES_NO_OPTION );
-		if ( n != JOptionPane.YES_OPTION ) {
-		    return;
-		}
+	Collection selectedPhotos = view.getSelection();
+	if ( selectedPhotos.size() > 1 ) {
+	    // If user wants to open many photos at once ask for confirmation
+	    // Try to find the frame in which this component is in
+	    int n = JOptionPane.showConfirmDialog( parentFrame,
+						   "You have selected " + selectedPhotos.size() + " photos\n" +
+						   "Are you sure that you want to\ndisplay all of them at once?",
+						   "Open multiple photos",
+						   JOptionPane.YES_NO_OPTION );
+	    if ( n != JOptionPane.YES_OPTION ) {
+		return;
 	    }
+	}
+	
+	Cursor oldCursor = c.getCursor();
+	c.setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
+	Iterator iter = selectedPhotos.iterator();
+	JAIPhotoViewer viewer = null;
+	while ( iter.hasNext() ) {
+	    try {
+		viewer = null;
+		PhotoInfo photo = (PhotoInfo) iter.next();
+		JFrame frame = new JFrame( "Photo" );
+		viewer = new JAIPhotoViewer();
+		frame.getContentPane().add( viewer, BorderLayout.CENTER );
+		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		
+		// This is a WAR for a memory management problem. For
+		// some reason the frame and objects owned by it seem
+		// not to be garbage collected. So we free the large
+		// image buffers to avoid massive memory leak.
 
-	    Cursor oldCursor = c.getCursor();
-	    c.setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
-	    Iterator iter = selectedPhotos.iterator();
-            while ( iter.hasNext() ) {
-                PhotoInfo photo = (PhotoInfo) iter.next();
-                JFrame frame = new JFrame( "Photo" );
-                final JAIPhotoViewer viewer = new JAIPhotoViewer();
-                frame.getContentPane().add( viewer, BorderLayout.CENTER );
-                frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		final JAIPhotoViewer pv = viewer;
+		frame.addWindowListener( new WindowAdapter() {
+			public void windowClosing( WindowEvent e ) {
+			pv.setPhoto( null );
+			}
+		    } );
+		viewer.setPhoto( photo );
+		frame.pack();
+		frame.setVisible( true );
+	    } catch ( Throwable e ) {
+		// Most likely we got an out of memory error
+		log.warn( "Error while trying to show a photo: " + e );
+		e.printStackTrace();
+		// Clean up as much as we can
+		if ( viewer != null ) {
+		    viewer.setPhoto( null );
+		}
+		try {
+		    JOptionPane.showMessageDialog( parentFrame,
+						   "Out of memory while trying to show a photo\n"
+						   + "Try closing some windows and try again",
+						   "Out of memory",
+						   JOptionPane.ERROR_MESSAGE );
+		} catch (Throwable t ) {
+		    // We are so screwed up that we cannot even show an error message
+		    // Anyway, catch the error so that we can exit the action orderly
+		}
+		// Do not continue opeing new images
+		break;
+	    }
+	}
 
-                // This is a WAR for a memory management problem. For
-                // some reason the frame and objects owned by it seem
-                // not to be garbage collected. So we free the large
-                // image buffers to avoid massive memory leak.
-                
-                frame.addWindowListener( new WindowAdapter() {
-                        public void windowClosing( WindowEvent e ) {
-                            viewer.setPhoto( null );
-                        }
-                    } );
-                viewer.setPhoto( photo );
-                frame.pack();
-                frame.setVisible( true );
-            }
-	    c.setCursor( oldCursor );
-        } catch ( Throwable e ) {
-            System.err.println( "Out of memory error" );
-            log.warn( e );
-            e.printStackTrace();
-        }
+	// Restore the old cursor
+	c.setCursor( oldCursor );
     }
 
     PhotoCollectionThumbView view;
