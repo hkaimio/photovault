@@ -39,14 +39,43 @@ public abstract class FieldController {
     }
 
     /**
-       Sets a new model for the object and discard any changes made after the field was last saved
+       Sets a new model for the object. It can be controlled whether the current state of controller is preserved
+       or whether the controller state is read from the new model
+       @param model The new model
+       @param preserveState if true, preserve controller state - if save() is called later, the state will
+       be written to the new model. This is useful when starting with null model (if it has not yet been created).
+       If false, the controller state is changed to match the new model.
     */
-    public void setModel( Object model ) {
+    public void setModel( Object model, boolean preserveState ) {
 	this.model = model;
-	modified = false;
+
+	if ( preserveState ) {
+	    // We are copying the state of this controller to the new model. Set the modified flag to indicate
+	    // that the state must be saved.
+	    modified = true;
+	} else {
+	    // Update value from the model
+	    if ( model != null ) {
+		value = getModelValue();
+	    } else {
+		value = null;
+	    }
+	    // Controller mathces model set flag accordingly
+	    modified = false;
+	}
+	
 	// Update info in all views
 	updateViews( null );
     }
+
+    /**
+       Sets a new model for the object and discard any changes made after the field was last saved
+       @param model The new model
+    */
+    public void setModel( Object model ) {
+	setModel( model, false );
+    }
+	
 
     /**
        Sets a new value for the field controlled by this object
@@ -82,10 +111,12 @@ public abstract class FieldController {
        Save any changes to the model
     */
     public void save() {
-	if ( modified ) {
-	    setModelValue();
+	if ( model != null ) {
+	    if ( modified ) {
+		setModelValue();
+	    }
+	    modified = false;
 	}
-	modified = false;
     }
 
     protected void updateViews( Object source ) {

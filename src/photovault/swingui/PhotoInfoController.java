@@ -54,17 +54,25 @@ public class PhotoInfoController {
        @param photo The photoInfo object that is to be edited. If null the a new PhotoInfo record will be created     
     */
     public void setPhoto( PhotoInfo photo ) {
-	boolean wasCreatingNewPhoto = ( this.photo == null );
+	boolean isCreatingNewPhoto = ( this.photo == null );
  	this.photo = photo;
 
 	// Inform all fields that the model has changed
 	Iterator fieldIter = modelFields.values().iterator();
 	while ( fieldIter.hasNext() ) {
 	    FieldController fieldCtrl = (FieldController) fieldIter.next();
-	    fieldCtrl.setModel( photo );
+	    // If we are creating a new photo we will copy the current field values to it.
+	    fieldCtrl.setModel( photo, isCreatingNewPhoto );
 	}
     }
 
+    /**
+       Sets up the controller to create a new PhotoInfo
+    */
+    public void createNewPhoto() {
+	setPhoto( null );
+    }
+    
     /**
        Returns the hotoInfo record that is currently edited.
     */
@@ -76,11 +84,20 @@ public class PhotoInfoController {
        Save the modifications made to the PhotoInfo record
     */
     public void save() {
+	// Check if we already have a PhotoInfo object to control
+	if ( photo == null ) {
+	    // No we do not have, which means that we are creating a new one.
+	   setPhoto( PhotoInfo.create() );
+	}
+	
 	// Inform all fields that the modifications should be saved to model
 	Iterator fieldIter = modelFields.values().iterator();
 	while ( fieldIter.hasNext() ) {
 	    FieldController fieldCtrl = (FieldController) fieldIter.next();
 	    fieldCtrl.save();
+	}
+	if ( photo != null ) {
+	    photo.updateDB();
 	}
     }
 

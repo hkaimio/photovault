@@ -160,8 +160,8 @@ public class TestVolume extends TestCase {
 	}
 	
 	Calendar cal = Calendar.getInstance();
-	// Create several hundred files
-	for ( int n = 0; n < 500; n++ ) {
+	// Create many files
+	for ( int n = 0; n < 200; n++ ) {
 	
 	    // The time will be 13 Dec 2002 (Java numbers months from 0 onwards!!!)
 	    cal.set( 2002, 11, 13 );

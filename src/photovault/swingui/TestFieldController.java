@@ -83,6 +83,22 @@ public class TestFieldController extends TestCase {
 	assertEquals( "View1 should not be changed", "View1", view1.getField() );
     }
 
+    public void testNullModel() {
+	fieldCtrl.setModel( null );
+	fieldCtrl.setValue( "Moi" );
+	assertTrue( "FieldCtrl does calins it has not been modified", fieldCtrl.isModified() );
+	assertEquals( "Modification not OK", "Moi", fieldCtrl.getValue() );
+
+	// saving the ctrl should not crash
+	fieldCtrl.save();
+	
+	// Set the new model but preserve field controller state. After this the model can be saved
+	fieldCtrl.setModel( testObject, true );
+	fieldCtrl.save();
+	assertEquals( "Modification not saved correctly", "Moi", testObject.getField() );
+	assertFalse( "isModified should be false after save", fieldCtrl.isModified() );
+    }
+
     public static Test suite() {
 	return new TestSuite( TestFieldController.class );
     }
