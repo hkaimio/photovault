@@ -15,7 +15,7 @@ import java.awt.geom.*;
    PhotoInfo represents information about a single photograph
    TODO: write a decent doc!!!
 */
-class PhotoInfo {
+public class PhotoInfo {
 
     /**
        Static method to load photo info from database by photo id
