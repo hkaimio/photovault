@@ -34,7 +34,8 @@ public class BrowserWindow extends JFrame {
 	treePane = new PhotoFolderTree();
 	tabPane.addTab( "Query", queryPane );
 	tabPane.addTab( "Folders", treePane );
-	viewPane = new TableCollectionView();
+	//	viewPane = new TableCollectionView();
+	viewPane = new PhotoCollectionThumbView();
 
 	viewPane.setCollection( queryPane.getResultCollection() );
 
@@ -148,7 +149,8 @@ public class BrowserWindow extends JFrame {
     protected PhotoFolderTree treePane = null;
     
     
-    protected TableCollectionView viewPane = null;
+  //    protected TableCollectionView viewPane = null;
+  protected PhotoCollectionThumbView viewPane = null;
   
     /**
        Simple main program for testing the compnent
