@@ -67,27 +67,28 @@ public class TestThumbnailView extends TestCase {
 	view.setPhoto( photo );
 	pane.add( view );
 	showFrame();
-	Iterator writers = ImageIO.getImageWritersByFormatName("png");
-	ImageWriter writer = (ImageWriter)writers.next();
-
+	view.repaint();
 	tester.waitForIdle();
+// 	Iterator writers = ImageIO.getImageWritersByFormatName("png");
+// 	ImageWriter writer = (ImageWriter)writers.next();
+
 	BufferedImage bi = abbot.tester.Robot.capture( view );
 
 
 	File f = new File( testRefImageDir, "thumbnailShow1.png" );
-	assertTrue( compareImgToFile( bi, f ) );
+	assertTrue( photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
 	
 	view.setShowShootingTime( false );
 	tester.waitForIdle();
 	bi = abbot.tester.Robot.capture( view );
 	f = new File( testRefImageDir, "thumbnailShow2.png" );
-	assertTrue( compareImgToFile( bi, f ) );
+	assertTrue( photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
 	
 	view.setShowShootingPlace( false );
 	tester.waitForIdle();
 	bi = abbot.tester.Robot.capture( view );
 	f = new File( testRefImageDir, "thumbnailShow3.png" );
-	assertTrue( compareImgToFile( bi, f ) );
+	assertTrue( photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
     }
 
         public void testRotationChange() {
@@ -103,13 +104,13 @@ public class TestThumbnailView extends TestCase {
 
 
 	File f = new File( testRefImageDir, "thumbnailRotation1.png" );
-	assertTrue( compareImgToFile( bi, f ) );
+	assertTrue( "thumbnailRotationnnot correct", photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
 	
 	photo.setPrefRotation( 107 );
 	tester.waitForIdle();
 	bi = abbot.tester.Robot.capture( view );
 	f = new File( testRefImageDir, "thumbnailRotation2.png" );
-	assertTrue( compareImgToFile( bi, f ) );
+	assertTrue( "107 deg rotation not correct", photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
     }
 
     private boolean compareImgToFile( BufferedImage img, File file ) {

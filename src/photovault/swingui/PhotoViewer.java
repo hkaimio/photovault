@@ -12,7 +12,7 @@ import java.awt.geom.AffineTransform;
 import java.text.*;
 import java.util.*;
 
-public class PhotoViewer extends JPanel {
+public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 
     public PhotoViewer() {
 	super();
@@ -122,7 +122,12 @@ public class PhotoViewer extends JPanel {
     }
 
     public void setPhoto( PhotoInfo photo ) {
+
+	if ( this.photo != null ) {
+	    this.photo.removeChangeListener( this );
+	}
 	this.photo = photo;
+	photo.addChangeListener( this );
 
 	// Find the original file
 	ImageInstance original = null;
@@ -145,16 +150,31 @@ public class PhotoViewer extends JPanel {
 		System.err.println( "Error reading image: " + e.getMessage() );
 		return;
 	    }
-	    double rot = photo.getPrefRotation() - original.getRotated();
+	    instanceRotation = original.getRotated();
+	    double rot = photo.getPrefRotation() - instanceRotation;
 	    imageView.setRotation( rot );
 	}
     }
 
+    // Rotation of the currently displayed instance (compared to the original)
+    double instanceRotation = 0;
+    
     public PhotoInfo  getPhoto() {
 	return photo;
     }
     
     PhotoInfo photo = null;
+
+    /**
+       Implementation of the photoInfoChangeListener interface. Checks if the preferred rotation is changed
+       and adjusts displayed image accordingly
+    */
+    public void photoInfoChanged( PhotoInfoChangeEvent e ) {
+	double newRotation = photo.getPrefRotation() - instanceRotation;
+	if ( Math.abs( newRotation - imageView.getRotation() ) > 0.1 ) {
+	    imageView.setRotation( newRotation );
+	}
+    }
     
     void setImage( BufferedImage bi ) {
 	imageView.setImage( bi );

@@ -1,4 +1,4 @@
-// $Id: ImgTestUtils.java,v 1.1 2003/02/08 20:04:39 kaimio Exp $
+// $Id: ImgTestUtils.java,v 1.2 2003/02/15 08:00:02 kaimio Exp $
 
 package photovault.test;
 
@@ -26,17 +26,24 @@ public class ImgTestUtils {
 	    }
 	    boolean eq = equals( img, fImg );
 	    if ( !eq ) {
-		File f = new File( "c:\\temp\\errorFile.png" );
+		File f = new File( "c:\\temp", "error_" + file.getName() );
 		Iterator writers = ImageIO.getImageWritersByFormatName("png");
 		ImageWriter writer = (ImageWriter)writers.next();
+		ImageOutputStream ios = null;
 		try {
-		    ImageOutputStream ios = ImageIO.createImageOutputStream(f);
+		    ios = ImageIO.createImageOutputStream(f);
 		    writer.setOutput(ios);
 		    writer.write( img );
 		} catch( IOException e ) {
 		    System.err.println( "Cannot write to " + f.getName());
 		    return false;
-		}
+		} finally {
+	    if ( ios != null ) {
+		try {
+		    ios.close();
+		} catch (IOException e ) {}
+	    }
+	}
 	    }
 		
 	    return eq;
@@ -49,6 +56,8 @@ public class ImgTestUtils {
 	Iterator writers = ImageIO.getImageWritersByFormatName("png");
 	ImageWriter writer = (ImageWriter)writers.next();
 	file.getParentFile().mkdirs();
+	// Create the image file with a name like candidate_name.png
+	file = new File( file.getParentFile(), "candidate_" + file.getName() );
 	ImageOutputStream ios = null;
 	try {
 	    ios = ImageIO.createImageOutputStream(file);

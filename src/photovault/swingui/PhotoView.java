@@ -100,6 +100,10 @@ public class PhotoView extends JPanel {
 	    return;
 	}
 
+	// Set the hourglass cursor
+	Cursor oldCursor = getCursor();
+	setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
+	
 	// Create the zoom xform
 	AffineTransform at = photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
 									origImage.getWidth(), origImage.getHeight() );
@@ -107,6 +111,9 @@ public class PhotoView extends JPanel {
 
 	// Create the target image
 	xformImage = scaleOp.filter( origImage, null );
+
+	// Return the cursor that was shown before this method
+	setCursor( oldCursor );
     }	
 	
     public static void main( String args[] ) {
