@@ -518,6 +518,8 @@ public class PhotoCollectionThumbView
        to create a thumbnail for it.
     */
     public void thumbnailCreated( PhotoInfo photo ) {
+	repaintPhoto( photo );
+
 	Container parent = getParent();
 	Rectangle viewRect = null;
 	if ( parent instanceof JViewport ) {
@@ -544,12 +546,15 @@ public class PhotoCollectionThumbView
 		}		    
 	    }
 	}
-	if ( nextPhoto != null ) {
-	    thumbCreatorThread.createThumbnail( nextPhoto );
+	if ( nextPhoto != null && !thumbCreatorThread.isBusy() ) {
+	    final PhotoInfo p = nextPhoto;
+// 	    SwingUtilities.invokeLater( new Runnable() {
+// 		    public void run() {
+			thumbCreatorThread.createThumbnail( p );
+// 		    }
+// 		});
 	}
 
-	// Finally, draw the created thumbnail
-	repaintPhoto( photo );
     }
     
     /**
