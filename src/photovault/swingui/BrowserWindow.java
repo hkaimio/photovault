@@ -28,11 +28,6 @@ public class BrowserWindow extends JFrame {
 		}
 	    });
 	
-// 	addWindowListener(new WindowAdapter() {
-// 		public void windowClosing(WindowEvent e) {
-// 		    System.exit(0);
-// 		}
-// 	    } );
     }
 
     protected void createUI() {
@@ -45,7 +40,6 @@ public class BrowserWindow extends JFrame {
 	//	viewPane = new TableCollectionView();
 	viewPane = new PhotoCollectionThumbView();
 
-	viewPane.setCollection( queryPane.getResultCollection() );
 
 	// Set listeners to both query and folder tree panes
 

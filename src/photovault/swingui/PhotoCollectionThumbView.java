@@ -237,11 +237,26 @@ public class PhotoCollectionThumbView
         addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
 	exportSelectedAction = new ExportSelectedAction( this, "Export selected...", null, "Export the selected photos to from archive database to image files", KeyEvent.VK_X );
 	JMenuItem exportSelected = new JMenuItem( exportSelectedAction );
+
+	// Create the Quality submenu
+	JMenu qualityMenu = new JMenu( "Quality" );
+	String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
+	for ( int n = 0; n < qualityStrings.length; n++ ) {
+	    AbstractAction qualityAction
+		= new SetPhotoQualityAction( this, n, qualityStrings[n], null,
+					     "Set quality of selected phots to \"" + qualityStrings[n] + "\"",
+					     null );
+	    JMenuItem qualityMenuItem = new JMenuItem( qualityAction );
+	    qualityMenu.add( qualityMenuItem );
+	}
+
+	
         popup.add( showItem );
         popup.add( propsItem );
         popup.add( rotateCW );
         popup.add( rotateCCW );
         popup.add( rotate180deg );
+	popup.add( qualityMenu );
         popup.add( addToFolder );
         popup.add( exportSelected );
         MouseListener popupListener = new PopupListener();

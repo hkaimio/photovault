@@ -10,10 +10,12 @@ public interface PhotoInfoView {
     public String getPhotographer();
     public void setFuzzyDate( FuzzyDate newValue );
     public FuzzyDate getFuzzyDate();
-    public void setShootTime( java.util.Date newValue );
-    public Date getShootTime();
-    public void setTimeAccuracy( Number timeAccuracy );
-    public Number getTimeAccuracy();
+//     public void setShootTime( java.util.Date newValue );
+//     public Date getShootTime();
+//     public void setTimeAccuracy( Number timeAccuracy );
+//     public Number getTimeAccuracy();
+    public void setQuality( Number quality );
+    public Number getQuality();
     public void setShootPlace( String newValue );
     public String getShootPlace();
     public void setFocalLength( Number newValue );
@@ -28,6 +30,8 @@ public interface PhotoInfoView {
     public String getLens();
     public void setDescription( String newValue );
     public String getDescription();
+    public void setTechNote( String newValue );
+    public String getTechNote();
     public void setShutterSpeed( Number newValue );
     public Number getShutterSpeed();
     public void setFilmSpeed( Number newValue );

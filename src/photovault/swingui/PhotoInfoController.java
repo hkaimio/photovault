@@ -81,45 +81,26 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( SHOOTING_DATE, new FieldController( photos ) {
-		protected void setModelValue( Object model ) {
-		    PhotoInfo obj = (PhotoInfo) model;
-		    obj.setShootTime( (Date) value );
-		}
-		protected Object getModelValue( Object model ) {
-		    PhotoInfo obj = (PhotoInfo) model;
-		    return obj.getShootTime();
-		}
-		protected void updateView( Object view ) {
-		    PhotoInfoView obj = (PhotoInfoView) view;
-		    obj.setShootTime( (Date) value );
-		}
-		protected void updateValue( Object view ) {
-		    PhotoInfoView obj = (PhotoInfoView) view;
-		    value = obj.getShootTime();
-		}
-	    });
-
-	modelFields.put( TIME_ACCURACY, new FieldController( photos ) {
+	modelFields.put( QUALITY, new FieldController( photos ) {
 		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    if ( value != null ) {
-			obj.setTimeAccuracy( ((Number)value).doubleValue() );
+			obj.setQuality( ((Number)value).intValue() );
 		    } else {
-			obj.setTimeAccuracy( 0 );
+			obj.setQuality( 0 );
 		    }
 		}
 		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
-		    return new Double( obj.getTimeAccuracy() );
+		    return new Double( obj.getQuality() );
 		}
 		protected void updateView( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
-		    obj.setTimeAccuracy( (Number)value );
+		    obj.setQuality( (Number)value );
 		}
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
-		    value =  obj.getTimeAccuracy();
+		    value =  obj.getQuality();
 		}
 	    });
 
@@ -216,6 +197,25 @@ public class PhotoInfoController {
 		protected void updateValue( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value = obj.getDescription();
+		}
+	    });
+
+	modelFields.put( TECHNOTE, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setTechNotes( (String) value );
+		}
+		protected Object getModelValue( Object model ) {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return obj.getTechNotes();
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setTechNote( (String) value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getTechNote();
 		}
 	    });
 
@@ -458,10 +458,12 @@ public class PhotoInfoController {
     // Fields in PhotoInfo
     public final static String PHOTOGRAPHER = "Photographer";
     public final static String FUZZY_DATE = "Fuzzy date";
-    public final static String SHOOTING_DATE = "Shooting date";
-    public final static String TIME_ACCURACY = "Shooting time accuracy";
+    public final static String QUALITY = "Quality";
+//     public final static String SHOOTING_DATE = "Shooting date";
+//     public final static String TIME_ACCURACY = "Shooting time accuracy";
     public final static String SHOOTING_PLACE = "Shooting place";
     public final static String DESCRIPTION = "Description";
+    public final static String TECHNOTE = "Tech note";
     public final static String F_STOP = "F-stop";
     public final static String SHUTTER_SPEED = "Shutter speed";
     public final static String FOCAL_LENGTH = "Focal length";

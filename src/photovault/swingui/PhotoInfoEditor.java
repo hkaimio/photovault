@@ -54,28 +54,16 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	photographerDoc.putProperty( FIELD_NAME, PhotoInfoController.PHOTOGRAPHER );
 
 	// "Fuzzy time" field
-	JLabel fuzzyDateLabel = new JLabel( "Fuzzy date" );
+	JLabel fuzzyDateLabel = new JLabel( "Shooting date" );
 	fuzzyDateField = new JTextField( 30 );
 	fuzzyDateDoc = fuzzyDateField.getDocument();
+	fuzzyDateDoc.putProperty( FIELD_NAME, PhotoInfoController.FUZZY_DATE );
 	fuzzyDateDoc.addDocumentListener( this );
 
-	// Shooting date field
-	JLabel shootingDayLabel = new JLabel( "Shooting date" );
-	DateFormat df = DateFormat.getDateInstance();
-	DateFormatter shootingDayFormatter = new DateFormatter( df );
-	shootingDayField = new JFormattedTextField( df );
-	shootingDayField.setColumns( 10 );
-	shootingDayField.setValue( new Date( ));
-	shootingDayField.addPropertyChangeListener( this );
-	shootingDayField.putClientProperty( FIELD_NAME, PhotoInfoController.SHOOTING_DATE );
-	
-	JLabel timeAccuracyLabel =  new JLabel( "Accuracy" );
-	DecimalFormat timeAccuracyFormat = new DecimalFormat( "#####.##" );	
-	timeAccuracyField = new JFormattedTextField( timeAccuracyFormat );
-	timeAccuracyField.setColumns( 5 );
-	timeAccuracyField.addPropertyChangeListener( this );
-	timeAccuracyField.putClientProperty( FIELD_NAME, PhotoInfoController.TIME_ACCURACY );
 
+	JLabel qualityLabel = new JLabel( "Quality" );
+	qualityField = new JComboBox( qualityStrings );
+	qualityField.addActionListener( this );
 	
 	// Shooting place field
 	JLabel shootingPlaceLabel =  new JLabel( "Shooting place" );
@@ -112,8 +100,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
 	generalPane.setLayout( layout );
-	JLabel[] labels     = { photographerLabel, fuzzyDateLabel, shootingDayLabel, timeAccuracyLabel, shootingPlaceLabel };
-	JTextField[] fields = { photographerField, fuzzyDateField, shootingDayField, timeAccuracyField, shootingPlaceField };
+	JLabel[] labels     = { photographerLabel, fuzzyDateLabel, shootingPlaceLabel, qualityLabel };
+	JComponent[] fields = { photographerField, fuzzyDateField, shootingPlaceField, qualityField };
 	addLabelTextRows( labels, fields, layout, generalPane );
 
 	
@@ -196,6 +184,20 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	focalLengthField.setColumns( 5 );
 	focalLengthField.addPropertyChangeListener( this );
 	focalLengthField.putClientProperty( FIELD_NAME, PhotoInfoController.FOCAL_LENGTH );
+
+	// Tech note text
+	JLabel notesLabel = new JLabel( "Tech. notes" );
+	technoteTextArea = new JTextArea( 5, 40 );
+	technoteTextArea.setLineWrap( true );
+	technoteTextArea.setWrapStyleWord( true );
+	JScrollPane technoteScrollPane = new JScrollPane( technoteTextArea );
+	technoteScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS );
+	Border technoteBorder = BorderFactory.createEtchedBorder( EtchedBorder.LOWERED );
+	technoteBorder = BorderFactory.createTitledBorder( technoteBorder, "Description" );
+        technoteScrollPane.setBorder( technoteBorder );
+	technoteDoc = technoteTextArea.getDocument();
+	technoteDoc.putProperty( FIELD_NAME, PhotoInfoController.TECHNOTE );
+	technoteDoc.addDocumentListener( this );
 	
 	// Lay out the created controls
 	GridBagLayout layout = new GridBagLayout();
@@ -204,6 +206,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	JLabel[] labels     = { cameraLabel, lensLabel, focalLengthLabel, filmLabel, filmSpeedLabel, shutterSpeedLabel, fStopLabel };
 	JTextField[] fields = { cameraField, lensField, focalLengthField, filmField, filmSpeedField, shutterSpeedField, fStopField };
 	addLabelTextRows( labels, fields, layout, pane );
+	pane.add( technoteScrollPane );
+	c.gridwidth = GridBagConstraints.REMAINDER;
+	c.weighty = 0.5;
+	c.fill = GridBagConstraints.BOTH;
+	layout.setConstraints( technoteScrollPane, c );
+
+
     }
 	
 	
@@ -324,7 +333,30 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public String getDescription( ) {
 	return descriptionTextArea.getText( );
     }
+
     
+    public void setTechNote( String newValue ) {
+	technoteTextArea.setText( newValue );
+    }
+    
+    public String getTechNote( ) {
+	return technoteTextArea.getText( );
+    }
+    
+
+    public Number getQuality() {
+	return new Integer( qualityField.getSelectedIndex() );
+    }
+
+    public void setQuality( Number quality ) {
+	if ( quality != null ) {
+	    qualityField.setSelectedIndex( quality.intValue() );
+	} else {
+	    qualityField.setSelectedIndex( 0 );
+	}
+	    
+    }
+
     
     
     // Important UI components
@@ -339,6 +371,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     Document shootingPlaceDoc = null;
     JTextArea descriptionTextArea = null;
     Document descriptionDoc = null;
+
+    String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
+    JComboBox qualityField = null;
 
     JTextField cameraField = null;
     Document cameraDoc = null;
@@ -356,6 +391,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     
     JFormattedTextField focalLengthField = null;
     Document focalLengthDoc = null;
+    JTextArea technoteTextArea = null;
+    Document technoteDoc = null;
 
     JTabbedPane tabPane = null;
     
@@ -370,6 +407,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	} else if ( evt.getActionCommand().equals( "discard" ) ) {
 	    log.debug( "Discarding data" );
 	    ctrl.discard();
+	} else if ( evt.getSource() == qualityField ) {
+	    log.debug( "quality changed"  );
+	    ctrl.viewChanged( this, PhotoInfoController.QUALITY );
 	}
     }
 
@@ -382,18 +422,18 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	String changedField = (String) changedDoc.getProperty( FIELD_NAME );
 	ctrl.viewChanged( this, changedField );
 
-	// Handle fuzzy time
-	if ( changedDoc == fuzzyDateDoc ) {
-	    log.warn( "Fuzzy date entered" );
-	    String fdStr = fuzzyDateField.getText();
-	    FuzzyDate fd = FuzzyDate.parse( fdStr );
-	    if ( fd != null ) {
-		log.warn( "FuzzyDate parsed succesfully!!!" );
-		shootingDayField.setValue( fd.getDate() );
-		timeAccuracyField.setValue( new Double( fd.getAccuracy() ) );
-	    }
+// 	// Handle fuzzy time
+// 	if ( changedDoc == fuzzyDateDoc ) {
+// 	    log.warn( "Fuzzy date entered" );
+// 	    String fdStr = fuzzyDateField.getText();
+// 	    FuzzyDate fd = FuzzyDate.parse( fdStr );
+// // 	    if ( fd != null ) {
+// // 		log.warn( "FuzzyDate parsed succesfully!!!" );
+// // 		shootingDayField.setValue( fd.getDate() );
+// // 		timeAccuracyField.setValue( new Double( fd.getAccuracy() ) );
+// // 	    }
 	    
-	}	
+// 	}	
     }
 
     public void removeUpdate( DocumentEvent ev ) {
@@ -425,7 +465,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     private void addLabelTextRows(JLabel[] labels,
-                                  JTextField[] textFields,
+                                  JComponent[] textFields,
                                   GridBagLayout gridbag,
                                   Container container) {
         GridBagConstraints c = new GridBagConstraints();
