@@ -428,6 +428,16 @@ public class PhotoInfo {
 	createThumbnail( vol );
     }
 
+    /**
+       Exports an image from database to a specified file with given resolution
+       @param file File in which the image will be saved
+       @param width Width of the exported image in pixels
+       @param height Height of the exported image in pixels
+    */
+    public void exportPhoto( File file, int width, int height ) {
+
+    }
+    
     
     
     java.util.Date shootTime;
