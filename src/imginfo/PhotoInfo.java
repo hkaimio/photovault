@@ -435,7 +435,64 @@ public class PhotoInfo {
        @param height Height of the exported image in pixels
     */
     public void exportPhoto( File file, int width, int height ) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	
+	// Find the original image to use as a staring point
+	ImageInstance original = null;
+	for ( int n = 0; n < instances.size(); n++ ) {
+	    ImageInstance instance = (ImageInstance) instances.get( n );
+	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+		original = instance;
+		txw.lock( original, Transaction.READ );
+		break;
+	    } 
+	}
+	if ( original == null || original.getImageFile() == null || !original.getImageFile().exists() ) {
+	    // If there are no instances, nothing can be exported
+	    log.warn( "Error - no original image was found!!!" );
+	    txw.commit();
+	    return;
+	}
+	
+	// Read the image
+	BufferedImage origImage = null;
+	try {
+	    origImage = ImageIO.read( original.getImageFile() );
+	} catch ( IOException e ) {
+	    log.warn( "Error reading image: " + e.getMessage() );
+	    txw.abort();
+	    return;
+	}
 
+	
+	// Shrink the image to desired state and save it
+	// Find first the correct transformation for doing this
+	int origWidth = origImage.getWidth();
+	
+	int origHeight = origImage.getHeight();
+
+	AffineTransform xform = photovault.image.
+	    ImageXform.getFittingXform( width, height,
+					prefRotation -original.getRotated(),
+					origWidth, origHeight );
+	
+
+	// Create the target image
+	AffineTransformOp atOp = new AffineTransformOp( xform, AffineTransformOp.TYPE_BILINEAR );
+	
+	BufferedImage exportImage = atOp.filter( origImage, null );
+
+	// Save it
+	try {	    
+	    ImageIO.write( exportImage, "jpg", file );
+	} catch ( IOException e ) {
+	    log.warn( "Error writing thumbnail: " + e.getMessage() );
+	    txw.abort();
+	    return;
+	}
+
+	
     }
     
     
