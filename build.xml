@@ -1,0 +1,55 @@
+<project name="PhotoVault" default="dist" basedir=".">
+    <description>
+        Photo archiving system
+    </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}"/>
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+
+    <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+    <jar jarfile="${dist}/lib/MyProject-${DSTAMP}.jar" basedir="${build}"/>
+  </target>
+
+  <target name="doc">
+    <javadoc 
+             destdir="docs/api"
+	     sourcefiles="src/*.java"
+             author="true"
+             version="true"
+             use="true"
+             windowtitle="Test API">
+
+
+      <doctitle><![CDATA[<h1>Photo archive</h1>]]></doctitle>
+      <bottom><![CDATA[<i>Copyright &#169; 2002 Harri Kaimio</i>]]></bottom>
+      <tag name="todo" scope="all" description="To do:" />
+      <link offline="true" href="http://java.sun.com/products/jdk/1.2/docs/api/" packagelistLoc="C:\tmp"/>
+      <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+    </javadoc>
+  </target>
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>
