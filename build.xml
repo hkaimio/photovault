@@ -73,6 +73,8 @@
   </target>
 
     <target name="test" depends="dist">
+      <delete dir="./${reports.test}/testresults"/>
+      <mkdir dir="./${reports.test}/testresults"/>
       <junit printsummary="yes">
         <formatter type="xml"/>
         <classpath>
@@ -81,19 +83,19 @@
            <pathelement location="${conf.dir}"/>
         </classpath>
         <!--<test name="imginfo.PhotoInfoTest" outfile="${reports.test}/imginfo"/>-->
-        <batchtest todir="${reports.test}">
+        <batchtest todir="${reports.test}/testresults">
            <fileset dir="build">
               <include name="**/*Test*.class"/>
               <exclude name="**/TestPkg.class"/>
               <!-- Exlude inner classes sinc ethese do not contain any test cases --> 
-              <exclude name="**/*$*.class"/>
+              <exclude name="**/*$$*.class"/>
            </fileset>
         </batchtest>
       </junit>
 
       <!-- Create a summary report -->
-      <junitreport todir="./reports">
-        <fileset dir="./reports">
+      <junitreport todir="${reports.test}">
+        <fileset dir="${reports.test}/testresults">
            <include name="TEST-*.xml"/>
         </fileset>
         <report format="frames" todir="./report/html"/>
