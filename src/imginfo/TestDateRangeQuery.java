@@ -103,6 +103,40 @@ public class TestDateRangeQuery extends TestCase {
 	}
     }
 
+    class TestListener implements PhotoCollectionChangeListener {
+	public boolean notified = false;
+	public PhotoCollection changedObject = null;
+	public void photoCollectionChanged( PhotoCollectionChangeEvent e ) {
+	    notified = true;
+	    changedObject = (PhotoCollection) e.getSource();
+	}
+    }
+
+    public void testNotification() {
+	DateRangeQuery q = new DateRangeQuery();
+	TestListener l1 = new TestListener();
+	q.addPhotoCollectionChangeListener( l1 );
+	Calendar cal = Calendar.getInstance();
+	cal.set( 2002, 11, 24 );
+	// First the case in which there is only lower bound
+	q.setEndDate( cal.getTime() );
+	assertTrue( "setEndDate should notify listeners", l1.notified );
+	assertEquals( "source not correct", q, l1.changedObject );
+	l1.notified = false;
+
+	q.setStartDate( cal.getTime() );
+	assertTrue( "setstartDate should notify listeners", l1.notified );
+	l1.notified = false;
+
+	TestListener l2 = new TestListener();
+	q.addPhotoCollectionChangeListener( l2 );
+	q.removePhotoCollectionChangeListener( l1 );
+	q.setStartDate( cal.getTime() );
+	assertTrue( "setstartDate should notify listeners", l2.notified );
+	assertFalse( "Removed listener notified", l1.notified );
+    }
+	
+	
 	
     public static Test suite() {
 	return new TestSuite( TestDateRangeQuery.class );

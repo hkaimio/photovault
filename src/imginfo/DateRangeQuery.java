@@ -16,6 +16,7 @@ import dbhelper.*;
 public class DateRangeQuery implements PhotoCollection {
     public DateRangeQuery() {
 	photos = new Vector();
+	listeners = new Vector();
     }
 
     public int getPhotoCount() {
@@ -34,7 +35,7 @@ public class DateRangeQuery implements PhotoCollection {
 
     public void setStartDate( java.util.Date date ) {
 	startDate = date;
-	rangeModified = true;
+	modified();
     }
 
     public java.util.Date getStartDate() {
@@ -43,7 +44,7 @@ public class DateRangeQuery implements PhotoCollection {
     
     public void setEndDate( java.util.Date date ) {
 	endDate = date;
-	rangeModified = true;
+	modified();
     }
 
     public java.util.Date getEndDate() {
@@ -91,10 +92,32 @@ public class DateRangeQuery implements PhotoCollection {
 	}
 	rangeModified = false;
     }
-	    
+
+    public void addPhotoCollectionChangeListener( PhotoCollectionChangeListener l ) {
+	listeners.add( l );
+    }
+
+    public void removePhotoCollectionChangeListener( PhotoCollectionChangeListener l ) {
+	listeners.remove( l );
+    }
+
+    protected void modified() {
+	rangeModified = true;
+	notifyListeners();
+    }
+    
+    protected void notifyListeners() {
+	PhotoCollectionChangeEvent e = new PhotoCollectionChangeEvent( this );
+	Iterator iter = listeners.iterator();
+	while ( iter.hasNext() ) {
+	    PhotoCollectionChangeListener l = (PhotoCollectionChangeListener) iter.next();
+	    l.photoCollectionChanged( e );
+	}
+    }
 	
     java.util.Date startDate = null;
     java.util.Date endDate = null;
     boolean rangeModified;
     Vector photos = null;
+    Vector listeners = null;
 }
