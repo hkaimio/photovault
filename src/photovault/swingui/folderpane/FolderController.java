@@ -83,15 +83,33 @@ public class FolderController extends FieldController {
 	DefaultMutableTreeNode node = addFolder( f );
 	FolderNode fn = (FolderNode) node.getUserObject();
 	fn.addAllPhotos();
+	
+	// Notify the tree model that representation of this node may
+	// be changed
+	treeModel.nodeChanged( node );
     }
     /**
        Mark all photos in model so that they will be removed from specified folder
        when committing the changes.
     */
 
-    public void removeFromFolder( PhotoFolder f ) {
+    public void removeAllFromFolder( PhotoFolder f ) {
 	addedToFolders.remove( f );
 	removedFromFolders.add( f );
+	
+	// Remove the folder from the tree
+	DefaultMutableTreeNode treeNode =
+	    (DefaultMutableTreeNode) folderNodes.get( f );
+	DefaultMutableTreeNode parentNode
+	    = (DefaultMutableTreeNode) treeNode.getParent();
+
+	int idx = parentNode.getIndex( treeNode );
+	parentNode.remove( treeNode );
+	int[] idxs = new int[1];
+	idxs[0] = idx;
+	Object[] nodes = new Object[1];
+	nodes[0] = treeNode;
+	treeModel.nodesWereRemoved( parentNode, idxs, nodes );
     }
 
     /**
