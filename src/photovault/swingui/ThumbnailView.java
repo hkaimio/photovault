@@ -67,6 +67,7 @@ public class ThumbnailView extends JPanel {
 	}
     }
 
+
     boolean showDate = true;
     boolean showPlace = true;
 	
@@ -102,7 +103,7 @@ public class ThumbnailView extends JPanel {
 	} else {
 	    thumbnail = null;
 	}
-	revalidate();
+	repaint();
     }
 
     /**
