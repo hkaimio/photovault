@@ -342,15 +342,19 @@ public class PhotoCollectionThumbView
     boolean showPlace = true;
     
     private void paintThumbnail( Graphics2D g2, PhotoInfo photo, int startx, int starty, boolean isSelected ) {
-
+	log.debug( "paintThumbnail entry " + photo.getUid() );
         // Current position in which attributes can be drawn
         int ypos = starty + rowHeight/2;
 
         if ( photo != null ) {
 	    Thumbnail thumbnail = null;
-	    if ( photo.hasThumbnail() ) {
+	    log.debug( "finding thumb" );
+	    boolean hasThumbnail = photo.hasThumbnail();
+	    log.debug( "asked if has thumb" );
+	    if ( hasThumbnail ) {
 		log.debug( "Photo " + photo.getUid() + " has thumbnail" );
 		thumbnail = photo.getThumbnail();
+		log.debug( "got thumbnail" );
 	    } else {
 		thumbnail = Thumbnail.getDefaultThumbnail();
 		if ( !thumbCreatorThread.isBusy() ) {
@@ -360,12 +364,15 @@ public class PhotoCollectionThumbView
 		}
 	    }
 
+	    log.debug( "starting to draw" );
 	    // Find the position for the thumbnail
 	    BufferedImage img = thumbnail.getImage();
 	    int x = startx + (columnWidth - img.getWidth())/(int)2;
 	    int y = starty + (rowHeight -  img.getHeight())/(int)2;
-            
+
+	    log.debug( "drawing thumbnail" );
 	    g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
+	    log.debug( "Drawn, drawing decorations" );
 	    if ( isSelected ) {
 		Stroke prevStroke = g2.getStroke();
 		Color prevColor = g2.getColor();
@@ -450,6 +457,7 @@ public class PhotoCollectionThumbView
 	    }
 	    g2.setBackground( prevBkg );
 	}
+	log.debug( "paintThumbnail: exit " + photo.getUid() );
     }
 
 
@@ -576,6 +584,7 @@ public class PhotoCollectionThumbView
        to create a thumbnail for it.
     */
     public void thumbnailCreated( PhotoInfo photo ) {
+	log.debug( "thumbnailCreated for " + photo.getUid() );
 	repaintPhoto( photo );
 
 	Container parent = getParent();
@@ -586,11 +595,14 @@ public class PhotoCollectionThumbView
 
 	PhotoInfo nextPhoto = null;
 	
-	// Walk through all phoso until we find a photo that is visible
+	// Walk through all photos until we find a photo that is visible
 	// and does not have a thumbnail
+	log.debug( "Finding photo without thumbnail" );
 	for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
             PhotoInfo photoCandidate = photoCollection.getPhoto( n );
+	    log.debug( "Photo " + photoCandidate.getUid() );
 	    if ( !photoCandidate.hasThumbnail() ) {
+		log.debug( "No thumbnail" );
 		Rectangle photoRect = getPhotoBounds( n );
 		if ( photoRect.intersects( viewRect )  ) {
 		    // This photo is visible so it is a perfect candidate

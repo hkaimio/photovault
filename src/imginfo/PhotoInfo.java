@@ -9,7 +9,9 @@ import java.lang.Integer;
 import dbhelper.*;
 import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.Transparency;
+import java.awt.Dimension;
 import java.awt.image.*;
 import java.awt.geom.*;
 import com.drew.metadata.*;
@@ -350,14 +352,16 @@ public class PhotoInfo {
        a default thumbnail image.
     */
     public Thumbnail getThumbnail() {
-	log.debug( "getThumbnail: Finding thumbnail for " + uid );
+	log.debug( "getThumbnail: entry, Finding thumbnail for " + uid );
 	if ( thumbnail == null ) {
+	    log.debug( "Finding thumbnail from database" );
 	    // First try to find an instance from existing instances
 	    ImageInstance original = null;
 	    for ( int n = 0; n < instances.size(); n++ ) {
 		ImageInstance instance = (ImageInstance) instances.get( n );
 		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
 		     && instance.getRotated() == prefRotation ) {
+		    log.debug( "Found thumbnail from database" );
 		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
 		    break;
 		} 
@@ -373,7 +377,8 @@ public class PhotoInfo {
 // 	    return Thumbnail.getDefaultThumbnail();
 	    thumbnail = Thumbnail.getDefaultThumbnail();
 	}
-	    
+
+	log.debug( "getThumbnail: exit" );
 	return thumbnail;
     }
 
@@ -382,19 +387,22 @@ public class PhotoInfo {
        false otherwise
     */
     public boolean hasThumbnail() {
-	log.debug( "hasThumbnail: Finding thumbnail for " + uid );
+	log.debug( "hasThumbnail: entry, Finding thumbnail for " + uid );
 	if ( thumbnail == null ) {
+	    log.debug( "Checking thumbnail from database" );
 	    // First try to find an instance from existing instances
 	    ImageInstance original = null;
 	    for ( int n = 0; n < instances.size(); n++ ) {
 		ImageInstance instance = (ImageInstance) instances.get( n );
 		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
 		     && instance.getRotated() == prefRotation ) {
+		    log.debug( "hasThumbnail: Found thumbnail from database" );
 		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
 		    break;
 		} 
 	    }
 	}
+	log.debug( "hasThumbnail: exit" );
 	return ( thumbnail != null );
     }
 
@@ -405,7 +413,7 @@ public class PhotoInfo {
     */
     protected void createThumbnail( Volume volume ) {
 
-	log.debug( "Creating thumbnail" );
+	log.debug( "Creating thumbnail for " + uid );
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	
@@ -425,22 +433,43 @@ public class PhotoInfo {
 	    txw.commit();
 	    return;
 	}
-	log.warn( "Found original, reading it..." );
+	log.debug( "Found original, reading it..." );
 	
 	// Read the image
 	BufferedImage origImage = null;
 	try {
-	    origImage = ImageIO.read( original.getImageFile() );
+	    Iterator readers = ImageIO.getImageReadersByFormatName( "jpg" );
+	    if ( readers.hasNext() ) {
+		ImageReader reader = (ImageReader)readers.next();
+		log.debug( "Creating stream" );
+		ImageInputStream iis = ImageIO.createImageInputStream( original.getImageFile() );
+		reader.setInput( iis, true );
+		if ( reader.getNumThumbnails(0) > 0 ) {
+		    log.debug( "Original has thumbnail, size "
+			       + reader.getThumbnailWidth( 0, 0 ) + " x "
+			       + reader.getThumbnailHeight( 0, 0 ) );
+		    origImage = reader.readThumbnail( 0, 0 );
+		    log.debug( "Read thumbnail" );
+		    
+		} else {
+		    log.debug( "No thumbnail in original" );
+		    ImageReadParam param = reader.getDefaultReadParam();
+ 		    param.setSourceSubsampling( 16, 16, 0, 0 );
+		    origImage = reader.read( 0, param );
+		    log.debug( "Read original" );
+		}
+	    }
+// 		origImage = ImageIO.read( original.getImageFile() );
 	} catch ( IOException e ) {
 	    log.warn( "Error reading image: " + e.getMessage() );
 	    txw.abort();
 	    return;
 	}
-	log.warn( "Done, finding name" );
+	log.debug( "Done, finding name" );
 	
 	// Find where to store the file in the target volume
 	File thumbnailFile = volume.getInstanceName( this, "jpg" );
-	log.warn( "name = " + thumbnailFile.getName() );
+	log.debug( "name = " + thumbnailFile.getName() );
 	
 	// Shrink the image to desired state and save it
 	// Find first the correct transformation for doing this
@@ -457,10 +486,10 @@ public class PhotoInfo {
 
 	// Create the target image
 	AffineTransformOp atOp = new AffineTransformOp( xform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR );
-	log.warn( "Filtering..." );
+	log.debug( "Filtering..." );
 	
 	BufferedImage thumbImage = atOp.filter( origImage, null );
-	log.warn( "done Filtering..." );
+	log.debug( "done Filtering..." );
 
 	// Save it
 	try {	    
@@ -475,9 +504,11 @@ public class PhotoInfo {
 	ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
 		     ImageInstance.INSTANCE_TYPE_THUMBNAIL );
 	thumbInstance.setRotated( prefRotation -original.getRotated() );
-	log.warn( "Loading thumbnail..." );
+	log.debug( "Loading thumbnail..." );
 	
 	thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
+
+	log.debug( "Thumbnail loaded" );
 	txw.commit();
     }
 
