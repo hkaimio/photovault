@@ -13,7 +13,7 @@ import java.util.*;
 */
 public class ImgTestUtils {
 
-  String tempDir = "/tmp";
+  static String tempDir = "/tmp";
     public static boolean compareImgToFile( BufferedImage img, File file ) {
 	if ( file.exists() ) {
 	    System.err.println( "File " + file.getName() + " exists" );
@@ -27,7 +27,7 @@ public class ImgTestUtils {
 	    }
 	    boolean eq = equals( img, fImg );
 	    if ( !eq ) {
-		File f = new File( tmpDir, "error_" + file.getName() );
+		File f = new File( tempDir, "error_" + file.getName() );
 		Iterator writers = ImageIO.getImageWritersByFormatName("png");
 		ImageWriter writer = (ImageWriter)writers.next();
 		ImageOutputStream ios = null;

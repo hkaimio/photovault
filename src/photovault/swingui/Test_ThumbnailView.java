@@ -85,12 +85,12 @@ public class Test_ThumbnailView extends TestCase {
 	view.setShowShootingPlace( false );
 	tester.waitForIdle();
 	bi = tester.capture( view );
-	f = new File( testRefImageDir, "thumbnailShow3.png" );
+	f = new File( testRefImageDir, "thumbnailShow3.png"  );
 	assertTrue( photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
     }
 
-        public void testRotationChange() {
-	ThumbnailView view = new ThumbnailView();
+  public void testRotationChange() {
+    ThumbnailView view = new ThumbnailView();
 	view.setPhoto( photo );
 	pane.add( view );
 	showFrame();
@@ -101,7 +101,7 @@ public class Test_ThumbnailView extends TestCase {
 
 	BufferedImage bi = tester.capture( view );
 	File f = new File( testRefImageDir, "thumbnailRotation1.png" );
-	assertTrue( "thumbnailRotationnnot correct", photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
+	assertTrue( "thumbnailRotationn not correct", photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
 	
 	photo.setPrefRotation( 107 );
 	tester.waitForIdle();
@@ -111,7 +111,7 @@ public class Test_ThumbnailView extends TestCase {
  	assertTrue( "107 deg rotation not correct", photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
     }
 
-    private boolean compareImgToFile( BufferedImage img, File file ) {
+  private boolean compareImgToFile( BufferedImage img, File file, File errorFile ) {
 	if ( file.exists() ) {
 	    log.debug( "File exists" );
 	    BufferedImage fImg = null;
@@ -124,11 +124,13 @@ public class Test_ThumbnailView extends TestCase {
 	    }
 	    boolean eq = equals( img, fImg );
 	    if ( !eq ) {
-		File f = new File( "/tmp/errorFile.png" );
+	      if ( errorFile == null ) {
+		errorFile = new File( "/tmp/errorFile.png" );
+	      }
 		Iterator writers = ImageIO.getImageWritersByFormatName("png");
 		ImageWriter writer = (ImageWriter)writers.next();
 		try {
-		    ImageOutputStream ios = ImageIO.createImageOutputStream(f);
+		    ImageOutputStream ios = ImageIO.createImageOutputStream( errorFile );
 		    writer.setOutput(ios);
 		    writer.write( img );
 		} catch( IOException e ) {

@@ -144,7 +144,11 @@ public class Test_PhotoFolderTreeModel extends TestCase {
        Test modifications to the root node. This is a special case since TreePath cannot be empty...
     */
     public void testRootModifications() {
-	model.setRoot( PhotoFolder.getRoot() );
+// 	model.setRoot( PhotoFolder.getRoot() );
+      
+      log.warn( "testRootModifications" );
+
+ 	model.setRoot( rootFolder );
 	TestTreeModelListener l = new TestTreeModelListener();
 	model.addTreeModelListener( l );
 	rootFolder.setDescription( "Root description" );
@@ -158,6 +162,8 @@ public class Test_PhotoFolderTreeModel extends TestCase {
 	newFolder.delete();
 	assertTrue( "Listener was not notified of strucuture change", l.structChanged );
 	l.structChanged = false;
+	
+	log.warn( "finished testRootFolderModifications" );
 	
     }
 }

@@ -136,6 +136,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	Iterator iter = treeModelListeners.iterator();
 	while ( iter.hasNext() ) {
 	    TreeModelListener l = (TreeModelListener) iter.next();
+	    log.warn( "Sending treeModelEvent" );
 	    l.treeStructureChanged( e );
 	}
     }

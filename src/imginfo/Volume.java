@@ -19,7 +19,7 @@ public class Volume {
     */
     public static Volume getDefaultVolume() {
 	if ( defaultVolume == null ) {
-	    defaultVolume = new Volume( "defaultVolume", "c:\\java\\photovault\\testdb" );
+	    defaultVolume = new Volume( "defaultVolume", "/home/harri/projects/photovault/testdb" );
 	}
 	return defaultVolume;
     }

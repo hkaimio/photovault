@@ -105,7 +105,7 @@ public class Test_ImageInstance extends TestCase {
 	Connection conn = ImageDb.getConnection();
 	try {
 	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery( "SELECT * FROM image_instances WHERE dirname = \"" + testImgDir + "\" AND fname = \"test1.jpg\"" );
+	    ResultSet rs = stmt.executeQuery( "SELECT * FROM image_instances WHERE volume_id = \"" + volume.getName() + "\" AND fname = \"test1.jpg\"" );
 	    if ( rs.next() ) {
 		fail( "Found matching DB record after delete" );
 	    }

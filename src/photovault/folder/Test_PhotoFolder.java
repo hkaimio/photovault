@@ -164,7 +164,7 @@ public class Test_PhotoFolder extends TestCase {
 	boolean found = false;
 	for ( int i = 0; i < folder.getPhotoCount(); i++ ) {
 	    PhotoInfo photo = folder.getPhoto( i );
-	    if ( photo.getDescription().equals( "testPhotoretrieval1" ) ) {
+	    if ( photo.getDescription().equals( "testPhotoRetrieval1" ) ) {
 		found = true;
 	    }
 	}
