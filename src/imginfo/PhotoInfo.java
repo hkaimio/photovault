@@ -1081,7 +1081,17 @@ public class PhotoInfo {
 	folders.remove( folder );
     }
 	    
-    
+
+    /**
+       Returns a collection that contains all folders the photo belongs to
+    */
+    public Collection getFolders() {
+	Vector foldersCopy = new Vector();
+	if ( folders != null ) {
+	    foldersCopy = new Vector( folders );
+	}
+	return foldersCopy;
+    }
     
     static private boolean isEqual( Object o1, Object o2 ) {
 	if ( o1 == null ) {

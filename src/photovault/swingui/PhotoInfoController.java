@@ -6,7 +6,9 @@ import java.util.*;
 import java.io.*;
 import imginfo.*;
 import dbhelper.*;
+import photovault.swingui.folderpane.FolderController;
 import org.apache.log4j.Logger;
+
 
 /**
    PhotoInfoController contains the application logic for creating and editing PhotoInfo records in database,
@@ -385,6 +387,8 @@ public class PhotoInfoController {
 		}
 	    });
 
+	modelFields.put( PHOTO_FOLDERS, new FolderController( photos ) );
+	
 	// TODO: Add other fields
 
 	// Init the views in the fields
@@ -542,6 +546,7 @@ public class PhotoInfoController {
     public final static String FILM_TYPE = "Film type";
     public final static String FILM_SPEED = "Film speed";
     public final static String LENS_TYPE = "Lens type";
+    public final static String PHOTO_FOLDERS = "Photo folders";
 
 
     protected HashMap modelFields = null;

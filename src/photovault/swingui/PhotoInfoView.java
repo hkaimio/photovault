@@ -3,7 +3,7 @@
 package photovault.swingui;
 
 import java.util.*;
-
+import javax.swing.tree.TreeModel;
 
 public interface PhotoInfoView {
     public void setPhotographer( String newValue );
@@ -45,5 +45,6 @@ public interface PhotoInfoView {
     public void setFilmSpeed( Number newValue );
     public Number getFilmSpeed();
     public void setFilmSpeedMultivalued( boolean mv );
+    public void setFolderTreeModel( TreeModel model );
 }
     

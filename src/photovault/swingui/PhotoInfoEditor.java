@@ -18,6 +18,8 @@ import java.io.File;
 import imginfo.*;
 import dbhelper.*;
 import javax.swing.event.*;
+import javax.swing.tree.TreeModel;
+import photovault.swingui.folderpane.FolderTreePane;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
     Use can either edit an existing record or create a completely new record.
@@ -125,6 +127,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	
 
 	createTechDataUI();
+	createFolderPaneUI();
 
 	// Create a pane for the buttols
 	JPanel buttonPane = new JPanel();
@@ -218,7 +221,14 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     }
 	
-	
+
+    protected void createFolderPaneUI() {
+	JPanel pane = new JPanel();
+	tabPane.addTab( "Folders", pane );
+	folderTreePane = new FolderTreePane( null );
+	pane.add( folderTreePane, BorderLayout.NORTH );
+
+    }
 
     public void setPhotographer( String newValue ) {
 	photographerField.setText( newValue );
@@ -417,7 +427,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     public void setQualityMultivalued( boolean mv ) {
     }
-    
+
+    public void setFolderTreeModel( TreeModel model ) {
+	folderTreePane.setFolderTreeModel( model );
+    }
     
     // Important UI components
     JTextField photographerField = null;
@@ -455,6 +468,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     Document technoteDoc = null;
 
     JTabbedPane tabPane = null;
+
+    FolderTreePane folderTreePane = null;
     
     public void actionPerformed( ActionEvent evt ) {
 	if ( evt.getActionCommand().equals( "save" ) ) {
