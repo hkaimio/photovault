@@ -138,6 +138,7 @@ public class Test_PhotoFolder extends TestCase {
 	    // Clean up the test folder
 	    PhotoFolder parent = folder.getParentFolder();
 	    parent.removeSubfolder( folder );
+	    photo.delete();
 	}
     }
 
@@ -353,6 +354,24 @@ public class Test_PhotoFolder extends TestCase {
 	assertEquals( "subfolder info not correct", subfolder, l1.changedFolder );
 	l1.subfolderModified = false;
 	l1.changedFolder = null;
+
+	// Test that photo addition is notified
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+	l1.modified = false;
+	folder.addPhoto( photo );
+	assertTrue( "l1 not called when adding photo", l1.modified );
+
+	l1.modified = false;
+	folder.removePhoto( photo );
+	assertTrue( "l1 not called when removing photo", l1.modified );
+	photo.delete();
 	
 	subfolder.delete();
 	assertTrue( "Not notified of subfolder structure change", l1.structureModified );
@@ -360,4 +379,26 @@ public class Test_PhotoFolder extends TestCase {
 
 	// TODO: test other fields
     }
+
+    /**
+       test that when a photo is deleted from database the folder is also modified
+    */
+    public void testPhotoDelete() {
+	PhotoFolder folder = PhotoFolder.create( "testListener", null );
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+
+	folder.addPhoto( photo );
+	photo.delete();
+	assertEquals( "After deleting the photo there should be no photos in the folder",
+		      folder.getPhotoCount(), 0 );
+	
+    }
 }
+

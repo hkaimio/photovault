@@ -19,19 +19,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseEvent;
 
 
 
 /**
    This class implements the default thumbnail view for photo
    collections. Some of the planned features include:
-   <li> 
-   <it> Either vertically or horizontally scrollable view with multiple columns
+   <ul>
+   <li> Either vertically or horizontally scrollable view with multiple columns  </li>
 
-   <it> Multiple selection for thumbnails 
+   <li> Multiple selection for thumbnails </li>
 
-   <it> Automatic fetching and creation of thumbnails on background if these do not exist 
+   <li> Automatic fetching and creation of thumbnails on background if these do not exist 
    </li>
+   </ul>
 
    @author Harri Kaimio
 
@@ -39,7 +42,7 @@ import java.awt.event.MouseEvent;
 
 public class PhotoCollectionThumbView
     extends JPanel
-    implements MouseListener, ActionListener, PhotoCollectionChangeListener {
+    implements MouseMotionListener, MouseListener, ActionListener, PhotoCollectionChangeListener {
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoCollectionThumbView.class.getName() );
     
@@ -53,7 +56,7 @@ public class PhotoCollectionThumbView
     }
 
     /**
-     * Returns the currently displayed photo collection or <code>null</code> of noe specified
+     * Returns the currently displayed photo collection or <code>null</code> of none specified
      */
     public PhotoCollection getCollection() {
         return photoCollection;
@@ -68,13 +71,14 @@ public class PhotoCollectionThumbView
      * @param v  Value to assign to collection.
      */
     public void setCollection(PhotoCollection  v) {
-	    if ( photoCollection != null ) {
-            photoCollection.removePhotoCollectionChangeListener( this );
-	    }
+      if ( photoCollection != null ) {
+	photoCollection.removePhotoCollectionChangeListener( this );
+      }
         
-	    photoCollection = v;
-	    photoCollection.addPhotoCollectionChangeListener( this );
-        revalidate();
+      photoCollection = v;
+      photoCollection.addPhotoCollectionChangeListener( this );
+      revalidate();
+      repaint();
     }
 
     
@@ -83,9 +87,8 @@ public class PhotoCollectionThumbView
 
     
     /**
-     * Get a currently selected photo
-     * @param num Order number of the photo in 
-     * @return Currently slected photo or <code>null</code> if none is selected
+     * Get a currently selected photos
+     * @return Collection of currently selected photos or <code>null</code> if none is selected
      */
 
     public Collection getSelection( ) {
@@ -122,10 +125,17 @@ public class PhotoCollectionThumbView
         }
     }
 
+
+    TransferHandler photoTransferHandler = null;
     
     void createUI() {
+      photoTransferHandler = new PhotoCollectionTransferHandler( this );
+        setTransferHandler( photoTransferHandler );
+        
         addMouseListener( this );
+        addMouseMotionListener( this );
 
+        
 
         // Create the popup menu
         popup = new JPopupMenu();
@@ -299,9 +309,10 @@ public class PhotoCollectionThumbView
     }
     
 
-	public void photoCollectionChanged( PhotoCollectionChangeEvent e ) {
-        repaint();
-	}
+    public void photoCollectionChanged( PhotoCollectionChangeEvent e ) {
+	revalidate();
+	repaint();
+    }
 
 
     /**
@@ -345,6 +356,10 @@ public class PhotoCollectionThumbView
         return photo;
     }
 
+    /**
+       The mouse press event that started current drag
+     */
+    MouseEvent firstMouseEvent = null;
     
     // Implementation of java.awt.event.MouseListener
 
@@ -411,19 +426,69 @@ public class PhotoCollectionThumbView
      * @param mouseEvent a <code>MouseEvent</code> value
      */
     public void mousePressed(MouseEvent mouseEvent) {
-        
+        // save the mouse press event so that we can later decide whether this gesture
+        // is intended as a drag
+        firstMouseEvent = mouseEvent;
     }
 
     /**
-     * Describe <code>mouseReleased</code> method here.
+     * 
      *
      * @param mouseEvent a <code>MouseEvent</code> value
      */
     public void mouseReleased(MouseEvent mouseEvent) {
-        
+        firstMouseEvent = null;
     }
 
 
+    // Implementation of java.awt.event.MouseMotionListener
+
+    /**
+     * Describe <code>mouseDragged</code> method here.
+     *
+     * @param mouseEvent a <code>MouseEvent</code> value
+     */
+    public void mouseDragged(MouseEvent e ) {
+        //Don't bother to drag if no photo is selected
+        if ( selection.size() == 0 ) {
+            return;
+        }
+
+        if (firstMouseEvent != null) {
+            log.warn( "considering drag" );
+            e.consume();
+
+            
+            //If they are holding down the control key, COPY rather than MOVE
+            int ctrlMask = InputEvent.CTRL_DOWN_MASK;
+            int action = e.isControlDown() ?
+                TransferHandler.COPY : TransferHandler.MOVE;
+
+            int dx = Math.abs(e.getX() - firstMouseEvent.getX());
+            int dy = Math.abs(e.getY() - firstMouseEvent.getY());
+            //Arbitrarily define a 5-pixel shift as the
+            //official beginning of a drag.
+            if (dx > 5 || dy > 5) {
+                log.warn( "Start a drag" );
+                //This is a drag, not a click.
+                JComponent c = (JComponent)e.getSource();
+                //Tell the transfer handler to initiate the drag.
+                TransferHandler handler = c.getTransferHandler();
+                handler.exportAsDrag(c, firstMouseEvent, action);
+                firstMouseEvent = null;
+            }
+        }   
+    }
+
+    /**
+     * Describe <code>mouseMoved</code> method here.
+     *
+     * @param mouseEvent a <code>MouseEvent</code> value
+     */
+    public void mouseMoved(MouseEvent mouseEvent) {
+        
+    }
+    
     PhotoInfoDlg propertyDlg = null;
     
     /**

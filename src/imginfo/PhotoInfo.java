@@ -206,6 +206,14 @@ public class PhotoInfo {
 	    f.delete();
 	}
 
+	// Then delete the photo from all folders it belongs to
+	if ( folders != null ) {
+	    Object[] foldersArray = folders.toArray();
+	    for ( int n = 0; n < foldersArray.length; n++ ) {
+		((PhotoFolder)foldersArray[n]).removePhoto( this );
+	    }
+	}
+	
 	// Then delete the PhotoInfo itself
 	db.deletePersistent( this );
 	txw.commit();

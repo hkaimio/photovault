@@ -135,6 +135,7 @@ public class PhotoFolder implements PhotoCollection {
 	photo.addedToFolder( this );
 	photos.add( photo );
 	txw.commit();
+	modified();
     }
 
     /**
@@ -149,6 +150,7 @@ public class PhotoFolder implements PhotoCollection {
 	photo.removedFromFolder( this );
 	photos.remove( photo );
 	txw.commit();
+	modified();
     }
     
 

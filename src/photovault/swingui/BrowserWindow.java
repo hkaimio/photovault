@@ -80,6 +80,15 @@ public class BrowserWindow extends JFrame {
 	fileMenu.setMnemonic(KeyEvent.VK_F);
 	menuBar.add( fileMenu );
 	
+	JMenuItem newWindowItem = new JMenuItem( "New window", KeyEvent.VK_N );
+	newWindowItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    BrowserWindow br = new BrowserWindow();
+		    br.setVisible( true );
+		}
+	    });
+	fileMenu.add( newWindowItem );
+
 	JMenuItem importItem = new JMenuItem( "Import image...", KeyEvent.VK_I );
 	importItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
