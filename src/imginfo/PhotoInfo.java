@@ -361,7 +361,7 @@ public class PhotoInfo {
 	if ( original == null ) {
 	    // If there are no instances, no thumbnail can be created
 	    log.warn( "Error - no original image was found!!!" );
-	    txw.abort();
+	    txw.commit();
 	    return;
 	}
 	
