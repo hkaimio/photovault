@@ -5,6 +5,7 @@ package photovault.swingui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.dnd.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
@@ -71,6 +72,8 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	tree = new JTree( model );
 	tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
 	tree.addTreeSelectionListener( this );
+	DropTarget dropTarget = new DropTarget( tree, new PhotoTreeDropTargetListener( tree ) );
+	// 	tree.setTransferHandler( new PhotoCollectionTransferHandler(null) );
 	scrollPane = new JScrollPane( tree );
 	scrollPane.setPreferredSize( new Dimension( 200, 500 ) );
 	add( scrollPane, BorderLayout.CENTER );
