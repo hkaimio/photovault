@@ -1,14 +1,16 @@
-// $Id: TestPhotoFolder.java,v 1.4 2003/02/25 20:57:11 kaimio Exp $
+// $Id: TestPhotoFolder.java,v 1.5 2003/02/26 19:52:54 kaimio Exp $
 
 package photovault.folder;
 
 import junit.framework.*;
 import org.odmg.*;
 import java.util.*;
+import java.sql.*;
 import org.odmg.Database;
 import org.odmg.Implementation;
 import org.apache.ojb.odmg.*;
 import imginfo.*;
+import dbhelper.*;
 
 public class TestPhotoFolder extends TestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestPhotoFolder.class.getName() );
@@ -96,7 +98,7 @@ public class TestPhotoFolder extends TestCase {
 	}
 
 	Iterator iter = folders.iterator();
-boolean found = false;
+	boolean found = false;
 	while ( iter.hasNext() ) {
 	    PhotoFolder folder = (PhotoFolder) iter.next();
 	    if ( folder.getName().equals( "Top" ) ) {
@@ -108,6 +110,68 @@ boolean found = false;
 	assertTrue( "Top folder not found", found );
     }
 
+    /**
+       Tests that persistence operations succeed.
+    */
+    public void testPersistence() {
+	// Test creation of a new folder
+	PhotoFolder f = PhotoFolder.create( "persistenceTest", null );
+	assertMatchesDb( f );
+
+	// Test modifications without existing transaction context
+	f.setName( "test name 2" );
+	f.setDescription( "Description" );
+	assertMatchesDb( f );
+
+	// Tets modifications in transaction context
+	Transaction tx = odmg.newTransaction();
+	tx.begin();
+	f.setName( "test name 3" );
+	f.setDescription( "desc 3" );
+	tx.commit();
+	assertMatchesDb( f );
+
+    }
+    
+    /**
+       Utility
+    */
+    void assertMatchesDb( PhotoFolder folder ) {
+	int id = folder.getFolderId();
+	String sql = "select * from photo_collections where collection_id = " + id;
+	Statement stmt = null;
+	ResultSet rs = null;
+	try {
+	    stmt = ImageDb.getConnection().createStatement();
+	    rs = stmt.executeQuery( sql );
+	    if ( !rs.next() ) {
+		fail( "rrecord not found" );
+	    }
+	    assertEquals( "name doesn't match", folder.getName(), rs.getString( "collection_name" ) );
+	    assertEquals( "description doesn't match", folder.getDescription(), rs.getString( "collection_desc" ) );
+	} catch ( SQLException e ) {
+	    fail( e.getMessage() );
+	} finally {
+	    if ( rs != null ) {
+		try {
+		    rs.close();
+		} catch ( Exception e ) {
+		    fail( e.getMessage() );
+		}
+	    }
+	    if ( stmt != null ) {
+		try {
+		    stmt.close();
+		} catch ( Exception e ) {
+		    fail( e.getMessage() );
+		}
+	    }
+	}
+    }
+	
+
+	
+    
     /**
        Test that subfolders are created correctly
     */
