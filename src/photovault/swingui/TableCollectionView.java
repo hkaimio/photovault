@@ -16,7 +16,7 @@ import javax.swing.table.*;
    TableColelctionView implements a simple table based interface for viewing PhotoCollections.
    It is primarily intended for testing purposes.
 */
-public class TableCollectionView extends JPanel {
+public class TableCollectionView extends JPanel implements ActionListener {
 
     /**
        Constructor
@@ -30,7 +30,7 @@ public class TableCollectionView extends JPanel {
     /**
        Table model for PhotoCollection
     */
-    class CollectionTableModel extends AbstractTableModel {
+    class CollectionTableModel extends AbstractTableModel implements PhotoCollectionChangeListener {
 	
 	String[]  columnNames = {
 	    "Photographer",
@@ -65,6 +65,11 @@ public class TableCollectionView extends JPanel {
 	    }
 	    return null;
 	}
+
+	public PhotoInfo getPhoto( int row ) {
+	    return collection.getPhoto( row );
+	}
+	
 	public boolean isCellEditable(int row, int col) {
 	    return false;
 	}
@@ -73,11 +78,20 @@ public class TableCollectionView extends JPanel {
 
 
 	public void setCollection( PhotoCollection c ) {
+	    if ( collection != null ) {
+		collection.removePhotoCollectionChangeListener( this );
+	    }
 	    collection = c;
+	    collection.addPhotoCollectionChangeListener( this );
+	    fireTableDataChanged();
 	}
 
 	public PhotoCollection getCollection() {
 	    return collection;
+	}
+
+	public void photoCollectionChanged( PhotoCollectionChangeEvent e ) {
+	    fireTableDataChanged();
 	}
     }
 
@@ -102,15 +116,128 @@ public class TableCollectionView extends JPanel {
 	model.setCollection( v );
     }
 
-    JTable table = null;
+    // implementation of java.awt.event.ActionListener interface
 
+    /**
+     * ActionListener implementation, is called when a popup menu item is selected
+     * @param  <description>
+     */
+    public void actionPerformed(ActionEvent e)
+    {
+	String cmd = e.getActionCommand();
+	if ( cmd == PHOTO_PROPS_CMD ) {
+	    showSelectionPropsDialog();
+	} else if ( cmd == PHOTO_SHOW_CMD ) {
+	    showSelectedPhoto();
+	}
+    }
+
+    /**
+       Show the PhotoInfoEditor dialog for the selected photo
+    */
+    public void showSelectionPropsDialog() {
+	PhotoInfo photo = getSelected();
+
+	if ( photo != null ) {
+	    // TODO: Change PhotoInfoEditor to a dialog!!!
+	    final JFrame frame = new JFrame( "Photo properties" );
+	    PhotoInfoController ctrl = new PhotoInfoController();
+	    PhotoInfoEditor editor = new PhotoInfoEditor( ctrl );
+	    ctrl.setPhoto( photo );
+	    frame.getContentPane().add( editor, BorderLayout.CENTER );
+	    frame.addWindowListener(new WindowAdapter() {
+		    public void windowClosing(WindowEvent e) {
+			frame.dispose( );
+		    }
+		} );
+	    frame.pack();
+	    frame.setVisible( true );
+	}
+    }
+
+    /**
+       Shows the selected photo in a popup window
+    */
+    public void showSelectedPhoto() {
+	PhotoInfo photo = getSelected();
+	if ( photo != null ) {
+	    final JFrame frame = new JFrame( "Photo" );
+	    PhotoViewer viewer = new PhotoViewer();
+	    frame.getContentPane().add( viewer, BorderLayout.CENTER );
+	    frame.addWindowListener(new WindowAdapter() {
+		    public void windowClosing(WindowEvent e) {
+			frame.dispose();
+		    }
+		} );
+	    viewer.setPhoto( photo );
+	    frame.pack();
+	    frame.setVisible( true );
+	}
+    }
+    
+    /**
+       Returns the PhotoInfo object that is described on the currently selected line or null
+       if nothing is selected
+    */
+    public PhotoInfo getSelected() {
+	ListSelectionModel selection = table.getSelectionModel();
+	int selectedRow = selection.getMinSelectionIndex();
+	PhotoInfo photo = null;
+	if ( selectedRow >= 0 ) {
+	    photo = model.getPhoto( selectedRow );
+	}
+	return photo;
+    }
+	
+    JTable table = null;
+    JPopupMenu popup = null;
+
+    /**
+       This helper class from Java Tutorial handles displaying of popup menu on correct mouse events
+    */
+    class PopupListener extends MouseAdapter {
+	public void mousePressed(MouseEvent e) {
+	    maybeShowPopup(e);
+	}
+	
+	public void mouseReleased(MouseEvent e) {
+	    maybeShowPopup(e);
+	}
+	
+	private void maybeShowPopup(MouseEvent e) {
+	    if (e.isPopupTrigger()) {
+		popup.show(e.getComponent(),
+			   e.getX(), e.getY());
+	    }
+	}
+    }
+    
+    
     void createUI() {
 	setLayout( new BorderLayout() );
 	table = new JTable( model );
 	JScrollPane scroll = new JScrollPane( table );
 	add( scroll, BorderLayout.CENTER );
+
+	// Create the popup menu
+	popup = new JPopupMenu();
+	JMenuItem propsItem = new JMenuItem( "Properties" );
+	propsItem.addActionListener( this );
+	propsItem.setActionCommand( PHOTO_PROPS_CMD );
+	JMenuItem showItem = new JMenuItem( "Show image" );
+	showItem.addActionListener( this );
+	showItem.setActionCommand( PHOTO_SHOW_CMD );
+	popup.add( showItem );
+	popup.add( propsItem );
+	MouseListener popupListener = new PopupListener();
+	table.addMouseListener( popupListener );
+
     }
 
+    // Popup menu actions
+    private static final String PHOTO_PROPS_CMD = "photoProps";
+    private static final String PHOTO_SHOW_CMD = "photoShow";
+    
     /**
        Simple test program
     */
