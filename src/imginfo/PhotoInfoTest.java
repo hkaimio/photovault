@@ -165,8 +165,8 @@ public class PhotoInfoTest extends TestCase {
     }
     
     public void testInstanceAddition() {
-	String dirname = "c:\\temp";
-	String fname = "instance.jpg";
+	String dirname = "c:\\java\\photovault\\testfiles";
+	String fname = "test1.jpg";
 	PhotoInfo photo = PhotoInfo.create();
 	assertNotNull( photo );
 

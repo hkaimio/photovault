@@ -5,6 +5,9 @@ package imginfo;
 import dbhelper.*;
 import java.sql.*;
 import java.util.*;
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import java.io.*;
 
 /**
    This class abstracts an image file, i.e. single instance of a photo that is stored in certain
@@ -22,27 +25,34 @@ public class ImageFile {
     */
     public static ImageFile create( String dirname, String fname, PhotoInfo photo ) {
 	String sql = "INSERT INTO image_files VALUES ( ?, ?, ?, ?, ?, ? )";
+	ImageFile f = new ImageFile();
+	f.dirname = dirname;
+	f.fname = fname;
+	f.photoUid = photo.getUid();
+	// Read the rest of fields from the image file
+	try {
+	    f.readImageFile();
+	} catch (IOException e ) {
+	    System.err.println( "Error opening image file: " + e.getMessage() );
+	    // The image does not exist, so it cannot be read!!!
+	    return null;
+	}
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
 	    stmt.setString( 1, dirname );
 	    stmt.setString( 2, fname );
 	    stmt.setInt( 3, photo.getUid() );
-	    stmt.setInt( 4, -1 ); // width
-	    stmt.setInt( 5, -1 ); // height
+	    stmt.setInt( 4, f.getWidth() ); // width
+	    stmt.setInt( 5, f.getHeight() ); // height
 	    stmt.setString( 6, "original" );
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch  (SQLException e ) {
 	    System.err.println( "Error creating ImageFile: " + e.getMessage() );
+	    // Something went wrong, do not return this image file!!!
+	    f = null;
 	}
-	ImageFile f = null;
-	try {
-	    f = retrieve( dirname, fname );
-	} catch ( PhotoNotFoundException e ) {
-	    System.err.println( "Error fetching image file just ctreated: " + e.getMessage() );
-	}
-	
 	return f;
     }
 
@@ -74,8 +84,7 @@ public class ImageFile {
 	    System.err.println( "Error fetching image file from db: " + e.getMessage() );
 	    throw new PhotoNotFoundException();
 	}
-	return ifile;
-    }
+	return ifile;    }
 
     /**
        Retrieve all instances of a specified photo from DB
@@ -185,8 +194,28 @@ public class ImageFile {
 	    System.err.println( "Error deletin image file from DB: " + e.getMessage() );
 	}
     }
-	    
 
+    /**
+       Opens the image file specified by fname & dirname properties and reads the rest of fields from that
+       @throws IOException if the image cannot be read.
+    */	    
+    protected void readImageFile() throws IOException {
+	File f = new File( dirname, fname );
+
+	// Find the JPEG image reader
+	// TODO: THis shoud decode also other readers from fname
+	Iterator readers = ImageIO.getImageReadersByFormatName("jpg");
+	ImageReader reader = (ImageReader)readers.next();
+	ImageInputStream iis = ImageIO.createImageInputStream( f );
+	
+	reader.setInput( iis, true );
+	
+	width = reader.getWidth( 0 );
+	height = reader.getHeight( 0 );
+
+	iis.close();
+	
+    }
     
     String dirname;
     

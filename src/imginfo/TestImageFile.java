@@ -30,13 +30,13 @@ public class TestImageFile extends TestCase {
 
     public void testImageFileCreate() {
 	
-	ImageFile f = ImageFile.create( "c:\\temp", "test.jpg", photo );
+	ImageFile f = ImageFile.create( "c:\\java\\photovault\\testfiles", "test1.jpg", photo );
 	assertNotNull( f );
 	f.delete();
     }
 		  
     public void testImageFileUpdate() {
-	ImageFile f = ImageFile.create( "c:\\temp", "test.jpg", photo );
+	ImageFile f = ImageFile.create( "c:\\java\\photovault\\testfiles", "test1.jpg", photo );
 	assertNotNull( f );
 	int width = f.getWidth();
 	int height = f.getHeight();
@@ -48,7 +48,7 @@ public class TestImageFile extends TestCase {
 
 	// Reload the object from database and check that the modifications are OK
 	try {
-	    f = ImageFile.retrieve( "c:\\temp", "test.jpg" );
+	    f = ImageFile.retrieve( "c:\\java\\photovault\\testfiles", "test1.jpg" );
 	} catch ( PhotoNotFoundException e ) {
 	    fail( "Image file not found after update" );
 	}
@@ -61,14 +61,14 @@ public class TestImageFile extends TestCase {
     }
 
     public void testImageFileDelete() {
-	ImageFile f = ImageFile.create( "c:\\temp", "test.jpg", photo );
+	ImageFile f = ImageFile.create( "c:\\java\\photovault\\testfiles", "test1.jpg", photo );
 	assertNotNull( f );
 	f.delete();
 
 	Connection conn = ImageDb.getConnection();
 	try {
 	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery( "SELECT * FROM image_files WHERE dirname = \"c:\\temp\" AND fname = \"test.jpg\"" );
+	    ResultSet rs = stmt.executeQuery( "SELECT * FROM image_files WHERE dirname = \"c:\\java\\photovault\\testfiles\" AND fname = \"test1.jpg\"" );
 	    if ( rs.next() ) {
 		fail( "Found matching DB record after delete" );
 	    }
