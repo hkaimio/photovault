@@ -46,6 +46,7 @@ public class TestImageInstance extends TestCase {
 	}
 	ImageInstance f = ImageInstance.create( volume, instanceFile, photo );
 	assertNotNull( "Image instance is null", f );
+	assertMatchesDb( f );
 	f.delete();
     }
 		  
@@ -67,6 +68,8 @@ public class TestImageInstance extends TestCase {
 	f.setWidth( width + 1 );
 	f.setInstanceType( ImageInstance.INSTANCE_TYPE_THUMBNAIL );
 	File imgFile = f.getImageFile();
+
+	assertMatchesDb( f );
 	
 	// Reload the object from database and check that the modifications are OK
 	try {
@@ -109,6 +112,63 @@ public class TestImageInstance extends TestCase {
 	}
     }
 
+
+    
+    /**
+       Utility to check that the object in memory matches the DB
+    */
+    void assertMatchesDb( ImageInstance i ) {
+	String volumeName = i.getVolume().getName();
+	String fname = i.getImageFile().getName();
+	String sql = "select * from image_instances where volume_id = \"" + volumeName + "\" and fname = \""
+	    + fname + "\"";
+	Statement stmt = null;
+	ResultSet rs = null;
+	try {
+	    stmt = ImageDb.getConnection().createStatement();
+	    rs = stmt.executeQuery( sql );
+	    if ( !rs.next() ) {
+		fail( "rrecord not found" );
+	    }
+	    // TODO: there is no pointer back from instance to photo so this cannot be checked
+	    //	    assertEquals( "photo doesn't match", i.getPhoto .getUid(), rs.getInt( "photo_id" ) );
+	    assertEquals( "width doesn't match", i.getWidth(), rs.getInt( "width" ) );
+	    assertEquals( "height doesn't match", i.getHeight(), rs.getInt( "height" ) );
+	    assertTrue( "rotated doesn't match", i.getRotated() = rs.getDouble( "rotated" ) );
+	    int itype = i.getInstanceType();
+	    switch ( itype ) {
+	    case ImageInstance.INSTANCE_TYPE_ORIGINAL:
+		assertEquals( "instance type does not match", "original", rs.getString( "instance_type" ) );
+		break;
+	    case ImageInstance.INSTANCE_TYPE_MODIFIED:
+		assertEquals( "instance type does not match", "modified", rs.getString( "instance_type" ) );
+		break;
+	    case ImageInstance.INSTANCE_TYPE_THUMBNAIL:
+		assertEquals( "instance type does not match", "thumbnail", rs.getString( "instance_type" ) );
+		break;
+	    default:
+		fail( "Unknown image type" );
+	    }
+	} catch ( SQLException e ) {
+	    fail( e.getMessage() );
+	} finally {
+	    if ( rs != null ) {
+		try {
+		    rs.close();
+		} catch ( Exception e ) {
+		    fail( e.getMessage() );
+		}
+	    }
+	    if ( stmt != null ) {
+		try {
+		    stmt.close();
+		} catch ( Exception e ) {
+		    fail( e.getMessage() );
+		}
+	    }
+	}
+    }
+    
     public static void main( String[] args ) {
 	//	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );
