@@ -72,7 +72,7 @@ public class ThumbnailView extends JPanel {
 	
     public void setShowShootingTime( boolean b ) {
 	showDate = b;
-	revalidate();
+	repaint( 0, 0, 0, getWidth(), getHeight() );
     }
 
     public boolean getShowShootingTime() {
@@ -81,7 +81,7 @@ public class ThumbnailView extends JPanel {
 
     public void setShowShootingPlace( boolean b ) {
 	showPlace = b;
-	revalidate();
+	repaint( 0, 0, 0, getWidth(), getHeight() );
     }
 
     public boolean getShowShootingPlace() {

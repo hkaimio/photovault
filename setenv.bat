@@ -1,0 +1,1 @@
+set CLASSPATH=c:\java\junit3.8.1\junit.jar;c:\java\abbot-0.8.2\lib\abbot.jar;c:\java\lib\mysql-connector-java-3.0.2-beta-bin.jar;c:\java\lib\metadataExtractor.jar;c:\java\photovault\build\

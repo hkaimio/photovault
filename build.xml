@@ -9,6 +9,7 @@
 
   <path id="project.class.path">
     <pathelement location="c:\java\lib\metadataExtractor.jar/"/>
+    <pathelement location="C:\java\abbot-0.8.2\lib\abbot.jar/"/>
     <pathelement path="${java.class.path}/"/>
   </path>
 
