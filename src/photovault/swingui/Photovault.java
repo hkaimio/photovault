@@ -3,6 +3,7 @@ package photovault.swingui;
 import org.odmg.*;
 import javax.swing.JOptionPane;
 import dbhelper.ODMG;
+import photovault.common.PhotovaultSettings;
 
 /**
    Main class for the photovault application
@@ -14,15 +15,24 @@ public class Photovault {
 
 
     Photovault() {
-
+	PhotovaultSettings.init();
     }
 
     void login( LoginDlg ld ) {
 	String user = ld.getUsername();
 	String passwd = ld.getPassword();
 	String db = ld.getDb();
+	log.debug( "Using configuration " + db );
+	PhotovaultSettings.setConfiguration( db );
+	String sqldbName = PhotovaultSettings.getConfProperty( "dbname" );
+	log.debug( "Mysql DB name: " + sqldbName );
+	if ( sqldbName == null ) {
+	    JOptionPane.showMessageDialog( ld, "Could not find dbname for configuration " + db, "Configuration error", JOptionPane.ERROR_MESSAGE );
+	    return;
+	}
+	    
 
-	if ( ODMG.initODMG( user, passwd, db ) ) {
+	if ( ODMG.initODMG( user, passwd, sqldbName ) ) {
 	    log.debug( "Connection succesful!!!" );
 	    // Login is succesfull
 	    ld.setVisible( false );

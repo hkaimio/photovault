@@ -4,6 +4,7 @@ package imginfo;
 import java.io.*;
 import java.text.*;
 import java.util.*;
+import photovault.common.PhotovaultSettings;
 
 /**
    The class Volume presents a single volume. e.g. storage area for image files
@@ -19,7 +20,9 @@ public class Volume {
     */
     public static Volume getDefaultVolume() {
 	if ( defaultVolume == null ) {
-	    defaultVolume = new Volume( "defaultVolume", "/home/harri/projects/photovault/testdb" );
+	    String defVolumeName = PhotovaultSettings.getConfProperty( "defaultVolume" );
+	    String defVolumePath = PhotovaultSettings.getConfProperty( "volumes." + defVolumeName + ".rootPath" );
+	    defaultVolume = new Volume( defVolumeName, defVolumePath );
 	}
 	return defaultVolume;
     }

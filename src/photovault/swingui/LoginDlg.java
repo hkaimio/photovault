@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.*;
 import imginfo.*;
 import java.io.*;
+import photovault.common.PhotovaultSettings;
 
 
 public class LoginDlg extends JFrame {
@@ -82,7 +83,7 @@ public class LoginDlg extends JFrame {
 	gb.setConstraints( passField, fieldConstraints );
 	loginPane.add( passField );
 
-	String [] dbs = { "pv_test", "photovault" };
+	String [] dbs = PhotovaultSettings.getConfigurationNames();
 	JLabel dbLabel = new JLabel( "Database" );
 	gb.setConstraints( dbLabel, labelConstraints );
 	loginPane.add( dbLabel );
