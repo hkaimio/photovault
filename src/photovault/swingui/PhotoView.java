@@ -21,20 +21,20 @@ public class PhotoView extends JPanel {
     }
     
     public void paint( Graphics g ) {
-	if ( scaledImage == null ) {
-	    prepareScaledImage();
+	if ( xformImage == null ) {
+	    prepareXformImage();
 	}
 	Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	
-	if ( scaledImage != null ) {	    
-	    g2.drawImage( scaledImage, new AffineTransform(1f,0f,0f,1f,0,0), null );
+	if ( xformImage != null ) {	    
+	    g2.drawImage( xformImage, new AffineTransform(1f,0f,0f,1f,0,0), null );
 	}
     }
 
     public void setImage( BufferedImage img ) {
 	origImage = img;
-	scaledImage = null;
+	xformImage = null;
 	repaint();
     }
 
@@ -42,8 +42,11 @@ public class PhotoView extends JPanel {
 	int w = 0;
 	int h = 0;
 	if ( origImage != null ) {
-	    w = (int)(origImage.getWidth()*imgScale);
-	    h = (int)(origImage.getHeight()*imgScale);
+	    if ( xformImage == null ) {
+		prepareXformImage();
+	    }
+	    w = xformImage.getWidth();
+	    h = xformImage.getHeight();
 	}
 	return new Dimension( w, h );
     }
@@ -51,8 +54,8 @@ public class PhotoView extends JPanel {
     public void setScale( float newValue ) {
 	imgScale = newValue;
 	// Invalidate the existing scaled image
-	scaledImage = null;
-	repaint();
+	xformImage = null;
+	revalidate();
     }
     
     public float getScale() {
@@ -62,8 +65,8 @@ public class PhotoView extends JPanel {
     public void setRotation( double newRot ) {
 	imgRot = newRot;
 	// Invalidate the existing transformed image
-	scaledImage = null;
-	repaint();
+	xformImage = null;
+	revalidate();
     }
 
     public double getRotation() {
@@ -92,22 +95,18 @@ public class PhotoView extends JPanel {
 	return origImage.getHeight();
     }
     
-    private void prepareScaledImage() {
+    private void prepareXformImage() {
 	if ( origImage == null ) {
 	    return;
 	}
-	// Calculate the resolution of the image
-	int w = (int)(origImage.getWidth() * imgScale);
-	int h = (int)(origImage.getHeight() * imgScale);
 
 	// Create the zoom xform
-	AffineTransform at = photovault.image.ImageXform.getScaleXform( imgScale, imgRot, w, h );
+	AffineTransform at = photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
+									origImage.getWidth(), origImage.getHeight() );
 	AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
 
 	// Create the target image
-	scaledImage = new BufferedImage( w, h,
-					 origImage.getType() );
-	scaleOp.filter( origImage, scaledImage );
+	xformImage = scaleOp.filter( origImage, null );
     }	
 	
     public static void main( String args[] ) {
@@ -137,7 +136,7 @@ public class PhotoView extends JPanel {
 	
     // The image that is viewed
     BufferedImage origImage = null;
-    BufferedImage scaledImage = null;
+    BufferedImage xformImage = null;
     // scale of the image
     float imgScale = 1.0f;
 }
