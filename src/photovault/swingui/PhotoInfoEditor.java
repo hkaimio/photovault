@@ -204,10 +204,12 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     public void setShootTime( Date newValue ) {
+	log.warn( "setShootingTime: " + newValue );
 	shootingDayField.setValue( newValue );
     }
 
     public Date getShootTime( ) {
+	log.warn( "getShootingTime" );
 	return (Date) shootingDayField.getValue();
     }
 
@@ -352,7 +354,20 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	    Object src = ev.getSource();
 	    if ( src.getClass() == JFormattedTextField.class ) {
 		Object field = ((JFormattedTextField) src).getClientProperty( FIELD_NAME );
-		ctrl.viewChanged( this, (String) field );
+		Object value = ((JFormattedTextField) src).getValue();
+
+		/* Field value is set to null (as it is when ctrl is
+		 controlling multiple photos which have differing
+		 value for te field) this is called every time the
+		 field is accessed, so we must not notify the
+		 controller.  After the user has actually set the
+		 value it is no longer null.
+		*/
+		if ( value != null ) {
+		    log.warn( "Property changed: " + (String) field );
+		    System.out.println( "Property changed: " + (String) field );
+		    ctrl.viewChanged( this, (String) field );
+		}
 	    }
 	}
     }

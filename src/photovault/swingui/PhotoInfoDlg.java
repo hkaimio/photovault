@@ -24,17 +24,17 @@ public class PhotoInfoDlg extends JDialog {
     public PhotoInfoDlg( Frame owner, boolean modal, PhotoInfo photo ) {
 	super( owner, DIALOG_TITLE, modal );
 	ctrl = new PhotoInfoController();
-	ctrl.setPhoto( photo );
 	    
 	createUI();
+	ctrl.setPhoto( photo );
     }
 
     public PhotoInfoDlg( Frame owner, boolean modal, PhotoInfo[] photos ) {
 	super( owner, DIALOG_TITLE, modal );
 	ctrl = new PhotoInfoController();
-	ctrl.setPhotos( photos );
 	    
 	createUI();
+	ctrl.setPhotos( photos );
     }
 
 
