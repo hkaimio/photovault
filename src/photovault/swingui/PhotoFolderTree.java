@@ -1,4 +1,4 @@
-// $Id
+// $Id: PhotoFolderTree.java,v 1.3 2003/02/23 21:44:44 kaimio Exp $
 
 
 package photovault.swingui;
