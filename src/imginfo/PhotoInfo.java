@@ -350,7 +350,7 @@ public class PhotoInfo {
        a default thumbnail image.
     */
     public Thumbnail getThumbnail() {
-	log.debug( "Finding thumbnail for " + uid );
+	log.debug( "getThumbnail: Finding thumbnail for " + uid );
 	if ( thumbnail == null ) {
 	    // First try to find an instance from existing instances
 	    ImageInstance original = null;
@@ -364,6 +364,7 @@ public class PhotoInfo {
 	    }
 	    if ( thumbnail == null ) {
 		// Next try to create a new thumbnail instance
+		log.debug( "No thumbnail found, creating" );
 		createThumbnail();
 	    }
 	}
@@ -381,7 +382,7 @@ public class PhotoInfo {
        false otherwise
     */
     public boolean hasThumbnail() {
-	log.debug( "Finding thumbnail for " + uid );
+	log.debug( "hasThumbnail: Finding thumbnail for " + uid );
 	if ( thumbnail == null ) {
 	    // First try to find an instance from existing instances
 	    ImageInstance original = null;
@@ -404,7 +405,7 @@ public class PhotoInfo {
     */
     protected void createThumbnail( Volume volume ) {
 
-	log.warn( "Creating thumbnail" );
+	log.debug( "Creating thumbnail" );
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	

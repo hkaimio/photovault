@@ -349,11 +349,14 @@ public class PhotoCollectionThumbView
         if ( photo != null ) {
 	    Thumbnail thumbnail = null;
 	    if ( photo.hasThumbnail() ) {
+		log.debug( "Photo " + photo.getUid() + " has thumbnail" );
 		thumbnail = photo.getThumbnail();
 	    } else {
 		thumbnail = Thumbnail.getDefaultThumbnail();
 		if ( !thumbCreatorThread.isBusy() ) {
+		    log.debug( "Create thumbnail for " + photo.getUid() );
 		    thumbCreatorThread.createThumbnail( photo );
+		    log.debug( "Thumbnail request submitted" );
 		}
 	    }
 
@@ -541,12 +544,15 @@ public class PhotoCollectionThumbView
     protected Rectangle getPhotoBounds( int photoNum ) {
         if ( photoNum < photoCollection.getPhotoCount() ) {
             PhotoInfo photoCandidate = photoCollection.getPhoto( photoNum );
-            log.warn( "Checking bounds" );
+            log.debug( "Checking bounds" );
 
             // Check whether the click was inside the thumbnail or not
             int width = 100;
             int height = 75;
-            Thumbnail thumb = photoCandidate.getThumbnail();
+            Thumbnail thumb = null;
+	    if ( photoCandidate.hasThumbnail() ) {
+		thumb = photoCandidate.getThumbnail();
+	    }
             if ( thumb != null ) {
                 BufferedImage img = thumb.getImage();
                 width = img.getWidth();
@@ -602,7 +608,9 @@ public class PhotoCollectionThumbView
 	    final PhotoInfo p = nextPhoto;
 // 	    SwingUtilities.invokeLater( new Runnable() {
 // 		    public void run() {
+	    log.debug( "Making request for the next thumbail, " + p.getUid() );
 			thumbCreatorThread.createThumbnail( p );
+	    log.debug( "request submitted" );
 // 		    }
 // 		});
 	}

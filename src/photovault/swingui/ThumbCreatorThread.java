@@ -6,6 +6,9 @@ import imginfo.*;
 
 
 class ThumbCreatorThread extends Thread {
+    static org.apache.log4j.Logger log 
+	= org.apache.log4j.Logger.getLogger( ThumbCreatorThread.class.getName() );
+
     public ThumbCreatorThread( PhotoCollectionThumbView view ) {
 	this.view = view;
     }
@@ -14,6 +17,7 @@ class ThumbCreatorThread extends Thread {
     PhotoInfo photo;
     
     synchronized public void createThumbnail( PhotoInfo photo ) {
+	log.debug( "createThumbnail for " + photo.getUid() );
 	this.photo = photo;
 	notify();
     }
@@ -26,17 +30,18 @@ class ThumbCreatorThread extends Thread {
 	synchronized ( this ) {
 	    while ( true ) {
 		try {
-		    System.out.println( "Waiting..." );
+		    log.debug( "Waiting..." );
 		    wait();
-		    System.out.println( "Waited..." );
+		    log.debug( "Waited..." );
 		    if ( photo != null ) {
-			System.out.println( "Creating thumbnail..." );
+			log.debug( "Creating thumbnail for " + photo.getUid() );
 			Thumbnail thumb = photo.getThumbnail();
-			System.out.println( "Done!" );
+			log.debug( "Done!" );
 			final PhotoInfo lastPhoto = photo;
 			photo = null;
 			SwingUtilities.invokeLater( new Runnable() {
 				public void run() {
+				    log.debug( "drawing new thumbnail for " + lastPhoto.getUid() );
 				    view.thumbnailCreated( lastPhoto );
 			    }
 			    });
