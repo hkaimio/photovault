@@ -2,6 +2,7 @@
 
 package imginfo;
 import java.util.*;
+import java.sql.*;
 
 /**
    PhotoInfo represents information about a single photograph
@@ -13,18 +14,40 @@ class PhotoInfo {
        Static method to load photo info from database by photo id
        @param strPhotoId ID of the photo to be retrieved
     */
-    public static PhotoInfo retrievePhotoInfo( String strPhotoId ) {
-	// TODO: implement this
-	return null;
+    public static PhotoInfo retrievePhotoInfo( String strPhotoId ) throws PhotoNotFoundException {
+	initDB();
+
+	String sql = "SELECT * from photos where photo_id=\"" + strPhotoId +"\"";
+	PhotoInfo photo = new PhotoInfo();
+	try {
+	    Statement stmt = conn.createStatement();
+	    ResultSet rs = stmt.executeQuery( sql );
+	    if ( !rs.next() ) {
+		throw new PhotoNotFoundException();
+	    }
+	    photo.shootingPlace = rs.getString( "shooting_place" );
+	    photo.photographer = rs.getString( "photographer" );
+	    photo.FStop = rs.getFloat( "f_stop" );
+	    photo.focalLength = rs.getFloat( "focal_length" );
+	    photo.shootTime = rs.getDate( "shoot_time" );
+	    rs.close();
+	    stmt.close();
+	} catch (SQLException e ) {
+	    System.err.println( "Error fetching record: " + e.getMessage() );
+	    // TODO: Actually this is not the right exception for this purpose
+	    throw new PhotoNotFoundException();
+	}
+	
+	return photo;
     }
 
-    Date shootTime;
+    java.util.Date shootTime;
     
     /**
      * Get the value of shootTime.
-     * @return value of shootTime.
+¨     * @return value of shootTime.
      */
-    public Date getShootTime() {
+    public java.util.Date getShootTime() {
 	return shootTime;
     }
     
@@ -32,7 +55,7 @@ class PhotoInfo {
      * Set the value of shootTime.
      * @param v  Value to assign to shootTime.
      */
-    public void setShootTime(Date  v) {
+    public void setShootTime(java.util.Date  v) {
 	this.shootTime = v;
     }
     
@@ -121,4 +144,27 @@ class PhotoInfo {
     public void setPhotographer(String  v) {
 	this.photographer = v;
     }
+
+    // Database routines
+    private static Connection conn = null;
+
+    private static void initDB() {
+	if ( conn != null ) {
+	    // Database is already initalized!!!
+	    return;
+	}
+	try {
+	    Class.forName( "com.mysql.jdbc.Driver" ).newInstance();
+	} catch ( Exception e ) {
+	    System.err.println( "DB driver not found" );
+	}
+
+	try {
+	    conn = DriverManager.getConnection( "jdbc:mysql:///pv_test", "harri", "r1t1rat1" );
+	} catch ( SQLException e ) {
+	    System.err.println( "ERROR: Could not create DB connection: "
+				+ e.getMessage() );
+	}
+    }
+	     
 }
