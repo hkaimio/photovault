@@ -11,6 +11,8 @@ import java.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.text.*;
+import java.beans.*;
 
 import imginfo.*;
 import dbhelper.*;
@@ -20,7 +22,7 @@ import javax.swing.event.*;
     Use can either edit an existing record or create a completely new record.
 */
 
-public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionListener, DocumentListener {
+public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionListener, DocumentListener, PropertyChangeListener {
 
     public PhotoInfoEditor( PhotoInfoController ctrl ) {
 	super();
@@ -30,6 +32,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     protected void createUI() {
+
+	tabPane = new JTabbedPane();
+	add( tabPane );
+
+	// General pane
+	JPanel generalPane = new JPanel();
+	tabPane.addTab( "General", generalPane );
 	
 	// Create the fields & their labels
 
@@ -38,6 +47,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	photographerField = new JTextField( 30 );
 	photographerDoc = photographerField.getDocument();
 	photographerDoc.addDocumentListener( this );
+	photographerDoc.putProperty( FIELD_NAME, PhotoInfoController.PHOTOGRAPHER );
 
 	// Shooting date field
 	JLabel shootingDayLabel = new JLabel( "Shooting date" );
@@ -46,8 +56,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	shootingDayField = new JFormattedTextField( df );
 	shootingDayField.setColumns( 10 );
 	shootingDayField.setValue( new Date( ));
-	shootingDayDoc = shootingDayField.getDocument();
-	shootingDayDoc.addDocumentListener( this );
+	shootingDayField.addPropertyChangeListener( this );
+	shootingDayField.putClientProperty( FIELD_NAME, PhotoInfoController.SHOOTING_DATE );
 
 	
 	// Shooting place field
@@ -55,8 +65,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	shootingPlaceField = new JTextField( 30 );
 	shootingPlaceDoc = shootingPlaceField.getDocument();
 	shootingPlaceDoc.addDocumentListener( this );
+	shootingPlaceDoc.putProperty( FIELD_NAME, PhotoInfoController.SHOOTING_PLACE );
 	
-	// Descrription text
+	// Description text
 	JLabel descLabel = new JLabel( "Description" );
 	descriptionTextArea = new JTextArea( 5, 40 );
 	descriptionTextArea.setLineWrap( true );
@@ -80,13 +91,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	// Lay out the created controls
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
-	setLayout( layout );
+	generalPane.setLayout( layout );
 	JLabel[] labels     = { photographerLabel, shootingDayLabel, shootingPlaceLabel };
 	JTextField[] fields = { photographerField, shootingDayField, shootingPlaceField };
-	addLabelTextRows( labels, fields, layout, this );
+	addLabelTextRows( labels, fields, layout, generalPane );
 
 	
-	add( descScrollPane );
+	generalPane.add( descScrollPane );
 	c.gridwidth = GridBagConstraints.REMAINDER;
 	c.weighty = 0.5;
 	c.fill = GridBagConstraints.NONE;
@@ -98,26 +109,133 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	c.fill = GridBagConstraints.NONE;
 	c.gridy = GridBagConstraints.RELATIVE;
 	
-	add( saveBtn );
+	generalPane.add( saveBtn );
 	layout.setConstraints( saveBtn, c );
 
 	c.gridy = GridBagConstraints.RELATIVE;
 	
-	add( discardBtn );
+	generalPane.add( discardBtn );
 	layout.setConstraints( discardBtn, c );
 
+	createTechDataUI();
     }
+
+    protected void createTechDataUI() {
+	JPanel pane = new JPanel();
+	tabPane.addTab( "Tech data", pane );
+
+	JLabel cameraLabel =  new JLabel( "Camera" );
+	cameraField = new JTextField( 20 );
+	cameraDoc = cameraField.getDocument();
+	cameraDoc.addDocumentListener( this );
+
+	JLabel filmLabel =  new JLabel( "Film" );
+	filmField = new JTextField( 20 );
+	filmDoc = filmField.getDocument();
+	filmDoc.addDocumentListener( this );
+	filmDoc.putProperty( FIELD_NAME, PhotoInfoController.FILM_TYPE );
+
+	JLabel filmSpeedLabel =  new JLabel( "Film speed" );
+	DecimalFormat filmSpeedFormat = new DecimalFormat( "#########0" );	
+	filmSpeedField = new JFormattedTextField( filmSpeedFormat );
+	filmSpeedField.setColumns( 5 );
+	filmSpeedField.addPropertyChangeListener( this );
+	filmSpeedField.putClientProperty( FIELD_NAME, PhotoInfoController.FILM_SPEED );
+
+	JLabel shutterSpeedLabel =  new JLabel( "Shutter speed" );
+	DecimalFormat shutterSpeedFormat = new DecimalFormat( "###0.####" );
+	shutterSpeedField = new JFormattedTextField( new NumberFormatter( shutterSpeedFormat ) );
+	shutterSpeedField.setColumns( 5 );
+	shutterSpeedField.addPropertyChangeListener( this );
+	shutterSpeedField.putClientProperty( FIELD_NAME, PhotoInfoController.SHUTTER_SPEED );
+
+	JLabel fStopLabel =  new JLabel( "F-stop" );
+	DecimalFormat fStopFormat = new DecimalFormat( "#0.#" );
+	fStopField = new JFormattedTextField( new NumberFormatter( fStopFormat ) );
+	fStopField.setColumns( 5 );
+	fStopField.addPropertyChangeListener( this );
+	fStopField.putClientProperty( FIELD_NAME, PhotoInfoController.F_STOP );
+	
+	JLabel focalLengthLabel =  new JLabel( "Focal length" );
+	DecimalFormat focalLengthFormat = new DecimalFormat( "#######0.#" );
+	focalLengthField = new JFormattedTextField( new NumberFormatter( focalLengthFormat ));
+	focalLengthField.setColumns( 5 );
+	focalLengthField.addPropertyChangeListener( this );
+	focalLengthField.putClientProperty( FIELD_NAME, PhotoInfoController.FOCAL_LENGTH );
+	
+	// Lay out the created controls
+	GridBagLayout layout = new GridBagLayout();
+	GridBagConstraints c = new GridBagConstraints();
+	pane.setLayout( layout );
+	JLabel[] labels     = { cameraLabel, focalLengthLabel, filmLabel, filmSpeedLabel, shutterSpeedLabel, fStopLabel };
+	JTextField[] fields = { cameraField, focalLengthField, filmField, filmSpeedField, shutterSpeedField, fStopField };
+	addLabelTextRows( labels, fields, layout, pane );
+    }
+	
+	
 
     public void setPhotographer( String newValue ) {
 	photographerField.setText( newValue );
     }
     
+    public String getPhotographer( ) {
+	return photographerField.getText( );
+    }
+    
     public void setShootTime( Date newValue ) {
 	shootingDayField.setValue( newValue );
     }
+
+    public Date getShootTime( ) {
+	return (Date) shootingDayField.getValue();
+    }
+
     public void setShootPlace( String newValue ) {
 	shootingPlaceField.setText( newValue );
     }
+    
+    public String getShootPlace( ) {
+	return shootingPlaceField.getText( );
+    }
+    
+    public void setFStop( Number newValue ) {
+	fStopField.setValue( newValue  );
+    }
+    
+    public Number getFStop( ) {
+	Number value = (Number) fStopField.getValue( );
+	return value;
+    }
+    
+    public void setShutterSpeed( Number newValue ) {
+	shutterSpeedField.setValue( newValue );
+    }
+    
+    public Number getShutterSpeed( ) {
+	Number value = (Number) shutterSpeedField.getValue( );
+	return value;
+    }
+    
+    public void setFocalLength( Number newValue ) {
+	focalLengthField.setValue( newValue  );
+    }
+    
+    public Number getFocalLength( ) {
+	Number value = ((Number) focalLengthField.getValue( ));
+	return value;
+    }
+    
+    public void setFilmSpeed( Number newValue ) {
+	fStopField.setValue( newValue );
+    }
+    
+    public Number getFilmSpeed( ) {
+	Number value = (Number) fStopField.getValue( );
+	return value;
+    }
+
+    
+    
     
     
     // Important UI components
@@ -130,6 +248,23 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     JTextArea descriptionTextArea = null;
     Document descriptionDoc = null;
 
+    JTextField cameraField = null;
+    Document cameraDoc = null;
+
+    JTextField filmField = null;
+    Document filmDoc = null;
+    JFormattedTextField filmSpeedField = null;
+    JFormattedTextField shutterSpeedField = null;
+    JFormattedTextField fStopField = null;     
+    Document filmSpeedDoc = null;
+    Document shutterSpeedDoc = null;
+    Document fStopDoc = null;     
+    
+    JFormattedTextField focalLengthField = null;
+    Document focalLengthDoc = null;
+
+    JTabbedPane tabPane = null;
+    
     public void actionPerformed( ActionEvent evt ) {
 	if ( evt.getActionCommand().equals( "save" ) ) {
 	    System.out.println( "Saving data" );
@@ -137,6 +272,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 		ctrl.save();
 	    } catch ( Exception e ) {
 		System.err.println( "exception while saving" + e.getMessage() );
+		e.printStackTrace();
 	    }
 	} else if ( evt.getActionCommand().equals( "discard" ) ) {
 	    System.out.println( "Discarding data" );
@@ -150,27 +286,23 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     public void insertUpdate( DocumentEvent ev ) {
 	Document changedDoc = ev.getDocument();
-	String changedField = null;
-	Object newValue = null;
-	if ( changedDoc == photographerDoc ) {
-	    changedField = PhotoInfoController.PHOTOGRAPHER;
-	    newValue = photographerField.getText();
-	    System.err.println( "New photographer: " + newValue );
-	} else if ( changedDoc == shootingDayDoc ) {
-	    System.err.println( "Modifying shooting date" );
-  	    changedField = PhotoInfoController.SHOOTING_DATE;
-	    newValue = shootingDayField.getValue();
-	} else if ( changedDoc == shootingPlaceDoc ) {
-  	    changedField = PhotoInfoController.SHOOTING_PLACE;
-	    newValue = shootingPlaceField.getText();
-	} else {
-	    System.err.println( "insertUpdate from unknown event!!!" );
-	}
-	ctrl.viewChanged( this, changedField, newValue );
+	String changedField = (String) changedDoc.getProperty( FIELD_NAME );
+	ctrl.viewChanged( this, changedField );
     }
 
     public void removeUpdate( DocumentEvent ev ) {
 	insertUpdate( ev );
+    }
+
+    // PropertyChangeListener implementation
+    public void propertyChange( PropertyChangeEvent ev ) {
+	if ( ev.getPropertyName().equals( "value" ) ) {
+	    Object src = ev.getSource();
+	    if ( src.getClass() == JFormattedTextField.class ) {
+		Object field = ((JFormattedTextField) src).getClientProperty( FIELD_NAME );
+		ctrl.viewChanged( this, (String) field );
+	    }
+	}
     }
     
     private void addLabelTextRows(JLabel[] labels,
@@ -215,4 +347,5 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
 
     private PhotoInfoController ctrl = null;
+    private static final String FIELD_NAME = "FIELD_NAME";
 }

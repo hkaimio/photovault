@@ -100,6 +100,12 @@ public abstract class FieldController {
 	modified = true;
 	updateViews( view );
     }
+
+    public void viewChanged( Object view ) {
+	modified = true;
+	updateValue( view );
+	updateViews( view );
+    }
 	
     
     /**
@@ -155,6 +161,10 @@ public abstract class FieldController {
      */
     protected abstract void updateView( Object view );
 
+    /**
+       This abstract method must be overridden to update the contorller value from the view
+    */
+    protected abstract void updateValue( Object view );
     protected Object model;
     protected Object value;
     protected Collection views = null;

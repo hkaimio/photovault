@@ -43,6 +43,10 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setPhotographer( (String) value );
 		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getPhotographer();
+		}
 	    });
 
 	modelFields.put( SHOOTING_DATE, new FieldController( photo ) {
@@ -57,6 +61,10 @@ public class PhotoInfoController {
 		protected void updateView( Object view ) {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setShootTime( (Date) value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getShootTime();
 		}
 	    });
 
@@ -73,8 +81,49 @@ public class PhotoInfoController {
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setShootPlace( (String) value );
 		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getShootPlace();
+		}
 	    });
 
+	modelFields.put( F_STOP, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setFStop( ((Number)value).doubleValue() );
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return new Double( obj.getFStop() );
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFStop( (Number)value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value =  obj.getFStop();
+		}
+	    });
+
+	modelFields.put( FOCAL_LENGTH, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setFocalLength( ((Number)value).doubleValue() );
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return new Double( obj.getFocalLength() );
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFocalLength( (Number)value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value =  obj.getFocalLength(); 
+		}
+	    });
 	// TODO: Add other fields
 
 	// Init the views in the fields
@@ -196,7 +245,12 @@ public class PhotoInfoController {
     public final static String SHOOTING_PLACE = "Shooting place";
     public final static String DESCRIPTION = "Description";
     public final static String F_STOP = "F-stop";
+    public final static String SHUTTER_SPEED = "Shutter speed";
     public final static String FOCAL_LENGTH = "Focal length";
+    public final static String CAMERA_MODEL = "Camera model";
+    public final static String FILM_TYPE = "Film type";
+    public final static String FILM_SPEED = "Film speed";
+
 
     protected HashMap modelFields = null;
 
@@ -219,6 +273,7 @@ public class PhotoInfoController {
        @param view The changed view
        @param field The field that has been changed
        @param newValue New value for the field       
+       @deprecated Use viewChanged( view, field ) instead.
     */
     public void viewChanged( PhotoInfoView view, String field, Object newValue ) {
 	FieldController fieldCtrl = (FieldController) modelFields.get( field );
@@ -228,6 +283,22 @@ public class PhotoInfoController {
 	    System.err.println( "No field " + field );
 	}
     }
+
+    /**
+       This method must be called by a view when it has been changed
+       @param view The changed view
+       @param field The field that has been changed
+    */
+    
+    public void viewChanged( PhotoInfoView view, String field ) {
+	FieldController fieldCtrl = (FieldController) modelFields.get( field );
+	if ( fieldCtrl != null ) {
+	    fieldCtrl.viewChanged( view );
+	} else {
+	    System.err.println( "No field " + field );
+	}
+    }
+	
 	
     public Object getField( String field ) {
 	Object value = null;
