@@ -274,7 +274,8 @@ public class Test_PhotoInfo extends TestCase {
     }
 
     /**
-       Test that an exception is generated when trying to add nonexisting file to DB
+       Test that an exception is generated when trying to add
+       nonexisting file to DB
     */
     public void testfailedCreation() {
 	String testImgDir = "c:\\_directoryThatDoesNotExist";
@@ -283,7 +284,8 @@ public class Test_PhotoInfo extends TestCase {
 	PhotoInfo photo = null;
 	try {
 	    photo = PhotoInfo.addToDB( f );
-	    // Execution should neverproceed this far since addToDB should produce exception
+	    // Execution should never proceed this far since addToDB
+	    // should produce exception
 	    fail( "Image file should have been nonexistent" );
 	} catch ( PhotoNotFoundException e ) {
 	    // This is what we except
@@ -375,6 +377,47 @@ public class Test_PhotoInfo extends TestCase {
 	    photo.delete();
 	}
     }
+
+    /**
+       Tests thumbnail creation when the database is corrupted & files
+       that photo instances refer to do not exist.
+    */
+    public void testThumbnailCreateCorruptInstances() throws Exception {	
+	String testImgDir = "c:\\java\\photovault\\testfiles";
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+	// Create the thumbnail so that the database shows that such beast exist
+	photo.createThumbnail();
+
+	// Corrupt the database by deleting the actual image files
+	// that instances refer to
+	int numInstances = photo.getNumInstances();
+	for ( int n = 0; n  < numInstances ; n++ ) {
+	    ImageInstance instance = photo.getInstance( n );
+	    File instFile = instance.getImageFile();
+	    instFile.delete();
+	}
+
+
+	try {
+	    Thumbnail thumb = photo.getThumbnail();
+	    assertNotNull( thumb );
+	    assertTrue( "Database is corrupt, should return default thumbnail",
+			thumb == Thumbnail.getDefaultThumbnail() );
+	    assertEquals( "Database is corrupt, getThumbnail should not create a new instance",
+			  numInstances, photo.getNumInstances() );
+	    
+	} finally {
+	    // Clean up in any case
+	    photo.delete();
+	}
+    }
     
     /**
        Test that creating a new thumbnail using getThumbnail works
@@ -389,6 +432,7 @@ public class Test_PhotoInfo extends TestCase {
 	} catch ( PhotoNotFoundException e ) {
 	    fail( "Could not find photo: " + e.getMessage() );
 	}
+
 	assertNotNull( photo );
 	int instanceCount = photo.getNumInstances();
 	Thumbnail thumb = photo.getThumbnail();

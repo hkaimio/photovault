@@ -53,16 +53,19 @@ public class Thumbnail {
     */
 
     protected static Thumbnail createThumbnail( PhotoInfo photo, File thumbnailFile ) {
+	if ( thumbnailFile == null ) {
+	    return getDefaultThumbnail();
+	}
 	Thumbnail thumb = new Thumbnail();
 	thumb.photo = photo;
 	log.debug( "Creating thumbnail for " + photo.getUid() );
 	log.debug( " - " + thumbnailFile.getPath() );
-	
 	try {
 	    thumb.image = ImageIO.read( thumbnailFile );
 	} catch ( IOException e ) {
 	    log.warn( "Error reading thumbnail image: " + e.getMessage() );
-	    return null;
+	    // Apparently database is corrupt, use the default Thumbnail
+	    return getDefaultThumbnail();
 	}
 	return thumb;
     }

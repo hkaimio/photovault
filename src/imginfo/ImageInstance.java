@@ -20,11 +20,15 @@ public class ImageInstance {
 
 
     /**
-       Creates a new image file object. The object is persistent, i.e. it is stored in database
+       Creates a new image file object. The object is persistent,
+       i.e. it is stored in database
        @param volume Volume in which the instance is stored
-       @param imageFile File object pointing to the image instance file
-       @param photo PhotoInfo object that represents the content of the image file
+       @param imageFile File object pointing to the image instance
+       file
+       @param photo PhotoInfo object that represents the content of
+       the image file
        @return A ImageInstance object
+
     */
     public static ImageInstance create( Volume volume, File imageFile, PhotoInfo photo ) {
 
@@ -88,9 +92,10 @@ public class ImageInstance {
     }
 
     /**
-       Inits the complext attributes vulome and imageFile. Since these are not mapped directly to database columns,
-       this function will be called by OJB Rowreader to initialize these correctly after the object has been
-       read from database.
+       Inits the complex attributes vulome and imageFile. Since these
+       are not mapped directly to database columns, this function will
+       be called by OJB Rowreader to initialize these correctly after
+       the object has been read from database.
     */
     protected void initFileAttrs() {
 	volume = Volume.getVolume( volumeId );

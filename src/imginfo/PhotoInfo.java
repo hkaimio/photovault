@@ -358,8 +358,8 @@ public class PhotoInfo {
 		break;
 	    } 
 	}
-	if ( original == null ) {
-	    // If there are no instances, no thumbnail can be created
+	if ( original == null || original.getImageFile() == null || !original.getImageFile().exists() ) {
+	    // If there are uncorrupted instances, no thumbnail can be created
 	    log.warn( "Error - no original image was found!!!" );
 	    txw.commit();
 	    return;
