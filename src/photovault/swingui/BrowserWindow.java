@@ -5,10 +5,12 @@ package photovault.swingui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import imginfo.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 
-public class BrowserWindow extends JPanel {
+public class BrowserWindow extends JFrame {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
     
@@ -16,8 +18,13 @@ public class BrowserWindow extends JPanel {
        Constructor
     */
     public BrowserWindow() {
-	super();
+	super( "Photovault Browser");
 	createUI();
+	addWindowListener(new WindowAdapter() {
+		public void windowClosing(WindowEvent e) {
+		    System.exit(0);
+		}
+	    } );
     }
 
     protected void createUI() {
@@ -56,10 +63,61 @@ public class BrowserWindow extends JPanel {
 	
 	// Create the split pane to display both of these components
 	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, viewPane );
-	setLayout( new BorderLayout() );
-	add( split, BorderLayout.CENTER );
+	Container cp = getContentPane();
+	cp.setLayout( new BorderLayout() );
+	cp.add( split, BorderLayout.CENTER );
+
+	// Create the menu bar & menus
+	JMenuBar menuBar = new JMenuBar();
+	setJMenuBar( menuBar );
+	JMenu fileMenu = new JMenu( "File" );
+	fileMenu.setMnemonic(KeyEvent.VK_F);
+	menuBar.add( fileMenu );
+	
+	JMenuItem importItem = new JMenuItem( "Import image...", KeyEvent.VK_I );
+	importItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    importFile();
+		}
+	    });
+	fileMenu.add( importItem );
+
+	JMenuItem exitItem = new JMenuItem( "Exit", KeyEvent.VK_X );
+	exitItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    System.exit( 0 );
+		}
+	    });	
+	fileMenu.add( exitItem );
+	pack();
     }
 
+    /**
+       Shows an file selection dialog that allows user to select a file to import. After
+       that shows the PhotoInfo dialog to allow the user to edit the eriginal information
+       about the file.
+    */
+    protected void importFile() {
+	// Show the file chooser dialog
+	JFileChooser fc = new JFileChooser();
+	fc.addChoosableFileFilter( new ImageFilter() );
+	fc.setAccessory( new ImagePreview( fc ) );
+	
+	int retval = fc.showDialog( this, "Import" );
+	if ( retval == JFileChooser.APPROVE_OPTION ) {
+	    // Add the selected file to the database and allow user to edit its attributes
+	    File f = fc.getSelectedFile();
+	    try {
+		PhotoInfo photo = PhotoInfo.addToDB( f );
+		PhotoInfoDlg dlg = new PhotoInfoDlg( this, true, photo );
+		dlg.showDialog();
+	    } catch ( Exception e ) {
+		log.error( "Unexpected exception: " + e.getMessage() );
+	    }
+	}
+    }
+
+    
     protected JTabbedPane tabPane = null;
     protected QueryPane queryPane = null;
     protected PhotoFolderTree treePane = null;
@@ -78,16 +136,8 @@ public class BrowserWindow extends JPanel {
 	} catch ( Exception e ) {}
 	log.info( "Starting application" );
 	
-	JFrame frame = new JFrame( "BrowserWindow test" );
 	BrowserWindow br = new BrowserWindow();
-	frame.getContentPane().add( br, BorderLayout.CENTER );
-	frame.addWindowListener(new WindowAdapter() {
-		public void windowClosing(WindowEvent e) {
-		    System.exit(0);
-		}
-	    } );
-	frame.pack();
-	frame.setVisible( true );
+	br.setVisible( true );
     }
 
     

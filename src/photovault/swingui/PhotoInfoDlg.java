@@ -15,13 +15,14 @@ import java.io.*;
 public class PhotoInfoDlg extends JDialog {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoDlg.class.getName() );
 
+    static final String DIALOG_TITLE = "Edit photo info";
     /**
        Constructor. Creates a PhotoInfoDlg with the specified window as a parent.
        @param owner Owner of the dialog
        @param modal If true, a modal dialog is created
     */
     public PhotoInfoDlg( Frame owner, boolean modal, PhotoInfo photo ) {
-	super( owner, modal );
+	super( owner, DIALOG_TITLE, modal );
 	ctrl = new PhotoInfoController();
 	ctrl.setPhoto( photo );
 	    
