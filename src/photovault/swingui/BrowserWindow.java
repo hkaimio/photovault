@@ -75,6 +75,7 @@ public class BrowserWindow extends JFrame {
 	
 	// Create the split pane to display both of these components
 	JScrollPane viewScroll = new JScrollPane( viewPane );
+	viewScroll.setPreferredSize( new Dimension( 650, 400 ) );
 	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, viewScroll );
 	Container cp = getContentPane();
 	cp.setLayout( new BorderLayout() );
@@ -104,14 +105,16 @@ public class BrowserWindow extends JFrame {
 	    });
 	fileMenu.add( importItem );
 
-	JMenuItem exportItem = new JMenuItem( "Export image...", KeyEvent.VK_E );
-	exportItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    exportSelected();
-		}
-	    });
+// 	JMenuItem exportItem = new JMenuItem( "Export image...", KeyEvent.VK_E );
+// 	exportItem.addActionListener( new ActionListener() {
+// 		public void actionPerformed( ActionEvent e ) {
+// 		    exportSelected();
+// 		}
+// 	    });
+	JMenuItem exportItem = new JMenuItem( viewPane.getExportSelectedAction() );
 	fileMenu.add( exportItem );
 
+	
 	JMenuItem exitItem = new JMenuItem( "Exit", KeyEvent.VK_X );
 	exitItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {

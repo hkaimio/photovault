@@ -126,8 +126,40 @@ public class PhotoCollectionThumbView
         return new HashSet( selection );
     }
 
+    /**
+       Returns the number of photos that are selected in this view
+    */
+    public int getSelectedCount() {
+	return selection.size();
+    }
+	
 
     HashSet selection = new HashSet();
+
+
+    /**
+       Adds a listener to listen for selection changes
+    */
+    public void addSelectionChangeListener( SelectionChangeListener l ) {
+	selectionChangeListeners.add( l );
+    }
+
+    /**
+       removes a listener for selection changes
+    */
+    public void removePhotoFolderTreeListener( SelectionChangeListener l ) {
+	selectionChangeListeners.remove( l );
+    }
+
+    protected void fireSelectionChangeEvent() {
+	Iterator iter = selectionChangeListeners.iterator();
+	while ( iter.hasNext() ) {
+	    SelectionChangeListener l = (SelectionChangeListener) iter.next();
+	    l.selectionChanged( new SelectionChangeEvent( this ) );
+	}
+    }
+    
+    Vector selectionChangeListeners = new Vector();
     
     int columnWidth = 150;
     int rowHeight = 150;
@@ -188,12 +220,15 @@ public class PhotoCollectionThumbView
         JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
         addToFolder.addActionListener( this );
         addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
+	exportSelectedAction = new ExportSelectedAction( this, "Export selected...", null, "Export the selected photos to from archive database to image files", KeyEvent.VK_X );
+	JMenuItem exportSelected = new JMenuItem( exportSelectedAction );
         popup.add( showItem );
         popup.add( propsItem );
         popup.add( rotateCW );
         popup.add( rotateCCW );
         popup.add( rotate180deg );
         popup.add( addToFolder );
+        popup.add( exportSelected );
         MouseListener popupListener = new PopupListener();
         addMouseListener( popupListener );
                
@@ -207,7 +242,11 @@ public class PhotoCollectionThumbView
     private static final String PHOTO_ROTATE_CCW_CMD = "rotateCCW";
     private static final String PHOTO_ROTATE_180_CMD = "rotate180";
     private static final String PHOTO_ADD_TO_FOLDER_CMD = "addToFolder";
+    private AbstractAction exportSelectedAction;
 
+    public AbstractAction getExportSelectedAction() {
+	return exportSelectedAction;
+    }
 
     
     public void paint( Graphics g ) {
@@ -472,6 +511,7 @@ public class PhotoCollectionThumbView
             if ( !mouseEvent.isControlDown() ) {
 		Object[] oldSelection = selection.toArray();
 		selection.clear();
+		fireSelectionChangeEvent();
 		for ( int n = 0; n < oldSelection.length; n++ ) {
 		    PhotoInfo photo = (PhotoInfo) oldSelection[n];
 		    repaintPhoto( photo );
@@ -488,6 +528,7 @@ public class PhotoCollectionThumbView
         } else {
             selection.add( clickedPhoto );
         }
+	fireSelectionChangeEvent();
     }
                  
 
@@ -501,6 +542,7 @@ public class PhotoCollectionThumbView
 	}
 	    
         selection.add( clickedPhoto );
+	fireSelectionChangeEvent();
     }
     
     /**
@@ -538,6 +580,7 @@ public class PhotoCollectionThumbView
             if ( !mouseEvent.isControlDown() ) {
 		Object[] oldSelection = selection.toArray();
 		selection.clear();
+		fireSelectionChangeEvent();
 		for ( int n = 0; n < oldSelection.length; n++ ) {
 		    PhotoInfo p = (PhotoInfo) oldSelection[n];
 		    repaintPhoto( p );
@@ -578,6 +621,7 @@ public class PhotoCollectionThumbView
 		    selection.add( photoCollection.getPhoto( n ) );
 		    repaintPhoto( photoCollection.getPhoto( n ) );
 		}
+		fireSelectionChangeEvent();
 	    }
 	    
 	    
