@@ -18,7 +18,7 @@ import org.odmg.*;
 import photovault.folder.*;
 /**
    PhotoInfo represents information about a single photograph
-   TODO: write a decent doc!!!
+   TODO: write a decent doc!
 */
 public class PhotoInfo {
 
