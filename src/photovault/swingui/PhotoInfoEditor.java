@@ -32,9 +32,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     protected void createUI() {
-
+	setLayout(new BorderLayout());
+	setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 	tabPane = new JTabbedPane();
-	add( tabPane );
+	add( tabPane, BorderLayout.CENTER );
 
 	// General pane
 	JPanel generalPane = new JPanel();
@@ -103,7 +104,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	generalPane.add( descScrollPane );
 	c.gridwidth = GridBagConstraints.REMAINDER;
 	c.weighty = 0.5;
-	c.fill = GridBagConstraints.NONE;
+	c.fill = GridBagConstraints.BOTH;
 	layout.setConstraints( descScrollPane, c );
 
 	c = new GridBagConstraints();
@@ -112,15 +113,22 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	c.fill = GridBagConstraints.NONE;
 	c.gridy = GridBagConstraints.RELATIVE;
 	
-	generalPane.add( saveBtn );
-	layout.setConstraints( saveBtn, c );
 
 	c.gridy = GridBagConstraints.RELATIVE;
 	
-	generalPane.add( discardBtn );
-	layout.setConstraints( discardBtn, c );
 
 	createTechDataUI();
+
+	// Create a pane for the buttols
+	JPanel buttonPane = new JPanel();
+	buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
+	buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+	buttonPane.add(Box.createHorizontalGlue());
+	buttonPane.add(discardBtn);
+	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+	buttonPane.add(saveBtn);
+	add( buttonPane, BorderLayout.SOUTH );
+
     }
 
     protected void createTechDataUI() {
