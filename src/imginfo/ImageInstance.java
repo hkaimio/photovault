@@ -23,7 +23,7 @@ public class ImageInstance {
        @return A ImageInstance object
     */
     public static ImageInstance create( Volume volume, File imageFile, PhotoInfo photo ) {
-	String sql = "INSERT INTO image_instances VALUES ( ?, ?, ?, ?, ?, ? )";
+	String sql = "INSERT INTO image_instances VALUES ( ?, ?, ?, ?, ?, ?, ? )";
 	ImageInstance f = new ImageInstance();
 	f.volume = volume;
 	f.imageFile = imageFile;
@@ -44,7 +44,8 @@ public class ImageInstance {
 	    stmt.setInt( 3, photo.getUid() );
 	    stmt.setInt( 4, f.getWidth() ); // width
 	    stmt.setInt( 5, f.getHeight() ); // height
-	    stmt.setString( 6, "original" );
+	    stmt.setDouble( 6, 0 );
+	    stmt.setString( 7, "original" );
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch  (SQLException e ) {
@@ -131,6 +132,7 @@ public class ImageInstance {
 		instance.photoUid = rs.getInt( "photo_id" );
 		instance.width = rs.getInt( "width" );
 		instance.height = rs.getInt( "height" );
+		instance.rotated = rs.getDouble( "rotated" );
 		String strInstanceType = rs.getString( "instance_type" );
 		if ( strInstanceType.equals( "original" ) ) {
 		    instance.instanceType = INSTANCE_TYPE_ORIGINAL;
@@ -153,13 +155,14 @@ public class ImageInstance {
        Updates the corresponding record in database to match any modifications to the object
     */
     public void updateDB() {
-	String sql = "UPDATE image_instances SET photo_id = ?, width = ?, height = ?, instance_type = ? WHERE volume_id = ? AND fname = ?";
+	String sql = "UPDATE image_instances SET photo_id = ?, width = ?, height = ?, rotated = ?, instance_type = ? WHERE volume_id = ? AND fname = ?";
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
 	    stmt.setInt( 1, photoUid );
 	    stmt.setInt( 2, width );
 	    stmt.setInt( 3, height );
+	    stmt.setDouble( 4, rotated );
 	    String strInstanceType = null;
 	    switch ( instanceType ) {
 	    case INSTANCE_TYPE_ORIGINAL :
@@ -174,9 +177,9 @@ public class ImageInstance {
 	    default:
 		System.err.println( "This is not an allowed value" );
 	    }
-	    stmt.setString( 4, strInstanceType );
-	    stmt.setString( 5, volume.getName() );
-	    stmt.setString( 6, imageFile.getName() );
+	    stmt.setString( 5, strInstanceType );
+	    stmt.setString( 6, volume.getName() );
+	    stmt.setString( 7, imageFile.getName() );
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch ( SQLException e ) {
@@ -353,6 +356,24 @@ public class ImageInstance {
 	this.instanceType = v;
     }
 
+    double rotated;
+    
+    /**
+     * Get the amount this instance is rotated compared to the original image.
+     * @return value of rotated.
+     */
+    public double getRotated() {
+	return rotated;
+    }
+    
+    /**
+     * Set the amount this image is rotated when compared to the original image
+     * @param v  Value to assign to rotated.
+     */
+    public void setRotated(double  v) {
+	this.rotated = v;
+    }
+    
     int photoUid;
     
 }

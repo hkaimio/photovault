@@ -5,7 +5,7 @@ A SQL script for creating the database tables.
 
 (c) 2002 Harri Kaimio
 
-Version: $Id: create_db.sql,v 1.6 2003/01/12 19:32:54 kaimio Exp $
+Version: $Id: create_db.sql,v 1.7 2003/02/08 20:04:39 kaimio Exp $
 */
 
 /* Create the photos table */
@@ -43,6 +43,7 @@ create table image_instances (
 	photo_id integer NOT NULL REFERENCES photos( photo_id ),
 	width integer,
 	height integer,
+	rotated float,
 	instance_type ENUM ( "original", "modified", "thumbnail" ) NOT NULL,
 	PRIMARY KEY( volume_id, fname )
 );

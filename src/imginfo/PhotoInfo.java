@@ -84,6 +84,7 @@ public class PhotoInfo {
 	    photo.lens = rs.getString( "lens" );
 	    photo.film = rs.getString( "film" );
 	    photo.filmSpeed = rs.getInt( "film_speed" );
+	    photo.prefRotation = rs.getDouble( "pref_rotation" );
 	    photo.description = rs.getString( "description" );
 	} catch ( SQLException e ) {
 	    System.err.println( "Error fetching record: " + e.getMessage() );
@@ -106,7 +107,7 @@ public class PhotoInfo {
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    Statement stmt = conn.createStatement();
-	    stmt.executeUpdate( "INSERT INTO photos values ( " + photo.uid + ", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)" );
+	    stmt.executeUpdate( "INSERT INTO photos values ( " + photo.uid + ", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)" );
 	    stmt.close();
 	} catch ( SQLException e ) {
 	    System.err.println( "Error creating new PhotoInfo: " + e.getMessage() );
@@ -252,7 +253,7 @@ public class PhotoInfo {
        Updates  the object state to database
     */
     public void updateDB() {
-	String sql = "UPDATE photos SET shooting_place = ?, photographer = ?, f_stop = ?, focal_length = ?, shoot_time = ?, shutter_speed = ?, camera = ?, lens = ?, film = ?, film_speed = ?, description = ? WHERE photo_id = ?";
+	String sql = "UPDATE photos SET shooting_place = ?, photographer = ?, f_stop = ?, focal_length = ?, shoot_time = ?, shutter_speed = ?, camera = ?, lens = ?, film = ?, film_speed = ?, pref_rotation = ?, description = ? WHERE photo_id = ?";
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
@@ -271,8 +272,9 @@ public class PhotoInfo {
 	    stmt.setString( 8, lens );
 	    stmt.setString( 9, film );
 	    stmt.setInt( 10, filmSpeed );
-	    stmt.setString( 11, description );
-	    stmt.setInt( 12, uid );
+	    stmt.setDouble( 11, prefRotation );
+	    stmt.setString( 12, description );
+	    stmt.setInt( 13, uid );
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch (SQLException e ) {
@@ -294,14 +296,16 @@ public class PhotoInfo {
        @param volume Volume in which the instance is stored
        @param instanceName File name of the instance
        @instanceType Type of the instance - original, modified or thumbnail.
+       @return The new instance
        @see ImageInstance class documentation for details.
     */
-    public void addInstance( Volume volume, File instanceFile, int instanceType ) {
+    public ImageInstance addInstance( Volume volume, File instanceFile, int instanceType ) {
 	ArrayList origInstances = getInstances();
 	ImageInstance instance = ImageInstance.create( volume, instanceFile, this );
 	instance.setInstanceType( instanceType );
 	instance.updateDB();
 	origInstances.add( instance );
+	return instance;
     }
 
     /**
@@ -366,7 +370,9 @@ public class PhotoInfo {
 	    }
 	    for ( int n = 0; n < instances.size(); n++ ) {
 		ImageInstance instance = (ImageInstance) instances.get( n );
-		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL ) {
+		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
+		     && instance.getRotated() == prefRotation ) {
+		    System.err.println( "Found existing thumbnail" );
 		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
 		    break;
 		} 
@@ -428,26 +434,63 @@ public class PhotoInfo {
 	int origHeight = origImage.getHeight();
 	int maxThumbWidth = 100;
 	int maxThumbHeight = 100;
-	float widthScale = (float) maxThumbWidth / (float) origWidth;
-	float heightScale = (float) maxThumbHeight / (float) origHeight;
-	float scale = widthScale;
-	if ( heightScale < widthScale ) {
-	    scale = heightScale;
-	}
+
+	// Determine if the image must be rotated
+	double thumbRotation = (prefRotation - original.getRotated()) * (Math.PI/180.0);
+	System.err.println( "thumbnail rotation: " + thumbRotation );
 	
-	System.err.println( "Scaling to thumbnail from (" + origWidth + ", " + origHeight + " by " + scale );
 	// Thhen create the xform
 	AffineTransform at = new AffineTransform();
+	at.rotate( thumbRotation );
+	
+	// Determine the required target size of the thumbnail
+	float[] corners = {0.0f,              0.0f,
+			   0.0f,              (float) origHeight,
+			   (float) origWidth, (float) origHeight,
+			   (float) origWidth, 0.0f };
+	at.transform( corners, 0, corners, 0, 4 );
+	float minX = corners[0];
+	float maxX = corners[0];
+	float minY = corners[1];
+	float maxY = corners[1];
+	for ( int n = 2; n < corners.length; n += 2 ) {
+	    if ( corners[n+1] < minY ) {
+		minY = corners[n+1];
+	    }
+	    if ( corners[n+1] > maxY ) {
+		maxY = corners[n+1];
+	    }
+	    if ( corners[n] < minX ) {
+		minX = corners[n];
+	    }
+	    if ( corners[n] > maxX ) {
+		maxX = corners[n];
+	    }
+	}
+
+	System.err.println( "Translating by " + (-minX) + ", " + (-minY) );
+
+	double rotatedWidth = maxX - minX;
+	double rotatedHeight = maxY - minY;
+	double widthScale = (double) maxThumbWidth / rotatedWidth;
+	double heightScale = (double) maxThumbHeight / rotatedHeight;
+	double scale = widthScale;
+	if ( heightScale < widthScale ) {
+	    scale = heightScale;
+	}	
+	at.preConcatenate( at.getTranslateInstance( scale*(-minX), scale*(-minY) ) );
 	at.scale( scale, scale );
-	AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
+	int thumbWidth = (int) (scale * rotatedWidth);
+	int thumbHeight = (int)(scale * rotatedHeight);
+	
+	System.err.println( "Scaling to thumbnail from (" + rotatedWidth + ", " + rotatedHeight + " by " + scale );
 
 	// Create the target image
-	int thumbWidth = (int)(((float)origWidth) * scale);
-	int thumbHeight = (int)(((float)origHeight) * scale);
-	System.err.println( "Thumbnail size (" + thumbWidth + ", " + thumbHeight + ")" );
+	AffineTransformOp atOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
+	
 	BufferedImage thumbImage = new BufferedImage( thumbWidth, thumbHeight,
-						      origImage.getType() );
-	scaleOp.filter( origImage, thumbImage );
+						      origImage.getType() );       
+	atOp.filter( origImage, thumbImage );
 
 	// Save it
 	try {	    
@@ -457,8 +500,11 @@ public class PhotoInfo {
 	}
 
 	// add the created instance to this perdsisten object
-	addInstance( volume, thumbnailFile,
+	ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
 		     ImageInstance.INSTANCE_TYPE_THUMBNAIL );
+	thumbInstance.setRotated( thumbRotation );
+	thumbInstance.updateDB();
+	
 	thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
     }
 
@@ -660,6 +706,33 @@ public class PhotoInfo {
     public void setFilmSpeed(int  v) {
 	this.filmSpeed = v;
     }
+
+    double prefRotation;
+    
+    /**
+     Get the preferred rotation for this image in degrees. Positive values indicate that the image should be
+     rotated clockwise.
+     @return value of prefRotation.
+     */
+    public double getPrefRotation() {
+	return prefRotation;
+    }
+    
+    /**
+     * Set the value of prefRotation.
+     * @param v  Value to assign to prefRotation.
+     */
+    public void setPrefRotation(double  v) {
+	if ( v != prefRotation ) {
+	    // Rotation changes, invalidate the thumbnail
+	    thumbnail = null;
+	}
+	this.prefRotation = v;
+	
+    }
+    
+
+
     String description;
     
     /**

@@ -23,7 +23,7 @@ public class PhotoInfoTest extends TestCase {
     public void tearDown() {
 
     }
-
+    File testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\imginfo" );
     /**
        Test case that verifies that an existing photo infor record 
        can be loaded successfully
@@ -410,6 +410,39 @@ public class PhotoInfoTest extends TestCase {
 	photo.delete();
 		      
     }
+
+    /**
+       Test that thumbnail is rotated if prefRotation is nonzero
+    */
+
+    public void testThumbnailRotation() {
+	String testImgDir = "c:\\java\\photovault\\testfiles";
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+	photo.setPrefRotation( -45 );
+
+	Thumbnail thumb = photo.getThumbnail();
+
+	// Compare thumbnail to the one saved
+	File testFile = new File ( testRefImageDir, "thumbnailRotation1.png" );
+	assertTrue( "Thumbnail with 45 deg rotation does not match",
+		    photovault.test.ImgTestUtils.compareImgToFile( thumb.getImage(), testFile ) );
+
+	photo.setPrefRotation( -90 );
+	thumb = photo.getThumbnail();
+	testFile = new File ( testRefImageDir, "thumbnailRotation2.png" );
+	assertTrue( "Thumbnail with 90 deg rotation does not match",
+		    photovault.test.ImgTestUtils.compareImgToFile( thumb.getImage(), testFile ) );
+
+	photo.delete();
+    }
+	
     
     public static Test suite() {
 	return new TestSuite( PhotoInfoTest.class );

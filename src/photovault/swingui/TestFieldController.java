@@ -48,6 +48,11 @@ public class TestFieldController extends TestCase {
 		    TestObject obj = (TestObject) view;
 		    obj.setField( (String) value );
 		}
+		protected void updateValue( Object view ) {
+		    TestObject obj = (TestObject) view;
+		    value = obj.getField();
+		    
+		}
 	    };
 	fieldCtrl.setViews( views );
     }
