@@ -91,7 +91,9 @@ public class FolderController extends FieldController {
 	Iterator iter = folders.iterator();
 	while ( iter.hasNext() ) {
 	    PhotoFolder folder = (PhotoFolder) iter.next();
-	    addFolder( folder );
+	    DefaultMutableTreeNode node = addFolder( folder );
+	    FolderNode fn = (FolderNode) node.getUserObject();
+	    fn.addPhoto( photo );
 	}
     }
 
@@ -115,7 +117,9 @@ public class FolderController extends FieldController {
 	    // This folder is already added to tree
 	    return (DefaultMutableTreeNode) folderNodes.get( folder );
 	}
-	DefaultMutableTreeNode folderNode = new DefaultMutableTreeNode( folder );
+
+	FolderNode fn = new FolderNode( model, folder );
+	DefaultMutableTreeNode folderNode = new DefaultMutableTreeNode( fn );
 	folderNodes.put( folder, folderNode );
 
 	PhotoFolder parent = folder.getParentFolder();
