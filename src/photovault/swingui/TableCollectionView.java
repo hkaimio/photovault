@@ -33,6 +33,7 @@ public class TableCollectionView extends JPanel implements ActionListener {
     class CollectionTableModel extends AbstractTableModel implements PhotoCollectionChangeListener {
 	
 	String[]  columnNames = {
+	    "Photo",
 	    "Photographer",
 	    "Shooting time",
 	    "Sooting place",
@@ -47,29 +48,62 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	    if ( collection == null ) {
 		return 0;
 	    }
-	    return collection.getPhotoCount();
-	}
-
-	public int getColumnCount() { return columnNames.length; }
-	public Object getValueAt(int row, int col) { 
-	    PhotoInfo photo = collection.getPhoto( row );
-	    switch( col ) {
-	    case 0:
-		return photo.getPhotographer();
-	    case 1:
-		return photo.getShootTime();
-	    case 2:
-		return photo.getShootingPlace();
-	    case 3:
-		return photo.getDescription();
+	    int photoCount = collection.getPhotoCount();
+	    int rowCount = photoCount/5;
+	    if ( rowCount*5 < photoCount ) {
+		rowCount++;
 	    }
-	    return null;
+	    return rowCount;
 	}
 
+	public int getColumnCount() {
+	    return columnNames.length;
+	}
+	
+	public Object getValueAt(int row, int col) { 
+	    return getPhoto( row, col );
+// 	    switch( col ) {
+// 	    case 0:
+// 		return photo;
+// 	    case 1:
+// 		return photo.getPhotographer();
+// 	    case 2:
+// 		return photo.getShootTime();
+// 	    case 3:
+// 		return photo.getShootingPlace();
+// 	    case 4:
+// 		return photo.getDescription();
+// 	    }
+// 	    return null;
+	}
+
+	public Class getColumnClass( int col ) {
+	    return PhotoInfo.class;
+// 	    switch (col) {
+// 	    case 0:
+// 		return PhotoInfo.class;
+// 	    case 1:
+// 	    case 3:
+// 	    case 4:
+// 		return String.class;
+// 	    case 2:
+// 		return Date.class;
+// 	    }
+// 	    return Object.class;
+	}
+	
 	public PhotoInfo getPhoto( int row ) {
 	    return collection.getPhoto( row );
 	}
-	
+
+	public PhotoInfo getPhoto( int row, int col ) {
+	    int photoNum = row*5 + col;
+	    if ( photoNum < collection.getPhotoCount() ) {
+		return collection.getPhoto( photoNum );
+	    }
+	    return null;
+	}
+	    
 	public boolean isCellEditable(int row, int col) {
 	    return false;
 	}
@@ -180,11 +214,11 @@ public class TableCollectionView extends JPanel implements ActionListener {
        if nothing is selected
     */
     public PhotoInfo getSelected() {
-	ListSelectionModel selection = table.getSelectionModel();
-	int selectedRow = selection.getMinSelectionIndex();
+	int selectedRow = table.getSelectedRow();
+	int selectedCol = table.getSelectedColumn();
 	PhotoInfo photo = null;
 	if ( selectedRow >= 0 ) {
-	    photo = model.getPhoto( selectedRow );
+	    photo = model.getPhoto( selectedRow, selectedCol );
 	}
 	return photo;
     }
@@ -214,8 +248,15 @@ public class TableCollectionView extends JPanel implements ActionListener {
     
     
     void createUI() {
+	// Create the table
 	setLayout( new BorderLayout() );
 	table = new JTable( model );
+	ThumbnailTableRenderer thumbRenderer = new ThumbnailTableRenderer();
+	table.setDefaultRenderer( PhotoInfo.class, thumbRenderer );
+	table.setCellSelectionEnabled( true );
+	table.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+	int rowHeight = (int)thumbRenderer.getPreferredSize().getHeight();
+	table.setRowHeight( rowHeight );
 	JScrollPane scroll = new JScrollPane( table );
 	add( scroll, BorderLayout.CENTER );
 
@@ -234,6 +275,10 @@ public class TableCollectionView extends JPanel implements ActionListener {
 
     }
 
+    private void setupPhotoInfoRenderer() {
+	table.setDefaultRenderer( PhotoInfo.class, new ThumbnailTableRenderer() );
+    }
+    
     // Popup menu actions
     private static final String PHOTO_PROPS_CMD = "photoProps";
     private static final String PHOTO_SHOW_CMD = "photoShow";

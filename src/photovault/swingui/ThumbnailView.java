@@ -47,7 +47,11 @@ public class ThumbnailView extends JPanel {
     */
     public void setPhoto( PhotoInfo photo ) {
 	this.photo = photo;
-	thumbnail = photo.getThumbnail();
+	if ( photo != null ) {
+	    thumbnail = photo.getThumbnail();
+	} else {
+	    thumbnail = null;
+	}
 	revalidate();
     }
 
