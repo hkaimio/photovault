@@ -1,4 +1,4 @@
-// $Id: TestPhotoFolder.java,v 1.2 2003/02/22 13:10:55 kaimio Exp $
+// $Id: TestPhotoFolder.java,v 1.3 2003/02/23 21:43:41 kaimio Exp $
 
 package photovault.folder;
 
@@ -44,6 +44,8 @@ public class TestPhotoFolder extends TestCase {
     public static void main( String[] args ) {
 	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger folderLog = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
+	folderLog.setLevel( org.apache.log4j.Level.DEBUG );
 	junit.textui.TestRunner.run( suite() );
     }
 
@@ -140,7 +142,36 @@ public class TestPhotoFolder extends TestCase {
 	assertEquals( "Subfolder deleted", 4, topFolder.getSubfolderCount() );
     }
 
-    class TestListener implements PhotoCollectionChangeListener {
+    class TestListener implements PhotoFolderChangeListener {
+	// implementation of imginfo.PhotoCollectionChangeListener interface
+
+	public boolean modified = false;
+	public boolean subfolderModified= false;
+	public boolean structureModified = false;
+	public PhotoFolder changedFolder = null;
+	public PhotoFolder structChangeFolder = null;
+	/**
+	 *
+	 * @param param1 <description>
+	 */
+	public void photoCollectionChanged(PhotoCollectionChangeEvent param1)
+	{
+	    modified = true;
+	}
+
+	public void subfolderChanged( PhotoFolderEvent e ) {
+	    subfolderModified = true;
+	    changedFolder = e.getSubfolder();
+	}
+
+	public void structureChanged( PhotoFolderEvent e ) {
+	    structureModified = true;
+	    structChangeFolder = e.getSubfolder();
+	}
+	
+    }
+    
+    class TestCollectionListener implements PhotoCollectionChangeListener {
 	// implementation of imginfo.PhotoCollectionChangeListener interface
 
 	public boolean modified = false;
@@ -152,19 +183,24 @@ public class TestPhotoFolder extends TestCase {
 	{
 	    modified = true;
 	}
+
     }
-    
+
     public void testListener() {
 	PhotoFolder folder = PhotoFolder.create( "testListener", null );
 	TestListener l1 = new TestListener();
 	TestListener l2 = new TestListener();
+	TestCollectionListener l3 = new TestCollectionListener();
 
 	folder.addPhotoCollectionChangeListener( l1 );
 	folder.addPhotoCollectionChangeListener( l2 );
+	folder.addPhotoCollectionChangeListener( l3 );
 
 	folder.setName( "testLiistener" );
 	assertTrue( "l1 not called", l1.modified );
 	assertTrue( "l2 not called", l2.modified );
+	assertTrue( "l3 not called", l3.modified );
+	folder.setName( "testListener" );
 	l1.modified = false;
 	l2.modified = false;
 	
@@ -172,6 +208,23 @@ public class TestPhotoFolder extends TestCase {
 	folder.setDescription( "Folder usded to test listener support" );
 	assertTrue( "l1 not called", l1.modified );
 	assertFalse( "l2 should not have been called", l2.modified );
+
+	// Test creation of a new subfolder
+	PhotoFolder subfolder = PhotoFolder.create( "New subfolder", folder );
+	assertTrue( "Not notified of subfolder structure change", l1.structureModified );
+	assertEquals( "subfolder info not correct", folder, l1.structChangeFolder );
+	l1.structureModified = false;
+	l1.changedFolder = null;
+
+	subfolder.setDescription( "Changed subfolder" );
+	assertTrue( "l1 not called for subfolder modification", l1.subfolderModified );
+	assertEquals( "subfolder info not correct", subfolder, l1.changedFolder );
+	l1.subfolderModified = false;
+	l1.changedFolder = null;
+	
+	subfolder.delete();
+	assertTrue( "Not notified of subfolder structure change", l1.structureModified );
+	assertEquals( "subfolder info not correct", folder, l1.structChangeFolder );
 
 	// TODO: test other fields
     }

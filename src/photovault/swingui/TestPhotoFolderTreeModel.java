@@ -1,9 +1,10 @@
-// $Id: TestPhotoFolderTreeModel.java,v 1.1 2003/02/22 13:10:55 kaimio Exp $
+// $Id: TestPhotoFolderTreeModel.java,v 1.2 2003/02/23 21:43:42 kaimio Exp $
 
 package photovault.swingui;
 
 import photovault.folder.*;
 import junit.framework.*;
+import javax.swing.event.*;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;	
 
@@ -61,4 +62,102 @@ public class TestPhotoFolderTreeModel extends TestCase {
 	assertEquals( "Subfolder name does not match", "Subfolder2", model.getChild( rootFolder, 1 ).toString() );
     }
 
+    /**
+       Test listener for treeModelChanges
+    */
+
+    class TestTreeModelListener implements TreeModelListener {
+	// implementation of javax.swing.event.TreeModelListener interface
+
+	public boolean nodesChanged = false;
+	public boolean nodesInserted = false;
+	public boolean nodesRemoved = false;
+	public boolean structChanged = false;
+
+	Object[] path = null;;
+	PhotoFolder source = null;
+	
+	/**
+	 *
+	 * @param param1 <description>
+	 */
+	public void treeNodesChanged(TreeModelEvent e)
+	{
+	    nodesChanged = true;
+	    source = (PhotoFolder) e.getSource();
+	    path = e.getPath();
+	}
+
+	/**
+	 *
+	 * @param param1 <description>
+	 */
+	public void treeNodesInserted(TreeModelEvent e)
+	{
+	    nodesInserted = true;
+	    source = (PhotoFolder) e.getSource();
+	    path = e.getPath();
+	}
+
+	/**
+	 *
+	 * @param param1 <description>
+	 */
+	public void treeNodesRemoved(TreeModelEvent e)
+	{
+	    nodesRemoved = true;
+	    source = (PhotoFolder)e.getSource();
+	    path = e.getPath();
+	}
+
+	/**
+	 *
+	 * @param param1 <description>
+	 */
+	public void treeStructureChanged(TreeModelEvent e )
+	{
+	    structChanged = true;
+	    source = (PhotoFolder)e.getSource();
+	    path = e.getPath();
+	}
+
+
+    }
+
+    /**
+       Tests that listeners are notified when a folder is changed
+    */
+    public void testListener() {
+	TestTreeModelListener l = new TestTreeModelListener();
+	model.addTreeModelListener( l );
+
+	PhotoFolder f = rootFolder.getSubfolder( 2 );
+	f.setDescription( "treeModelListener test string" );
+	assertTrue( "Listener was not notified of strucuture change", l.structChanged );
+	model.removeTreeModelListener( l );
+	l.structChanged = false;
+	f.setDescription( "treeModelListener test string2" );
+	assertFalse( "Listener was  notified of strucuture change after removal", l.structChanged );
+    }
+
+    /**
+       Test modifications to the root node. This is a special case since TreePath cannot be empty...
+    */
+    public void testRootModifications() {
+	model.setRoot( PhotoFolder.getRoot() );
+	TestTreeModelListener l = new TestTreeModelListener();
+	model.addTreeModelListener( l );
+	rootFolder.setDescription( "Root description" );
+	assertTrue( "Listener was not notified of strucuture change", l.structChanged );
+	l.structChanged = false;
+
+	PhotoFolder newFolder = PhotoFolder.create( "Test folder", rootFolder );
+	assertTrue( "Listener was not notified of strucuture change", l.structChanged );
+	l.structChanged = false;
+
+	newFolder.delete();
+	assertTrue( "Listener was not notified of strucuture change", l.structChanged );
+	l.structChanged = false;
+	
+    }
 }

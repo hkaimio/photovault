@@ -1,4 +1,4 @@
-// $Id: PhotoFolder.java,v 1.2 2003/02/22 13:10:55 kaimio Exp $
+// $Id: PhotoFolder.java,v 1.3 2003/02/23 21:43:41 kaimio Exp $
 
 package photovault.folder;
 
@@ -134,6 +134,8 @@ public class PhotoFolder implements PhotoCollection {
     protected void addSubfolder( PhotoFolder subfolder ) {
 	subfolders.add( subfolder );
 	modified();
+	// Inform all parents & their that the structure has changed
+	subfolderStructureChanged( this );
     }
 
     /**
@@ -142,6 +144,8 @@ public class PhotoFolder implements PhotoCollection {
     protected void removeSubfolder( PhotoFolder subfolder ) {
 	subfolders.remove( subfolder );
 	modified();
+	// Inform all parents & their that the structure has changed
+	subfolderStructureChanged( this );
     }
     
     /**
@@ -217,6 +221,11 @@ public class PhotoFolder implements PhotoCollection {
 	// Notify the listeners. This is done in the same transaction context so that potential modifications to other
 	// persistent objects are also saved
 	notifyListeners();
+
+	// Notify also parents if there are any
+	if ( parent != null ) {
+	    parent.subfolderChanged( this );
+	}
 	
 	// If a new transaction was created, commit it
 	if ( mustCommit ) {
@@ -235,6 +244,67 @@ public class PhotoFolder implements PhotoCollection {
 	
     Vector changeListeners = null;
 
+    /**
+       This folder is changed by a subfolder to inform parent that it has been changed. It fires a @see PhotoCollectionEvent to
+       all @see PhotoCollectionListeners registered to this object.
+    */
+    protected void subfolderChanged( PhotoFolder subfolder ) {
+	PhotoFolderEvent e = new PhotoFolderEvent( this, subfolder, null );
+	fireSubfolderChangedEvent( e );
+
+	// Inform also parents
+	if ( parent != null ) {
+	    parent.subfolderChanged( subfolder );
+	}
+    }
+
+    /**
+       This method is called by a subfolder when its structure has changed (e.g. it has a new subfoder).
+    */
+    protected void subfolderStructureChanged( PhotoFolder subfolder ) {
+	PhotoFolderEvent e = new PhotoFolderEvent( this, subfolder, null );
+	fireStructureChangedEvent( e );
+
+	// Inform also the parent
+	if ( parent != null ) {
+	    parent.subfolderStructureChanged( subfolder );
+	}
+    }
+	
+    
+    
+    /**
+       Fires a PhotoFolderEvent to all listeners of this object that implement the @see PhotoFolderListener interface
+       (istead of @see PhotoCollectionChangeEvent)
+    */
+    protected void fireStructureChangedEvent( PhotoFolderEvent e ) {
+	log.debug( "in fireStructureChangeEvent" );
+	Iterator iter = changeListeners.iterator();
+	while ( iter.hasNext() ) {
+	    PhotoCollectionChangeListener l = (PhotoCollectionChangeListener) iter.next();
+	    if ( PhotoFolderChangeListener.class.isInstance( l ) ) {
+		log.debug( "Found PhotoFolderListener" );
+		PhotoFolderChangeListener pfl = (PhotoFolderChangeListener) l;
+		pfl.structureChanged( e );
+	    }
+	}
+    }
+    
+    /**
+       Fires a PhotoFolderEvent to all listeners of this object that implement the @see PhotoFolderChangeListener interface
+       (istead of @see PhotoCollectionChangeEvent)
+    */
+    protected void fireSubfolderChangedEvent( PhotoFolderEvent e ) {
+	Iterator iter = changeListeners.iterator();
+	while ( iter.hasNext() ) {
+	    PhotoCollectionChangeListener l = (PhotoCollectionChangeListener) iter.next();
+	    if ( PhotoFolderChangeListener.class.isInstance( l ) ) {
+		PhotoFolderChangeListener pfl = (PhotoFolderChangeListener) l;
+		pfl.subfolderChanged( e );
+	    }
+	}
+    }
+    
     /**
        Creates & returns a new persistent PhotoFolder object
        @param name Name of the new folder
@@ -269,8 +339,13 @@ public class PhotoFolder implements PhotoCollection {
 	getODMGImplementation();
 	getODMGDatabase();
 	DList folders = null;
-	Transaction tx = odmg.newTransaction();
-	tx.begin();
+	Transaction tx = odmg.currentTransaction();
+	boolean mustCommit = false;
+	if ( tx == null ) {
+	    tx = odmg.newTransaction();
+	    tx.begin();
+	    mustCommit = true;
+	}
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
@@ -280,6 +355,10 @@ public class PhotoFolder implements PhotoCollection {
 	    return null;
 	}
 	PhotoFolder rootFolder = (PhotoFolder) folders.get( 0 );
+	// If a new transaction was created, commit it
+	if ( mustCommit ) {
+	    tx.commit();
+	}
 	return rootFolder;
     }
 
@@ -289,16 +368,21 @@ public class PhotoFolder implements PhotoCollection {
     public void delete() {
 	getODMGImplementation();
 	getODMGDatabase();
-	Transaction tx = odmg.newTransaction();
-	tx.begin();
+	// Find the current transaction or create a new one
+	Transaction tx = odmg.currentTransaction();
+	boolean mustCommit = false;
+	if ( tx == null ) {
+	    tx = odmg.newTransaction();
+	    tx.begin();
+	    mustCommit = true;
+	}
 	// First make sure that this object is deleted from its parent's subfolders list (if it has a parent)
 	setParentFolder( null );
-	try {
-	    db.deletePersistent( this );
+	db.deletePersistent( this );
+
+	// If a new transaction was created, commit it
+	if ( mustCommit ) {
 	    tx.commit();
-	} catch ( Exception e ) {
-	    tx.abort();
-	    log.warn( "Error deleteing photo folder: " + e.getMessage() );
 	}
     }
     
@@ -328,6 +412,13 @@ public class PhotoFolder implements PhotoCollection {
 	return db;
     }
 
+    // Init ODMG fields at creation time
+    {
+	
+	getODMGImplementation();
+	getODMGDatabase();
+    }
+    
     public static void main( String[] args ) {
 	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );
@@ -338,7 +429,7 @@ public class PhotoFolder implements PhotoCollection {
 	DList folders = null;
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 0" );
+	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
 	    folders = (DList) query.execute();
 	    tx.commit();
 	} catch ( Exception e ) {

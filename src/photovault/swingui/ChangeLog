@@ -1,0 +1,9 @@
+2003-02-23    <harri.kaimio@nokia.com>
+
+	* PhotoFolderTreeModel.java (PhotoFolderTreeModel): Implemented PhotoFolderChangeListener
+	(PhotoFolderTreeModel): Added the actual folder to the path.
+
+2003-02-22    <harri.kaimio@nokia.com>
+
+	* PhotoFolderTreeModel.java (PhotoFolderTreeModel): 
+

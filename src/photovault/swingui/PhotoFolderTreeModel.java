@@ -1,4 +1,4 @@
-// $Id: PhotoFolderTreeModel.java,v 1.1 2003/02/22 13:10:55 kaimio Exp $
+// $Id: PhotoFolderTreeModel.java,v 1.2 2003/02/23 21:43:41 kaimio Exp $
 
 package photovault.swingui;
 
@@ -13,7 +13,7 @@ import java.util.*;
    This class implements a TreeModel for PhotoFolders.
 */
 
-public class PhotoFolderTreeModel implements TreeModel {
+public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoFolderTreeModel.class.getName() );
 
     // implementation of javax.swing.tree.TreeModel interface
@@ -37,7 +37,11 @@ public class PhotoFolderTreeModel implements TreeModel {
        @param root the new root folder
     */
     public void setRoot( PhotoFolder root ) {
+	if ( rootFolder != null ) {
+	    rootFolder.removePhotoCollectionChangeListener( this );
+	}
 	rootFolder = root;
+	rootFolder.addPhotoCollectionChangeListener( this );
 	log.warn( "New root " + root.getName() + " - subfolderCount: " + getChildCount( root ) );
     }
     
@@ -122,6 +126,80 @@ public class PhotoFolderTreeModel implements TreeModel {
     public void removeTreeModelListener(TreeModelListener l) {
         treeModelListeners.removeElement(l);
     }
+
+    /**
+       Sends a strucure changed event to all listeners of this object. Currently only this type of
+       event is supported, in future also other types of tree model events should be considered.
+    */
+      
+    protected void fireTreeModelEvent( TreeModelEvent e ) {
+	Iterator iter = treeModelListeners.iterator();
+	while ( iter.hasNext() ) {
+	    TreeModelListener l = (TreeModelListener) iter.next();
+	    l.treeStructureChanged( e );
+	}
+    }
+    
+    // implementation of imginfo.PhotoCollectionChangeListener interface
+
+    /**
+       This method is called when some of the tree nodes has changed. Currently it constructs TreePath to
+       the changed object and sends a strucure changed event to listeners of the model.
+
+     */
+    public void photoCollectionChanged(PhotoCollectionChangeEvent e)
+    {
+	PhotoFolder changedFolder = (PhotoFolder)e.getSource();
+	PhotoFolder[] path = findFolderPath( changedFolder );
+	
+	// Construct the correct event
+	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
+	fireTreeModelEvent( treeEvent );
+    }
+
+    public void subfolderChanged( PhotoFolderEvent e ) {
+	PhotoFolder changedFolder = (PhotoFolder)e.getSource();
+	PhotoFolder[] path = findFolderPath( changedFolder );
+	
+	// Construct the correct event
+	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
+	fireTreeModelEvent( treeEvent );
+	
+    }
+
+    public void structureChanged( PhotoFolderEvent e ) {
+	PhotoFolder changedFolder = (PhotoFolder)e.getSource();
+	PhotoFolder[] path = findFolderPath( changedFolder );
+	
+	// Construct the correct event
+	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
+	fireTreeModelEvent( treeEvent );
+    }
+
+    protected PhotoFolder[] findFolderPath( PhotoFolder folder ) {
+	// Construct a TreePath for this object
+
+	// Number of ancestors between this 
+	Vector ancestors = new Vector();
+	// Add first the final folder
+	ancestors.add( folder );
+	PhotoFolder ancestor = folder.getParentFolder();
+	while ( ancestor != rootFolder && ancestor != null ) {
+	    ancestors.add( ancestor );
+	    ancestor = ancestor.getParentFolder();
+	}
+	// Add the root folder to the ancestors
+	if ( ancestor == rootFolder ) {
+	    ancestors.add( ancestor );
+	}
+
+	// Now ancestors has the path but in reversed order.
+	PhotoFolder[] path = new PhotoFolder[ ancestors.size() ];
+	for ( int m = 0; m < ancestors.size(); m++ ) {
+	    path[m] = (PhotoFolder) ancestors.get( ancestors.size()-1-m );
+	}
+	return path;
+    }	
 
 }
   
