@@ -91,6 +91,14 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	photographerField.setText( newValue );
     }
     
+    public void setShootTime( Date newValue ) {
+	shootingDayField.setValue( newValue );
+    }
+    public void setShootPlace( String newValue ) {
+	shootingPlaceField.setText( newValue );
+    }
+    
+    
     // Important UI components
     JTextField photographerField = null;
     Document photographerDoc = null;

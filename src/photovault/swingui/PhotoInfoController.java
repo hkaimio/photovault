@@ -43,6 +43,36 @@ public class PhotoInfoController {
 		}
 	    });
 
+	modelFields.put( SHOOTING_DATE, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setShootTime( (Date) value );
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return obj.getShootTime();
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setShootTime( (Date) value );
+		}
+	    });
+
+	modelFields.put( SHOOTING_PLACE, new FieldController( photo ) {
+		protected void setModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    obj.setShootingPlace( (String) value );
+		}
+		protected Object getModelValue() {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return obj.getShootingPlace();
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setShootPlace( (String) value );
+		}
+	    });
+
 	// TODO: Add other fields
     }    
 	

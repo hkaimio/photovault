@@ -18,7 +18,9 @@ public abstract class FieldController {
     */
     public FieldController( Object model ) {
 	this.model = model;
-	value = getModelValue();
+	if ( model != null ) {
+	    value = getModelValue();
+	}
     }
 
     
