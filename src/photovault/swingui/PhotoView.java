@@ -17,6 +17,7 @@ public class PhotoView extends JPanel {
     
     public PhotoView() {
 	super();
+	imgRot = 0;
     }
     
     public void paint( Graphics g ) {
@@ -34,7 +35,7 @@ public class PhotoView extends JPanel {
     public void setImage( BufferedImage img ) {
 	origImage = img;
 	scaledImage = null;
-	revalidate();
+	repaint();
     }
 
     public Dimension getPreferredSize() {
@@ -51,13 +52,26 @@ public class PhotoView extends JPanel {
 	imgScale = newValue;
 	// Invalidate the existing scaled image
 	scaledImage = null;
-	revalidate();
+	repaint();
     }
     
     public float getScale() {
 	return imgScale;
     }
 
+    public void setRotation( double newRot ) {
+	imgRot = newRot;
+	// Invalidate the existing transformed image
+	scaledImage = null;
+	repaint();
+    }
+
+    public double getRotation() {
+	return imgRot;
+    }
+
+    private double imgRot;
+    
     /**
        Returns the width of the currently displayed image
     */

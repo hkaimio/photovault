@@ -472,62 +472,64 @@ public class PhotoInfo {
 	int maxThumbWidth = 100;
 	int maxThumbHeight = 100;
 
-	// Determine if the image must be rotated
-	double thumbRotation = (prefRotation - original.getRotated()) * (Math.PI/180.0);
-	System.err.println( "thumbnail rotation: " + thumbRotation );
+	AffineTransform xform = photovault.image.ImageXform.getFittingXform( maxThumbWidth, maxThumbHeight,
+									     prefRotation -original.getRotated(),
+									     origWidth, origHeight );
 	
-	// Thhen create the xform
-	AffineTransform at = new AffineTransform();
-	at.rotate( thumbRotation );
+// 	// Determine if the image must be rotated
+// 	double thumbRotation = (prefRotation - original.getRotated()) * (Math.PI/180.0);
+// 	System.err.println( "thumbnail rotation: " + thumbRotation );
 	
-	// Determine the required target size of the thumbnail
-	float[] corners = {0.0f,              0.0f,
-			   0.0f,              (float) origHeight,
-			   (float) origWidth, (float) origHeight,
-			   (float) origWidth, 0.0f };
-	at.transform( corners, 0, corners, 0, 4 );
-	float minX = corners[0];
-	float maxX = corners[0];
-	float minY = corners[1];
-	float maxY = corners[1];
-	for ( int n = 2; n < corners.length; n += 2 ) {
-	    if ( corners[n+1] < minY ) {
-		minY = corners[n+1];
-	    }
-	    if ( corners[n+1] > maxY ) {
-		maxY = corners[n+1];
-	    }
-	    if ( corners[n] < minX ) {
-		minX = corners[n];
-	    }
-	    if ( corners[n] > maxX ) {
-		maxX = corners[n];
-	    }
-	}
+// 	// Thhen create the xform
+// 	AffineTransform at = new AffineTransform();
+//  	at.rotate( thumbRotation );
+	
+// 	// Determine the required target size of the thumbnail
+// 	float[] corners = {0.0f,              0.0f,
+// 			   0.0f,              (float) origHeight,
+// 			   (float) origWidth, (float) origHeight,
+// 			   (float) origWidth, 0.0f };
+// 	at.transform( corners, 0, corners, 0, 4 );
+// 	float minX = corners[0];
+// 	float maxX = corners[0];
+// 	float minY = corners[1];
+// 	float maxY = corners[1];
+// 	for ( int n = 2; n < corners.length; n += 2 ) {
+// 	    if ( corners[n+1] < minY ) {
+// 		minY = corners[n+1];
+// 	    }
+// 	    if ( corners[n+1] > maxY ) {
+// 		maxY = corners[n+1];
+// 	    }
+// 	    if ( corners[n] < minX ) {
+// 		minX = corners[n];
+// 	    }
+// 	    if ( corners[n] > maxX ) {
+// 		maxX = corners[n];
+// 	    }
+// 	}
 
-	System.err.println( "Translating by " + (-minX) + ", " + (-minY) );
+// 	System.err.println( "Translating by " + (-minX) + ", " + (-minY) );
 
-	double rotatedWidth = maxX - minX;
-	double rotatedHeight = maxY - minY;
-	double widthScale = (double) maxThumbWidth / rotatedWidth;
-	double heightScale = (double) maxThumbHeight / rotatedHeight;
-	double scale = widthScale;
-	if ( heightScale < widthScale ) {
-	    scale = heightScale;
-	}	
-	at.preConcatenate( at.getTranslateInstance( scale*(-minX), scale*(-minY) ) );
-	at.scale( scale, scale );
-	int thumbWidth = (int) (scale * rotatedWidth);
-	int thumbHeight = (int)(scale * rotatedHeight);
+// 	double rotatedWidth = maxX - minX;
+// 	double rotatedHeight = maxY - minY;
+// 	double widthScale = (double) maxThumbWidth / rotatedWidth;
+// 	double heightScale = (double) maxThumbHeight / rotatedHeight;
+// 	double scale = widthScale;
+// 	if ( heightScale < widthScale ) {
+// 	    scale = heightScale;
+// 	}	
+// 	at.preConcatenate( at.getTranslateInstance( scale*(-minX), scale*(-minY) ) );
+// 	at.scale( scale, scale );
+// 	int thumbWidth = (int) (scale * rotatedWidth);
+// 	int thumbHeight = (int)(scale * rotatedHeight);
 	
-	System.err.println( "Scaling to thumbnail from (" + rotatedWidth + ", " + rotatedHeight + " by " + scale );
+// 	System.err.println( "Scaling to thumbnail from (" + rotatedWidth + ", " + rotatedHeight + " by " + scale );
 
 	// Create the target image
-	AffineTransformOp atOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
+	AffineTransformOp atOp = new AffineTransformOp( xform, AffineTransformOp.TYPE_BILINEAR );
 	
-	BufferedImage thumbImage = new BufferedImage( thumbWidth, thumbHeight,
-						      origImage.getType() );       
-	atOp.filter( origImage, thumbImage );
+	BufferedImage thumbImage = atOp.filter( origImage, null );
 
 	// Save it
 	try {	    
@@ -539,7 +541,7 @@ public class PhotoInfo {
 	// add the created instance to this perdsisten object
 	ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
 		     ImageInstance.INSTANCE_TYPE_THUMBNAIL );
-	thumbInstance.setRotated( thumbRotation );
+	thumbInstance.setRotated( prefRotation -original.getRotated() );
 	thumbInstance.updateDB();
 	
 	thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
