@@ -300,6 +300,7 @@ public class PhotoInfo {
 	ArrayList origInstances = getInstances();
 	ImageInstance instance = ImageInstance.create( volume, instanceFile, this );
 	instance.setInstanceType( instanceType );
+	instance.updateDB();
 	origInstances.add( instance );
     }
 

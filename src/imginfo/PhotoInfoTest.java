@@ -296,9 +296,33 @@ public class PhotoInfoTest extends TestCase {
 	assertEquals( "Thumbnail exists, getThumbnail should not create a new instance",
 		     instanceCount+1, photo.getNumInstances() );
 	
+
+	// Assert that the thumbnail is saved correctly to the database
+	PhotoInfo photo2 = null;
+	try {
+	    photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
+	} catch( PhotoNotFoundException e ) {
+	    fail( "Photo not storein into DB" );
+	}
+						
+	// Try to find the new thumbnail
+	foundThumbnail = false;
+	ImageInstance thumbnail2 = null;
+	for ( int n = 0; n < instanceCount+1; n++ ) {
+	    ImageInstance instance = photo2.getInstance( n );
+	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL ) {
+		foundThumbnail = true;
+		thumbnail2 = instance; 
+		break;
+	    }
+	}
+	assertTrue( "Could not find the created thumbnail", foundThumbnail );
+	assertEquals( "Thumbnail width should be 100", 100, thumbnail2.getWidth() );
+	assertTrue( "Thumbnail filename not saved correctly", thumbnailFile.equals( thumbnail2.getImageFile() ));
 	photo.delete();
 	assertFalse( "Image file does exist after delete", thumbnailFile.exists() );
     }
+
 
     /**
        Tests thumbnail creation when there are no photo instances.
