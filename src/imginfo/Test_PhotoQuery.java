@@ -88,6 +88,13 @@ public class Test_PhotoQuery extends TestCase {
 	checkResults( q, expected3 );
     }
     
+    public void testLike() {
+	PhotoQuery q = new PhotoQuery();
+	q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "*Lassi*" );
+	boolean[] expected3 = { true, true, false, false };
+	checkResults( q, expected3 );
+    }
+    
     /**
        This query checks that query can be modified and that the results are shown correctly
        Tjis is originally implemented to find demonstrate a defect in which the reuslt set was not cleaned

@@ -52,6 +52,16 @@ public class PhotoQuery implements PhotoCollection {
 	criterias[FIELD_FULLTEXT] = c;
 	modified();
     }
+
+    /**
+       Sets a "LIKE" criteria to a specified field
+       @param text The text to search
+    */
+    public void setLikeCriteria( int field, String text ) {
+	QueryLikeCriteria c = new QueryLikeCriteria( fields[field], text );
+	criterias[field] = c;
+	modified();
+    }
     
     /**
        Returns the type of criteria set for certain field
@@ -90,6 +100,7 @@ public class PhotoQuery implements PhotoCollection {
 	    txw.commit();
 	} catch ( Exception e ) {
 	    log.warn( "Error executing query: " + e.getMessage() );
+	    e.printStackTrace( System.out );
 	    txw.abort();
 	}
 	    
@@ -164,15 +175,36 @@ public class PhotoQuery implements PhotoCollection {
     Vector photos = null;
     Vector listeners = null;
 
-    public static int FIELD_SHOOTING_TIME = 0;
-    public static int FIELD_FULLTEXT = 1;
+    public static int FIELD_SHOOTING_TIME   = 0;
+    public static int FIELD_FULLTEXT        = 1;
+    public static int FIELD_DESCRIPTION     = 2;
+    public static int FIELD_SHOOTING_PLACE  = 3;
+    public static int FIELD_PHOTOGRAPHER    = 4;
+    public static int FIELD_FSTOP           = 5;
+    public static int FIELD_FOCAL_LENGTH    = 6;
+    public static int FIELD_SHUTTER_SPEED   = 7;
+    public static int FIELD_CAMERA          = 8;
+    public static int FIELD_LENS            = 9;
+    public static int FIELD_FILM            = 10;
+    public static int FIELD_FILM_SPEED      = 11;
+    
     static QueryField fields[] = null;
     QueryFieldCriteria criterias[] = null;
     
     {
-	fields = new QueryField[2];
+	fields = new QueryField[12];
 	fields[FIELD_SHOOTING_TIME] = new QueryField( "shootTime" );
 	fields[FIELD_FULLTEXT] = new QueryField( "shooting_place,description" );
+	fields[FIELD_DESCRIPTION] = new QueryField( "description" );
+	fields[FIELD_SHOOTING_PLACE] = new QueryField( "shootingPlace" );
+	fields[FIELD_PHOTOGRAPHER] = new QueryField( "photographer" );
+	fields[FIELD_FSTOP] = new QueryField( "FStop" );
+	fields[FIELD_FOCAL_LENGTH] = new QueryField( "focalLength" );
+	fields[FIELD_SHUTTER_SPEED] = new QueryField( "shutterSpeed" );
+	fields[FIELD_CAMERA] = new QueryField( "camera" );
+	fields[FIELD_LENS] = new QueryField( "lens" );
+	fields[FIELD_FILM] = new QueryField( "film" );
+	fields[FIELD_FILM_SPEED] = new QueryField( "filmSpeed" );
     }
 
 }

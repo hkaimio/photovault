@@ -19,7 +19,10 @@ public class QueryFulltextCriteria implements QueryFieldCriteria {
     }
 
     public void setupQuery( Criteria crit ) {
-	crit.addSql( "MATCH(" + field + ") AGAINST(\"" + text + "\")" ); 
+	String sql = "MATCH(" + field.getName() + ") AGAINST('" + text + "')";
+	System.out.println( sql );
+	crit.addSql( sql );
+	System.out.println( "Added" );
     }
 
     String text = null;

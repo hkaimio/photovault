@@ -18,7 +18,7 @@ public class QueryPane extends JPanel implements ActionListener {
     public QueryPane() {
 	super();
 	createUI();
-	query = new DateRangeQuery();
+	query = new PhotoQuery();
     }
 
     private void createUI() {
@@ -77,12 +77,17 @@ public class QueryPane extends JPanel implements ActionListener {
 
     
     protected void updateQuery() {
-	query.setStartDate( shootingDateRange.getStartDate() );
-	query.setEndDate( shootingDateRange.getEndDate() );
+	query.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME,
+				     shootingDateRange.getStartDate(), shootingDateRange.getEndDate() );
+	String photographer = shootingDateRange.getPhotographer();
+	if( photographer.length() > 0 ) {
+	    query.setLikeCriteria( PhotoQuery.FIELD_PHOTOGRAPHER,
+				   photographer );
+	}
     }
 
     DateRangeQueryEditor shootingDateRange = null;
-    DateRangeQuery query = null;
+    PhotoQuery query = null;
     
     public static void main( String [] args ) {
 	JFrame frame = new JFrame( "PhotoInfoEditorTest" );
