@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import imginfo.*;
+import photovault.folder.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 
@@ -57,7 +58,10 @@ public class BrowserWindow extends JFrame {
 	*/
 	treePane.addPhotoFolderTreeListener( new PhotoFolderTreeListener() {
 		public void photoFolderTreeSelectionChanged( PhotoFolderTreeEvent e ) {
-		    viewPane.setCollection( e.getSelected() );
+		    PhotoFolder f = e.getSelected();
+		    if ( f != null ) {
+			viewPane.setCollection( f );
+		    }
 		}
 	    } );
 	

@@ -1,4 +1,4 @@
-// $Id: PhotoFolderTree.java,v 1.6 2003/03/05 19:57:15 kaimio Exp $
+// $Id: PhotoFolderTree.java,v 1.7 2004/01/12 21:10:25 kaimio Exp $
 
 
 package photovault.swingui;
@@ -54,6 +54,7 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     }
 
     protected void fireSelectionChangeEvent() {
+	log.debug( "fireselectionChangedEvent " + selected );
 	Iterator iter = folderTreeListeners.iterator();
 	while ( iter.hasNext() ) {
 	    PhotoFolderTreeListener l = (PhotoFolderTreeListener) iter.next();
@@ -194,7 +195,7 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	    if ( newName != null ) {
 		PhotoFolder f = selected;
 		f.setName( newName );
-		f.setDescription( "Changed name to " + newName );
+		log.debug( "Changed name to " + newName );
 	    }
 	}
     }

@@ -1,4 +1,4 @@
-// $Id: PhotoFolderTreeModel.java,v 1.2 2003/02/23 21:43:41 kaimio Exp $
+// $Id: PhotoFolderTreeModel.java,v 1.3 2004/01/12 21:10:25 kaimio Exp $
 
 package photovault.swingui;
 
@@ -150,29 +150,41 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
     public void photoCollectionChanged(PhotoCollectionChangeEvent e)
     {
 	PhotoFolder changedFolder = (PhotoFolder)e.getSource();
+	if ( e instanceof PhotoFolderEvent  ){
+	    changedFolder = ((PhotoFolderEvent)e).getSubfolder();
+	}
 	PhotoFolder[] path = findFolderPath( changedFolder );
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
+	log.warn( "collectionChanged " + path.length );
 	fireTreeModelEvent( treeEvent );
     }
 
     public void subfolderChanged( PhotoFolderEvent e ) {
 	PhotoFolder changedFolder = (PhotoFolder)e.getSource();
+	if ( e instanceof PhotoFolderEvent ) {
+	    changedFolder = ((PhotoFolderEvent)e).getSubfolder();
+	}
 	PhotoFolder[] path = findFolderPath( changedFolder );
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
+	log.warn( "subfolderChanged " + path.length );
 	fireTreeModelEvent( treeEvent );
 	
     }
 
     public void structureChanged( PhotoFolderEvent e ) {
 	PhotoFolder changedFolder = (PhotoFolder)e.getSource();
+	if ( e instanceof PhotoFolderEvent ) {
+	    changedFolder = ((PhotoFolderEvent)e).getSubfolder();
+	}
 	PhotoFolder[] path = findFolderPath( changedFolder );
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
+	log.warn( "structureChanged " + path.length );
 	fireTreeModelEvent( treeEvent );
     }
 
@@ -183,8 +195,10 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	Vector ancestors = new Vector();
 	// Add first the final folder
 	ancestors.add( folder );
+	log.warn( "starting finding path for " + folder.getName() );
 	PhotoFolder ancestor = folder.getParentFolder();
 	while ( ancestor != rootFolder && ancestor != null ) {
+	    log.warn( "ancestor " + ancestor.getName() );
 	    ancestors.add( ancestor );
 	    ancestor = ancestor.getParentFolder();
 	}
