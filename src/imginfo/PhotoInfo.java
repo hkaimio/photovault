@@ -13,6 +13,8 @@ import java.awt.geom.*;
 import com.drew.metadata.*;
 import com.drew.metadata.exif.*;
 import com.drew.imaging.jpeg.*;
+import org.apache.ojb.odmg.*;
+import org.odmg.*;
 
 /**
    PhotoInfo represents information about a single photograph
@@ -24,6 +26,7 @@ public class PhotoInfo {
 
     public PhotoInfo() {
 	changeListeners = new HashSet();
+	instances = new Vector();
     }
     
     /**
@@ -31,23 +34,51 @@ public class PhotoInfo {
        @param photoId ID of the photo to be retrieved
     */
     public static PhotoInfo retrievePhotoInfo( int photoId ) throws PhotoNotFoundException {
-	String sql = "SELECT * from photos where photo_id=\"" + photoId +"\"";
-	PhotoInfo photo = null;
+	log.debug( "Fetching PhotoInfo with ID " + photoId );
+	String oql = "select photos from " + PhotoInfo.class.getName() + " where uid=" + photoId;
+	DList photos = null;
+
+	// Get transaction context
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	Implementation odmg = ODMG.getODMGImplementation();
+	
 	try {
-	    Connection conn  = ImageDb.getConnection();
-	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery( sql );
-	    if ( rs.next() ) {
-		photo = createFromResultSet( rs );
-	    }
-	    rs.close();
-	    stmt.close();
-	    if ( photo == null ) {
-		throw new PhotoNotFoundException();
-	    }
-// 	    if ( !rs.next() ) {
-// 		throw new PhotoNotFoundException();
-// 	    }
+	    OQLQuery query = odmg.newOQLQuery();
+	    query.create( oql );
+	    photos = (DList) query.execute();
+	    txw.commit();
+	    
+	} catch (Exception e ) {
+	    log.warn( "Error fetching record: " + e.getMessage() );
+	    txw.abort();
+	    throw new PhotoNotFoundException();
+	}
+	if ( photos.size() == 0 ) {
+	    throw new PhotoNotFoundException();
+	}	    
+	PhotoInfo photo = (PhotoInfo) photos.get(0);
+
+	// For some reason when seeking for e.gö. photoId -1, a photo with ID = 1 is returned
+	// This sounds like a bug in OJB?????
+	if ( photo.getUid() != photoId ) {
+	    log.warn( "Found photo with ID = " + photo.getUid() + " while looking for ID " + photoId );
+	    throw new PhotoNotFoundException();
+	}
+	return photo;
+    }
+
+
+    // Not needed with OJB
+
+//     /**
+//        This method reads a PhotoInfo structure from the current position in ResultSet.
+//        @param rs The ResultSet
+//        @return PhotoInfo object created or null if not succesful
+//     */
+//     public static PhotoInfo createFromResultSet( ResultSet rs ) {
+// 	PhotoInfo photo = null;
+// 	try {
+// 	    photo = new PhotoInfo();
 // 	    photo.uid = rs.getInt( "photo_id" );
 // 	    photo.shootingPlace = rs.getString( "shooting_place" );
 // 	    photo.photographer = rs.getString( "photographer" );
@@ -59,44 +90,13 @@ public class PhotoInfo {
 // 	    photo.lens = rs.getString( "lens" );
 // 	    photo.film = rs.getString( "film" );
 // 	    photo.filmSpeed = rs.getInt( "film_speed" );
+// 	    photo.prefRotation = rs.getDouble( "pref_rotation" );
 // 	    photo.description = rs.getString( "description" );
-	    
-	} catch (SQLException e ) {
-	    log.warn( "Error fetching record: " + e.getMessage() );
-	    // TODO: Actually this is not the right exception for this purpose
-	    throw new PhotoNotFoundException();
-	}
-	
-	return photo;
-    }
-
-    /**
-       This method reads a PhotoInfo structure from the current position in ResultSet.
-       @param rs The ResultSet
-       @return PhotoInfo object created or null if not succesful
-    */
-    public static PhotoInfo createFromResultSet( ResultSet rs ) {
-	PhotoInfo photo = null;
-	try {
-	    photo = new PhotoInfo();
-	    photo.uid = rs.getInt( "photo_id" );
-	    photo.shootingPlace = rs.getString( "shooting_place" );
-	    photo.photographer = rs.getString( "photographer" );
-	    photo.FStop = rs.getDouble( "f_stop" );
-	    photo.focalLength = rs.getDouble( "focal_length" );
-	    photo.shootTime = rs.getDate( "shoot_time" );
-	    photo.shutterSpeed = rs.getDouble( "shutter_speed" );
-	    photo.camera = rs.getString( "camera" );
-	    photo.lens = rs.getString( "lens" );
-	    photo.film = rs.getString( "film" );
-	    photo.filmSpeed = rs.getInt( "film_speed" );
-	    photo.prefRotation = rs.getDouble( "pref_rotation" );
-	    photo.description = rs.getString( "description" );
-	} catch ( SQLException e ) {
-	    log.warn( "Error fetching record: " + e.getMessage() );
-	}
-	return photo;
-    }
+// 	} catch ( SQLException e ) {
+// 	    log.warn( "Error fetching record: " + e.getMessage() );
+// 	}
+// 	return photo;
+//     }
 	    
     
     /**
@@ -106,18 +106,10 @@ public class PhotoInfo {
     */
     public static PhotoInfo create() {
 	PhotoInfo photo = new PhotoInfo();
-	
-	photo.uid = ImageDb.newUid();
 
-	// Store the object in database
-	try {
-	    Connection conn = ImageDb.getConnection();
-	    Statement stmt = conn.createStatement();
-	    stmt.executeUpdate( "INSERT INTO photos values ( " + photo.uid + ", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)" );
-	    stmt.close();
-	} catch ( SQLException e ) {
-	    log.warn( "Error creating new PhotoInfo: " + e.getMessage() );
-	}
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( photo, Transaction.WRITE );
+	txw.commit();
 	return photo;
     }
     
@@ -153,12 +145,13 @@ public class PhotoInfo {
 	    
 
 	// Create the image
+	ODMGXAWrapper txw = new ODMGXAWrapper();
 	PhotoInfo photo = PhotoInfo.create();
 	photo.addInstance( vol, f, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
 	photo.setShootTime( shootTime );
 	photo.updateFromFileMetadata( f );
-	photo.updateDB();
+	txw.commit();
 	return photo;
     }
 
@@ -233,7 +226,10 @@ public class PhotoInfo {
        Deletes the PhotoInfo and all related instances from database
     */
     public void delete() {
-	String sql = "DELETE FROM photos WHERE photo_id = " + uid;
+	Implementation odmg = ODMG.getODMGImplementation();
+	Database db = ODMG.getODMGDatabase();
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	
 	// First delete all instances
 	if ( instances == null ) {
 	    getInstances();
@@ -244,49 +240,44 @@ public class PhotoInfo {
 	}
 
 	// Then delete the PhotoInfo itself
-	try {
-	    Connection conn = ImageDb.getConnection();
-	    Statement stmt = conn.createStatement( );
-	    stmt.executeUpdate( sql );
-	    stmt.close();
-	} catch ( SQLException e ) {
-	    log.warn( "Error deletin image file from DB: " + e.getMessage() );
-	}
+	db.deletePersistent( this );
+	txw.commit();
     }
 	
 
-    /**
-       Updates  the object state to database
-    */
-    public void updateDB() {
-	String sql = "UPDATE photos SET shooting_place = ?, photographer = ?, f_stop = ?, focal_length = ?, shoot_time = ?, shutter_speed = ?, camera = ?, lens = ?, film = ?, film_speed = ?, pref_rotation = ?, description = ? WHERE photo_id = ?";
-	try {
-	    Connection conn = ImageDb.getConnection();
-	    PreparedStatement stmt = conn.prepareStatement( sql );
-	    stmt.setString( 1, shootingPlace );
-	    stmt.setString( 2, photographer );
-	    stmt.setDouble( 3, FStop );
-	    stmt.setDouble( 4, focalLength );
-	    // setDate requires a java.sql.Date object, so make a cast
-	    if ( shootTime != null ) {
-		stmt.setDate( 5, new java.sql.Date( shootTime.getTime() ) );
-	    } else {		
-		stmt.setDate( 5, null );
-	    }
-	    stmt.setDouble( 6, shutterSpeed );
-	    stmt.setString( 7, camera );
-	    stmt.setString( 8, lens );
-	    stmt.setString( 9, film );
-	    stmt.setInt( 10, filmSpeed );
-	    stmt.setDouble( 11, prefRotation );
-	    stmt.setString( 12, description );
-	    stmt.setInt( 13, uid );
-	    stmt.executeUpdate();
-	    stmt.close();
-	} catch (SQLException e ) {
-	    log.warn( "Error executing update: " + e.getMessage() );
-	}
-    }
+    // Not needed with OJB
+//     /**
+//        Updates  the object state to database
+//     */
+//     public void updateDB() {
+// 	String sql = "UPDATE photos SET shooting_place = ?, photographer = ?, f_stop = ?, focal_length = ?, shoot_time = ?, shutter_speed = ?, camera = ?, lens = ?, film = ?, film_speed = ?, pref_rotation = ?, description = ? WHERE photo_id = ?";
+// 	try {
+// 	    Connection conn = ImageDb.getConnection();
+// 	    PreparedStatement stmt = conn.prepareStatement( sql );
+// 	    stmt.setString( 1, shootingPlace );
+// 	    stmt.setString( 2, photographer );
+// 	    stmt.setDouble( 3, FStop );
+// 	    stmt.setDouble( 4, focalLength );
+// 	    // setDate requires a java.sql.Date object, so make a cast
+// 	    if ( shootTime != null ) {
+// 		stmt.setDate( 5, new java.sql.Date( shootTime.getTime() ) );
+// 	    } else {		
+// 		stmt.setDate( 5, null );
+// 	    }
+// 	    stmt.setDouble( 6, shutterSpeed );
+// 	    stmt.setString( 7, camera );
+// 	    stmt.setString( 8, lens );
+// 	    stmt.setString( 9, film );
+// 	    stmt.setInt( 10, filmSpeed );
+// 	    stmt.setDouble( 11, prefRotation );
+// 	    stmt.setString( 12, description );
+// 	    stmt.setInt( 13, uid );
+// 	    stmt.executeUpdate();
+// 	    stmt.close();
+// 	} catch (SQLException e ) {
+// 	    log.warn( "Error executing update: " + e.getMessage() );
+// 	}
+//     }
 
     /**
        Adds a new listener to the list that will be notified of modifications to this object
@@ -327,6 +318,9 @@ public class PhotoInfo {
        Returns the uid of the object
     */
     public int getUid() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return uid;
     }
     
@@ -339,11 +333,13 @@ public class PhotoInfo {
        @see ImageInstance class documentation for details.
     */
     public ImageInstance addInstance( Volume volume, File instanceFile, int instanceType ) {
-	ArrayList origInstances = getInstances();
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	Vector origInstances = getInstances();
 	ImageInstance instance = ImageInstance.create( volume, instanceFile, this );
 	instance.setInstanceType( instanceType );
-	instance.updateDB();
 	origInstances.add( instance );
+	txw.commit();
 	return instance;
     }
 
@@ -351,37 +347,18 @@ public class PhotoInfo {
        Returns the number of instances of this photo that are stored in database
     */
     public int getNumInstances() {
-	// Count number of instances from database
-	String sql = "SELECT COUNT(*) FROM image_instances WHERE photo_id = " + uid;
-	int numInstances = 0;
-	try {
-	    Connection conn = ImageDb.getConnection();
-	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery( sql );
-	    if ( rs.next() ) {
-		numInstances = rs.getInt( 1 );
-	    } else {
-		// If execution comes here there is some weird error, e.g. sntax error in SQL
-		log.debug( "No records returned by: " + sql );
-	    }
-	} catch ( SQLException e ) {
-	    log.warn( "Error counting number of instances: " + e.getMessage() );
-	}
-	return numInstances;
+	return instances.size();
     }
 
 
     /**
-       Returns the arrayList that cotnains all instances of this file
+       Returns the arrayList that cotnains all instances of this file.
     */
-    public ArrayList getInstances() {
-	if ( instances  == null ) {
-	    instances = ImageInstance.retrieveInstances( this );
-	}
+    public Vector getInstances() {
 	return instances;
     }
     
-    ArrayList instances = null;
+    Vector instances = null;
 
     /**
        Return a single image instance based on its order number
@@ -404,9 +381,6 @@ public class PhotoInfo {
 	if ( thumbnail == null ) {
 	    // First try to find an instance from existing instances
 	    ImageInstance original = null;
-	    if ( instances == null ) {
-		getInstances();
-	    }
 	    for ( int n = 0; n < instances.size(); n++ ) {
 		ImageInstance instance = (ImageInstance) instances.get( n );
 		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
@@ -436,21 +410,23 @@ public class PhotoInfo {
     */
     protected void createThumbnail( Volume volume ) {
 
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	
 	// Find the original image to use as a staring point
 	ImageInstance original = null;
-	if ( instances == null ) {
-	    getInstances();
-	}
 	for ( int n = 0; n < instances.size(); n++ ) {
 	    ImageInstance instance = (ImageInstance) instances.get( n );
 	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
 		original = instance;
+		txw.lock( original, Transaction.READ );
 		break;
 	    } 
 	}
 	if ( original == null ) {
 	    // If there are no instances, no thumbnail can be created
-	    log.debug( "Error - no original image was found!!!" );
+	    log.warn( "Error - no original image was found!!!" );
+	    txw.abort();
 	    return;
 	}
 	
@@ -460,6 +436,7 @@ public class PhotoInfo {
 	    origImage = ImageIO.read( original.getImageFile() );
 	} catch ( IOException e ) {
 	    log.warn( "Error reading image: " + e.getMessage() );
+	    txw.abort();
 	    return;
 	}
 	
@@ -478,55 +455,6 @@ public class PhotoInfo {
 									     prefRotation -original.getRotated(),
 									     origWidth, origHeight );
 	
-// 	// Determine if the image must be rotated
-// 	double thumbRotation = (prefRotation - original.getRotated()) * (Math.PI/180.0);
-// 	System.err.println( "thumbnail rotation: " + thumbRotation );
-	
-// 	// Thhen create the xform
-// 	AffineTransform at = new AffineTransform();
-//  	at.rotate( thumbRotation );
-	
-// 	// Determine the required target size of the thumbnail
-// 	float[] corners = {0.0f,              0.0f,
-// 			   0.0f,              (float) origHeight,
-// 			   (float) origWidth, (float) origHeight,
-// 			   (float) origWidth, 0.0f };
-// 	at.transform( corners, 0, corners, 0, 4 );
-// 	float minX = corners[0];
-// 	float maxX = corners[0];
-// 	float minY = corners[1];
-// 	float maxY = corners[1];
-// 	for ( int n = 2; n < corners.length; n += 2 ) {
-// 	    if ( corners[n+1] < minY ) {
-// 		minY = corners[n+1];
-// 	    }
-// 	    if ( corners[n+1] > maxY ) {
-// 		maxY = corners[n+1];
-// 	    }
-// 	    if ( corners[n] < minX ) {
-// 		minX = corners[n];
-// 	    }
-// 	    if ( corners[n] > maxX ) {
-// 		maxX = corners[n];
-// 	    }
-// 	}
-
-// 	System.err.println( "Translating by " + (-minX) + ", " + (-minY) );
-
-// 	double rotatedWidth = maxX - minX;
-// 	double rotatedHeight = maxY - minY;
-// 	double widthScale = (double) maxThumbWidth / rotatedWidth;
-// 	double heightScale = (double) maxThumbHeight / rotatedHeight;
-// 	double scale = widthScale;
-// 	if ( heightScale < widthScale ) {
-// 	    scale = heightScale;
-// 	}	
-// 	at.preConcatenate( at.getTranslateInstance( scale*(-minX), scale*(-minY) ) );
-// 	at.scale( scale, scale );
-// 	int thumbWidth = (int) (scale * rotatedWidth);
-// 	int thumbHeight = (int)(scale * rotatedHeight);
-	
-// 	System.err.println( "Scaling to thumbnail from (" + rotatedWidth + ", " + rotatedHeight + " by " + scale );
 
 	// Create the target image
 	AffineTransformOp atOp = new AffineTransformOp( xform, AffineTransformOp.TYPE_BILINEAR );
@@ -538,15 +466,17 @@ public class PhotoInfo {
 	    ImageIO.write( thumbImage, "jpg", thumbnailFile );
 	} catch ( IOException e ) {
 	    log.warn( "Error writing thumbnail: " + e.getMessage() );
+	    txw.abort();
+	    return;
 	}
 
 	// add the created instance to this perdsisten object
 	ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
 		     ImageInstance.INSTANCE_TYPE_THUMBNAIL );
 	thumbInstance.setRotated( prefRotation -original.getRotated() );
-	thumbInstance.updateDB();
 	
 	thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
+	txw.commit();
     }
 
     /** Creates a new thumbnail on the default volume
@@ -566,6 +496,9 @@ public class PhotoInfo {
      @return value of shootTime.
      */
     public java.util.Date getShootTime() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return shootTime;
     }
     
@@ -574,8 +507,11 @@ public class PhotoInfo {
      * @param v  Value to assign to shootTime.
      */
     public void setShootTime(java.util.Date  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.shootTime = v;
 	modified();
+	txw.commit();
     }
     
     String desc;
@@ -585,6 +521,9 @@ public class PhotoInfo {
      * @return value of desc.
      */
     public String getDesc() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return desc;
     }
     
@@ -593,8 +532,11 @@ public class PhotoInfo {
      * @param v  Value to assign to desc.
      */
     public void setDesc(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.desc = v;
 	modified();
+	txw.commit();
     }
     double FStop;
     
@@ -603,6 +545,9 @@ public class PhotoInfo {
      * @return value of FStop.
      */
     public double getFStop() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return FStop;
     }
     
@@ -611,8 +556,11 @@ public class PhotoInfo {
      * @param v  Value to assign to FStop.
      */
     public void setFStop(double  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.FStop = v;
 	modified();
+	txw.commit();
     }
     double focalLength;
     
@@ -621,6 +569,9 @@ public class PhotoInfo {
      * @return value of focalLength.
      */
     public double getFocalLength() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return focalLength;
     }
     
@@ -629,8 +580,11 @@ public class PhotoInfo {
      * @param v  Value to assign to focalLength.
      */
     public void setFocalLength(double  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.focalLength = v;
 	modified();
+	txw.commit();
     }
     String shootingPlace;
     
@@ -639,6 +593,9 @@ public class PhotoInfo {
      * @return value of shootingPlace.
      */
     public String getShootingPlace() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return shootingPlace;
     }
     
@@ -647,8 +604,11 @@ public class PhotoInfo {
      * @param v  Value to assign to shootingPlace.
      */
     public void setShootingPlace(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.shootingPlace = v;
 	modified();
+	txw.commit();
     }
     String photographer;
     
@@ -657,6 +617,9 @@ public class PhotoInfo {
      * @return value of photographer.
      */
     public String getPhotographer() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return photographer;
     }
     
@@ -665,8 +628,11 @@ public class PhotoInfo {
      * @param v  Value to assign to photographer.
      */
     public void setPhotographer(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.photographer = v;
 	modified();
+	txw.commit();
     }
     double shutterSpeed;
     
@@ -675,6 +641,9 @@ public class PhotoInfo {
      * @return value of shutterSpeed.
      */
     public double getShutterSpeed() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return shutterSpeed;
     }
     
@@ -683,8 +652,11 @@ public class PhotoInfo {
      * @param v  Value to assign to shutterSpeed.
      */
     public void setShutterSpeed(double  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.shutterSpeed = v;
 	modified();
+	txw.commit();
     }
     String camera;
     
@@ -693,6 +665,9 @@ public class PhotoInfo {
      * @return value of camera.
      */
     public String getCamera() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return camera;
     }
     
@@ -701,8 +676,11 @@ public class PhotoInfo {
      * @param v  Value to assign to camera.
      */
     public void setCamera(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.camera = v;
 	modified();
+	txw.commit();
     }
     String lens;
     
@@ -711,6 +689,9 @@ public class PhotoInfo {
      * @return value of lens.
      */
     public String getLens() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return lens;
     }
     
@@ -719,8 +700,11 @@ public class PhotoInfo {
      * @param v  Value to assign to lens.
      */
     public void setLens(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.lens = v;
 	modified();
+	txw.commit();
     }
     String film;
     
@@ -729,6 +713,9 @@ public class PhotoInfo {
      * @return value of film.
      */
     public String getFilm() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return film;
     }
     
@@ -737,8 +724,11 @@ public class PhotoInfo {
      * @param v  Value to assign to film.
      */
     public void setFilm(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.film = v;
 	modified();
+	txw.commit();
     }
     int filmSpeed;
     
@@ -747,6 +737,9 @@ public class PhotoInfo {
      * @return value of filmSpeed.
      */
     public int getFilmSpeed() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return filmSpeed;
     }
     
@@ -755,8 +748,11 @@ public class PhotoInfo {
      * @param v  Value to assign to filmSpeed.
      */
     public void setFilmSpeed(int  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.filmSpeed = v;
 	modified();
+	txw.commit();
     }
 
     double prefRotation;
@@ -767,6 +763,9 @@ public class PhotoInfo {
      @return value of prefRotation.
      */
     public double getPrefRotation() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return prefRotation;
     }
     
@@ -775,12 +774,15 @@ public class PhotoInfo {
      * @param v  Value to assign to prefRotation.
      */
     public void setPrefRotation(double  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	if ( v != prefRotation ) {
 	    // Rotation changes, invalidate the thumbnail
 	    thumbnail = null;
 	}
 	this.prefRotation = v;
 	modified();
+	txw.commit();
     }
     
 
@@ -792,6 +794,9 @@ public class PhotoInfo {
      * @return value of description.
      */
     public String getDescription() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return description;
     }
     
@@ -800,8 +805,11 @@ public class PhotoInfo {
      * @param v  Value to assign to description.
      */
     public void setDescription(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.description = v;
 	modified();
+	txw.commit();
     }
 
     static private boolean isEqual( Object o1, Object o2 ) {
@@ -820,6 +828,11 @@ public class PhotoInfo {
 	    return false;
 	}
 	PhotoInfo p = (PhotoInfo)obj;
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.lock( p, Transaction.READ );
+	txw.commit();
+	
 	return ( isEqual( p.photographer, this.photographer )
 		 && isEqual( p.shootingPlace, this.shootingPlace )
 		 && isEqual( p.shootTime, this.shootTime )

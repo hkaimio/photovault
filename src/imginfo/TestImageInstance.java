@@ -134,7 +134,7 @@ public class TestImageInstance extends TestCase {
 	    //	    assertEquals( "photo doesn't match", i.getPhoto .getUid(), rs.getInt( "photo_id" ) );
 	    assertEquals( "width doesn't match", i.getWidth(), rs.getInt( "width" ) );
 	    assertEquals( "height doesn't match", i.getHeight(), rs.getInt( "height" ) );
-	    assertTrue( "rotated doesn't match", i.getRotated() = rs.getDouble( "rotated" ) );
+	    assertTrue( "rotated doesn't match", i.getRotated() == rs.getDouble( "rotated" ) );
 	    int itype = i.getInstanceType();
 	    switch ( itype ) {
 	    case ImageInstance.INSTANCE_TYPE_ORIGINAL:

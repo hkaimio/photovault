@@ -4,10 +4,13 @@ package imginfo;
 import java.io.*;
 import junit.framework.*;
 import java.util.*;
+import java.sql.*;
+import dbhelper.*;
 
 
 
 public class PhotoInfoTest extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoTest.class.getName() );
 
     /**
        Sets ut the test environment
@@ -41,14 +44,13 @@ public class PhotoInfoTest extends TestCase {
     }
 
     /**
-       Test case that verifies that an existing photo infor record 
+       Test case that verifies that an existing photo info record 
        can be loaded successfully
     */
     public void testRetrievalNotFound() {
 	int photoId = -1;
 	try {
 	    PhotoInfo photo = PhotoInfo.retrievePhotoInfo( photoId );
-	    assertTrue(photo != null );
 	} catch (PhotoNotFoundException e) {
 	    return;
 	}
@@ -73,7 +75,7 @@ public class PhotoInfoTest extends TestCase {
 	String shootingPlace = photo.getShootingPlace();
 	String newShootingPlace = "Testipaikka";
 	photo.setShootingPlace( newShootingPlace );
-	photo.updateDB();
+	//	photo.updateDB();
 
 	// retrieve the updated photo from DB and chech that the
 	// modification has been done
@@ -88,7 +90,7 @@ public class PhotoInfoTest extends TestCase {
 
 	// restore the shooting place
 	photo.setShootingPlace( shootingPlace );
-	photo.updateDB();
+	//	photo.updateDB();
     }
 
     /** 
@@ -107,7 +109,7 @@ public class PhotoInfoTest extends TestCase {
 	java.util.Date origTime = photo.getShootTime();
 	// Update the photo
 	photo.setShootTime( null );
-	photo.updateDB();
+	//	photo.updateDB();
 
 	// retrieve the updated photo from DB and chech that the
 	// modification has been done
@@ -121,7 +123,7 @@ public class PhotoInfoTest extends TestCase {
 
 	// restore the shooting place
 	photo.setShootTime( origTime );
-	photo.updateDB();
+	//	photo.updateDB();
     }
 
     /**
@@ -133,7 +135,7 @@ public class PhotoInfoTest extends TestCase {
 
 	photo.setPhotographer( "TESTIKUVAAJA" );
 	photo.setShootingPlace( "TESTPLACE" );
-	photo.setShootTime( new Date() );
+	photo.setShootTime( new java.util.Date() );
 	photo.setFStop( 5.6 );
 	photo.setShutterSpeed( 0.04 );
 	photo.setFocalLength( 50 );
@@ -142,7 +144,7 @@ public class PhotoInfoTest extends TestCase {
 	photo.setFilmSpeed( 400 );
 	photo.setLens( "Canon FD 50mm/F1.4" );
 	photo.setDescription( "This is a long test description that tries to verify that the description mechanism really works" );
-	photo.updateDB();
+	//	photo.updateDB();
 	try {
 	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
 
@@ -173,19 +175,53 @@ public class PhotoInfoTest extends TestCase {
 	assertNotNull( photo );
 
 	// Check that the photo can be retrieved from DB
+
+	Connection conn = ImageDb.getConnection();
+	String sql = "SELECT * FROM photos WHERE photo_id = " + photo.getUid();
+	Statement stmt = null;
+	ResultSet rs = null;
 	try {
-	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-	} catch ( PhotoNotFoundException e ) {
-	    fail ( "inserted photo not found" );
+	    stmt = conn.createStatement();
+	    rs = stmt.executeQuery( sql );
+	    if ( !rs.next() ) {
+		fail( "Matching DB record not found" );
+	    }
+	} catch ( SQLException e ) {
+	    fail( "DB error:; " + e.getMessage() );
+	} finally {
+	    if ( rs != null ) {
+		try {
+		    rs.close();
+		} catch ( Exception e ) {}
+	    }
+	    if ( stmt != null ) {
+		try {
+		    stmt.close();
+		} catch ( Exception e ) {}
+	    }
 	}
 
 	photo.delete();
-	// Check that the photo can be retrieved from DB
+	// Check that the photo is deleted from the database
 	try {
-	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-	    fail ( "Photo found in DB after deletion" );
-	} catch ( PhotoNotFoundException e ) {
-	    // success!!!
+	    stmt = conn.createStatement();
+	    rs = stmt.executeQuery( sql );
+	    if ( rs.next() ) {
+		fail( "Found matching DB record after delete" );
+	    }
+	} catch ( SQLException e ) {
+	    fail( "DB error:; " + e.getMessage() );
+	} finally {
+	    if ( rs != null ) {
+		try {
+		    rs.close();
+		} catch ( Exception e ) {}
+	    }
+	    if ( stmt != null ) {
+		try {
+		    stmt.close();
+		} catch ( Exception e ) {}
+	    }
 	}
     }
     
@@ -204,7 +240,7 @@ public class PhotoInfoTest extends TestCase {
 	photo.addInstance( Volume.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	// Check that number of instances is consistent with addition
 	assertEquals( numInstances+1, photo.getNumInstances() );
-	ArrayList instances = photo.getInstances();
+	Vector instances = photo.getInstances();
 	assertEquals( instances.size(), numInstances+1 );
 
 	// Try to find the instance
@@ -489,7 +525,7 @@ public class PhotoInfoTest extends TestCase {
 	photo.setFocalLength( 10 );
 	assertTrue( "no notification when changing focalLength", l1.isNotified );
 	l1.isNotified = false;
-	photo.setShootTime( new Date() );
+	photo.setShootTime( new java.util.Date() );
 	assertTrue( "no notification when changing shooting time", l1.isNotified );
 	l1.isNotified = false;
 	photo.setShutterSpeed( 1.0 );
@@ -513,6 +549,13 @@ public class PhotoInfoTest extends TestCase {
 	photo.setDescription( "Test with lots of characters" );
 	assertTrue( "no notification when changing description", l1.isNotified );
 	photo.delete();
+    }
+    public static void main( String[] args ) {
+	//	org.apache.log4j.BasicConfigurator.configure();
+	log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger photoLog = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
+	photoLog.setLevel( org.apache.log4j.Level.DEBUG );
+	junit.textui.TestRunner.run( suite() );
     }
     
     public static Test suite() {

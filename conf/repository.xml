@@ -62,7 +62,7 @@
 
   <!-- PhotoInfo mappings -->
   <class-descriptor class="imginfo.PhotoInfo" table="photos">
-    <field-descriptor name="uid" column="photo_id" jdbc-type="INTEGER" primarykey="true">
+    <field-descriptor name="uid" column="photo_id" jdbc-type="INTEGER" primarykey="true" autoincrement="true">
     </field-descriptor>
     <field-descriptor name="shootingPlace" column="shooting_place" jdbc-type="VARCHAR">
     </field-descriptor>
@@ -91,7 +91,7 @@
 
     <!-- instances collection -->
     <collection-descriptor name="instances" element-class-ref="imginfo.ImageInstance">
-      <inverse-foreignkey field-ref="photoId">
+      <inverse-foreignkey field-ref="photoUid">
       </inverse-foreignkey>
     </collection-descriptor>
   </class-descriptor>
