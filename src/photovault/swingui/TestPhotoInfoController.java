@@ -38,7 +38,11 @@ public class TestPhotoInfoController extends TestCase {
 	assertEquals( "PhotoInfo should not be modified at this stage", oldValue, photo.getPhotographer() );
 	assertEquals( "Ctrl should reflect the modification", newValue, ctrl.getField( PhotoInfoController.PHOTOGRAPHER ));
 
-	ctrl.save();
+	try {
+	    ctrl.save();
+	} catch ( Exception e ) {
+	    fail( "Exception while saving: " + e.getMessage() );
+	}
 	assertEquals( "After save photo should also reflect the modifications", newValue, photo.getPhotographer() );
 
 	// Check that the value is also stored in DB
@@ -65,13 +69,19 @@ public class TestPhotoInfoController extends TestCase {
     }
 
     public void testNewPhotoCreation() {
-	ctrl.createNewPhoto();
+       	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+	
+	ctrl.createNewPhoto( testFile );
 	String photographer = "Test photographer";
 	ctrl.setField( PhotoInfoController.PHOTOGRAPHER, photographer );
 	assertEquals( photographer, ctrl.getField( PhotoInfoController.PHOTOGRAPHER ) );
 
 	// Saving the ctrl state should create a new photo object
-	ctrl.save();
+	try {
+	    ctrl.save();
+	} catch ( Exception e ) {
+	    fail( "Exception while saving: " + e.getMessage() );
+	}
 	PhotoInfo photo = ctrl.getPhoto();
 	assertTrue( "getPhoto should return PhotoInfo object after save()", photo != null );
 	assertEquals( "PhotoInfo fields should match ctrl",
@@ -86,7 +96,8 @@ public class TestPhotoInfoController extends TestCase {
 	    assertTrue( photo2.getFStop() == photo.getFStop() );
 	} catch ( PhotoNotFoundException e ) {
 	    fail ( "inserted photo not found" );
-	}	
+	}
+	photo.delete();
 	
     }
 }

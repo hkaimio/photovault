@@ -121,6 +121,7 @@ public abstract class FieldController {
 	}
     }
 
+    
     protected void updateViews( Object source ) {
 	if ( views == null ) {
 	    return;

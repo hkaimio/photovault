@@ -37,7 +37,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	photographerField = new JTextField( 30 );
 	photographerDoc = photographerField.getDocument();
 	photographerDoc.addDocumentListener( this );
-	photographerField.addActionListener( this );
 
 	// Shooting date field
 	JLabel shootingDayLabel = new JLabel( "Shooting date" );
@@ -46,13 +45,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	shootingDayField = new JFormattedTextField( df );
 	shootingDayField.setColumns( 10 );
 	shootingDayField.setValue( new Date( ));
-	shootingDayField.addActionListener( this );
-
+	
 	// Shooting place field
 	JLabel shootingPlaceLabel =  new JLabel( "Shooting place" );
 	shootingPlaceField = new JTextField( 30 );
-	shootingPlaceField.addActionListener( this );
-
+	shootingPlaceDoc = shootingPlaceField.getDocument();
+	shootingPlaceDoc.addDocumentListener( this );
+	
 	// Descrription text
 	JLabel descLabel = new JLabel( "Description" );
 	descriptionTextArea = new JTextArea( 5, 40 );
@@ -64,6 +63,15 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	descBorder = BorderFactory.createTitledBorder( descBorder, "Description" );
         descScrollPane.setBorder( descBorder );
 
+	// Save button
+	JButton saveBtn = new JButton( "Save" );
+	saveBtn.setActionCommand( "save" );
+	saveBtn.addActionListener( this );
+
+	// Discard button
+	JButton discardBtn = new JButton( "Discard" );
+	discardBtn.setActionCommand( "discard" );
+	discardBtn.addActionListener( this );
 	
 	// Lay out the created controls
 	GridBagLayout layout = new GridBagLayout();
@@ -73,18 +81,27 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	JTextField[] fields = { photographerField, shootingDayField, shootingPlaceField };
 	addLabelTextRows( labels, fields, layout, this );
 
+	
 	add( descScrollPane );
-	c.gridwidth = 2;
+	c.gridwidth = GridBagConstraints.REMAINDER;
 	c.weighty = 0.5;
-	c.fill = GridBagConstraints.BOTH;
+	c.fill = GridBagConstraints.NONE;
 	layout.setConstraints( descScrollPane, c );
+
+	c = new GridBagConstraints();
 	c.gridwidth = 1;
 	c.weighty = 0;
 	c.fill = GridBagConstraints.NONE;
+	c.gridy = GridBagConstraints.RELATIVE;
 	
+	add( saveBtn );
+	layout.setConstraints( saveBtn, c );
+
+	c.gridy = GridBagConstraints.RELATIVE;
 	
-	// 	add(labelPane, BorderLayout.CENTER);
-// 	add(fieldPane, BorderLayout.EAST);
+	add( discardBtn );
+	layout.setConstraints( discardBtn, c );
+
     }
 
     public void setPhotographer( String newValue ) {
@@ -110,8 +127,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     Document descriptionDoc = null;
 
     public void actionPerformed( ActionEvent evt ) {
-	String photographer = photographerField.getText();
-	System.out.println( "New photographer: " + photographer );
+	if ( evt.getActionCommand().equals( "save" ) ) {
+	    System.out.println( "Saving data" );
+	    ctrl.save();
+	} else if ( evt.getActionCommand().equals( "discard" ) ) {
+	    System.out.println( "Discarding data" );
+	    ctrl.discard();
+	}
     }
 
     // DocumentListener interface implementation
@@ -126,6 +148,12 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	    changedField = PhotoInfoController.PHOTOGRAPHER;
 	    newValue = photographerField.getText();
 	    System.err.println( "New photographer: " + newValue );
+	} else if ( changedDoc == shootingDayDoc ) {
+  	    changedField = PhotoInfoController.SHOOTING_DATE;
+	    newValue = shootingDayField.getValue();
+	} else if ( changedDoc == shootingPlaceDoc ) {
+  	    changedField = PhotoInfoController.SHOOTING_PLACE;
+	    newValue = shootingPlaceField.getText();
 	} else {
 	    System.err.println( "insertUpdate from unknown event!!!" );
 	}

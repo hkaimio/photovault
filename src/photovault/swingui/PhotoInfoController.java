@@ -3,6 +3,7 @@
 package photovault.swingui;
 
 import java.util.*;
+import java.io.*;
 import imginfo.*;
 
 /**
@@ -78,29 +79,41 @@ public class PhotoInfoController {
 	
 
     protected PhotoInfo photo = null;
-    
+    protected boolean isCreatingNew = true;
+
     /**
        Sets the PhotoInfo record that will be edited
        @param photo The photoInfo object that is to be edited. If null the a new PhotoInfo record will be created     
     */
     public void setPhoto( PhotoInfo photo ) {
-	boolean isCreatingNewPhoto = ( this.photo == null );
+	if ( photo != null ) {
+	    isCreatingNew = false;
+	} else {
+	    isCreatingNew = true;
+	}
  	this.photo = photo;
+	
+	changeModelInFields( isCreatingNew );
+    }
 
+    protected void changeModelInFields( boolean preserveFieldState ) {
 	// Inform all fields that the model has changed
 	Iterator fieldIter = modelFields.values().iterator();
 	while ( fieldIter.hasNext() ) {
 	    FieldController fieldCtrl = (FieldController) fieldIter.next();
 	    // If we are creating a new photo we will copy the current field values to it.
-	    fieldCtrl.setModel( photo, isCreatingNewPhoto );
+	    fieldCtrl.setModel( photo, preserveFieldState );
 	}
     }
 
     /**
        Sets up the controller to create a new PhotoInfo
+       @imageFile the original image that is to be added to database
     */
-    public void createNewPhoto() {
+    public void createNewPhoto( File imageFile ) {
 	setPhoto( null );
+	originalFile = imageFile;
+	isCreatingNew = true;
     }
     
     /**
@@ -112,12 +125,17 @@ public class PhotoInfoController {
 
     /**
        Save the modifications made to the PhotoInfo record
+       @throws PhotoNotFoundException if the original image cound not be located
     */
-    public void save() {
+    public void save() throws PhotoNotFoundException {
 	// Check if we already have a PhotoInfo object to control
-	if ( photo == null ) {
-	    // No we do not have, which means that we are creating a new one.
-	   setPhoto( PhotoInfo.create() );
+	if ( isCreatingNew ) {
+		photo = PhotoInfo.addToDB( originalFile );
+		
+		// Set the model to all fields but preserve field state so that it is changed to the photoInfo
+		// object
+		changeModelInFields( true );
+		isCreatingNew = false;
 	}
 	
 	// Inform all fields that the modifications should be saved to model
@@ -154,9 +172,15 @@ public class PhotoInfoController {
     public final static String SHOOTING_DATE = "Shooting date";
     public final static String SHOOTING_PLACE = "Shooting place";
     public final static String DESCRIPTION = "Description";
+    public final static String F_STOP = "F-stop";
+    public final static String FOCAL_LENGTH = "Focal length";
 
     protected HashMap modelFields = null;
     
+    // The original file that is to be added to database (if we are creating a new PhotoInfo object)
+    // If we are editing an existing PhotoInfo record this is null 
+    File originalFile = null;
+
     public void setField( String field, Object value ) {
 	System.err.println( "Set field " + field + ": " + value.toString() );
 	FieldController fieldCtrl = (FieldController) modelFields.get( field );
