@@ -97,7 +97,64 @@ public class TestPhotoInfoController extends TestCase {
 	} catch ( PhotoNotFoundException e ) {
 	    fail ( "inserted photo not found" );
 	}
+
+	// Test modification to saved
+	String newPhotographer = "New photographer";
+	ctrl.setField( PhotoInfoController.PHOTOGRAPHER, newPhotographer );
+	try {
+	    ctrl.save();
+	} catch ( Exception e ) {
+	    fail( "Exception while saving: " + e.getMessage() );
+	}
+	assertEquals( "PhotoInfo fields should match ctrl",
+		      newPhotographer, photo.getPhotographer() );
+	try {
+	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
+	    
+	    assertEquals( photo2.getPhotographer(), photo.getPhotographer() );
+	    assertTrue( photo2.getFStop() == photo.getFStop() );
+	} catch ( PhotoNotFoundException e ) {
+	    fail ( "inserted photo not found" );
+	}
+	
+	
 	photo.delete();
 	
     }
+
+
+    /**
+       Tests creation of PhotoInfo record without giving image file
+    */
+    public void testOnlyRecordCreation() {
+	String photographer = "Test photographer";
+	ctrl.setField( PhotoInfoController.PHOTOGRAPHER, photographer );
+	assertEquals( photographer, ctrl.getField( PhotoInfoController.PHOTOGRAPHER ) );
+
+	// Saving the ctrl state should create a new photo object
+	try {
+	    ctrl.save();
+	} catch ( Exception e ) {
+	    fail( "Exception while saving: " + e.getMessage() );
+	}
+	PhotoInfo photo = ctrl.getPhoto();
+	assertTrue( "getPhoto should return PhotoInfo object after save()", photo != null );
+	assertEquals( "PhotoInfo fields should match ctrl",
+		      photographer, photo.getPhotographer() );
+	
+
+	// Check the database also
+	try {
+	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
+	    
+	    assertEquals( photo2.getPhotographer(), photo.getPhotographer() );
+	    assertTrue( photo2.getFStop() == photo.getFStop() );
+	} catch ( PhotoNotFoundException e ) {
+	    fail ( "inserted photo not found" );
+	}
+	photo.delete();
+	
+    }
+	
+
 }

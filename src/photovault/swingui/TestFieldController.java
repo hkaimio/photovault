@@ -78,7 +78,7 @@ public class TestFieldController extends TestCase {
     public void testFieldModification() {
 	view1.setField( "View1" );
 	// Generate a bbogus event to demonstrate that this should propagate to view2 but not to view1
-	fieldCtrl.setValue( view1, "View2" );
+	fieldCtrl.viewChanged( view1, "View2" );
 	assertEquals( "View2 not changed by updating view1", "View2", view2.getField() );
 	assertEquals( "View1 should not be changed", "View1", view1.getField() );
     }
@@ -97,6 +97,18 @@ public class TestFieldController extends TestCase {
 	fieldCtrl.save();
 	assertEquals( "Modification not saved correctly", "Moi", testObject.getField() );
 	assertFalse( "isModified should be false after save", fieldCtrl.isModified() );
+    }
+
+    public void testModelChange() {
+	fieldCtrl.setModel( testObject );
+	
+	// set the testObject to a new value
+	TestObject model2 = new TestObject();
+	
+	model2.setField( "Modified" );
+	fieldCtrl.setModel( model2 );
+
+	assertEquals( "Views should be modified", "Modified", view1.getField() );
     }
 
     public static Test suite() {

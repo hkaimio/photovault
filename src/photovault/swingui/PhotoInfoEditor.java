@@ -26,6 +26,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	super();
 	createUI();
 	this.ctrl = ctrl;
+	ctrl.setView( this );
     }
     
     protected void createUI() {
@@ -45,6 +46,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	shootingDayField = new JFormattedTextField( df );
 	shootingDayField.setColumns( 10 );
 	shootingDayField.setValue( new Date( ));
+	shootingDayDoc = shootingDayField.getDocument();
+	shootingDayDoc.addDocumentListener( this );
+
 	
 	// Shooting place field
 	JLabel shootingPlaceLabel =  new JLabel( "Shooting place" );
@@ -132,6 +136,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	    try {
 		ctrl.save();
 	    } catch ( Exception e ) {
+		System.err.println( "exception while saving" + e.getMessage() );
 	    }
 	} else if ( evt.getActionCommand().equals( "discard" ) ) {
 	    System.out.println( "Discarding data" );
@@ -152,6 +157,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	    newValue = photographerField.getText();
 	    System.err.println( "New photographer: " + newValue );
 	} else if ( changedDoc == shootingDayDoc ) {
+	    System.err.println( "Modifying shooting date" );
   	    changedField = PhotoInfoController.SHOOTING_DATE;
 	    newValue = shootingDayField.getValue();
 	} else if ( changedDoc == shootingPlaceDoc ) {
@@ -160,7 +166,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	} else {
 	    System.err.println( "insertUpdate from unknown event!!!" );
 	}
-	ctrl.setField( changedField, newValue );
+	ctrl.viewChanged( this, changedField, newValue );
     }
 
     public void removeUpdate( DocumentEvent ev ) {

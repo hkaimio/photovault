@@ -18,6 +18,7 @@ public class PhotoInfoController {
     */
     public PhotoInfoController() {
 	modelFields = new HashMap();
+	views = new Vector();
 	initModelFields();
     }
 
@@ -75,12 +76,21 @@ public class PhotoInfoController {
 	    });
 
 	// TODO: Add other fields
+
+	// Init the views in the fields
+	Iterator iter = modelFields.values().iterator();
+	while( iter.hasNext() ) {
+	    FieldController fieldCtrl = (FieldController) iter.next();
+	    fieldCtrl.setViews( views );
+	}
     }    
 	
 
     protected PhotoInfo photo = null;
     protected boolean isCreatingNew = true;
 
+    protected Collection views = null;
+    
     /**
        Sets the PhotoInfo record that will be edited
        @param photo The photoInfo object that is to be edited. If null the a new PhotoInfo record will be created     
@@ -94,6 +104,15 @@ public class PhotoInfoController {
  	this.photo = photo;
 	
 	changeModelInFields( isCreatingNew );
+    }
+
+    /**
+       Sets the view that is contorlled by this object
+       @param view The controlled view
+    */
+    public void setView( PhotoInfoView view ) {
+	views.clear();
+	views.add( view );
     }
 
     protected void changeModelInFields( boolean preserveFieldState ) {
@@ -130,12 +149,16 @@ public class PhotoInfoController {
     public void save() throws PhotoNotFoundException {
 	// Check if we already have a PhotoInfo object to control
 	if ( isCreatingNew ) {
+	    if ( originalFile != null ) {
 		photo = PhotoInfo.addToDB( originalFile );
+	    } else {
+		photo = PhotoInfo.create();
+	    }
 		
-		// Set the model to all fields but preserve field state so that it is changed to the photoInfo
-		// object
-		changeModelInFields( true );
-		isCreatingNew = false;
+	    // Set the model to all fields but preserve field state so that it is changed to the photoInfo
+	    // object
+	    changeModelInFields( true );
+	    isCreatingNew = false;
 	}
 	
 	// Inform all fields that the modifications should be saved to model
@@ -176,7 +199,7 @@ public class PhotoInfoController {
     public final static String FOCAL_LENGTH = "Focal length";
 
     protected HashMap modelFields = null;
-    
+
     // The original file that is to be added to database (if we are creating a new PhotoInfo object)
     // If we are editing an existing PhotoInfo record this is null 
     File originalFile = null;
@@ -191,6 +214,21 @@ public class PhotoInfoController {
 	}
     }
 
+    /**
+       This method must be called by a view when it has been changed
+       @param view The changed view
+       @param field The field that has been changed
+       @param newValue New value for the field       
+    */
+    public void viewChanged( PhotoInfoView view, String field, Object newValue ) {
+	FieldController fieldCtrl = (FieldController) modelFields.get( field );
+	if ( fieldCtrl != null ) {
+	    fieldCtrl.viewChanged( view, newValue );
+	} else {
+	    System.err.println( "No field " + field );
+	}
+    }
+	
     public Object getField( String field ) {
 	Object value = null;
 	FieldController fieldCtrl = (FieldController) modelFields.get( field );

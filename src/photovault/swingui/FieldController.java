@@ -95,7 +95,7 @@ public abstract class FieldController {
        @param newValue The new value
        @param view View that initiated the value change
     */
-    public void setValue( Object view, Object newValue ) {
+    public void viewChanged( Object view, Object newValue ) {
 	value = newValue;
 	modified = true;
 	updateViews( view );
@@ -123,13 +123,17 @@ public abstract class FieldController {
 
     
     protected void updateViews( Object source ) {
+	System.err.println( "Updating views" );
 	if ( views == null ) {
+	    System.err.println( " no views!" );
 	    return;
 	}
 	Iterator iter = views.iterator();
 	while ( iter.hasNext() ) {
 	    Object view = iter.next();
+	    System.err.println( " view found" );
 	    if ( view != source ) {
+		System.err.println( "  update view" );
 		updateView( view );
 	    }
 	}
