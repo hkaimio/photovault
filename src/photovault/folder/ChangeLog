@@ -1,3 +1,8 @@
+2003-02-25    <harri.kaimio@nokia.com>
+
+	* PhotoFolder.java (modified): Bug fix: the object must be locked before changing the fields -> 
+	this cannot be done in modified() method.
+
 2003-02-23    <harri.kaimio@nokia.com>
 
 	* PhotoFolder.java (modified): Added notification of parents of subfolder modification

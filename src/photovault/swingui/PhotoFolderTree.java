@@ -1,4 +1,4 @@
-// $Id: PhotoFolderTree.java,v 1.3 2003/02/23 21:44:44 kaimio Exp $
+// $Id: PhotoFolderTree.java,v 1.4 2003/02/25 20:57:11 kaimio Exp $
 
 
 package photovault.swingui;
@@ -130,15 +130,26 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     }
     
     void renameSelectedFolder() {
-	log.warn( "Not implemented: renameSelectedFolder()" );
+	if ( selected != null ) {
+	    String origName = selected.getName();
+	    String newName = (String) JOptionPane.showInputDialog( this, "Enter new name",
+								   "Rename folder", JOptionPane.PLAIN_MESSAGE,
+								   null, null, origName );
+	    if ( newName != null ) {
+		PhotoFolder f = selected;
+		f.setName( newName );
+		f.setDescription( "Changed name to " + newName );
+	    }
+	}
     }
-    
     
     
     public static void main( String[] args ) {
 	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );
-
+	org.apache.log4j.Logger folderLog = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
+	folderLog.setLevel( org.apache.log4j.Level.DEBUG );
+	
 	JFrame frame = new JFrame( "PhotoFoldertree test" );
 	PhotoFolderTree view = new PhotoFolderTree();
 	frame.getContentPane().add( view, BorderLayout.CENTER );

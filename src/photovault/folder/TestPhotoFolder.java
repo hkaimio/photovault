@@ -1,4 +1,4 @@
-// $Id: TestPhotoFolder.java,v 1.3 2003/02/23 21:43:41 kaimio Exp $
+// $Id: TestPhotoFolder.java,v 1.4 2003/02/25 20:57:11 kaimio Exp $
 
 package photovault.folder;
 
@@ -18,7 +18,8 @@ public class TestPhotoFolder extends TestCase {
     Transaction tx = null;
 
     /**
-       Sets up the test environment. retrieves from database the hierarchy with "subfolderTest" as root and creates a TreeModel from it
+       Sets up the test environment. retrieves from database the hierarchy with 
+       "subfolderTest" as root and creates a TreeModel from it
     */
     public void setUp() {
 	odmg = OJB.getInstance();
@@ -30,8 +31,8 @@ public class TestPhotoFolder extends TestCase {
 	    db = null;
 	}
 
-	tx = odmg.newTransaction();
-	tx.begin();
+// 	tx = odmg.newTransaction();
+// 	tx.begin();
     }
 
     public void tearDown() {
@@ -42,7 +43,7 @@ public class TestPhotoFolder extends TestCase {
     }
 
     public static void main( String[] args ) {
-	org.apache.log4j.BasicConfigurator.configure();
+	//	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );
 	org.apache.log4j.Logger folderLog = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
 	folderLog.setLevel( org.apache.log4j.Level.DEBUG );
@@ -52,39 +53,38 @@ public class TestPhotoFolder extends TestCase {
     public void testCreate() {
 	
 	PhotoFolder folder = PhotoFolder.create( "Top", null );
-
+	Transaction tx = odmg.newTransaction();
+	log.debug( "Changing folder name for " + folder.getFolderId() );
+	tx.begin();
+	folder.setName( "testTop" );
+	tx.commit();
+	log.debug( "Folder name changed" );
+	
 	// Try to find the object from DB
 	DList folders = null;
-	Transaction tx = odmg.newTransaction();
-	tx.begin();
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = " + folder.getFolderId() );
 	    folders = (DList) query.execute();
 	} catch ( Exception e ) {
-	    tx.abort();
 	    fail( e.getMessage() );
 	}
 
 	Iterator iter = folders.iterator();
-	boolean found = false;
 	while ( iter.hasNext() ) {
 	    PhotoFolder folder2 = (PhotoFolder) iter.next();
-	    if ( folder2.getName().equals( "Top" ) ) {
-		found = true;
-		log.debug( "found top, id = " + folder2.getFolderId() );
-		assertEquals( "Folder not found in DB", folder2.getName(), "Top" );
-		log.debug( "Modifying desc" );
-		folder2.setDescription( "Test description" );
-		tx.lock( folder2, Transaction.WRITE );
-	    }
+	    log.debug( "found top, id = " + folder2.getFolderId() );
+	    assertEquals( "Folder name does not match", folder2.getName(), "testTop" );
+	    log.debug( "Modifying desc" );
+	    folder2.setDescription( "Test description" );
 	}
-	tx.commit();
     }
     
     // Tests the retrieval of existing folder from database
     public void testRetrieve() {
 	DList folders = null;
+	Transaction tx = odmg.newTransaction();
+	tx.begin();
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName() );
@@ -96,7 +96,7 @@ public class TestPhotoFolder extends TestCase {
 	}
 
 	Iterator iter = folders.iterator();
-	boolean found = false;
+boolean found = false;
 	while ( iter.hasNext() ) {
 	    PhotoFolder folder = (PhotoFolder) iter.next();
 	    if ( folder.getName().equals( "Top" ) ) {
@@ -113,6 +113,8 @@ public class TestPhotoFolder extends TestCase {
     */
     public void testSubfolders() {
 	DList folders = null;
+	Transaction tx = odmg.newTransaction();
+	tx.begin();
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName()  + " where name = \"subfolderTest\"" );

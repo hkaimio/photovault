@@ -1,4 +1,4 @@
-// $Id: PhotoFolder.java,v 1.3 2003/02/23 21:43:41 kaimio Exp $
+// $Id: PhotoFolder.java,v 1.4 2003/02/25 20:57:11 kaimio Exp $
 
 package photovault.folder;
 
@@ -7,6 +7,7 @@ import imginfo.*;
 import org.odmg.*;
 import org.apache.ojb.odmg.*;
 import java.util.*;
+import dbhelper.*;
 
 /**
    Implements a folder that can contain both PhotoInfos and other folders
@@ -53,8 +54,11 @@ public class PhotoFolder implements PhotoCollection {
      * @param v  Value to assign to name.
      */
     public void setName(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.name = v;
 	modified();
+	txw.commit();
     }
     String description;
     
@@ -71,8 +75,11 @@ public class PhotoFolder implements PhotoCollection {
      * @param v  Value to assign to description.
      */
     public void setDescription(String  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.description = v;
 	modified();
+	txw.commit();
     }
     Date creationDate;
     
@@ -132,20 +139,26 @@ public class PhotoFolder implements PhotoCollection {
        Adds a new subfolder to this folder. This method is called by setParentFolder().
     */
     protected void addSubfolder( PhotoFolder subfolder ) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	subfolders.add( subfolder );
 	modified();
 	// Inform all parents & their that the structure has changed
 	subfolderStructureChanged( this );
+	txw.commit();
     }
 
     /**
        Removes a subfolder
     */
     protected void removeSubfolder( PhotoFolder subfolder ) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	subfolders.remove( subfolder );
 	modified();
 	// Inform all parents & their that the structure has changed
 	subfolderStructureChanged( this );
+	txw.commit();
     }
     
     /**
@@ -161,6 +174,8 @@ public class PhotoFolder implements PhotoCollection {
     }
 
     public void setParentFolder( PhotoFolder newParent ) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	// If the parent is already set, remove the folder from its subfolders
 	if ( parent != null ) {
 	    parent.removeSubfolder( this );
@@ -170,7 +185,7 @@ public class PhotoFolder implements PhotoCollection {
 	    parent.addSubfolder( this );
 	}
 	modified();
-	
+	txw.commit();
     }
     
     /**
@@ -202,22 +217,12 @@ public class PhotoFolder implements PhotoCollection {
     }
 
     /**
-       This method is called after the collection has been modified in some way. It notifies listeners and checks that the
-       folder is part of some transaction. If it is not, a new transaction will be created and committed.
+       This method is called after the collection has been modified in some way. It notifies listeners.
     */
     protected void modified() {
 	// Find the current transaction or create a new one
-	Transaction tx = odmg.currentTransaction();
-	boolean mustCommit = false;
-	if ( tx == null ) {
-	    tx = odmg.newTransaction();
-	    tx.begin();
-	    mustCommit = true;
-	}
-
-	// Add  folder to the transaction
-	tx.lock( this, Transaction.WRITE );
-
+	log.debug( "Field modified" );
+	
 	// Notify the listeners. This is done in the same transaction context so that potential modifications to other
 	// persistent objects are also saved
 	notifyListeners();
@@ -225,11 +230,6 @@ public class PhotoFolder implements PhotoCollection {
 	// Notify also parents if there are any
 	if ( parent != null ) {
 	    parent.subfolderChanged( this );
-	}
-	
-	// If a new transaction was created, commit it
-	if ( mustCommit ) {
-	    tx.commit();
 	}
     }
     
@@ -387,38 +387,6 @@ public class PhotoFolder implements PhotoCollection {
     }
     
     
-    // Functions to get the ODMG persistence layer handles. This should really be moved into
-    // its own helper class
-
-    static Implementation odmg = null;
-    public static Implementation getODMGImplementation() {
-	if ( odmg == null ) {
-	    odmg = OJB.getInstance();
-	}
-	return odmg;
-    }
-
-    static Database db = null;
-    public static Database getODMGDatabase() {
-	if ( db == null ) {
-	    db = odmg.newDatabase();
-	    try {
-		db.open( "repository.xml", Database.OPEN_READ_WRITE );
-	    } catch ( ODMGException e ) {
-		log.warn( "Could not open database: " + e.getMessage() );
-		db = null;
-	    }
-	}
-	return db;
-    }
-
-    // Init ODMG fields at creation time
-    {
-	
-	getODMGImplementation();
-	getODMGDatabase();
-    }
-    
     public static void main( String[] args ) {
 	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );
@@ -457,4 +425,31 @@ public class PhotoFolder implements PhotoCollection {
     public String toString() {
 	return name;
     }
+
+    // Functions to get the ODMG persistence layer handles. This should really be moved into
+    // its own helper class
+
+    static Implementation odmg = null;
+    public static Implementation getODMGImplementation() {
+	if ( odmg == null ) {
+	    odmg = ODMG.getODMGImplementation();
+	}
+	return odmg;
+    }
+
+    static Database db = null;
+    public static Database getODMGDatabase() {
+	if ( db == null ) {
+	    db = ODMG.getODMGDatabase();
+	}
+	return db;
+    }
+
+    // Init ODMG fields at creation time
+    {
+	
+	getODMGImplementation();
+	getODMGDatabase();
+    }
+    
 }    
