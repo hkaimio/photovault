@@ -69,8 +69,22 @@ public class PhotoQuery implements PhotoCollection {
     public int getCriteriaType( int field ) {
 	return 0;
     }
-    
 
+    /**
+       Clears all criterias from the query
+    */
+    public void clear() {
+	for ( int n = 0; n < criterias.length; n++ ) {
+	    criterias[n] = null;
+	}
+    }
+
+    /**
+       Clears criteria for a certain field
+    */
+    public void clearField( int field ) {
+	criterias[field] = null;
+    }
     
     /** Executes the actual query to database. This method is not
      * called directly by clients but is executed on demand after the

@@ -23,11 +23,18 @@ public class QueryPane extends JPanel implements ActionListener {
 
     private void createUI() {
 	setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+	basicFields = new BasicQueryFieldEditor();
+	add( basicFields );
+	dateCB = new JCheckBox( "Shooting date", false );
+	dateCB.setActionCommand( DATE_CB_CHANGED );
+	dateCB.addActionListener( this );
+	add( dateCB );
 	shootingDateRange = new DateRangeQueryEditor();
+	shootingDateRange.setVisible( false );
 	add( shootingDateRange );
 
 	// Add search button to the bottom
-	JButton searchButton = new JButton( "Serach" );
+	JButton searchButton = new JButton( "Search" );
 	searchButton.setActionCommand( SEARCH_CMD );
 	searchButton.addActionListener( this );
 	JPanel buttonPane = new JPanel();
@@ -46,6 +53,8 @@ public class QueryPane extends JPanel implements ActionListener {
 	    log.debug( "Action performed" );
 	    updateQuery();
 	    fireActionEvent( SEARCH_CMD );
+	} else if ( e.getActionCommand() == DATE_CB_CHANGED ) {
+	    shootingDateRange.setVisible( dateCB.isSelected() );
 	}
     }
 
@@ -70,23 +79,41 @@ public class QueryPane extends JPanel implements ActionListener {
     
 
     static final String SEARCH_CMD = "search";
+    static final String DATE_CB_CHANGED = "date visibility changed";
 
+    JCheckBox dateCB = null;
+    
     public PhotoCollection getResultCollection() {
 	return query;
     }
 
     
     protected void updateQuery() {
-	query.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME,
-				     shootingDateRange.getStartDate(), shootingDateRange.getEndDate() );
-	String photographer = shootingDateRange.getPhotographer();
+
+	query.clear();
+	String photographer = basicFields.getPhotographer();
 	if( photographer.length() > 0 ) {
 	    query.setLikeCriteria( PhotoQuery.FIELD_PHOTOGRAPHER,
 				   photographer );
 	}
+	String desc = basicFields.getDescription();
+	if( desc.length() > 0 ) {
+	    query.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION,
+				   desc );
+	}
+	String shootingPlace = basicFields.getShootingPlace();
+	if( shootingPlace.length() > 0 ) {
+	    query.setLikeCriteria( PhotoQuery.FIELD_SHOOTING_PLACE,
+				   shootingPlace );
+	}
+	if ( dateCB.isSelected() ) {
+	    query.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME,
+					 shootingDateRange.getStartDate(), shootingDateRange.getEndDate() );
+	}
     }
 
     DateRangeQueryEditor shootingDateRange = null;
+    BasicQueryFieldEditor basicFields = null;
     PhotoQuery query = null;
     
     public static void main( String [] args ) {
