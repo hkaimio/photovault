@@ -23,10 +23,19 @@ public class ProgressDlg extends JDialog {
     }
 
     protected void createUI() {
+	JPanel pane = new JPanel();
+	getContentPane().add( pane,  BorderLayout.NORTH );
+	pane.setLayout(new BoxLayout( pane, BoxLayout.Y_AXIS ));
+	pane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	statusLabel = new JLabel();
+	// Set text to non-null value so that the component is laid out correctly
+	statusLabel.setText( " " );
 	progressBar = new JProgressBar();
 	progressBar.setMaximum( 100 );
 	progressBar.setValue( 50 ); // for debugging purposes
-	getContentPane().add( progressBar, BorderLayout.NORTH );
+	pane.add( statusLabel );
+	pane.add(Box.createRigidArea(new Dimension(0, 10)));
+	pane.add( progressBar );
 
 	pack();
     }
@@ -52,7 +61,14 @@ public class ProgressDlg extends JDialog {
        Sets the status string displayed
        @param status The status string
     */
-    void setStatus( String status ) {
+    void setStatus( final String status ) {
+	SwingUtilities.invokeLater( 
+				   new Runnable() {
+				       public void run() {
+					   statusLabel.setText( status );
+				       }
+				   }
+				   );
     }
 
     /**
@@ -70,4 +86,5 @@ public class ProgressDlg extends JDialog {
 	
        
     JProgressBar progressBar;
+    JLabel statusLabel;
 }

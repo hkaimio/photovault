@@ -124,6 +124,7 @@ public class BrowserWindow extends JFrame {
 			    try {
 				photos[n] = PhotoInfo.addToDB( files[n] );
 				pdlg.setProgressPercent( (n*100) / files.length );
+				pdlg.setStatus( "" + (n+1) + " of " + files.length + " files imported." );
 			    } catch ( Exception e ) {
 				log.error( "Unexpected exception: " + e.getMessage() );
 			    }
