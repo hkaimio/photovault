@@ -320,9 +320,7 @@ public class PhotoInfo {
 		ImageInstance instance = (ImageInstance) instances.get( n );
 		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
 		     && instance.getRotated() == prefRotation ) {
-		    log.warn( "Found existing thumbnail instance, image file " + instance.getImageFile() );
 		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
-		    log.warn( "Thumbnail in use" );
 		    break;
 		} 
 	    }

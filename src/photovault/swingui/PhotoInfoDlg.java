@@ -109,7 +109,11 @@ public class PhotoInfoDlg extends JDialog {
 	ctrl.setPhoto( photo );
     }
 
-    /**
+    public void setPhotos( PhotoInfo[] photos ) {
+	ctrl.setPhotos( photos );
+    }
+
+  /**
        Simple main program to aid running & testing this dialog without invoking application
     */
     public static void main( String[] args ) {

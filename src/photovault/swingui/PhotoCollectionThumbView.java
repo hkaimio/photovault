@@ -17,6 +17,8 @@ import java.text.*;
 import java.awt.font.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
 
 
 
@@ -37,7 +39,7 @@ import java.awt.event.ActionListener;
 
 public class PhotoCollectionThumbView
     extends JPanel
-    implements ActionListener, PhotoCollectionChangeListener {
+    implements MouseListener, ActionListener, PhotoCollectionChangeListener {
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoCollectionThumbView.class.getName() );
     
@@ -72,24 +74,107 @@ public class PhotoCollectionThumbView
         
 	    photoCollection = v;
 	    photoCollection.addPhotoCollectionChangeListener( this );
-        repaint();
+        revalidate();
     }
+
     
 
     PhotoCollection collection;
 
-    int columnWidth = 150;
-    int rowHeight = 150;
     
-    void createUI() {
-        
+    /**
+     * Get a currently selected photo
+     * @param num Order number of the photo in 
+     * @return Currently slected photo or <code>null</code> if none is selected
+     */
+
+    public Collection getSelection( ) {
+        return new HashSet( selection );
     }
 
+
+    HashSet selection = new HashSet();
+    
+    int columnWidth = 150;
+    int rowHeight = 150;
+    int columnCount = 0;
+
+
+    JPopupMenu popup = null;
+
+    /**
+       This helper class from Java Tutorial handles displaying of popup menu on correct mouse events
+    */
+    class PopupListener extends MouseAdapter {
+        public void mousePressed(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+        
+        public void mouseReleased(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+        
+        private void maybeShowPopup(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                popup.show(e.getComponent(),
+                           e.getX(), e.getY());
+            }
+        }
+    }
+
+    
+    void createUI() {
+        addMouseListener( this );
+
+
+        // Create the popup menu
+        popup = new JPopupMenu();
+        JMenuItem propsItem = new JMenuItem( "Properties" );
+        propsItem.addActionListener( this );
+        propsItem.setActionCommand( PHOTO_PROPS_CMD );
+        JMenuItem showItem = new JMenuItem( "Show image" );
+        showItem.addActionListener( this );
+        showItem.setActionCommand( PHOTO_SHOW_CMD );
+        JMenuItem rotateCW = new JMenuItem( "Rotate 90 deg CW" );
+        rotateCW.addActionListener( this );
+        rotateCW.setActionCommand( PHOTO_ROTATE_CW_CMD );
+        JMenuItem rotateCCW = new JMenuItem( "Rotate 90 deg CCW" );
+        rotateCCW.addActionListener( this );
+        rotateCCW.setActionCommand( PHOTO_ROTATE_CCW_CMD );
+        JMenuItem rotate180deg = new JMenuItem( "Rotate 180 degrees" );
+        rotate180deg.addActionListener( this );
+        rotate180deg.setActionCommand( PHOTO_ROTATE_180_CMD );
+        JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
+        addToFolder.addActionListener( this );
+        addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
+        popup.add( showItem );
+        popup.add( propsItem );
+        popup.add( rotateCW );
+        popup.add( rotateCCW );
+        popup.add( rotate180deg );
+        popup.add( addToFolder );
+        MouseListener popupListener = new PopupListener();
+        addMouseListener( popupListener );
+               
+    }
+
+
+    // Popup menu actions
+    private static final String PHOTO_PROPS_CMD = "photoProps";
+    private static final String PHOTO_SHOW_CMD = "photoShow";
+    private static final String PHOTO_ROTATE_CW_CMD = "rotateCW";
+    private static final String PHOTO_ROTATE_CCW_CMD = "rotateCCW";
+    private static final String PHOTO_ROTATE_180_CMD = "rotate180";
+    private static final String PHOTO_ADD_TO_FOLDER_CMD = "addToFolder";
+
+
+    
     public void paint( Graphics g ) {
         super.paint( g );
         Graphics2D g2 = (Graphics2D) g;
+        Rectangle clipRect = g.getClipBounds();
         Dimension compSize = getSize();
-        int numColumns = (int)(compSize.getWidth()/columnWidth);
+        columnCount = (int)(compSize.getWidth()/columnWidth);
 
         int photoCount = 0;
         if ( photoCollection != null ) {
@@ -98,11 +183,15 @@ public class PhotoCollectionThumbView
 
         int col = 0;
         int row = 0;
+        Rectangle thumbRect = new Rectangle();
         for ( int i = 0; i < photoCount; i++ ) {
-            PhotoInfo photo = photoCollection.getPhoto( i );
-            paintThumbnail( g2, photo, col*columnWidth, row*rowHeight );
+            thumbRect.setBounds(col*columnWidth, row*rowHeight, columnWidth, rowHeight );
+            if ( thumbRect.intersects( clipRect ) ) {
+                PhotoInfo photo = photoCollection.getPhoto( i );
+                paintThumbnail( g2, photo, col*columnWidth, row*rowHeight, selection.contains( photo ) );
+            }
             col++;
-            if ( col >= numColumns ) {
+            if ( col >= columnCount ) {
                 row++;
                 col = 0;
             }
@@ -112,7 +201,7 @@ public class PhotoCollectionThumbView
     boolean showDate = true;
     boolean showPlace = true;
     
-    private void paintThumbnail( Graphics2D g2, PhotoInfo photo, int startx, int starty ) {
+    private void paintThumbnail( Graphics2D g2, PhotoInfo photo, int startx, int starty, boolean isSelected ) {
 
         // Current position in which attributes can be drawn
         int ypos = starty + rowHeight/2;
@@ -127,11 +216,24 @@ public class PhotoCollectionThumbView
                 int y = starty + (rowHeight -  img.getHeight())/(int)2;
                 
                 g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
+                if ( isSelected ) {
+                    Stroke prevStroke = g2.getStroke();
+                    Color prevColor = g2.getColor();
+                    g2.setStroke( new BasicStroke( 3.0f) );
+                    g2.setColor( Color.BLUE );
+                    g2.drawRect( x, y, img.getWidth(), img.getHeight() );
+                    g2.setColor( prevColor );
+                    g2.setStroke( prevStroke );
+                }
                 // Increase ypos so that attributes are drawn under the image
                 ypos += ((int)img.getHeight())/2 + 4;
             }
             
             // Draw the attributes
+            Color prevBkg = g2.getBackground();
+            if ( isSelected ) {
+                g2.setBackground( Color.BLUE );
+            }
             Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
             FontRenderContext frc = g2.getFontRenderContext();
             if ( showDate && photo.getShootTime() != null ) {
@@ -141,6 +243,8 @@ public class PhotoCollectionThumbView
                 // Calculate the position for the text
                 Rectangle2D bounds = txt.getBounds();
                 int xpos = startx + ((int)(columnWidth - bounds.getWidth()))/2 - (int)bounds.getMinX();
+                g2.clearRect( xpos-2, ypos-2,
+                              (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
                 txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
                 ypos += bounds.getHeight() + 4;
             }
@@ -150,27 +254,267 @@ public class PhotoCollectionThumbView
                 // Calculate the position for the text
                 Rectangle2D bounds = txt.getBounds();
                 int xpos = startx + ((int)(columnWidth-bounds.getWidth()))/2 - (int)bounds.getMinX();
+                
+                g2.clearRect( xpos-2, ypos-2,
+                              (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
                 txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
                 ypos += bounds.getHeight() + 4;
             }
+            g2.setBackground( prevBkg );
         }
     }
 
-    
-    // Implementation of java.awt.event.ActionListener
+
+    public Dimension getPreferredSize() {
+        int prefWidth = 4 * columnWidth;
+        int prefHeight = rowHeight;
+        if ( photoCollection != null ) {
+            prefHeight += rowHeight * (int)(photoCollection.getPhotoCount()/4);
+        }
+        return new Dimension( prefWidth, prefHeight );
+
+    }
+
+    // implementation of java.awt.event.ActionListener interface
 
     /**
-     * Describe <code>actionPerformed</code> method here.
-     *
-     * @param actionEvent an <code>ActionEvent</code> value
+     * ActionListener implementation, is called when a popup menu item is selected
+     * @param  <description>
      */
-    public void actionPerformed(ActionEvent actionEvent) {
-        
+    public void actionPerformed(ActionEvent e) {
+        String cmd = e.getActionCommand();
+        if ( cmd == PHOTO_PROPS_CMD ) {
+            showSelectionPropsDialog();
+        } else if ( cmd == PHOTO_SHOW_CMD ) {
+            showSelectedPhoto();
+        } else if ( cmd == PHOTO_ROTATE_CW_CMD ) {
+            rotateSelectedPhoto( 90 );
+        } else if ( cmd == PHOTO_ROTATE_CCW_CMD ) {
+            rotateSelectedPhoto( -90 );
+        } else if ( cmd == PHOTO_ROTATE_180_CMD ) {
+            rotateSelectedPhoto( 180 );
+        } else if ( cmd == PHOTO_ADD_TO_FOLDER_CMD ) {
+            queryForNewFolder();
+        }
     }
+    
 
 	public void photoCollectionChanged( PhotoCollectionChangeEvent e ) {
         repaint();
 	}
+
+
+    /**
+       Checks which photo is under the specified coordinates
+       @return The photo that covers the position, null if the coordinates point to free space
+       between photos.
+    */
+    private PhotoInfo getPhotoAtLocation( int x, int y ) {
+        if ( photoCollection == null ) {
+            return null;
+        }
+
+        PhotoInfo photo = null;
+        int row = (int) y / rowHeight;
+        int col = (int) x / columnWidth;
+        int photoNum = row * columnCount + col;
+        log.warn( "Located photo # " + photoNum ); 
+        
+        if ( photoNum < photoCollection.getPhotoCount() ) {
+            PhotoInfo photoCandidate = photoCollection.getPhoto( photoNum );
+            log.warn( "Checking bounds" );
+
+            // Check whether the click was inside the thumbnail or not
+            int width = 100;
+            int height = 75;
+            Thumbnail thumb = photoCandidate.getThumbnail();
+            if ( thumb != null ) {
+                BufferedImage img = thumb.getImage();
+                width = img.getWidth();
+                height = img.getHeight();
+            }
+            int imgX = col * columnWidth + (columnWidth - width)/(int)2;
+            int imgY = row * rowHeight + (rowHeight -  height)/(int)2;
+            Rectangle imgRect = new Rectangle( imgX, imgY, width, height );
+            log.warn( "Checking in rectangle (" + imgX + ", " + imgY + ") - (" +
+                      width + ", " + height + ")" );
+            if ( imgRect.contains( new Point( x, y ) ) ) {
+                photo = photoCandidate;
+            }
+        }
+        return photo;
+    }
+
     
+    // Implementation of java.awt.event.MouseListener
+
+    /**
+     * On mouse click select the photo clicked.
+     *
+     * @param mouseEvent a <code>MouseEvent</code> value
+     */
+    public void mouseClicked(MouseEvent mouseEvent) {
+        log.warn( "mouseClicked (" + mouseEvent.getX() + ", " + mouseEvent.getY() );
+
+
+        if ( !mouseEvent.isControlDown() ) {
+            selection.clear();
+        }
+        selection.add( getPhotoAtLocation( mouseEvent.getX(), mouseEvent.getY() ) );
+        repaint();
+    }
+
+    /**
+     * Describe <code>mouseEntered</code> method here.
+     *
+     * @param mouseEvent a <code>MouseEvent</code> value
+     */
+    public void mouseEntered(MouseEvent mouseEvent) {
+        
+    }
+
+    /**
+     * Describe <code>mouseExited</code> method here.
+     *
+     * @param mouseEvent a <code>MouseEvent</code> value
+     */
+    public void mouseExited(MouseEvent mouseEvent) {
+        
+    }
+
+    /**
+     * Describe <code>mousePressed</code> method here.
+     *
+     * @param mouseEvent a <code>MouseEvent</code> value
+     */
+    public void mousePressed(MouseEvent mouseEvent) {
+        
+    }
+
+    /**
+     * Describe <code>mouseReleased</code> method here.
+     *
+     * @param mouseEvent a <code>MouseEvent</code> value
+     */
+    public void mouseReleased(MouseEvent mouseEvent) {
+        
+    }
+
+
+    PhotoInfoDlg propertyDlg = null;
     
+    /**
+       Show the PhotoInfoEditor dialog for the selected photo
+    */
+    public void showSelectionPropsDialog() {
+
+        if ( selection.size() == 0 ) {
+            return;
+        }
+        Iterator iter = selection.iterator();
+        PhotoInfo[] selectedPhotos = new PhotoInfo[selection.size()];
+        int i = 0;
+        while ( iter.hasNext() && i < selectedPhotos.length ) {
+            selectedPhotos[i++] = (PhotoInfo) iter.next();
+        }
+	
+        // Try to find the frame in which this component is in
+        Frame frame = null;
+        Container c = getTopLevelAncestor();
+        if ( c instanceof Frame ) {
+            frame = (Frame) c;
+        }
+
+        if (propertyDlg == null ) {
+            propertyDlg = new PhotoInfoDlg( frame, true, selectedPhotos );
+        } else {
+            propertyDlg.setPhotos( selectedPhotos );
+        }
+
+        propertyDlg.showDialog();
+    }
+    
+    JFrame frame = null;
+    PhotoViewer viewer = null;
+
+    /**
+       Shows the selected photo in a popup window
+    */
+    public void showSelectedPhoto() {
+        try {
+            Collection selectedPhotos = getSelection();
+            Iterator iter = selectedPhotos.iterator();
+            while ( iter.hasNext() ) {
+                PhotoInfo photo = (PhotoInfo) iter.next();
+                JFrame frame = new JFrame( "Photo" );
+                final PhotoViewer viewer = new PhotoViewer();
+                frame.getContentPane().add( viewer, BorderLayout.CENTER );
+                frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+
+                // This is a WAR for a memory management problem. For
+                // some reason the frame and objects owned by it seem
+                // not to be garbage collected. So we free the large
+                // image buffers to avoid massive memory leak.
+                
+                frame.addWindowListener( new WindowAdapter() {
+                        public void windowClosing( WindowEvent e ) {
+                            viewer.setPhoto( null );
+                        }
+                    } );
+                log.warn( "Created frame" );
+                viewer.setPhoto( photo );
+                log.warn( "Photo set" );
+                frame.pack();
+                log.warn( "Frame packed" );
+                frame.setVisible( true );
+                log.warn( "Frame visible" );
+            }
+        } catch ( Throwable e ) {
+            System.err.println( "Out of memory error" );
+            log.warn( e );
+            e.printStackTrace();
+        }
+    }
+
+    /**
+       Queries the user for a new folder into which the photo will be added.
+    */
+    public void queryForNewFolder() {
+        // Try to find the frame in which this component is in
+        Frame frame = null;
+        Container c = getTopLevelAncestor();
+        if ( c instanceof Frame ) {
+            frame = (Frame) c;
+        }
+
+        PhotoFolderSelectionDlg dlg = new PhotoFolderSelectionDlg( frame, true );
+        if ( dlg.showDialog() ) {
+            PhotoFolder folder = dlg.getSelectedFolder();
+            // A folder was selected, so add the selected photo to this folder
+            Collection selectedPhotos = getSelection();
+            Iterator iter = selectedPhotos.iterator();
+            while ( iter.hasNext() ) {
+                PhotoInfo photo = (PhotoInfo) iter.next();
+                if ( photo != null ) {
+                    folder.addPhoto ( photo );
+                }
+            }
+        }
+    }
+
+    /**
+       Rotate selected photo by specified amount
+       @param rot Rotation in degrees, positive means clockwise
+    */
+    public void rotateSelectedPhoto( double rot ) {
+        Collection selectedPhotos = getSelection();
+        Iterator iter = selectedPhotos.iterator();
+        while ( iter.hasNext() ) {
+            PhotoInfo photo = (PhotoInfo) iter.next();
+            if ( photo != null ) {
+                double curRot = photo.getPrefRotation();
+                photo.setPrefRotation( curRot + rot );
+            }
+        }
+    }
 }

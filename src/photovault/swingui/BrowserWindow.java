@@ -67,7 +67,8 @@ public class BrowserWindow extends JFrame {
 	    } );
 	
 	// Create the split pane to display both of these components
-	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, viewPane );
+	JScrollPane viewScroll = new JScrollPane( viewPane );
+	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, viewScroll );
 	Container cp = getContentPane();
 	cp.setLayout( new BorderLayout() );
 	cp.add( split, BorderLayout.CENTER );
