@@ -6,6 +6,7 @@ import junit.framework.*;
 import org.odmg.*;
 import java.util.*;
 import java.sql.*;
+import java.io.*;
 import org.odmg.Database;
 import org.odmg.Implementation;
 import org.apache.ojb.odmg.*;
@@ -109,6 +110,37 @@ public class Test_PhotoFolder extends TestCase {
 	}
 	assertTrue( "Top folder not found", found );
     }
+
+    
+    /** A new photo is created & added to the folder. Verify that it
+     * is both persistent & visible in the folder
+     */
+
+    public void testPhotoAddition() {
+	String testImgDir = "c:\\java\\photovault\\testfiles";
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+
+	PhotoFolder folder = null;
+	// Create a folder for the photo
+	try {
+	    folder = PhotoFolder.create( "Top", null );
+	    folder.addPhoto( photo );
+	    
+	    assertEquals( "Photo not visible in folders' photo count", folder.getPhotoCount(), 1 );
+	} finally {
+	    // Clean up the test folder
+	    PhotoFolder parent = folder.getParentFolder();
+	    parent.removeSubfolder( folder );
+	}
+    }
+
 
     public void testPhotoRetrieval() {
 	// Find the corrent test case

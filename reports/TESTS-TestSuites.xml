@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <testsuites>
-  <testsuite errors="0" failures="0" name="Test_DateRangeQuery" package="imginfo" tests="5" time="6.629">
+  <testsuite errors="0" failures="0" name="Test_DateRangeQuery" package="imginfo" tests="5" time="4.196">
   
     <properties>
     
@@ -108,7 +108,7 @@
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -156,22 +156,22 @@
 
       </properties>
 
-      <testcase classname="imginfo.Test_DateRangeQuery" name="testUpperUnboundedRange" time="4.667"></testcase>
+      <testcase classname="imginfo.Test_DateRangeQuery" name="testUpperUnboundedRange" time="2.624"></testcase>
 
       <testcase classname="imginfo.Test_DateRangeQuery" name="testBoundedRange" time="0.06"></testcase>
 
-      <testcase classname="imginfo.Test_DateRangeQuery" name="testLowerUnboundedRange" time="1.062"></testcase>
+      <testcase classname="imginfo.Test_DateRangeQuery" name="testLowerUnboundedRange" time="0.841"></testcase>
 
-      <testcase classname="imginfo.Test_DateRangeQuery" name="testQueryModification" time="0.37"></testcase>
+      <testcase classname="imginfo.Test_DateRangeQuery" name="testQueryModification" time="0.351"></testcase>
 
-      <testcase classname="imginfo.Test_DateRangeQuery" name="testNotification" time="0.06"></testcase>
+      <testcase classname="imginfo.Test_DateRangeQuery" name="testNotification" time="0.05"></testcase>
 
       <system-out><![CDATA[[org.apache.ojb.broker.core.PersistenceBrokerFactoryDefaultImpl] INFO: Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
 [org.apache.ojb.broker.metadata.RepositoryXmlHandler] INFO: Found attribute (name=grabSize, value=20) but I can not assign them to a descriptor
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 741 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 390 ms
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 140 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 80 ms
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 0
 [DEFAULT] WARN: [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 [DEFAULT] WARN: [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -186,7 +186,7 @@
 [org.apache.ojb.broker.cache.CacheDistributor] INFO: Use property 'descriptorBasedCaches' is set 'false'
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: New ObjectCache instance was created
-[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@16ef71[
+[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@1c888d9[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -202,23 +202,23 @@
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@18e8541[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1b03c1a[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
 ]
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8245} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8245} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8245} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8246} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8246} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8246} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8247} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8247} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8247} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8248} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8248} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8248} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8485} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8485} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8485} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8486} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8486} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8486} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8487} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8487} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8487} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8488} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8488} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8488} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200302\20030220_00001.JPG does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200302\20030220_00002.jpg does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200302\20030220_00003.JPG does not exist in volume
@@ -341,46 +341,46 @@
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200307\20030727_00001.jpg does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2004\200401\20040118_00001.JPG does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2004\200401\20040118_00002.jpg does not exist in volume
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8245} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8245} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8246} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8246} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8247} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8247} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8248} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8248} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8249} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8249} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8249} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8250} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8250} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8250} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8251} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8251} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8251} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8252} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8252} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8252} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8249} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8249} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8250} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8250} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8251} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8251} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8252} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8252} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8253} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8253} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8253} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8254} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8254} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8254} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8255} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8255} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8255} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8256} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8256} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8256} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8485} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8485} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8486} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8486} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8487} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8487} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8488} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8488} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8489} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8489} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8489} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8490} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8490} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8490} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8491} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8491} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8491} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8492} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8492} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8492} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8489} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8489} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8490} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8490} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8491} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8491} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8492} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8492} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8493} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8493} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8493} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8494} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8494} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8494} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8495} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8495} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8495} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8496} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8496} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8496} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2002\200212\20021207_00003.jpg does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2002\200212\20021207_00004.jpg does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2002\200212\20021207_00005.jpg does not exist in volume
@@ -760,60 +760,60 @@
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2002\200211\20021101_00047.JPG does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2002\200206\20020609_00001.jpg does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2002\200206\20020609_00002.jpg does not exist in volume
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8253} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8253} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8254} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8254} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8255} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8255} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8256} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8256} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8257} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8257} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8257} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8258} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8258} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8258} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8259} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8259} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8259} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8260} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8260} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8260} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8257} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8257} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8258} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8258} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8259} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8259} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8260} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8260} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8261} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8261} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8261} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8262} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8262} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8262} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8263} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8263} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8263} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8264} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8264} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8264} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8261} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8261} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8262} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8262} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8263} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8263} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8264} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8264} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8493} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8493} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8494} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8494} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8495} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8495} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8496} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8496} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8497} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8497} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8497} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8498} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8498} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8498} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8499} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8499} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8499} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8500} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8500} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8500} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8497} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8497} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8498} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8498} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8499} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8499} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8500} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8500} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8501} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8501} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8501} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8502} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8502} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8502} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8503} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8503} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8503} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8504} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8504} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8504} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8501} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8501} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8502} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8502} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8503} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8503} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8504} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8504} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
 ]]></system-out>
 
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_ImageInstance" package="imginfo" tests="3" time="5.088">
+  <testsuite errors="0" failures="0" name="Test_ImageInstance" package="imginfo" tests="3" time="3.045">
   
     <properties>
     
@@ -921,7 +921,7 @@
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -969,18 +969,18 @@
 
       </properties>
 
-      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceCreate" time="4.486"></testcase>
+      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceCreate" time="2.644"></testcase>
 
-      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceUpdate" time="0.1"></testcase>
+      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceUpdate" time="0.09"></testcase>
 
-      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceDelete" time="0.131"></testcase>
+      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceDelete" time="0.05"></testcase>
 
       <system-out><![CDATA[[org.apache.ojb.broker.core.PersistenceBrokerFactoryDefaultImpl] INFO: Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
 [org.apache.ojb.broker.metadata.RepositoryXmlHandler] INFO: Found attribute (name=grabSize, value=20) but I can not assign them to a descriptor
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 731 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 351 ms
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 130 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 70 ms
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 0
 [DEFAULT] WARN: [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 [DEFAULT] WARN: [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -995,7 +995,7 @@
 [org.apache.ojb.broker.cache.CacheDistributor] INFO: Use property 'descriptorBasedCaches' is set 'false'
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: New ObjectCache instance was created
-[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@19c5048[
+[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@1f07597[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -1011,7 +1011,7 @@
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@44006e[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@c07527[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -1036,7 +1036,7 @@
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="1" name="Test_PhotoInfo" package="imginfo" tests="16" time="17.596">
+  <testsuite errors="0" failures="1" name="Test_PhotoInfo" package="imginfo" tests="16" time="14.551">
   
     <properties>
     
@@ -1144,7 +1144,7 @@
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -1192,29 +1192,29 @@
 
       </properties>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testRetrievalSuccess" time="3.485"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testRetrievalSuccess" time="1.723"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testRetrievalNotFound" time="1.112"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testRetrievalNotFound" time="0.831"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testUpdate" time="0.05"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testUpdate" time="0.04"></testcase>
 
       <testcase classname="imginfo.Test_PhotoInfo" name="testNullShootDateUpdate" time="0.02"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testPhotoCreation" time="0.07"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testPhotoCreation" time="0.05"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testPhotoDeletion" time="0.06"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testPhotoDeletion" time="0.02"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testInstanceAddition" time="0.09"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testInstanceAddition" time="0.06"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testCreationFromImage" time="0.18"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testCreationFromImage" time="0.1"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testfailedCreation" time="0.0"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testfailedCreation" time="0.01"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreate" time="2.093"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreate" time="1.963"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreateNoInstances" time="0.0"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreateNoInstances" time="0.01"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreateCorruptInstances" time="1.973">
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreateCorruptInstances" time="1.903">
     
       <failure message="Database is corrupt, should return default thumbnail" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Database is corrupt, should return default thumbnail
 	at imginfo.Test_PhotoInfo.testThumbnailCreateCorruptInstances(Test_PhotoInfo.java:411)
@@ -1225,20 +1225,20 @@
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testGetThumbnail" time="1.933"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testGetThumbnail" time="1.853"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbWithNoInstances" time="1.913"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbWithNoInstances" time="1.903"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailRotation" time="4.016"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailRotation" time="3.625"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testListener" time="0.06"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testListener" time="0.04"></testcase>
 
       <system-out><![CDATA[[org.apache.ojb.broker.core.PersistenceBrokerFactoryDefaultImpl] INFO: Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
 [org.apache.ojb.broker.metadata.RepositoryXmlHandler] INFO: Found attribute (name=grabSize, value=20) but I can not assign them to a descriptor
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 751 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 380 ms
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 131 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 71 ms
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 0
 [DEFAULT] WARN: [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 [DEFAULT] WARN: [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -1253,7 +1253,7 @@
 [org.apache.ojb.broker.cache.CacheDistributor] INFO: Use property 'descriptorBasedCaches' is set 'false'
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: New ObjectCache instance was created
-[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@8d5aad[
+[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@1286b10[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -1269,7 +1269,7 @@
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@18eabf6[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@15e00b7[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -1812,184 +1812,185 @@
 [DEFAULT] DEBUG: transition: imginfo.PhotoInfo{1} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.PhotoInfo{1} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [DEFAULT] DEBUG: transition: imginfo.PhotoInfo{1} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8265} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8266} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8266} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8266} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8267} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8267} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8505} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8506} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8506} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8506} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8507} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8507} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8267} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8267} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8267} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8507} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8507} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8507} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8268} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8268} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8268} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8508} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8508} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8508} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
 (imginfo.PhotoInfo                   111 ) Error copying file: c:\_directoryThatDoesNotExist\test1.jpg (The system cannot find the path specified)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8269} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8269} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8509} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8509} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8269} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8509} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8269} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8509} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8269} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8270} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-(imginfo.PhotoInfo                   363 ) Error - no original image was found!!!
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8270} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8270} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8509} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8510} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+(imginfo.PhotoInfo                   364 ) Error - no original image was found!!!
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8510} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8510} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8271} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8271} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8511} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8511} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8271} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8511} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8271} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8511} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8271} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8511} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8272} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8272} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8512} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8512} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8272} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8512} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8272} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8512} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8272} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8273} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-(imginfo.PhotoInfo                   363 ) Error - no original image was found!!!
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8273} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8512} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8513} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+(imginfo.PhotoInfo                   364 ) Error - no original image was found!!!
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8513} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8273} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8273} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8513} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8513} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040509_00003.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040509_00001.jpg} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8273} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040509_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8273} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040509_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8273} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8513} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040509_00003.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040509_00003.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8513} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040509_00003.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8513} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8274} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8275} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8514} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8515} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
 ]]></system-out>
 
       <system-err><![CDATA[line 1: unexpected token: -
@@ -2002,7 +2003,7 @@ Equal size
 ]]></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_Volume" package="imginfo" tests="6" time="11.547">
+  <testsuite errors="0" failures="0" name="Test_Volume" package="imginfo" tests="6" time="7.311">
   
     <properties>
     
@@ -2110,7 +2111,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2158,25 +2159,25 @@ Equal size
 
       </properties>
 
-      <testcase classname="imginfo.Test_Volume" name="testFnameCreation" time="0.05"></testcase>
+      <testcase classname="imginfo.Test_Volume" name="testFnameCreation" time="0.02"></testcase>
 
-      <testcase classname="imginfo.Test_Volume" name="testManyFileCreation" time="0.03"></testcase>
+      <testcase classname="imginfo.Test_Volume" name="testManyFileCreation" time="0.01"></testcase>
 
-      <testcase classname="imginfo.Test_Volume" name="testManyDateCreation" time="0.03"></testcase>
+      <testcase classname="imginfo.Test_Volume" name="testManyDateCreation" time="0.02"></testcase>
 
-      <testcase classname="imginfo.Test_Volume" name="testMassCreation" time="6.97"></testcase>
+      <testcase classname="imginfo.Test_Volume" name="testMassCreation" time="5.087"></testcase>
 
       <testcase classname="imginfo.Test_Volume" name="testFnameMapping" time="0.01"></testcase>
 
-      <testcase classname="imginfo.Test_Volume" name="testNamingWithNoDate" time="4.086"></testcase>
+      <testcase classname="imginfo.Test_Volume" name="testNamingWithNoDate" time="1.913"></testcase>
 
       <system-out><![CDATA[c:\temp\photoVaultVolumeTest\2002\200212\20021213_00001.jpg
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryDefaultImpl] INFO: Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
 [org.apache.ojb.broker.metadata.RepositoryXmlHandler] INFO: Found attribute (name=grabSize, value=20) but I can not assign them to a descriptor
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 721 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 361 ms
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 140 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 80 ms
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 0
 [DEFAULT] WARN: [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 [DEFAULT] WARN: [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -2191,7 +2192,7 @@ Equal size
 [org.apache.ojb.broker.cache.CacheDistributor] INFO: Use property 'descriptorBasedCaches' is set 'false'
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: New ObjectCache instance was created
-[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@18c6982[
+[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@16f8834[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -2207,18 +2208,18 @@ Equal size
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@104eabb[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1ce9f9d[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
 ]
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8285} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8525} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
 ]]></system-out>
 
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_PhotoFolder" package="photovault.folder" tests="6" time="4.156">
+  <testsuite errors="1" failures="0" name="Test_PhotoFolder" package="photovault.folder" tests="7" time="2.533">
   
     <properties>
     
@@ -2326,7 +2327,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2374,24 +2375,35 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testListener" time="2.945"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testListener" time="1.582"></testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testCreate" time="0.2"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testCreate" time="0.11"></testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testRetrieve" time="0.521"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testRetrieve" time="0.381"></testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoRetrieval" time="0.02"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoAddition" time="0.13">
+    
+      <error type="java.lang.NullPointerException">java.lang.NullPointerException
+	at photovault.folder.Test_PhotoFolder.testPhotoAddition(Test_PhotoFolder.java:140)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+</error>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPersistence" time="0.05"></testcase>
+      </testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testSubfolders" time="0.06"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoRetrieval" time="0.01"></testcase>
+
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPersistence" time="0.03"></testcase>
+
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testSubfolders" time="0.04"></testcase>
 
       <system-out><![CDATA[[org.apache.ojb.broker.core.PersistenceBrokerFactoryDefaultImpl] INFO: Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
 [org.apache.ojb.broker.metadata.RepositoryXmlHandler] INFO: Found attribute (name=grabSize, value=20) but I can not assign them to a descriptor
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 540 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 361 ms
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 71 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 70 ms
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 0
 [DEFAULT] WARN: [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 [DEFAULT] WARN: [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -2428,35 +2440,35 @@ Equal size
 ]
 ]
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3742} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3742} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3822} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3822} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3742} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3742} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3822} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3822} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3741} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3742} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3821} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3822} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3743} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3743} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3823} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3823} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3743} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3823} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [org.apache.ojb.odmg.PBCapsule] WARN: No tx runnning and PBKey is null, try to use the default PB
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 2
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Start creating new ObjectCache instance
@@ -2465,9 +2477,9 @@ Equal size
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: New ObjectCache instance was created
 [org.apache.ojb.odmg.PBCapsule] WARN: No tx runnning and PBKey is null, try to use the default PB
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3743} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3823} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3743} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3823} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200302\20030220_00003.JPG does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200302\20030220_00004.JPG does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200302\20030220_00005.JPG does not exist in volume
@@ -2478,17 +2490,27 @@ Equal size
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200302\20030220_00010.jpg does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200308\20030802_00001.jpg does not exist in volume
 (imginfo.ImageInstance               105 ) Error while initializing imageFile: c:\java\photovault\testdb\2003\200307\20030727_00001.jpg does not exist in volume
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8545} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3744} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3744} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3824} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3824} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3744} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3744} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (photos) was set to false.
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3824} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3744} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3744} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3825} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3825} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3744} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3825} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3825} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3825} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3825} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3825} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{10} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
@@ -2497,9 +2519,9 @@ Equal size
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3745} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3826} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{10} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3745} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3826} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{10} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
@@ -2507,13 +2529,13 @@ Equal size
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{10} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3745} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3826} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
 ]]></system-out>
 
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_ImageXform" package="photovault.image" tests="2" time="11.197">
+  <testsuite errors="0" failures="0" name="Test_ImageXform" package="photovault.image" tests="2" time="8.603">
   
     <properties>
     
@@ -2621,7 +2643,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2669,9 +2691,9 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.image.Test_ImageXform" name="testScaling" time="8.122"></testcase>
+      <testcase classname="photovault.image.Test_ImageXform" name="testScaling" time="5.808"></testcase>
 
-      <testcase classname="photovault.image.Test_ImageXform" name="testFitting" time="2.714"></testcase>
+      <testcase classname="photovault.image.Test_ImageXform" name="testFitting" time="2.544"></testcase>
 
       <system-out></system-out>
 
@@ -2690,7 +2712,7 @@ Equal size
 ]]></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_FieldController" package="photovault.swingui" tests="7" time="0.381">
+  <testsuite errors="0" failures="0" name="Test_FieldController" package="photovault.swingui" tests="7" time="0.25">
   
     <properties>
     
@@ -2798,7 +2820,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2846,11 +2868,11 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.swingui.Test_FieldController" name="testFieldSetting" time="0.03"></testcase>
+      <testcase classname="photovault.swingui.Test_FieldController" name="testFieldSetting" time="0.01"></testcase>
 
       <testcase classname="photovault.swingui.Test_FieldController" name="testSaveWithoutModification" time="0.0"></testcase>
 
-      <testcase classname="photovault.swingui.Test_FieldController" name="testFieldModification" time="0.01"></testcase>
+      <testcase classname="photovault.swingui.Test_FieldController" name="testFieldModification" time="0.0"></testcase>
 
       <testcase classname="photovault.swingui.Test_FieldController" name="testViewsModification" time="0.0"></testcase>
 
@@ -2865,7 +2887,7 @@ Equal size
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_PhotoFolderTreeModel" package="photovault.swingui" tests="3" time="4.216">
+  <testsuite errors="0" failures="0" name="Test_PhotoFolderTreeModel" package="photovault.swingui" tests="3" time="2.283">
   
     <properties>
     
@@ -2973,7 +2995,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -3021,18 +3043,18 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testListener" time="3.725"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testListener" time="1.923"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testChildRetrieval" time="0.02"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testChildRetrieval" time="0.01"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testRootModifications" time="0.12"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testRootModifications" time="0.1"></testcase>
 
       <system-out><![CDATA[[org.apache.ojb.broker.core.PersistenceBrokerFactoryDefaultImpl] INFO: Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
 [org.apache.ojb.broker.metadata.RepositoryXmlHandler] INFO: Found attribute (name=grabSize, value=20) but I can not assign them to a descriptor
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 781 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 390 ms
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 120 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 70 ms
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 0
 [DEFAULT] WARN: [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 [DEFAULT] WARN: [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -3047,7 +3069,7 @@ Equal size
 [org.apache.ojb.broker.cache.CacheDistributor] INFO: Use property 'descriptorBasedCaches' is set 'false'
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: New ObjectCache instance was created
-[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@1eb2473[
+[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@169d75d[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -3063,7 +3085,7 @@ Equal size
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1435686[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1eb1db2[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -3083,11 +3105,13 @@ Equal size
 (swingui.PhotoFolderTreeModel        173 ) subfolderChanged 2
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{13} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
+[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (photos) was set to false.
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{13} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 (swingui.PhotoFolderTreeModel        198 ) starting finding path for Subfolder3
 (swingui.PhotoFolderTreeModel        173 ) subfolderChanged 2
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{13} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
+[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (photos) was set to false.
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{13} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 (swingui.PhotoFolderTreeModel        45  ) New root subfolderTest - subfolderCount: 4
 (swingui.PhotoFolderTreeModel        45  ) New root subfolderTest - subfolderCount: 4
@@ -3131,7 +3155,7 @@ Equal size
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3761} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3841} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{10} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 (swingui.PhotoFolderTreeModel        198 ) starting finding path for subfolderTest
 (swingui.PhotoFolderTreeModel        201 ) ancestor Top
@@ -3149,7 +3173,7 @@ Equal size
 (swingui.PhotoFolderTreeModel        187 ) structureChanged 2
 (swingui.PhotoFolderTreeModel        198 ) starting finding path for subfolderTest
 (swingui.PhotoFolderTreeModel        187 ) structureChanged 2
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3761} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3841} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{10} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this reference-descriptor (parent) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
@@ -3157,13 +3181,13 @@ Equal size
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (subfolders) was set to false.
 [DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{10} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3761} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: photovault.folder.PhotoFolder{3841} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
 ]]></system-out>
 
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_PhotoInfoController" package="photovault.swingui" tests="4" time="5.277">
+  <testsuite errors="0" failures="0" name="Test_PhotoInfoController" package="photovault.swingui" tests="4" time="2.905">
   
     <properties>
     
@@ -3271,7 +3295,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -3319,20 +3343,20 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testPhotoModification" time="4.647"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testPhotoModification" time="2.433"></testcase>
 
       <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testChangeDiscarding" time="0.03"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testNewPhotoCreation" time="0.21"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testNewPhotoCreation" time="0.171"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testOnlyRecordCreation" time="0.03"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testOnlyRecordCreation" time="0.02"></testcase>
 
       <system-out><![CDATA[[org.apache.ojb.broker.core.PersistenceBrokerFactoryDefaultImpl] INFO: Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
 [org.apache.ojb.broker.metadata.RepositoryXmlHandler] INFO: Found attribute (name=grabSize, value=20) but I can not assign them to a descriptor
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 691 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 361 ms
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 130 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 70 ms
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 0
 [DEFAULT] WARN: [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 [DEFAULT] WARN: [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -3347,7 +3371,7 @@ Equal size
 [org.apache.ojb.broker.cache.CacheDistributor] INFO: Use property 'descriptorBasedCaches' is set 'false'
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: New ObjectCache instance was created
-[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@a33414[
+[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@14b03ea[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -3363,61 +3387,60 @@ Equal size
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@96e599[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@14653a3[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
 ]
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8305} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8306} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8306} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8306} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8306} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8306} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8306} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8306} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8307} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8307} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8307} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8307} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8307} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8565} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8566} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8566} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8566} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8566} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8566} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8566} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8566} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8567} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8567} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8567} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8567} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8567} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8308} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8308} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8568} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8568} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8308} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8308} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8308} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8307} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8307} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8309} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8309} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8309} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8309} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8309} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8310} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8310} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8310} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8309} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8309} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8568} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8568} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8568} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8567} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8567} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8569} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8569} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8569} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8569} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8569} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8570} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8570} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8570} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8569} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8569} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
 ]]></system-out>
 
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_ThumbnailView" package="photovault.swingui" tests="2" time="10.025">
+  <testsuite errors="0" failures="2" name="Test_ThumbnailView" package="photovault.swingui" tests="2" time="7.411">
   
     <properties>
     
@@ -3525,7 +3548,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.1 compiled on February 12 2004"></property>
 
-          <property name="TSTAMP" value="2233"></property>
+          <property name="TSTAMP" value="2334"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -3573,16 +3596,34 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.swingui.Test_ThumbnailView" name="testThumbnailShow" time="5.568"></testcase>
+      <testcase classname="photovault.swingui.Test_ThumbnailView" name="testThumbnailShow" time="4.967">
+    
+      <failure type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError
+	at photovault.swingui.Test_ThumbnailView.testThumbnailShow(Test_ThumbnailView.java:76)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+</failure>
 
-      <testcase classname="photovault.swingui.Test_ThumbnailView" name="testRotationChange" time="4.076"></testcase>
+      </testcase>
+
+      <testcase classname="photovault.swingui.Test_ThumbnailView" name="testRotationChange" time="2.183">
+    
+      <failure message="thumbnailRotationnnot correct" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: thumbnailRotationnnot correct
+	at photovault.swingui.Test_ThumbnailView.testRotationChange(Test_ThumbnailView.java:103)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+</failure>
+
+      </testcase>
 
       <system-out><![CDATA[[org.apache.ojb.broker.core.PersistenceBrokerFactoryDefaultImpl] INFO: Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
 [org.apache.ojb.broker.metadata.RepositoryXmlHandler] INFO: Found attribute (name=grabSize, value=20) but I can not assign them to a descriptor
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 471 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read class descriptors took 380 ms
 [org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: OJB Descriptor Repository: file:C:/java/photovault/conf/repository.xml
-[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 110 ms
+[org.apache.ojb.broker.metadata.RepositoryPersistor] INFO: Read connection repository took 80 ms
 [org.apache.ojb.broker.core.PersistenceBrokerFactoryBaseImpl] INFO: Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=, password=*****, already created persistence broker instances: 0
 [DEFAULT] WARN: [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 [DEFAULT] WARN: [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -3597,7 +3638,7 @@ Equal size
 [org.apache.ojb.broker.cache.CacheDistributor] INFO: Use property 'descriptorBasedCaches' is set 'false'
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 [org.apache.ojb.broker.cache.ObjectCacheFactory] INFO: New ObjectCache instance was created
-[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@eeabe8[
+[org.apache.ojb.broker.accesslayer.ConnectionFactoryPooledImpl] INFO: Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@f8ae79[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -3613,73 +3654,56 @@ Equal size
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@53bbfa[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@3f4a21[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
 ]
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8325} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8325} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8585} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8585} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8325} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8325} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8585} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8585} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8325} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8585} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8325} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8585} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8325} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8585} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8586} (org.apache.ojb.odmg.states.StateNewDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8586} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8586} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8586} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
 [org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8586} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDirty)
-[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[org.apache.ojb.broker.core.PersistenceBrokerImpl] INFO: Cascade store for this collection-descriptor (instances) was set to false.
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00002.jpg} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8586} (org.apache.ojb.odmg.states.StateOldClean --> org.apache.ojb.odmg.states.StateOldDelete)
+[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20040229_00003.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
 [DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00001.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.ImageInstance{defaultVolume,20021102_00002.jpg} (org.apache.ojb.odmg.states.StateOldDirty --> org.apache.ojb.odmg.states.StateOldClean)
-[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8326} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
+[DEFAULT] DEBUG: transition: imginfo.PhotoInfo{8586} (org.apache.ojb.odmg.states.StateOldDelete --> org.apache.ojb.odmg.states.StateOldClean)
 ]]></system-out>
 
-      <system-err><![CDATA[File thumbnailShow1.png exists
-Read image
-Equal size
-File thumbnailShow2.png exists
-Read image
-Equal size
-File thumbnailShow3.png exists
+      <system-err><![CDATA[Robot non-functional, falling back to AWT mode
+File thumbnailShow1.png exists
 Read image
 Equal size
 File thumbnailRotation1.png exists
-Read image
-Equal size
-File thumbnailRotation2.png exists
 Read image
 Equal size
 ]]></system-err>

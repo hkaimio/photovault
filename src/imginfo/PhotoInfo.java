@@ -116,6 +116,7 @@ public class PhotoInfo {
 	// Create the image
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	PhotoInfo photo = PhotoInfo.create();
+	txw.lock( photo, Transaction.WRITE );
 	photo.addInstance( vol, f, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
 	photo.setShootTime( shootTime );
