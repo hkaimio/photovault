@@ -6,8 +6,12 @@
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+  <property file="build.properties"/> 
 
   <path id="project.class.path">
+    <fileset dir="${build.lib.dir}">
+	<include name="**/*.jar"/>
+    </fileset>
     <pathelement location="c:\java\lib\metadataExtractor.jar/"/>
     <pathelement location="C:\java\abbot-0.8.2\lib\abbot.jar/"/>
     <pathelement location="c:\java\jakarta-ojb\lib\commons-beanutils.jar"/>
