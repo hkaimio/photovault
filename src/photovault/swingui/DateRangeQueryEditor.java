@@ -26,19 +26,16 @@ public class DateRangeQueryEditor extends JPanel {
 	endDate = new JFormattedTextField( df );
 	endDate.setColumns( 10 );
 	endDate.setValue( new Date( ));
-	photographer = new JTextField();
-	photographer.setColumns( 15 );
 	
 	
 	JLabel startLabel = new JLabel( "Start date" );
 	JLabel endLabel = new JLabel( "End date" );
-	JLabel photographerLabel = new JLabel( "Photographer" );
 	JLabel shootingPlaceLabel = new JLabel( "Shooting place" );
 	JLabel descLabel = new JLabel( "Description" );
 	
 	
-	JLabel[] labels = {startLabel, endLabel, photographerLabel};
-	JTextField[] fields = {startDate, endDate, photographer};
+	JLabel[] labels = {startLabel, endLabel};
+	JTextField[] fields = {startDate, endDate};
 	GridBagLayout layout = new GridBagLayout();
 	setLayout( layout );
 	UIUtils.addLabelTextRows( labels, fields, layout, this );
@@ -58,11 +55,7 @@ public class DateRangeQueryEditor extends JPanel {
 	return (Date) endDate.getValue();
     }
 
-    public String getPhotographer() {
-	return photographer.getText();
-    }
     
     JFormattedTextField startDate = null;
     JFormattedTextField endDate = null;
-    JTextField photographer = null;
 }

@@ -22,30 +22,53 @@ public class QueryPane extends JPanel implements ActionListener {
     }
 
     private void createUI() {
-	setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+// 	setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+	GridBagLayout layout = new GridBagLayout();
+	setLayout( layout );
+	GridBagConstraints panelConstraints = new GridBagConstraints();
+ 	panelConstraints.anchor = GridBagConstraints.WEST;
+ 	panelConstraints.gridwidth = GridBagConstraints.REMAINDER;     //end row
+  	panelConstraints.fill = GridBagConstraints.HORIZONTAL;
+	panelConstraints.weightx = 1;
+	
 	basicFields = new BasicQueryFieldEditor();
+	layout.setConstraints( basicFields, panelConstraints );
 	add( basicFields );
-	dateCB = new JCheckBox( "Shooting date", false );
-	dateCB.setActionCommand( DATE_CB_CHANGED );
-	dateCB.addActionListener( this );
-	add( dateCB );
-	shootingDateRange = new DateRangeQueryEditor();
-	shootingDateRange.setVisible( false );
-	add( shootingDateRange );
-
 	// Add search button to the bottom
 	JButton searchButton = new JButton( "Search" );
 	searchButton.setActionCommand( SEARCH_CMD );
 	searchButton.addActionListener( this );
-	JPanel buttonPane = new JPanel();
-	buttonPane.setLayout( new BoxLayout( buttonPane, BoxLayout.X_AXIS ) );
-	buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-	buttonPane.add(Box.createHorizontalGlue());
-	buttonPane.add( searchButton );
-	add( buttonPane );
+	GridBagConstraints searchBtnConstraints = new GridBagConstraints();
+ 	searchBtnConstraints.anchor = GridBagConstraints.EAST;
+ 	searchBtnConstraints.gridwidth = GridBagConstraints.REMAINDER;     //end row
+	layout.setConstraints( searchButton, searchBtnConstraints );
+	add( searchButton );
+	dateCB = new JCheckBox( "Shooting date", false );
+	dateCB.setActionCommand( DATE_CB_CHANGED );
+	dateCB.addActionListener( this );
+	layout.setConstraints( dateCB, panelConstraints );
+	add( dateCB );
+	shootingDateRange = new DateRangeQueryEditor();
+ 	shootingDateRange.setVisible( false );
+	layout.setConstraints( shootingDateRange, panelConstraints );
+	add( shootingDateRange );
 
-	// Add glue so that the empty space will go to the bottom
-	add( Box.createVerticalGlue() );
+	JPanel filler = new JPanel();
+	GridBagConstraints fillerConstraints = new GridBagConstraints();
+ 	fillerConstraints.weighty = 1;
+	layout.setConstraints( filler, fillerConstraints );
+	add( filler );
+	
+// 	JPanel buttonPane = new JPanel();
+// 	buttonPane.setLayout( new BoxLayout( buttonPane, BoxLayout.X_AXIS ) );
+// 	buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+// 	buttonPane.add(Box.createHorizontalGlue());
+// 	buttonPane.add( searchButton );
+// 	layout.setConstraints( buttonPane, panelConstraints );
+// 	add( buttonPane );
+
+// 	// Add glue so that the empty space will go to the bottom
+// 	add( Box.createVerticalGlue() );
     }
 
     public void actionPerformed( ActionEvent e ) {

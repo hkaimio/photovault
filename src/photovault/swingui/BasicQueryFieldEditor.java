@@ -28,11 +28,11 @@ public class BasicQueryFieldEditor extends JPanel {
 	JLabel photographerLabel = new JLabel( "photographed by" );
 
 	descText = new JTextField();
-	descText.setColumns( 25 );
+	//	descText.setColumns( 25 );
 	shootingPlaceText = new JTextField();
-	shootingPlaceText.setColumns( 15 );
+	//	shootingPlaceText.setColumns( 15 );
 	photographerText = new JTextField();
-	photographerText.setColumns( 15 );
+	//	photographerText.setColumns( 15 );
 
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints labelConstraints = new GridBagConstraints();
@@ -44,6 +44,7 @@ public class BasicQueryFieldEditor extends JPanel {
 	GridBagConstraints fieldConstraints = new GridBagConstraints();
 	fieldConstraints.anchor = GridBagConstraints.WEST;
 	fieldConstraints.gridwidth = GridBagConstraints.REMAINDER;     //end row
+	fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
 	fieldConstraints.insets = new Insets( 2, 2, 2, 2 );
 	fieldConstraints.weightx = 1.0;
 	
