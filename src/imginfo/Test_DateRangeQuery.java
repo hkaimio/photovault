@@ -5,9 +5,9 @@ package imginfo;
 import junit.framework.*;
 import java.util.*;
 
-public class TestDateRangeQuery extends TestCase {
+public class Test_DateRangeQuery extends TestCase {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestDateRangeQuery.class.getName() );
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_DateRangeQuery.class.getName() );
 
 
     Vector photos = null;
@@ -168,6 +168,6 @@ public class TestDateRangeQuery extends TestCase {
 	
 	
     public static Test suite() {
-	return new TestSuite( TestDateRangeQuery.class );
+	return new TestSuite( Test_DateRangeQuery.class );
     }
 }

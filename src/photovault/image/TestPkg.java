@@ -26,7 +26,7 @@ public class TestPkg extends TestCase {
 
     public static TestSuite suite() {
 	TestSuite s = new TestSuite( "photovault.image unit tests" );
-	s.addTestSuite( TestImageXform.class );
+	s.addTestSuite( Test_ImageXform.class );
 	return s;
     }
 }

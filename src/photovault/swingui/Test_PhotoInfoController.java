@@ -1,4 +1,4 @@
-// TestPhotoInfoController.java
+// Test_PhotoInfoController.java
 
 package photovault.swingui;
 
@@ -7,7 +7,7 @@ import junit.framework.*;
 import java.util.*;
 import imginfo.*;
 
-public class TestPhotoInfoController extends TestCase {
+public class Test_PhotoInfoController extends TestCase {
 
     PhotoInfo photo = null;
     PhotoInfoController ctrl = null;
@@ -22,10 +22,6 @@ public class TestPhotoInfoController extends TestCase {
 
     public void tearDown() {
 	photo.delete();
-    }
-
-    public static Test suite() {
-	return new TestSuite( TestFieldController.class );
     }
 
     public void testPhotoModification() {

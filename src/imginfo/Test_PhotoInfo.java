@@ -9,8 +9,8 @@ import dbhelper.*;
 
 
 
-public class PhotoInfoTest extends TestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoTest.class.getName() );
+public class Test_PhotoInfo extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoInfo.class.getName() );
 
     /**
        Sets ut the test environment
@@ -560,7 +560,7 @@ public class PhotoInfoTest extends TestCase {
     }
     
     public static Test suite() {
-	return new TestSuite( PhotoInfoTest.class );
+	return new TestSuite( Test_PhotoInfo.class );
     }
     
     

@@ -1,4 +1,4 @@
-// TestThumbnailView.java
+// Test_ThumbnailView.java
 
 package photovault.swingui;
 
@@ -18,10 +18,10 @@ import imginfo.*;
    Implements unit tests for ThumbnailView class
 */
 
-public class TestThumbnailView extends TestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestThumbnailView.class.getName() );
+public class Test_ThumbnailView extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_ThumbnailView.class.getName() );
 
-    public TestThumbnailView() {
+    public Test_ThumbnailView() {
 	testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\swingui\\TestThumbnailView\\" );
 	testRefImageDir.mkdirs();
     }

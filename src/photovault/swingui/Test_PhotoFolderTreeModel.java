@@ -1,4 +1,4 @@
-// $Id: TestPhotoFolderTreeModel.java,v 1.2 2003/02/23 21:43:42 kaimio Exp $
+// $Id: Test_PhotoFolderTreeModel.java,v 1.2 2003/02/23 21:43:42 kaimio Exp $
 
 package photovault.swingui;
 
@@ -8,8 +8,8 @@ import javax.swing.event.*;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;	
 
-public class TestPhotoFolderTreeModel extends TestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestPhotoFolderTreeModel.class.getName() );
+public class Test_PhotoFolderTreeModel extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolderTreeModel.class.getName() );
 
     Implementation odmg = null;
     Database db = null;
@@ -48,7 +48,7 @@ public class TestPhotoFolderTreeModel extends TestCase {
     }
 
     public static Test suite() {
-	return new TestSuite( TestPhotoFolderTreeModel.class );
+	return new TestSuite( Test_PhotoFolderTreeModel.class );
     }
 
     public static void main( String[] args ) {

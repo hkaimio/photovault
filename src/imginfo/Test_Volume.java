@@ -6,7 +6,7 @@ import java.io.*;
 import junit.framework.*;
 import java.util.*;
 
-public class TestVolume extends TestCase {
+public class Test_Volume extends TestCase {
 
     /**
        Sets ut the test environment
@@ -234,7 +234,7 @@ public class TestVolume extends TestCase {
 	
     public static Test suite() {
 
-	return new TestSuite( TestVolume.class );
+	return new TestSuite( Test_Volume.class );
     }
 }
 	

@@ -1,4 +1,4 @@
-// $Id: TestImageXform.java,v 1.1 2003/02/14 19:22:25 kaimio Exp $
+// $Id: Test_ImageXform.java,v 1.1 2003/02/14 19:22:25 kaimio Exp $
 
 
 package photovault.image;
@@ -9,7 +9,7 @@ import java.awt.image.*;
 import javax.imageio.*;
 import java.awt.geom.*;
 
-public class TestImageXform extends TestCase {
+public class Test_ImageXform extends TestCase {
     
     BufferedImage source = null;
     File testDir = null;
@@ -62,7 +62,7 @@ public class TestImageXform extends TestCase {
 
 
     public static Test suite() {
-	return new TestSuite( TestImageXform.class );
+	return new TestSuite( Test_ImageXform.class );
     }
 
 }

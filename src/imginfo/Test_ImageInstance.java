@@ -7,8 +7,8 @@ import java.sql.*;
 import dbhelper.*;
 import java.io.*;
 
-public class TestImageInstance extends TestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestImageInstance.class.getName() );
+public class Test_ImageInstance extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_ImageInstance.class.getName() );
 
     PhotoInfo photo = null;
 
@@ -181,7 +181,7 @@ public class TestImageInstance extends TestCase {
     
 
     public static Test suite() {
-	return new TestSuite( TestImageInstance.class );
+	return new TestSuite( Test_ImageInstance.class );
     }
 
 }

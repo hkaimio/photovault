@@ -22,10 +22,10 @@ public class TestPkg extends TestCase {
 
     public static TestSuite suite() {
 	TestSuite s = new TestSuite( "imginfo unit tests" );
-	s.addTestSuite( PhotoInfoTest.class );
-	s.addTestSuite( TestImageInstance.class );
-	s.addTestSuite( TestVolume.class );
-	s.addTestSuite( TestDateRangeQuery.class );
+	s.addTestSuite( Test_PhotoInfo.class );
+	s.addTestSuite( Test_ImageInstance.class );
+	s.addTestSuite( Test_Volume.class );
+	s.addTestSuite( Test_DateRangeQuery.class );
 	return s;
     }
 }

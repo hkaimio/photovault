@@ -12,8 +12,8 @@ import org.apache.ojb.odmg.*;
 import imginfo.*;
 import dbhelper.*;
 
-public class TestPhotoFolder extends TestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestPhotoFolder.class.getName() );
+public class Test_PhotoFolder extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolder.class.getName() );
 
     Implementation odmg = null;
     Database db = null;
@@ -41,7 +41,7 @@ public class TestPhotoFolder extends TestCase {
     }
 
     public static Test suite() {
-	return new TestSuite( TestPhotoFolder.class );
+	return new TestSuite( Test_PhotoFolder.class );
     }
 
     public static void main( String[] args ) {

@@ -6,8 +6,8 @@ import java.io.*;
 import junit.framework.*;
 import java.util.*;
 
-public class TestFieldController extends TestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestFieldController.class.getName() );
+public class Test_FieldController extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_FieldController.class.getName() );
 
     private class TestObject {
 	public String field;
@@ -179,7 +179,7 @@ public class TestFieldController extends TestCase {
     }
     
     public static Test suite() {
-	return new TestSuite( TestFieldController.class );
+	return new TestSuite( Test_FieldController.class );
     }
     
 }
