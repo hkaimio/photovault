@@ -1,4 +1,4 @@
-// $Id: PhotoFolderTree.java,v 1.4 2003/02/25 20:57:11 kaimio Exp $
+// $Id: PhotoFolderTree.java,v 1.5 2003/02/25 21:12:05 kaimio Exp $
 
 
 package photovault.swingui;
@@ -48,11 +48,15 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	JMenuItem renameItem = new JMenuItem( "Rename" );
 	renameItem.addActionListener( this );
 	renameItem.setActionCommand( FOLDER_RENAME_CMD );
+	JMenuItem deleteItem = new JMenuItem( "Delete" );
+	deleteItem.addActionListener( this );
+	deleteItem.setActionCommand( FOLDER_DELETE_CMD );
 	JMenuItem newFolderItem = new JMenuItem( "New folder..." );
 	newFolderItem.addActionListener( this );
 	newFolderItem.setActionCommand( FOLDER_NEW_CMD );
 	popup.add( newFolderItem );
 	popup.add( renameItem );
+	popup.add( deleteItem );
 	popup.add( propsItem );
 
 	MouseListener popupListener = new PopupListener();
@@ -82,6 +86,7 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     
     static final String FOLDER_PROPS_CMD = "FOLDER_PROPS_CMD";
     static final String FOLDER_RENAME_CMD = "FOLDER_RENAME_CMD";
+    static final String FOLDER_DELETE_CMD = "FOLDER_DELETE_CMD";
     static final String FOLDER_NEW_CMD = "FOLDER_NEW_CMD";
 
 
@@ -111,6 +116,8 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	    createNewFolder();
 	} else if ( cmd == FOLDER_RENAME_CMD ) {
 	    renameSelectedFolder();
+	} else if ( cmd == FOLDER_DELETE_CMD ) {
+	    deleteSelectedFolder();
 	} else {
 	    log.warn( "Unknown action: " + cmd );
 	}
@@ -129,6 +136,20 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	}
     }
     
+    /**
+       Deletes the selected folder
+    */
+    void deleteSelectedFolder() {
+	if ( selected != null ) {
+	    // Ask for confirmation
+	    if ( JOptionPane.showConfirmDialog( this, "Delete folder " + selected.getName() + "?",
+						"Delete folder", JOptionPane.YES_NO_OPTION,
+						JOptionPane.WARNING_MESSAGE, null )
+		 == JOptionPane.YES_OPTION ) {
+		selected.delete();
+	    }
+	}
+    }
     void renameSelectedFolder() {
 	if ( selected != null ) {
 	    String origName = selected.getName();
