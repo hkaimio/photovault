@@ -25,6 +25,9 @@ create table photos (
 	pref_rotation float,
 	orig_fname varchar(30),
 	description text,
+	photo_quality INT,
+	last_modified datetime,
+	tech_notes text,
 
 	PRIMARY KEY( photo_id ),
 	FULLTEXT( shooting_place, description )

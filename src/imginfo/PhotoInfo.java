@@ -121,6 +121,7 @@ public class PhotoInfo {
 	PhotoInfo photo = PhotoInfo.create();
 	txw.lock( photo, Transaction.WRITE );
 	photo.addInstance( vol, f, ImageInstance.INSTANCE_TYPE_ORIGINAL );
+	photo.setOrigFname( imgFile.getName() );
 	java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
 	photo.setShootTime( shootTime );
 	photo.updateFromFileMetadata( f );
@@ -248,6 +249,7 @@ public class PhotoInfo {
     }
 
     protected void modified() {
+	lastModified = new java.util.Date();
 	notifyListeners( new PhotoInfoChangeEvent( this ) );
     }
 
@@ -263,6 +265,26 @@ public class PhotoInfo {
      * Describe timeAccuracy here.
      */
     private double timeAccuracy;
+
+    /**
+     * Describe quality here.
+     */
+    private int quality;
+
+    /**
+     * Describe lastModified here.
+     */
+    private java.util.Date lastModified;
+
+    /**
+     * Describe techNotes here.
+     */
+    private String techNotes;
+
+    /**
+     * Describe origFname here.
+     */
+    private String origFname;
 
     /**
        Returns the uid of the object
@@ -933,6 +955,104 @@ public class PhotoInfo {
 	txw.commit();
     }
 
+    public static final int QUALITY_UNDEFINED = 0;
+    public static final int QUALITY_TOP = 1;
+    public static final int QUALITY_GOOD = 2;
+    public static final int QUALITY_FAIR = 3;
+    public static final int QUALITY_POOR = 4;
+    public static final int QUALITY_UNUSABLE = 5;
+    
+    /**
+     * Get the value of value attribute
+     *
+     * @return an <code>int</code> value
+     */
+    public final int getQuality() {
+	return quality;
+    }
+
+    /**
+     * Set the "value attribute for the photo which tries to describe
+     How good the pohot is. Possible values:
+     <ul>
+     <li>QUALITY_UNDEFINED - value of the photo has not been evaluated</li>
+     <li>QUALITY_TOP - This frame is a top quality photo</it>
+     <li>QUALITY_GOOD - This frame is good, one of the best available from the session</it>
+     <li>QUALITY_FAIR - This frame is OK but probably not the 1st choice for use</it>
+     <li>QUALITY_POOR - Unsuccesful picture</it>
+     <li>QUALITY_UNUSABLE - Technical failure</it>
+     
+     *
+     * @param newQuality The new Quality value.
+     */
+    public final void setQuality(final int newQuality) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	this.quality = newQuality;
+	modified();
+	txw.commit();
+    }
+
+    /**
+       Returns the time when this photo (=metadata of it) was last modified
+    * @return a <code>Date</code> value
+     */
+    public final java.util.Date getLastModified() {
+	return lastModified;
+    }
+
+    public  void setLastModified(final java.util.Date newDate) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	this.lastModified = newDate;
+	modified();
+	txw.commit();
+    }
+
+    /**
+     * Get the <code>TechNotes</code> value.
+     *
+     * @return a <code>String</code> value
+     */
+    public final String getTechNotes() {
+	return techNotes;
+    }
+
+    /**
+     * Set the <code>TechNotes</code> value.
+     *
+     * @param newTechNotes The new TechNotes value.
+     */
+    public final void setTechNotes(final String newTechNotes) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	this.techNotes = newTechNotes;
+	modified();
+	txw.commit();
+    }
+
+    /**
+       Get the original file name of this photo
+
+       * @return a <code>String</code> value
+     */
+    public final String getOrigFname() {
+	return origFname;
+    }
+
+    /**
+       Set the original file name of this photo. This is set also by addToDB which is the
+       preferred way of creating a new photo into the DB.
+    */
+    public final void setOrigFname(final String newFname) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	this.origFname = newFname;
+	modified();
+	txw.commit();
+    }
+
+
     /**
        List of folders this photo belongs to
     */
@@ -990,10 +1110,13 @@ public class PhotoInfo {
 		 && isEqual( p.camera, this.camera )
 		 && isEqual( p.lens, this.lens )
 		 && isEqual( p.film, this.film )
+		 && isEqual( p.techNotes, this.techNotes )
+		 && isEqual( p.origFname, this.origFname )
 		 && p.shutterSpeed == this.shutterSpeed
 		 && p.filmSpeed == this.filmSpeed
 		 && p.focalLength == this.focalLength
 		 && p.FStop == this.FStop
-		 && p.uid == this.uid );
+		 && p.uid == this.uid
+		 && p.quality == this.quality );
     }
 }

@@ -98,6 +98,14 @@
     </field-descriptor>
     <field-descriptor name="description" column="description" jdbc-type="VARCHAR">
     </field-descriptor>
+    <field-descriptor name="techNotes" column="tech_notes" jdbc-type="VARCHAR">
+    </field-descriptor>
+    <field-descriptor name="quality" column="photo_quality" jdbc-type="INTEGER">
+    </field-descriptor>
+    <field-descriptor name="lastModified" column="last_modified" jdbc-type="DATE">
+    </field-descriptor>
+    <field-descriptor name="origFname" column="orig_fname" jdbc-type="VARCHAR">
+    </field-descriptor>
 
     <!-- instances collection -->
     <collection-descriptor name="instances" element-class-ref="imginfo.ImageInstance">
