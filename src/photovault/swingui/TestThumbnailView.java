@@ -90,6 +90,28 @@ public class TestThumbnailView extends TestCase {
 	assertTrue( compareImgToFile( bi, f ) );
     }
 
+        public void testRotationChange() {
+	ThumbnailView view = new ThumbnailView();
+	view.setPhoto( photo );
+	pane.add( view );
+	showFrame();
+	Iterator writers = ImageIO.getImageWritersByFormatName("png");
+	ImageWriter writer = (ImageWriter)writers.next();
+
+	tester.waitForIdle();
+	BufferedImage bi = abbot.tester.Robot.capture( view );
+
+
+	File f = new File( testRefImageDir, "thumbnailRotation1.png" );
+	assertTrue( compareImgToFile( bi, f ) );
+	
+	photo.setPrefRotation( 107 );
+	tester.waitForIdle();
+	bi = abbot.tester.Robot.capture( view );
+	f = new File( testRefImageDir, "thumbnailRotation2.png" );
+	assertTrue( compareImgToFile( bi, f ) );
+    }
+
     private boolean compareImgToFile( BufferedImage img, File file ) {
 	if ( file.exists() ) {
 	    System.err.println( "File exists" );

@@ -18,7 +18,7 @@ import java.text.*;
    ThumbnailView is a very simple component for displaying Thumbnails.
 */
 
-public class ThumbnailView extends JPanel {
+public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
 
     public ThumbnailView() {
 	super();
@@ -94,10 +94,26 @@ public class ThumbnailView extends JPanel {
     }
 
     /**
+       Implementation of @see PhotoInfoChangeListener. Checks if the Thumbnail has changed (e.g. the preferred
+       rotation has changed) and updates thumbnail if appropriate
+    */
+    public void photoInfoChanged( PhotoInfoChangeEvent e ) {
+	Thumbnail newThumb = photo.getThumbnail();
+	if ( newThumb != thumbnail ) {
+	    thumbnail = newThumb;
+	    repaint();
+	}
+    }
+    
+    /**
        Set the photo that is displayed as a thumbnail
     */
     public void setPhoto( PhotoInfo photo ) {
+	if ( this.photo != null ) {
+	    this.photo.removeChangeListener( this );
+	}
 	this.photo = photo;
+	photo.addChangeListener( this );
 	if ( photo != null ) {
 	    thumbnail = photo.getThumbnail();
 	} else {
