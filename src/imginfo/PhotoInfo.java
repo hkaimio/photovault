@@ -7,6 +7,9 @@ import java.io.*;
 import java.text.*;
 import java.lang.Integer;
 import dbhelper.*;
+import javax.imageio.*;
+import java.awt.image.*;
+import java.awt.geom.*;
 
 /**
    PhotoInfo represents information about a single photograph
@@ -87,7 +90,6 @@ class PhotoInfo {
 	    int nRead = 0;
 	    int offset = 0;
 	    while ( (nRead = in.read( buf )) > 0 ) {
-		System.err.println( "" + nRead + " bytes read" );
 		out.write( buf, 0, nRead );
 		offset += nRead;
 	    }
@@ -95,6 +97,7 @@ class PhotoInfo {
 	    in.close();
 	} catch ( Exception e ) {
 	    System.err.println( "Error copying file: " + e.getMessage() );
+	    throw new PhotoNotFoundException();
 	}
 	    
 
@@ -177,8 +180,10 @@ class PhotoInfo {
        See ImageFile class documentation for details.
     */
     public void addInstance( String dirname, String fname, int instanceType ) {
+	ArrayList origInstances = getInstances();
 	ImageFile f = ImageFile.create( dirname, fname, this );
 	f.setFileHistory( instanceType );
+	origInstances.add( f );
     }
 
     /**
@@ -204,22 +209,112 @@ class PhotoInfo {
 	return numInstances;
     }
 
+
+    /**
+       Returns the arrayList that cotnains all instances of this file
+    */
+    public ArrayList getInstances() {
+	if ( instances  == null ) {
+	    instances = ImageFile.retrieveInstances( this );
+	}
+	return instances;
+    }
+    
     ArrayList instances = null;
 
     /**
        Return a single image instance based on its order number
        @param instanceNum Number of the instance to return
+       @throws IndexOutOfBoundsException if instanceNum is < 0 or >= the number of instances 
     */
-    public ImageFile getInstance( int instanceNum ) {
-	ImageFile instance = null;
-	if ( instances  == null ) {
-	    instances = ImageFile.retrieveInstances( this );
-	}
-	if ( instanceNum >= 0 && instanceNum < instances.size() ) {
-	    instance = (ImageFile) instances.get(instanceNum );
-	}
+    public ImageFile getInstance( int instanceNum ) throws IndexOutOfBoundsException {
+	ImageFile instance =  (ImageFile) getInstances().get(instanceNum );
 	return instance;
     }
+
+    
+
+    /** Creates a new thumbnail for this image on specific volume
+	@param volume The volume in which the instance is to be created
+    */
+    protected void createThumbnail( Volume volume ) {
+	
+	
+	// Find the original image to use as a staring point
+	ImageFile original = null;
+	if ( instances == null ) {
+	    instances = ImageFile.retrieveInstances( this );
+	}
+	for ( int n = 0; n < instances.size(); n++ ) {
+	    ImageFile instance = (ImageFile) instances.get( n );
+	    if ( instance.getFileHistory() == ImageFile.FILE_HISTORY_ORIGINAL ) {
+		original = instance;
+		break;
+	    } 
+	}
+	if ( original == null ) {
+	    System.err.println( "Error - no original image was found!!!" );
+	}
+	
+	// Read the image
+	BufferedImage origImage = null;
+	try {
+	    origImage = ImageIO.read( original.getFile() );
+	} catch ( IOException e ) {
+	    System.err.println( "Error reading image: " + e.getMessage() );
+	    return;
+	}
+	
+	// Find where to store the file in the target volume
+	File thumbnailFile = volume.getInstanceName( this, "jpg" );
+	
+	// Shrink the image to desired state and save it
+	// Find first the correct transformation for doing this
+	int origWidth = origImage.getWidth();
+	int origHeight = origImage.getHeight();
+	int maxThumbWidth = 100;
+	int maxThumbHeight = 100;
+	float widthScale = (float) maxThumbWidth / (float) origWidth;
+	float heightScale = (float) maxThumbHeight / (float) origHeight;
+	float scale = widthScale;
+	if ( heightScale < widthScale ) {
+	    scale = heightScale;
+	}
+	
+	System.err.println( "Scaling to thumbnail from (" + origWidth + ", " + origHeight + " by " + scale );
+	// Thhen create the xform
+	AffineTransform at = new AffineTransform();
+	at.scale( scale, scale );
+	AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
+
+	// Create the target image
+	int thumbWidth = (int)(((float)origWidth) * scale);
+	int thumbHeight = (int)(((float)origHeight) * scale);
+	System.err.println( "Thumbnail size (" + thumbWidth + ", " + thumbHeight + ")" );
+	BufferedImage thumbImage = new BufferedImage( thumbWidth, thumbHeight,
+						      origImage.getType() );
+	scaleOp.filter( origImage, thumbImage );
+
+	// Save it
+	try {	    
+	    ImageIO.write( thumbImage, "jpg", thumbnailFile );
+	} catch ( IOException e ) {
+	    System.err.println( "Error writing thumbnail: " + e.getMessage() );
+	}
+
+	// add the created instance to this perdsisten object
+	addInstance( thumbnailFile.getParent(), thumbnailFile.getName(),
+		     ImageFile.FILE_HISTORY_THUMBNAIL );
+    }
+
+    /** Creates a new thumbnail on the default volume
+     */
+    protected void createThumbnail() {
+	Volume vol = Volume.getDefaultVolume();
+	createThumbnail( vol );
+    }
+
+    
     
     java.util.Date shootTime;
     

@@ -202,9 +202,66 @@ public class PhotoInfoTest extends TestCase {
 	assertTrue( photo.getNumInstances() > 0 );
 	photo.delete();
     }
+
+    /**
+       Test that an exception is generated when trying to add nonexisting file to DB
+    */
+    public void testfailedCreation() {
+	String testImgDir = "c:\\_directoryThatDoesNotExist";
+	String fname = "test1.jpg";	
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	    // Execution should neverproceed this far since addToDB should produce exception
+	    fail( "Image file should have been nonexistent" );
+	} catch ( PhotoNotFoundException e ) {
+	    // This is what we except
+	}
+    }
+
+    /**
+       Test that creating a new thumbnail using createThumbnail works
+     */
+    public void testThumbnailCreate() {
+	String testImgDir = "c:\\java\\photovault\\testfiles";
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+	assertNotNull( photo );
+	int instanceCount = photo.getNumInstances();
+	photo.createThumbnail();
+	assertEquals( "InstanceNum should be 1 greater after adding thumbnail",
+		     instanceCount+1, photo.getNumInstances() );
+	// Try to find the new thumbnail
+	boolean foundThumbnail = false;
+	ImageFile thumbnail = null;
+	for ( int n = 0; n < instanceCount+1; n++ ) {
+	    ImageFile instance = photo.getInstance( n );
+	    if ( instance.getFileHistory() == ImageFile.FILE_HISTORY_THUMBNAIL ) {
+		foundThumbnail = true;
+		thumbnail = instance; 
+		break;
+	    }
+	}
+	assertTrue( "Could not find the created thumbnail", foundThumbnail );
+	assertEquals( "Thumbnail width should be 100", 100, thumbnail.getWidth() );
+	File thumbnailFile = thumbnail.getFile();
+	assertTrue( "Image file does not exist", thumbnailFile.exists() );
+	photo.delete();
+	assertFalse( "Image file does exist after delete", thumbnailFile.exists() );
+    }
+	
     
     public static Test suite() {
 	return new TestSuite( PhotoInfoTest.class );
     }
+    
+    
 
 }

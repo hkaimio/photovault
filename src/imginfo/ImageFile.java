@@ -193,6 +193,9 @@ public class ImageFile {
 	} catch ( SQLException e ) {
 	    System.err.println( "Error deletin image file from DB: " + e.getMessage() );
 	}
+	// Delete the actual image file
+	// File f = new File( dirname, fname );
+	// f.delete();
     }
 
     /**
@@ -252,6 +255,13 @@ public class ImageFile {
 	this.fname = v;
     }
     int width;
+
+    /**
+       Returns the File object that describes this image file
+    */
+    public File getFile() {
+	return new File( dirname, fname );
+    }
     
     /**
      * Get the value of width.

@@ -20,7 +20,7 @@
 
 
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" debug="on"/>
   </target>
 
   <target name="dist" depends="compile"
