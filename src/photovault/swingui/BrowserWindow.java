@@ -26,14 +26,15 @@ public class BrowserWindow extends JFrame {
 		}
 	    });
 	
-	addWindowListener(new WindowAdapter() {
-		public void windowClosing(WindowEvent e) {
-		    System.exit(0);
-		}
-	    } );
+// 	addWindowListener(new WindowAdapter() {
+// 		public void windowClosing(WindowEvent e) {
+// 		    System.exit(0);
+// 		}
+// 	    } );
     }
 
     protected void createUI() {
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	tabPane = new JTabbedPane();
 	queryPane = new QueryPane();
 	treePane = new PhotoFolderTree();

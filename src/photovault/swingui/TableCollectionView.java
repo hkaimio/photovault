@@ -217,8 +217,11 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	    frame.getContentPane().add( viewer, BorderLayout.CENTER );
 	    frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
-	    // This is a WAR for a memory management problem. For some reason the frame and objects owned by it
-	    // Seem not to be garbage collected. So we free the large image buffers to avoid massive memory leak.
+	    // This is a WAR for a memory management problem. For some
+	    // reason the frame and objects owned by it Seem not to be
+	    // garbage collected. So we free the large image buffers
+	    // to avoid massive memory leak.
+
 	    frame.addWindowListener( new WindowAdapter() {
 		    public void windowClosing( WindowEvent e ) {
 			viewer.setPhoto( null );
