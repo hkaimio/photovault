@@ -8,6 +8,8 @@ import java.util.*;
 public interface PhotoInfoView {
     public void setPhotographer( String newValue );
     public String getPhotographer();
+    public void setFuzzyDate( FuzzyDate newValue );
+    public FuzzyDate getFuzzyDate();
     public void setShootTime( java.util.Date newValue );
     public Date getShootTime();
     public void setTimeAccuracy( Number timeAccuracy );

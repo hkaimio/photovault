@@ -370,43 +370,46 @@ public class PhotoCollectionThumbView
 	    Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
 	    FontRenderContext frc = g2.getFontRenderContext();
 	    if ( showDate && photo.getShootTime() != null ) {
-		long accuracy = ((long) photo.getTimeAccuracy() ) * 24 * 3600 * 1000;
-		log.warn( "Accuracy = " + accuracy );
-		String dateStr = "";
-		if ( accuracy > 0 ) {
-		    double accuracyFormatLimits[] = {0, 3, 14, 180};
-		    String accuracyFormatStrings[] = {
-			"dd.MM.yyyy",
-			"'wk' w yyyy",
-			"MMMM yyyy",
-			"yyyy"
-		    };
+		FuzzyDate fd = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
+		
+// 		long accuracy = ((long) photo.getTimeAccuracy() ) * 24 * 3600 * 1000;
+// 		log.warn( "Accuracy = " + accuracy );
+// 		String dateStr = "";
+// 		if ( accuracy > 0 ) {
+// 		    double accuracyFormatLimits[] = {0, 3, 14, 180};
+// 		    String accuracyFormatStrings[] = {
+// 			"dd.MM.yyyy",
+// 			"'wk' w yyyy",
+// 			"MMMM yyyy",
+// 			"yyyy"
+// 		    };
 
-		    // Find the correct format to use
-		    double dblAccuracy = photo.getTimeAccuracy();
-		    String formatStr =accuracyFormatStrings[0];
-		    for ( int i = 1; i < accuracyFormatLimits.length; i++ ) {
-			if ( dblAccuracy < accuracyFormatLimits[i] ) {
-			    break;
-			}
-			formatStr =accuracyFormatStrings[i];
-		    }
+// 		    // Find the correct format to use
+// 		    double dblAccuracy = photo.getTimeAccuracy();
+// 		    String formatStr =accuracyFormatStrings[0];
+// 		    for ( int i = 1; i < accuracyFormatLimits.length; i++ ) {
+// 			if ( dblAccuracy < accuracyFormatLimits[i] ) {
+// 			    break;
+// 			}
+// 			formatStr =accuracyFormatStrings[i];
+// 		    }
 			
-		    // Show the limits of the accuracy range
-		    DateFormat df = new SimpleDateFormat( formatStr );
-		    Date lower = new Date( photo.getShootTime().getTime() - accuracy );
-		    Date upper = new Date( photo.getShootTime().getTime() + accuracy );
-		    String lowerStr = df.format( lower );
-		    String upperStr = df.format( upper );
-		    dateStr = lowerStr;
-		    if ( !lowerStr.equals( upperStr ) ) {
-			dateStr += " - " + upperStr;
-		    }
-		} else {
-		    DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
-		    dateStr = df.format( photo.getShootTime() );
-		}
+// 		    // Show the limits of the accuracy range
+// 		    DateFormat df = new SimpleDateFormat( formatStr );
+// 		    Date lower = new Date( photo.getShootTime().getTime() - accuracy );
+// 		    Date upper = new Date( photo.getShootTime().getTime() + accuracy );
+// 		    String lowerStr = df.format( lower );
+// 		    String upperStr = df.format( upper );
+// 		    dateStr = lowerStr;
+// 		    if ( !lowerStr.equals( upperStr ) ) {
+// 			dateStr += " - " + upperStr;
+// 		    }
+// 		} else {
+// 		    DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
+// 		    dateStr = df.format( photo.getShootTime() );
+// 		}
 
+		String dateStr = fd.format();
 		TextLayout txt = new TextLayout( dateStr, attrFont, frc );
 		// Calculate the position for the text
 		Rectangle2D bounds = txt.getBounds();

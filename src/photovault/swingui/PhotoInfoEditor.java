@@ -53,6 +53,12 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	photographerDoc.addDocumentListener( this );
 	photographerDoc.putProperty( FIELD_NAME, PhotoInfoController.PHOTOGRAPHER );
 
+	// "Fuzzy time" field
+	JLabel fuzzyDateLabel = new JLabel( "Fuzzy date" );
+	fuzzyDateField = new JTextField( 30 );
+	fuzzyDateDoc = fuzzyDateField.getDocument();
+	fuzzyDateDoc.addDocumentListener( this );
+
 	// Shooting date field
 	JLabel shootingDayLabel = new JLabel( "Shooting date" );
 	DateFormat df = DateFormat.getDateInstance();
@@ -106,8 +112,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
 	generalPane.setLayout( layout );
-	JLabel[] labels     = { photographerLabel, shootingDayLabel, timeAccuracyLabel, shootingPlaceLabel };
-	JTextField[] fields = { photographerField, shootingDayField, timeAccuracyField, shootingPlaceField };
+	JLabel[] labels     = { photographerLabel, fuzzyDateLabel, shootingDayLabel, timeAccuracyLabel, shootingPlaceLabel };
+	JTextField[] fields = { photographerField, fuzzyDateField, shootingDayField, timeAccuracyField, shootingPlaceField };
 	addLabelTextRows( labels, fields, layout, generalPane );
 
 	
@@ -209,6 +215,21 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public String getPhotographer( ) {
 	return photographerField.getText( );
     }
+
+    public void setFuzzyDate( FuzzyDate d ) {
+	if ( d != null ) {
+	    fuzzyDateField.setText( d.format() );
+	} else {
+	    fuzzyDateField.setText( "" );
+	}
+    }
+    
+    public FuzzyDate getFuzzyDate( ) {
+	String str = fuzzyDateField.getText( );
+	FuzzyDate d = FuzzyDate.parse( str );
+	return d;
+    }
+    
     
     public void setShootTime( Date newValue ) {
 	log.warn( "setShootingTime: " + newValue );
@@ -309,6 +330,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     // Important UI components
     JTextField photographerField = null;
     Document photographerDoc = null;
+    JTextField fuzzyDateField = null;
+    Document fuzzyDateDoc = null;
     JFormattedTextField shootingDayField = null;
     JFormattedTextField timeAccuracyField = null;
     Document shootingDayDoc = null;
@@ -358,6 +381,19 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	Document changedDoc = ev.getDocument();
 	String changedField = (String) changedDoc.getProperty( FIELD_NAME );
 	ctrl.viewChanged( this, changedField );
+
+	// Handle fuzzy time
+	if ( changedDoc == fuzzyDateDoc ) {
+	    log.warn( "Fuzzy date entered" );
+	    String fdStr = fuzzyDateField.getText();
+	    FuzzyDate fd = FuzzyDate.parse( fdStr );
+	    if ( fd != null ) {
+		log.warn( "FuzzyDate parsed succesfully!!!" );
+		shootingDayField.setValue( fd.getDate() );
+		timeAccuracyField.setValue( new Double( fd.getAccuracy() ) );
+	    }
+	    
+	}	
     }
 
     public void removeUpdate( DocumentEvent ev ) {
@@ -384,7 +420,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 		    System.out.println( "Property changed: " + (String) field );
 		    ctrl.viewChanged( this, (String) field );
 		}
-	    }
+	    } 
 	}
     }
     

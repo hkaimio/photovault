@@ -53,6 +53,34 @@ public class PhotoInfoController {
 		}
 	    });
 
+	modelFields.put( FUZZY_DATE, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    FuzzyDate fd = (FuzzyDate) value;
+		    if ( fd != null ) {
+			obj.setShootTime( fd.getDate() );
+			obj.setTimeAccuracy( fd.getAccuracy() );
+		    } else {
+			obj.setShootTime( null );
+			obj.setTimeAccuracy( 0 );
+		    }
+		}
+		protected Object getModelValue( Object model ) {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    Date date = obj.getShootTime();
+		    double accuracy = obj.getTimeAccuracy();
+		    return new FuzzyDate( date, accuracy );
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setFuzzyDate( (FuzzyDate) value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value = obj.getFuzzyDate();
+		}
+	    });
+
 	modelFields.put( SHOOTING_DATE, new FieldController( photos ) {
 		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
@@ -429,6 +457,7 @@ public class PhotoInfoController {
 
     // Fields in PhotoInfo
     public final static String PHOTOGRAPHER = "Photographer";
+    public final static String FUZZY_DATE = "Fuzzy date";
     public final static String SHOOTING_DATE = "Shooting date";
     public final static String TIME_ACCURACY = "Shooting time accuracy";
     public final static String SHOOTING_PLACE = "Shooting place";
