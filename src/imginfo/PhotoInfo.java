@@ -3,6 +3,7 @@
 package imginfo;
 import java.util.*;
 import java.sql.*;
+import dbhelper.*;
 
 /**
    PhotoInfo represents information about a single photograph
@@ -15,11 +16,10 @@ class PhotoInfo {
        @param photoId ID of the photo to be retrieved
     */
     public static PhotoInfo retrievePhotoInfo( int photoId ) throws PhotoNotFoundException {
-	initDB();
-
 	String sql = "SELECT * from photos where photo_id=\"" + photoId +"\"";
 	PhotoInfo photo = new PhotoInfo();
 	try {
+	    Connection conn  = ImageDb.getConnection();
 	    Statement stmt = conn.createStatement();
 	    ResultSet rs = stmt.executeQuery( sql );
 	    if ( !rs.next() ) {
@@ -50,10 +50,11 @@ class PhotoInfo {
     public static PhotoInfo create() {
 	PhotoInfo photo = new PhotoInfo();
 	
-	photo.uid = newUid();
+	photo.uid = ImageDb.newUid();
 
 	// Store the object in database
 	try {
+	    Connection conn = ImageDb.getConnection();
 	    Statement stmt = conn.createStatement();
 	    stmt.executeUpdate( "INSERT INTO photos values ( " + photo.uid + ", NULL, NULL, NULL, NULL, NULL)" );
 	    stmt.close();
@@ -71,6 +72,7 @@ class PhotoInfo {
     public void updateDB() {
 	String sql = "UPDATE photos SET shooting_place = ?, photographer = ?, f_stop = ?, focal_length = ?, shoot_time = ? WHERE photo_id = ?";
 	try {
+	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
 	    stmt.setString( 1, shootingPlace );
 	    stmt.setString( 2, photographer );
@@ -202,49 +204,5 @@ class PhotoInfo {
      */
     public void setPhotographer(String  v) {
 	this.photographer = v;
-    }
-
-    
-    // Database routines
-    private static Connection conn = null;
-
-    private static void initDB() {
-	if ( conn != null ) {
-	    // Database is already initalized!!!
-	    return;
-	}
-	try {
-	    Class.forName( "com.mysql.jdbc.Driver" ).newInstance();
-	} catch ( Exception e ) {
-	    System.err.println( "DB driver not found" );
-	}
-
-	try {
-	    conn = DriverManager.getConnection( "jdbc:mysql:///pv_test", "harri", "r1t1rat1" );
-	} catch ( SQLException e ) {
-	    System.err.println( "ERROR: Could not create DB connection: "
-				+ e.getMessage() );
-	}
-    }
-
-    /**
-       This fuction generates a unique integer uid for usage as a database key.
-       @return unique integer
-    */
-
-    private static int newUid() {
-	int uid = -1;
-	try {
-	    Statement stmt = conn.createStatement();
-	    stmt.executeUpdate( "UPDATE sequence SET id = LAST_INSERT_ID( id+1 )" );
-	    ResultSet rs = stmt.executeQuery( "SELECT LAST_INSERT_ID()" );
-	    if ( rs.next() ) {
-		uid = rs.getInt( 1 );
-	    }
-	} catch ( SQLException e ) {
-	    System.err.println( "Error generating uid: " + e.getMessage() );
-	}
-	return uid;
-    }
-    
+    }    
 }

@@ -2,8 +2,11 @@
 
 package imginfo;
 
+import dbhelper.*;
+import java.sql.*;
+
 /**
-   This class abstracts a image file, i.e. single instance of a photo that is stored in certain
+   This class abstracts an image file, i.e. single instance of a photo that is stored in certain
    place and certain format.
 */
 
@@ -16,11 +19,129 @@ public class ImageFile {
        @param photo PhotoInfo object that represents the content of the image file
        @return A ImageFile object
     */
-    public static ImageFile create( String driname, String fname, PhotoInfo photo ) {
-	// TODO: Implement this
-	return null;
+    public static ImageFile create( String dirname, String fname, PhotoInfo photo ) {
+	String sql = "INSERT INTO image_files VALUES ( ?, ?, ?, ?, ?, ? )";
+	try {
+	    Connection conn = ImageDb.getConnection();
+	    PreparedStatement stmt = conn.prepareStatement( sql );
+	    stmt.setString( 1, dirname );
+	    stmt.setString( 2, fname );
+	    stmt.setInt( 3, photo.getUid() );
+	    stmt.setInt( 4, -1 ); // width
+	    stmt.setInt( 5, -1 ); // height
+	    stmt.setString( 6, "original" );
+	    stmt.executeUpdate();
+	    stmt.close();
+	} catch  (SQLException e ) {
+	    System.err.println( "Error creating ImageFile: " + e.getMessage() );
+	}
+	ImageFile f = null;
+	try {
+	    f = retrieve( dirname, fname );
+	} catch ( PhotoNotFoundException e ) {
+	    System.err.println( "Error fetching image file just ctreated: " + e.getMessage() );
+	}
+	
+	return f;
     }
 
+    /**
+       Retrieves the info record for a image file basewd on its name and path.
+       @param dirname Directory of the image file
+       @param fname Finle name for the image
+       @return ImageFile object representing the image
+       @throws PhotoNotFound exception if the object can not be retrieved.
+    */
+    
+    public static ImageFile retrieve( String dirname, String fname ) throws PhotoNotFoundException {
+	String sql = "SELECT * FROM image_files WHERE dirname = ? AND fname = ?";
+	ImageFile ifile = null;
+	try {
+	    Connection conn = ImageDb.getConnection();
+	    PreparedStatement stmt = conn.prepareStatement( sql );
+	    stmt.setString( 1, dirname );
+	    stmt.setString( 2, fname );
+	    ResultSet rs = stmt.executeQuery();
+	    if ( !rs.next() ) {
+		throw new PhotoNotFoundException();
+	    }
+	    ifile = new ImageFile();
+	    ifile.dirname = rs.getString( "dirname" );
+	    ifile.fname = rs.getString( "fname" );
+	    ifile.photoUid = rs.getInt( "photo_id" );
+	    ifile.width = rs.getInt( "width" );
+	    ifile.height = rs.getInt( "height" );
+	    String strFileHist = rs.getString( "filehist" );
+	    if ( strFileHist.equals( "original" ) ) {
+		ifile.fileHistory = FILE_HISTORY_ORIGINAL;
+	    } else if ( strFileHist.equals( "modified" ) ) {
+		ifile.fileHistory = FILE_HISTORY_MODIFIED;
+	    } else {
+		ifile.fileHistory = FILE_HISTORY_THUMBNAIL;
+	    }
+			
+	    // TODO: Add other parameters
+	} catch ( SQLException e ) {
+	    System.err.println( "Error fetching image file from db: " + e.getMessage() );
+	    throw new PhotoNotFoundException();
+	}
+	return ifile;
+    }
+
+    /**
+       Updates the corresponding record in database to match any modifications to the object
+    */
+    public void updateDB() {
+	String sql = "UPDATE image_files SET photo_id = ?, width = ?, height = ?, filehist = ? WHERE dirname = ? AND fname = ?";
+	try {
+	    Connection conn = ImageDb.getConnection();
+	    PreparedStatement stmt = conn.prepareStatement( sql );
+	    stmt.setInt( 1, photoUid );
+	    stmt.setInt( 2, width );
+	    stmt.setInt( 3, height );
+	    String strFileHist = null;
+	    switch ( fileHistory ) {
+	    case FILE_HISTORY_ORIGINAL :
+		strFileHist = "original";
+		break;
+	    case FILE_HISTORY_MODIFIED:
+		strFileHist = "modified";
+		break;
+	    case FILE_HISTORY_THUMBNAIL:
+		strFileHist = "thumbnail";
+		break;
+	    default:
+		System.err.println( "This is not an allowed value" );
+	    }
+	    stmt.setString( 4, strFileHist );
+	    stmt.setString( 5, dirname );
+	    stmt.setString( 6, fname );
+	    stmt.executeUpdate();
+	    stmt.close();
+	} catch ( SQLException e ) {
+	    System.err.println( "Error updating image file in DB: " + e.getMessage() );
+	}
+    }
+
+    /**
+       Deletes the image file object from database.
+    */
+    public void delete() {
+	String sql = "DELETE FROM image_files WHERE  dirname = ? AND fname = ?";
+	try {
+	    Connection conn = ImageDb.getConnection();
+	    PreparedStatement stmt = conn.prepareStatement( sql );
+	    stmt.setString( 1, dirname );
+	    stmt.setString( 2, fname );
+	    stmt.executeUpdate();
+	    stmt.close();
+	} catch ( SQLException e ) {
+	    System.err.println( "Error deletin image file from DB: " + e.getMessage() );
+	}
+    }
+	    
+
+    
     String dirname;
     
     /**
@@ -122,8 +243,7 @@ public class ImageFile {
     public void setFileHistory(int  v) {
 	this.fileHistory = v;
     }
+
+    int photoUid;
     
-    public void updateDB() {
-	// TODO: implement this
-    }
 }
