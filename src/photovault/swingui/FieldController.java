@@ -20,7 +20,7 @@ public abstract class FieldController {
 	this.model = model;
 	if ( model != null ) {
 	    value = getModelValue();
-	}
+	} 
     }
 
     
