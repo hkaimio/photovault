@@ -10,6 +10,8 @@ import dbhelper.*;
 import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.ImageInputStream;
+import javax.media.jai.*;
+import com.sun.media.jai.codec.*;
 import java.awt.Transparency;
 import java.awt.Dimension;
 import java.awt.image.*;
@@ -436,32 +438,10 @@ public class PhotoInfo {
 	log.debug( "Found original, reading it..." );
 	
 	// Read the image
-	BufferedImage origImage = null;
-	try {
-	    Iterator readers = ImageIO.getImageReadersByFormatName( "jpg" );
-	    if ( readers.hasNext() ) {
-		ImageReader reader = (ImageReader)readers.next();
-		log.debug( "Creating stream" );
-		ImageInputStream iis = ImageIO.createImageInputStream( original.getImageFile() );
-		reader.setInput( iis, true );
-		if ( reader.getNumThumbnails(0) > 0 ) {
-		    log.debug( "Original has thumbnail, size "
-			       + reader.getThumbnailWidth( 0, 0 ) + " x "
-			       + reader.getThumbnailHeight( 0, 0 ) );
-		    origImage = reader.readThumbnail( 0, 0 );
-		    log.debug( "Read thumbnail" );
-		    
-		} else {
-		    log.debug( "No thumbnail in original" );
-		    ImageReadParam param = reader.getDefaultReadParam();
- 		    param.setSourceSubsampling( 16, 16, 0, 0 );
-		    origImage = reader.read( 0, param );
-		    log.debug( "Read original" );
-		}
-	    }
-// 		origImage = ImageIO.read( original.getImageFile() );
-	} catch ( IOException e ) {
-	    log.warn( "Error reading image: " + e.getMessage() );
+	PlanarImage origImage = null;
+	origImage = JAI.create( "fileload", original.getImageFile().getAbsolutePath() );
+	if ( origImage == null ) {
+	    log.warn( "Error reading image " );
 	    txw.abort();
 	    return;
 	}
@@ -483,19 +463,32 @@ public class PhotoInfo {
 									     prefRotation -original.getRotated(),
 									     origWidth, origHeight );
 	
-
-	// Create the target image
-	AffineTransformOp atOp = new AffineTransformOp( xform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR );
-	log.debug( "Filtering..." );
+	ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
+	scaleParams.addSource( origImage );
+	scaleParams.setParameter( "transform", xform );
+	scaleParams.setParameter( "interpolation",
+				  Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
+	RenderedImage thumbImage = JAI.create( "affine", scaleParams );
 	
-	BufferedImage thumbImage = atOp.filter( origImage, null );
-	log.debug( "done Filtering..." );
 
 	// Save it
-	try {	    
-	    ImageIO.write( thumbImage, "jpg", thumbnailFile );
-	} catch ( IOException e ) {
-	    log.warn( "Error writing thumbnail: " + e.getMessage() );
+	FileOutputStream out = null;
+	try {
+	    out = new FileOutputStream(thumbnailFile.getAbsolutePath());
+	} catch(IOException e) {
+	    log.error( "Error writing thumbnail: " + e.getMessage() );
+	    txw.abort();
+	    return;
+	}
+
+	JPEGEncodeParam encodeParam = new JPEGEncodeParam();
+	ImageEncoder encoder = ImageCodec.createImageEncoder("JPEG", out,
+						encodeParam);
+	try {
+	    encoder.encode( thumbImage );
+	    out.close();
+	} catch (IOException e) {
+	    log.error( "Error writing thumbnail: " + e.getMessage() );
 	    txw.abort();
 	    return;
 	}

@@ -43,7 +43,7 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
             while ( iter.hasNext() ) {
                 PhotoInfo photo = (PhotoInfo) iter.next();
                 JFrame frame = new JFrame( "Photo" );
-                final PhotoViewer viewer = new PhotoViewer();
+                final JAIPhotoViewer viewer = new JAIPhotoViewer();
                 frame.getContentPane().add( viewer, BorderLayout.CENTER );
                 frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
