@@ -58,6 +58,26 @@ public class PhotoView extends JPanel {
 	return imgScale;
     }
 
+    /**
+       Returns the width of the currently displayed image
+    */
+    public int getOrigWidth() {
+	if ( origImage == null ) {
+	    return 0;
+	}
+	return origImage.getWidth();
+    }
+    
+    /**
+       Returns the height of the currenty displayed image
+    */
+    public int getOrigHeight() {
+	if ( origImage == null ) {
+	    return 0;
+	}
+	return origImage.getHeight();
+    }
+    
     private void prepareScaledImage() {
 	if ( origImage == null ) {
 	    return;

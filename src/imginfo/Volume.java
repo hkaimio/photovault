@@ -30,9 +30,12 @@ public class Volume {
     */
     public static Volume getVolume( String volName ) {
 	Volume vol = null;
-	if ( volumes != null ) {
-	    vol = (Volume) volumes.get( volName );
+	// Initialize the volumes array and create default volume if it has not been done yet
+	if ( volumes == null ) {
+	    getDefaultVolume();
 	}
+	    
+	vol = (Volume) volumes.get( volName );
 	return vol;
     }
 
