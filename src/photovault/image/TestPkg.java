@@ -1,8 +1,11 @@
-// TestImgInfoPkg.java
-package photovault;
+// $Id: TestPkg.java,v 1.1 2003/02/14 19:22:25 kaimio Exp $
+
+
+package photovault.image;
+
+
 
 import junit.framework.*;
-import imginfo.*;
 
 public class TestPkg extends TestCase {
 
@@ -22,10 +25,8 @@ public class TestPkg extends TestCase {
     }
 
     public static TestSuite suite() {
-	TestSuite s = new TestSuite( "photovault unit tests" );
-	s.addTest( photovault.swingui.TestPkg.suite() );
-	s.addTest( photovault.image.TestPkg.suite() );
-	s.addTest( imginfo.TestPkg.suite() );
+	TestSuite s = new TestSuite( "photovault.image unit tests" );
+	s.addTestSuite( TestImageXform.class );
 	return s;
     }
 }

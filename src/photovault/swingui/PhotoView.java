@@ -101,8 +101,7 @@ public class PhotoView extends JPanel {
 	int h = (int)(origImage.getHeight() * imgScale);
 
 	// Create the zoom xform
-	AffineTransform at = new AffineTransform();
-	at.scale( imgScale, imgScale );
+	AffineTransform at = photovault.image.ImageXform.getScaleXform( imgScale, imgRot, w, h );
 	AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
 
 	// Create the target image

@@ -1,4 +1,4 @@
-// $Id: ImageXform.java,v 1.1 2003/02/12 20:28:24 kaimio Exp $
+// $Id: ImageXform.java,v 1.2 2003/02/14 19:22:25 kaimio Exp $
 
 
 package photovault.image;
@@ -27,7 +27,7 @@ public class ImageXform {
 	
 	Rectangle2D bounds = getBounds( at, width, height );
 
-	at.preConcatenate( at.getTranslateInstance( -scale*bounds.getMinY(), -scale*bounds.getMinY() ) );
+	at.preConcatenate( at.getTranslateInstance( -scale*bounds.getMinX(), -scale*bounds.getMinY() ) );
 	at.scale( scale, scale );
 	return at;
     }

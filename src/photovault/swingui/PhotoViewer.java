@@ -145,6 +145,8 @@ public class PhotoViewer extends JPanel {
 		System.err.println( "Error reading image: " + e.getMessage() );
 		return;
 	    }
+	    double rot = photo.getPrefRotation() - original.getRotated();
+	    imageView.setRotation( rot );
 	}
     }
 
