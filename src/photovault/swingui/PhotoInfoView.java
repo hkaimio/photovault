@@ -10,6 +10,8 @@ public interface PhotoInfoView {
     public String getPhotographer();
     public void setShootTime( java.util.Date newValue );
     public Date getShootTime();
+    public void setTimeAccuracy( Number timeAccuracy );
+    public Number getTimeAccuracy();
     public void setShootPlace( String newValue );
     public String getShootPlace();
     public void setFocalLength( Number newValue );

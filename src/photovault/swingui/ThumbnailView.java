@@ -13,6 +13,7 @@ import java.io.*;
 import java.awt.geom.*;
 import imginfo.*;
 import java.text.*;
+import java.util.Date;
 
 /**
    ThumbnailView is a very simple component for displaying Thumbnails.
@@ -20,6 +21,8 @@ import java.text.*;
 
 public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ThumbnailView.class.getName() );
+    
     public ThumbnailView() {
 	super();
     }
@@ -47,8 +50,22 @@ public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
 	    Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
 	    FontRenderContext frc = g2.getFontRenderContext();
 	    if ( showDate && photo.getShootTime() != null ) {
-		DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
-		String dateStr = df.format( photo.getShootTime() );
+		long accuracy = ((long) photo.getTimeAccuracy() ) * 24 * 3600 * 1000;
+		log.warn( "Accuracy = " + accuracy );
+		String dateStr = "";
+		if ( accuracy > 0 ) {
+		    // Show the limits of the accuracy range
+		    DateFormat df = new SimpleDateFormat( "dd.MM.yyyy" );
+		    Date lower = new Date( photo.getShootTime().getTime() - accuracy );
+		    Date upper = new Date( photo.getShootTime().getTime() + accuracy );
+		    String lowerStr = df.format( lower );
+		    String upperStr = df.format( upper );
+		    dateStr = lower + " - " + upper;
+		} else {
+		    DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
+		    dateStr = df.format( photo.getShootTime() );
+		}
+
 		TextLayout txt = new TextLayout( dateStr, attrFont, frc );
 		// Calculate the position for the text
 		Rectangle2D bounds = txt.getBounds();

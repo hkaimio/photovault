@@ -72,6 +72,30 @@ public class PhotoInfoController {
 		}
 	    });
 
+	modelFields.put( TIME_ACCURACY, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    if ( value != null ) {
+			obj.setTimeAccuracy( ((Number)value).doubleValue() );
+		    } else {
+			obj.setTimeAccuracy( 0 );
+		    }
+		}
+		protected Object getModelValue( Object model ) {
+		    PhotoInfo obj = (PhotoInfo) model;
+		    return new Double( obj.getTimeAccuracy() );
+		}
+		protected void updateView( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    obj.setTimeAccuracy( (Number)value );
+		}
+		protected void updateValue( Object view ) {
+		    PhotoInfoView obj = (PhotoInfoView) view;
+		    value =  obj.getTimeAccuracy();
+		}
+	    });
+
+	
 	modelFields.put( SHOOTING_PLACE, new FieldController( photos ) {
 		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
@@ -406,6 +430,7 @@ public class PhotoInfoController {
     // Fields in PhotoInfo
     public final static String PHOTOGRAPHER = "Photographer";
     public final static String SHOOTING_DATE = "Shooting date";
+    public final static String TIME_ACCURACY = "Shooting time accuracy";
     public final static String SHOOTING_PLACE = "Shooting place";
     public final static String DESCRIPTION = "Description";
     public final static String F_STOP = "F-stop";

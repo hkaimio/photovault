@@ -82,6 +82,8 @@
     </field-descriptor>
     <field-descriptor name="shootTime" column="shoot_time" jdbc-type="DATE">
     </field-descriptor>
+    <field-descriptor name="timeAccuracy" column="time_accuracy" jdbc-type="DOUBLE">
+    </field-descriptor>
     <field-descriptor name="shutterSpeed" column="shutter_speed" jdbc-type="DOUBLE">
     </field-descriptor>
     <field-descriptor name="camera" column="camera" jdbc-type="VARCHAR">

@@ -12,6 +12,7 @@ Version: $Id: create_db.sql,v 1.10 2003/03/05 19:57:15 kaimio Exp $
 create table photos (
 	photo_id INT not null,
 	shoot_time datetime,
+	time_accuracy float default 0,
 	shooting_place varchar(30),
 	photographer varchar(30),
 	f_stop float,

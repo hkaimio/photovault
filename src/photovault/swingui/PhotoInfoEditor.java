@@ -62,6 +62,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	shootingDayField.setValue( new Date( ));
 	shootingDayField.addPropertyChangeListener( this );
 	shootingDayField.putClientProperty( FIELD_NAME, PhotoInfoController.SHOOTING_DATE );
+	
+	JLabel timeAccuracyLabel =  new JLabel( "Accuracy" );
+	DecimalFormat timeAccuracyFormat = new DecimalFormat( "#####.##" );	
+	timeAccuracyField = new JFormattedTextField( timeAccuracyFormat );
+	timeAccuracyField.setColumns( 5 );
+	timeAccuracyField.addPropertyChangeListener( this );
+	timeAccuracyField.putClientProperty( FIELD_NAME, PhotoInfoController.TIME_ACCURACY );
 
 	
 	// Shooting place field
@@ -99,8 +106,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
 	generalPane.setLayout( layout );
-	JLabel[] labels     = { photographerLabel, shootingDayLabel, shootingPlaceLabel };
-	JTextField[] fields = { photographerField, shootingDayField, shootingPlaceField };
+	JLabel[] labels     = { photographerLabel, shootingDayLabel, timeAccuracyLabel, shootingPlaceLabel };
+	JTextField[] fields = { photographerField, shootingDayField, timeAccuracyField, shootingPlaceField };
 	addLabelTextRows( labels, fields, layout, generalPane );
 
 	
@@ -213,6 +220,14 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	return (Date) shootingDayField.getValue();
     }
 
+    public void setTimeAccuracy( Number newValue ) {
+	timeAccuracyField.setValue( newValue );
+    }
+
+    public Number getTimeAccuracy() {
+	return (Number) timeAccuracyField.getValue();
+    }
+
     public void setShootPlace( String newValue ) {
 	shootingPlaceField.setText( newValue );
     }
@@ -295,6 +310,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     JTextField photographerField = null;
     Document photographerDoc = null;
     JFormattedTextField shootingDayField = null;
+    JFormattedTextField timeAccuracyField = null;
     Document shootingDayDoc = null;
     JTextField shootingPlaceField = null;
     Document shootingPlaceDoc = null;

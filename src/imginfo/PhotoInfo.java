@@ -260,6 +260,11 @@ public class PhotoInfo {
     private int uid;
 
     /**
+     * Describe timeAccuracy here.
+     */
+    private double timeAccuracy;
+
+    /**
        Returns the uid of the object
     */
     public int getUid() {
@@ -607,6 +612,28 @@ public class PhotoInfo {
 	modified();
 	txw.commit();
     }
+
+    
+    /**
+       
+       @return The timeAccuracty value
+     */
+    public final double getTimeAccuracy() {
+	return timeAccuracy;
+    }
+
+    /**
+
+       Set the shooting time accuracy. The value is a +/- range from shootingTime
+       parameter (i.e. shootingTime April 15 2000, timeAccuracy 15 means that the
+       photo is taken in April 2000.
+       
+     * @param newTimeAccuracy The new TimeAccuracy value.
+     */
+    public final void setTimeAccuracy(final double newTimeAccuracy) {
+	this.timeAccuracy = newTimeAccuracy;
+    }
+
     
     String desc;
     
