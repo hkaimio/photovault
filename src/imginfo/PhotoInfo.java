@@ -58,7 +58,7 @@ public class PhotoInfo {
 	}	    
 	PhotoInfo photo = (PhotoInfo) photos.get(0);
 
-	// For some reason when seeking for e.gö. photoId -1, a photo with ID = 1 is returned
+	// For some reason when seeking for e.g. photoId -1, a photo with ID = 1 is returned
 	// This sounds like a bug in OJB?????
 	if ( photo.getUid() != photoId ) {
 	    log.warn( "Found photo with ID = " + photo.getUid() + " while looking for ID " + photoId );

@@ -19,7 +19,8 @@ public class Test_PhotoFolder extends TestCase {
     Implementation odmg = null;
     Database db = null;
     Transaction tx = null;
-
+  String testImgDir = "/home/harri/projects/photovault/testfiles";
+  
     /**
        Sets up the test environment. retrieves from database the hierarchy with 
        "subfolderTest" as root and creates a TreeModel from it
@@ -117,7 +118,6 @@ public class Test_PhotoFolder extends TestCase {
      */
 
     public void testPhotoAddition() {
-	String testImgDir = "c:\\java\\photovault\\testfiles";
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
 	PhotoInfo photo = null;

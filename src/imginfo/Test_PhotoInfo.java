@@ -12,6 +12,8 @@ import dbhelper.*;
 public class Test_PhotoInfo extends TestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoInfo.class.getName() );
 
+  String testImgDir = "/home/harri/projects/photovault/testfiles";
+  String nonExistingDir = "/tmp/_dirThatDoNotExist";
     /**
        Sets ut the test environment
     */
@@ -26,7 +28,8 @@ public class Test_PhotoInfo extends TestCase {
     public void tearDown() {
 
     }
-    File testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\imginfo" );
+  //    File testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\imginfo" );
+  File testRefImageDir = new File( "/home/harri/projects/photovault/tests/images/photovault/imginfo" );
     /**
        Test case that verifies that an existing photo infor record 
        can be loaded successfully
@@ -226,7 +229,7 @@ public class Test_PhotoInfo extends TestCase {
     }
     
     public void testInstanceAddition() {
-	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+      File testFile = new File( testImgDir, "test1.jpg" );
 	File instanceFile = Volume.getDefaultVolume().getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );
@@ -259,7 +262,6 @@ public class Test_PhotoInfo extends TestCase {
     }
 	
     public void testCreationFromImage() {
-	String testImgDir = "c:\\java\\photovault\\testfiles";
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
 	PhotoInfo photo = null;
@@ -278,9 +280,8 @@ public class Test_PhotoInfo extends TestCase {
        nonexisting file to DB
     */
     public void testfailedCreation() {
-	String testImgDir = "c:\\_directoryThatDoesNotExist";
 	String fname = "test1.jpg";	
-	File f = new File( testImgDir, fname );
+	File f = new File( nonExistingDir, fname );
 	PhotoInfo photo = null;
 	try {
 	    photo = PhotoInfo.addToDB( f );
@@ -296,7 +297,6 @@ public class Test_PhotoInfo extends TestCase {
        Test that creating a new thumbnail using createThumbnail works
      */
     public void testThumbnailCreate() {
-	String testImgDir = "c:\\java\\photovault\\testfiles";
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
 	PhotoInfo photo = null;
@@ -383,7 +383,6 @@ public class Test_PhotoInfo extends TestCase {
        that photo instances refer to do not exist.
     */
     public void testThumbnailCreateCorruptInstances() throws Exception {	
-	String testImgDir = "c:\\java\\photovault\\testfiles";
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
 	PhotoInfo photo = null;
@@ -423,7 +422,6 @@ public class Test_PhotoInfo extends TestCase {
        Test that creating a new thumbnail using getThumbnail works
      */
     public void testGetThumbnail() {
-	String testImgDir = "c:\\java\\photovault\\testfiles";
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
 	PhotoInfo photo = null;
@@ -474,7 +472,7 @@ public class Test_PhotoInfo extends TestCase {
 	assertEquals( "No new instances should have been created", 0, photo.getNumInstances() );
 
 	// Create a new instance and check that a valid thumbnail is returned after this
-	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+	File testFile = new File( testImgDir, "test1.jpg" );
 	File instanceFile = Volume.getDefaultVolume().getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );
@@ -496,7 +494,6 @@ public class Test_PhotoInfo extends TestCase {
     */
 
     public void testThumbnailRotation() {
-	String testImgDir = "c:\\java\\photovault\\testfiles";
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
 	PhotoInfo photo = null;

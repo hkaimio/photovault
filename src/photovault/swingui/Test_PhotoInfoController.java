@@ -11,6 +11,7 @@ public class Test_PhotoInfoController extends TestCase {
 
     PhotoInfo photo = null;
     PhotoInfoController ctrl = null;
+  String testImgDir = "/home/harri/projects/photovault/testfiles";
     public void setUp() {
 	photo = PhotoInfo.create();
 
@@ -64,7 +65,7 @@ public class Test_PhotoInfoController extends TestCase {
     }
 
     public void testNewPhotoCreation() {
-       	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+      File testFile = new File( testImgDir, "test1.jpg" );
 	
 	ctrl.createNewPhoto( testFile );
 	String photographer = "Test photographer";

@@ -13,19 +13,21 @@ public class Test_ImageXform extends TestCase {
     
     BufferedImage source = null;
     File testDir = null;
-    
+  String testImgDir = "/home/harri/projects/photovault/testfiles";
+  String refImgDir = "/home/harri/projects/photovault/tests/images";
+  
     /**
        Sets ut the test environment
     */
     public void setUp() {
-	File f = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+      File f = new File( testImgDir, "test1.jpg" );
 	try {
 	    source = ImageIO.read( f );
 	} catch ( IOException e ) {
 	    System.err.println( "Error reading image: " + e.getMessage() );
 	    return;
 	}
-	testDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\image\\ImageXform" );
+	testDir = new File( refImgDir, "photovault/image/ImageXform" );
     }
 
     public void testScaling() {

@@ -20,9 +20,10 @@ import imginfo.*;
 
 public class Test_ThumbnailView extends TestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_ThumbnailView.class.getName() );
+  String testImgDir = "/home/harri/projects/photovault/testfiles";
 
     public Test_ThumbnailView() {
-	testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\swingui\\TestThumbnailView\\" );
+	testRefImageDir = new File( "/home/harri/projects/photovault/tests/images/photovault/swingui/TestThumbnailView/" );
 	testRefImageDir.mkdirs();
     }
     
@@ -41,7 +42,7 @@ public class Test_ThumbnailView extends TestCase {
         pane.setBorder(new EmptyBorder(50, 50, 50, 50));
         tester = ComponentTester.getTester(ThumbnailView.class);
 
-	File f = new File("c:\\java\\photovault\\testfiles\\test1.jpg" );
+	File f = new File(testImgDir, "test1.jpg" );
 	try {
 	    photo = PhotoInfo.addToDB( f );
 	} catch( PhotoNotFoundException e ) {
@@ -123,7 +124,7 @@ public class Test_ThumbnailView extends TestCase {
 	    }
 	    boolean eq = equals( img, fImg );
 	    if ( !eq ) {
-		File f = new File( "c:\\temp\\errorFile.png" );
+		File f = new File( "/tmp/errorFile.png" );
 		Iterator writers = ImageIO.getImageWritersByFormatName("png");
 		ImageWriter writer = (ImageWriter)writers.next();
 		try {

@@ -25,7 +25,7 @@ public class Test_PhotoQuery extends TestCase {
 	cal.set( 2002, 11, 23 );
 	makePhoto( cal, "Katsokaa kun Lassi ui" );
 	cal.set( 2002, 11, 24 );
-	makePhoto( cal, "Lassille kuuluu hyv‰‰" );
+	makePhoto( cal, "Lassille kuuluu hyvaa" );
 	makePhoto( cal, "" );
 	cal.set( 2002, 11, 25 );
 	makePhoto( cal, "" );

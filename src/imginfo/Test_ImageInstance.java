@@ -9,6 +9,9 @@ import java.io.*;
 
 public class Test_ImageInstance extends TestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_ImageInstance.class.getName() );
+  
+  String testImgDir = "/home/harri/projects/photovault/testfiles";
+  String volumeRoot =  "/tmp/photoVaultImageInstanceTest";
 
     PhotoInfo photo = null;
 
@@ -23,7 +26,6 @@ public class Test_ImageInstance extends TestCase {
 	} catch ( Exception e ) {
 	    fail( "Unable to retrieve PhotoInfo object" );
 	}
-	String volumeRoot =  "c:\\temp\\photoVaultImageInstanceTest";
 	volume = new Volume( "imageInstanceTest", volumeRoot );
     }
     
@@ -37,7 +39,7 @@ public class Test_ImageInstance extends TestCase {
 
     public void testImageInstanceCreate() {
 	
-	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+      File testFile = new File( testImgDir, "test1.jpg" );
 	File instanceFile = volume.getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );
@@ -52,7 +54,7 @@ public class Test_ImageInstance extends TestCase {
 		  
     public void testImageInstanceUpdate() {
 	
-	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+      File testFile = new File( testImgDir, "test1.jpg" );
 	File instanceFile = volume.getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );
@@ -89,7 +91,7 @@ public class Test_ImageInstance extends TestCase {
     }
 
     public void testImageInstanceDelete() {
-	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+      File testFile = new File( testImgDir, "test1.jpg" );
 	File instanceFile = volume.getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );
@@ -103,7 +105,7 @@ public class Test_ImageInstance extends TestCase {
 	Connection conn = ImageDb.getConnection();
 	try {
 	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery( "SELECT * FROM image_files WHERE dirname = \"c:\\java\\photovault\\testfiles\" AND fname = \"test1.jpg\"" );
+	    ResultSet rs = stmt.executeQuery( "SELECT * FROM image_instances WHERE dirname = \"" + testImgDir + "\" AND fname = \"test1.jpg\"" );
 	    if ( rs.next() ) {
 		fail( "Found matching DB record after delete" );
 	    }
