@@ -3,6 +3,9 @@
 package imginfo;
 import java.util.*;
 import java.sql.*;
+import java.io.*;
+import java.text.*;
+import java.lang.Integer;
 import dbhelper.*;
 
 /**
@@ -65,6 +68,46 @@ class PhotoInfo {
     }
     
 
+    /**
+       Add a new image to the database. This method first copies a given image file to the database volume.
+       It then extracts the information it can from the image file and stores a corresponding entry in DB
+       @param imgFile File object that describes the image file that is to be added to the database
+       @return The PhotoInfo object describing the new file.
+       @throws PhotoNotFoundException if the file given as imgFile argument does not exist or is unaccessible.
+    */
+    public static PhotoInfo addToDB( File imgFile )  throws PhotoNotFoundException {
+	Volume vol = Volume.getDefaultVolume();
+	File f = vol.getFilingFname( imgFile );
+
+	// Copy the file to the archive
+	try {
+	    FileInputStream in = new FileInputStream( imgFile );
+	    FileOutputStream out = new FileOutputStream( f );
+	    byte buf[] = new byte[1024];
+	    int nRead = 0;
+	    int offset = 0;
+	    while ( (nRead = in.read( buf )) > 0 ) {
+		System.err.println( "" + nRead + " bytes read" );
+		out.write( buf, 0, nRead );
+		offset += nRead;
+	    }
+	    out.close();
+	    in.close();
+	} catch ( Exception e ) {
+	    System.err.println( "Error copying file: " + e.getMessage() );
+	}
+	    
+
+	// Create the image
+	PhotoInfo photo = PhotoInfo.create();
+	photo.addInstance( f.getParent(), f.getName(), ImageFile.FILE_HISTORY_ORIGINAL );
+	java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
+	photo.setShootTime( shootTime );
+	photo.updateDB();
+	return photo;
+    }
+    
+	
     /**
        Deletes the PhotoInfo and all related instances from database
     */
@@ -281,5 +324,6 @@ class PhotoInfo {
      */
     public void setPhotographer(String  v) {
 	this.photographer = v;
-    }    
+    }
+
 }

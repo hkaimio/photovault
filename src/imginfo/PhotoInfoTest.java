@@ -1,6 +1,7 @@
 // PhotoInfoTest.java
 package imginfo;
 
+import java.io.*;
 import junit.framework.*;
 
 
@@ -187,7 +188,21 @@ public class PhotoInfoTest extends TestCase {
 	photo.delete();
     }
 	
-
+    public void testCreationFromImage() {
+	String testImgDir = "c:\\java\\photovault\\testfiles";
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+	assertNotNull( photo );
+	assertTrue( photo.getNumInstances() > 0 );
+	photo.delete();
+    }
+    
     public static Test suite() {
 	return new TestSuite( PhotoInfoTest.class );
     }
