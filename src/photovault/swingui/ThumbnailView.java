@@ -7,11 +7,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import java.awt.font.*;
 import javax.imageio.ImageIO;
 import java.io.*;
-import java.awt.geom.AffineTransform;
+import java.awt.geom.*;
 import imginfo.*;
-
+import java.text.*;
 
 /**
    ThumbnailView is a very simple component for displaying Thumbnails.
@@ -25,19 +26,50 @@ public class ThumbnailView extends JPanel {
 
     public void paint( Graphics g ) {
 	super.paint( g );
+	Graphics2D g2 = (Graphics2D) g;
+	// Current position in which attributes can be drawn
+	Dimension compSize = getSize();
+	int ypos = ((int)compSize.getHeight())/2;
 
 	if ( thumbnail != null ) {
 	    // Find the position for the thumbnail
 	    BufferedImage img = thumbnail.getImage();
-	    Dimension compSize = getSize();
 	    int x = ((int)(compSize.getWidth() - img.getWidth()))/(int)2;
 	    int y = ((int)(compSize.getHeight() - img.getHeight()))/(int)2;
 		
-	    Graphics2D g2 = (Graphics2D) g;
 	    g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
+	    // Increase ypos so that attributes are drawn under the image
+	    ypos += ((int)img.getHeight())/2 + 4;
+	}
+
+	// Draw the attributes
+	if ( photo != null ) {
+	    Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
+	    FontRenderContext frc = g2.getFontRenderContext();
+	    if ( showDate && photo.getShootTime() != null ) {
+		DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
+		String dateStr = df.format( photo.getShootTime() );
+		TextLayout txt = new TextLayout( dateStr, attrFont, frc );
+		// Calculate the position for the text
+		Rectangle2D bounds = txt.getBounds();
+		int xpos = ((int)(compSize.getWidth()-bounds.getWidth()))/2 - (int)bounds.getMinX();
+		txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
+		ypos += bounds.getHeight() + 4;
+	    }
+	    if ( showPlace && photo.getShootingPlace() != null ) {
+		TextLayout txt = new TextLayout( photo.getShootingPlace(), attrFont, frc );
+		// Calculate the position for the text
+		Rectangle2D bounds = txt.getBounds();
+		int xpos = ((int)(compSize.getWidth()-bounds.getWidth()))/2 - (int)bounds.getMinX();
+		txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
+		ypos += bounds.getHeight() + 4;
+	    }
 	}
     }
 
+    boolean showDate = true;
+    boolean showPlace = true;
+	
     public Dimension getPreferredSize() {
 	return new Dimension( 150, 150 );
     }
