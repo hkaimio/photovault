@@ -75,7 +75,7 @@ public abstract class FieldController {
     /**
        Sets a model that consists of several identical obejcts. If all the objects have an equal value
        the model value will be the same. However, if the value differs in some of the objects
-       the contrroller value will be numm until the controller is modified.
+       the controller value will be null until the controller is modified.
     */
     public void setModel( Object[] model, boolean preserveState ) {
 	this.model = model;

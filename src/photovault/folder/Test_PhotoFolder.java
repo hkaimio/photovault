@@ -89,7 +89,7 @@ public class Test_PhotoFolder extends TestCase {
 	tx.begin();
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName() );
+	    query.create( "select folders from " + PhotoFolder.class.getName() + " where name = \"Top\"" );
 	    folders = (DList) query.execute();
 	    tx.commit();
 	} catch ( Exception e ) {

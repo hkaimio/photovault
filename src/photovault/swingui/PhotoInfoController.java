@@ -393,7 +393,7 @@ public class PhotoInfoController {
 	Iterator fieldIter = modelFields.values().iterator();
 	while ( fieldIter.hasNext() ) {
 	    FieldController fieldCtrl = (FieldController) fieldIter.next();
-	    fieldCtrl.setModel( photos, true );
+	    fieldCtrl.setModel( photos, false );
 	}
     }
 
