@@ -1,4 +1,4 @@
-// $Id: TestPhotoFolder.java,v 1.1 2003/02/22 06:39:12 kaimio Exp $
+// $Id: TestPhotoFolder.java,v 1.2 2003/02/22 13:10:55 kaimio Exp $
 
 package photovault.folder;
 
@@ -8,6 +8,7 @@ import java.util.*;
 import org.odmg.Database;
 import org.odmg.Implementation;
 import org.apache.ojb.odmg.*;
+import imginfo.*;
 
 public class TestPhotoFolder extends TestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestPhotoFolder.class.getName() );
@@ -15,7 +16,10 @@ public class TestPhotoFolder extends TestCase {
     Implementation odmg = null;
     Database db = null;
     Transaction tx = null;
-    
+
+    /**
+       Sets up the test environment. retrieves from database the hierarchy with "subfolderTest" as root and creates a TreeModel from it
+    */
     public void setUp() {
 	odmg = OJB.getInstance();
 	db = odmg.newDatabase();
@@ -134,5 +138,41 @@ public class TestPhotoFolder extends TestCase {
 
 	newFolder.delete();
 	assertEquals( "Subfolder deleted", 4, topFolder.getSubfolderCount() );
+    }
+
+    class TestListener implements PhotoCollectionChangeListener {
+	// implementation of imginfo.PhotoCollectionChangeListener interface
+
+	public boolean modified = false;
+	/**
+	 *
+	 * @param param1 <description>
+	 */
+	public void photoCollectionChanged(PhotoCollectionChangeEvent param1)
+	{
+	    modified = true;
+	}
+    }
+    
+    public void testListener() {
+	PhotoFolder folder = PhotoFolder.create( "testListener", null );
+	TestListener l1 = new TestListener();
+	TestListener l2 = new TestListener();
+
+	folder.addPhotoCollectionChangeListener( l1 );
+	folder.addPhotoCollectionChangeListener( l2 );
+
+	folder.setName( "testLiistener" );
+	assertTrue( "l1 not called", l1.modified );
+	assertTrue( "l2 not called", l2.modified );
+	l1.modified = false;
+	l2.modified = false;
+	
+	folder.removePhotoCollectionChangeListener( l2 );
+	folder.setDescription( "Folder usded to test listener support" );
+	assertTrue( "l1 not called", l1.modified );
+	assertFalse( "l2 should not have been called", l2.modified );
+
+	// TODO: test other fields
     }
 }

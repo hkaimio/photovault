@@ -1,4 +1,4 @@
-// $Id: PhotoFolder.java,v 1.1 2003/02/22 06:39:12 kaimio Exp $
+// $Id: PhotoFolder.java,v 1.2 2003/02/22 13:10:55 kaimio Exp $
 
 package photovault.folder;
 
@@ -262,6 +262,26 @@ public class PhotoFolder implements PhotoCollection {
 	return folder;
     }
 
+    /**
+       Returns the root folder for the PhotoFolder hierarchy, i.e. the folder with id 0.
+    */
+    public static PhotoFolder getRoot() {
+	getODMGImplementation();
+	getODMGDatabase();
+	DList folders = null;
+	Transaction tx = odmg.newTransaction();
+	tx.begin();
+	try {
+	    OQLQuery query = odmg.newOQLQuery();
+	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
+	    folders = (DList) query.execute();
+	} catch ( Exception e ) {
+	    tx.abort();
+	    return null;
+	}
+	PhotoFolder rootFolder = (PhotoFolder) folders.get( 0 );
+	return rootFolder;
+    }
 
     /**
        Deletes this object from the persistent repository
@@ -337,5 +357,13 @@ public class PhotoFolder implements PhotoCollection {
 		log.info( "Found!!!" );
 	    }
 	}
+    }
+
+    /**
+       Converts the folder object to String.
+       @return The name of the folder
+    */
+    public String toString() {
+	return name;
     }
 }    
