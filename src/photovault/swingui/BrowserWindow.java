@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.*;
 import imginfo.*;
 import photovault.folder.*;
 import org.apache.log4j.Logger;
@@ -103,6 +104,14 @@ public class BrowserWindow extends JFrame {
 	    });
 	fileMenu.add( importItem );
 
+	JMenuItem exportItem = new JMenuItem( "Export image...", KeyEvent.VK_E );
+	exportItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    exportSelected();
+		}
+	    });
+	fileMenu.add( exportItem );
+
 	JMenuItem exitItem = new JMenuItem( "Exit", KeyEvent.VK_X );
 	exitItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
@@ -160,6 +169,29 @@ public class BrowserWindow extends JFrame {
 	}
     }
 
+
+    /**
+       Exports the selected images to folder outside the database.
+    */
+    protected void exportSelected() {
+	// Show the file chooser dialog
+	JFileChooser fc = new JFileChooser();
+	fc.addChoosableFileFilter( new ImageFilter() );
+	fc.setAccessory( new ImagePreview( fc ) );
+	
+	int retval = fc.showDialog( this, "Export image" );
+	if ( retval == JFileChooser.APPROVE_OPTION ) {
+	    File exportFile = fc.getSelectedFile();
+	    Collection selection = viewPane.getSelection();
+	    if ( selection != null ) {
+		Iterator iter = selection.iterator();
+		if ( iter.hasNext() ) {
+		    PhotoInfo photo = (PhotoInfo) iter.next();
+		    photo.exportPhoto( exportFile, 400, 400 );
+		}
+	    }
+	}
+    }
     
     protected JTabbedPane tabPane = null;
     protected QueryPane queryPane = null;

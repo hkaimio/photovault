@@ -8,6 +8,8 @@ import java.text.*;
 import java.lang.Integer;
 import dbhelper.*;
 import javax.imageio.*;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.Transparency;
 import java.awt.image.*;
 import java.awt.geom.*;
 import com.drew.metadata.*;
@@ -458,6 +460,7 @@ public class PhotoInfo {
 	// Read the image
 	BufferedImage origImage = null;
 	try {
+	    log.warn( "Export: reading image " + original.getImageFile() );
 	    origImage = ImageIO.read( original.getImageFile() );
 	} catch ( IOException e ) {
 	    log.warn( "Error reading image: " + e.getMessage() );
@@ -483,14 +486,61 @@ public class PhotoInfo {
 	
 	BufferedImage exportImage = atOp.filter( origImage, null );
 
-	// Save it
-	try {	    
-	    ImageIO.write( exportImage, "jpg", file );
-	} catch ( IOException e ) {
-	    log.warn( "Error writing thumbnail: " + e.getMessage() );
-	    txw.abort();
-	    return;
+	// Try to determine the file type based on extension
+	String ftype = "jpg";
+	String imageFname = file.getName();
+	int extIndex = imageFname.lastIndexOf( "." ) + 1;
+	if ( extIndex > 0 ) {
+	    ftype = imageFname.substring( extIndex );
 	}
+	
+	try {
+	    // Find a writer for that file extensions
+	    ImageWriter writer = null;
+	    Iterator iter = ImageIO.getImageWritersByFormatName( ftype );
+	    if (iter.hasNext()) writer = (ImageWriter)iter.next();
+	    if (writer != null) {	    
+		ImageOutputStream ios = null;
+		try {
+		    // Prepare output file
+		    ios = ImageIO.createImageOutputStream( file );
+		    writer.setOutput(ios);
+		    // Set some parameters
+		    ImageWriteParam param = writer.getDefaultWriteParam();
+		    // 		if (quality >= 0.0 && quality <= 1.0) 
+		    // 		    param.setCompressionQuality(quality);
+		    // if bi has type ARGB and alpha is false, we have to tell the writer to not use the alpha channel:
+		    // this is especially needed for jpeg files where imageio seems to produce wrong jpeg files right now...
+		    if (exportImage.getType() == BufferedImage.TYPE_INT_ARGB ) {
+			// this is not so obvious:
+			// create a new ColorModel without OPAQUE transparency and no alpha channel.
+			ColorModel cm = new ComponentColorModel(exportImage.getColorModel().getColorSpace(), 
+								false, false, 
+								Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
+			// tell the writer to only use the first 3 bands (skip alpha)
+			int[] bands = {0, 1, 2};
+			param.setSourceBands(bands);
+			// although the java documentation says that SampleModel can be null, an exception is thrown in that case
+			// therefore a 1*1 SampleModel that is compatible to cm is created:
+			param.setDestinationType(new ImageTypeSpecifier(cm, 
+									cm.createCompatibleSampleModel(1, 1)));
+		    }
+		    // Write the image
+		    writer.write(null, new IIOImage(exportImage, null, null), param);
+		    
+		    // Cleanup
+		    ios.flush();
+		} finally {
+		    if (ios != null) ios.close();
+		    writer.dispose();
+		}
+	    }	
+	    
+ 	} catch ( IOException e ) {
+ 	    log.warn( "Error writing exported image: " + e.getMessage() );
+ 	    txw.abort();
+ 	    return;
+ 	}
 
 	
     }
