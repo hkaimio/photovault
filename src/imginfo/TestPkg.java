@@ -21,7 +21,7 @@ public class TestPkg extends TestCase {
     }
 
     public static TestSuite suite() {
-	TestSuite s = new TestSuite();
+	TestSuite s = new TestSuite( "imginfo unit tests" );
 	s.addTestSuite( PhotoInfoTest.class );
 	s.addTestSuite( TestImageInstance.class );
 	s.addTestSuite( TestVolume.class );

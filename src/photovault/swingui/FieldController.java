@@ -3,6 +3,7 @@
 package photovault.swingui;
 
 import java.lang.*;
+import java.util.*;
 
 /**
    FieldController is an abstract helper class for implementing the controller logic and mapping between
@@ -20,6 +21,16 @@ public abstract class FieldController {
 	value = getModelValue();
     }
 
+    
+    /**
+       Sets the collection of views that this controller updates. Note that the collection is not owned by
+       FieldController.
+       @param views Collection that contains the views that must be updated according to this field
+    */
+    public void setViews( Collection views ) {
+	this.views = views;
+    }
+    
     /**
        Returns true if the field has been modified after last save
     */
@@ -33,6 +44,8 @@ public abstract class FieldController {
     public void setModel( Object model ) {
 	this.model = model;
 	modified = false;
+	// Update info in all views
+	updateViews( null );
     }
 
     /**
@@ -41,8 +54,23 @@ public abstract class FieldController {
     public void setValue( Object newValue ) {
 	value = newValue;
 	modified = true;
+	// Update all associated views
+	updateViews( null );
     }
 
+    /**
+       Inform the Field controller that associated view has changed the field value. Acts similarly
+       as the setValue but does not inform the view that changed the information.
+       @param newValue The new value
+       @param view View that initiated the value change
+    */
+    public void setValue( Object view, Object newValue ) {
+	value = newValue;
+	modified = true;
+	updateViews( view );
+    }
+	
+    
     /**
        Returns the current value that would be set by this object to the model if saved now
     */
@@ -60,6 +88,20 @@ public abstract class FieldController {
 	modified = false;
     }
 
+    protected void updateViews( Object source ) {
+	if ( views == null ) {
+	    return;
+	}
+	Iterator iter = views.iterator();
+	while ( iter.hasNext() ) {
+	    Object view = iter.next();
+	    if ( view != source ) {
+		updateView( view );
+	    }
+	}
+    }
+	    
+    
     /**
        This abstract method must be overridden in derived classes to set the value stored in value to
        the controlled field in model.
@@ -71,8 +113,13 @@ public abstract class FieldController {
     */
     protected abstract Object getModelValue();
 
+    /** This abstract method must be overridden to update the associated view.
+     */
+    protected abstract void updateView( Object view );
+
     protected Object model;
     protected Object value;
+    protected Collection views = null;
     protected boolean modified = false;       
 }
        

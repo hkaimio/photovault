@@ -14,17 +14,18 @@ import java.util.*;
 
 import imginfo.*;
 import dbhelper.*;
-
+import javax.swing.event.*;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
     Use can either edit an existing record or create a completely new record.
 */
 
-public class PhotoInfoEditor extends JPanel implements ActionListener {
+public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionListener, DocumentListener {
 
-    public PhotoInfoEditor() {
+    public PhotoInfoEditor( PhotoInfoController ctrl ) {
 	super();
 	createUI();
+	this.ctrl = ctrl;
     }
     
     protected void createUI() {
@@ -34,6 +35,8 @@ public class PhotoInfoEditor extends JPanel implements ActionListener {
 	// Photographer field
 	JLabel photographerLabel = new JLabel( "Photographer" );
 	photographerField = new JTextField( 30 );
+	photographerDoc = photographerField.getDocument();
+	photographerDoc.addDocumentListener( this );
 	photographerField.addActionListener( this );
 
 	// Shooting date field
@@ -84,18 +87,47 @@ public class PhotoInfoEditor extends JPanel implements ActionListener {
 // 	add(fieldPane, BorderLayout.EAST);
     }
 
+    public void setPhotographer( String newValue ) {
+	photographerField.setText( newValue );
+    }
     
     // Important UI components
     JTextField photographerField = null;
+    Document photographerDoc = null;
     JFormattedTextField shootingDayField = null;
+    Document shootingDayDoc = null;
     JTextField shootingPlaceField = null;
+    Document shootingPlaceDoc = null;
     JTextArea descriptionTextArea = null;
+    Document descriptionDoc = null;
 
     public void actionPerformed( ActionEvent evt ) {
 	String photographer = photographerField.getText();
 	System.out.println( "New photographer: " + photographer );
     }
 
+    // DocumentListener interface implementation
+    public void changedUpdate( DocumentEvent ev ) {
+    }
+
+    public void insertUpdate( DocumentEvent ev ) {
+	Document changedDoc = ev.getDocument();
+	String changedField = null;
+	Object newValue = null;
+	if ( changedDoc == photographerDoc ) {
+	    changedField = PhotoInfoController.PHOTOGRAPHER;
+	    newValue = photographerField.getText();
+	    System.err.println( "New photographer: " + newValue );
+	} else {
+	    System.err.println( "insertUpdate from unknown event!!!" );
+	}
+	ctrl.setField( changedField, newValue );
+    }
+
+    public void removeUpdate( DocumentEvent ev ) {
+	insertUpdate( ev );
+    }
+    
     private void addLabelTextRows(JLabel[] labels,
                                   JTextField[] textFields,
                                   GridBagLayout gridbag,
@@ -125,7 +157,8 @@ public class PhotoInfoEditor extends JPanel implements ActionListener {
      */
     public static void main( String args[] ) {
 	JFrame frame = new JFrame( "PhotoInfoEditorTest" );
-	PhotoInfoEditor editor = new PhotoInfoEditor();
+	PhotoInfoController ctrl = new PhotoInfoController();
+	PhotoInfoEditor editor = new PhotoInfoEditor( ctrl );
 	frame.getContentPane().add( editor, BorderLayout.CENTER );
 	frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e) {
@@ -135,5 +168,6 @@ public class PhotoInfoEditor extends JPanel implements ActionListener {
 	frame.pack();
 	frame.setVisible( true );
     }
-				
+
+    private PhotoInfoController ctrl = null;
 }

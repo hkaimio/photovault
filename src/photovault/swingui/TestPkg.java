@@ -21,8 +21,9 @@ public class TestPkg extends TestCase {
     }
 
     public static TestSuite suite() {
-	TestSuite s = new TestSuite();
+	TestSuite s = new TestSuite( "photovault.swingui unit tests" );
 	s.addTestSuite( TestFieldController.class );
+	s.addTestSuite( TestPhotoInfoController.class );
 	return s;
     }
 }
