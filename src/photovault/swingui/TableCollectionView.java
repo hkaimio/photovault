@@ -17,6 +17,7 @@ import javax.swing.table.*;
    It is primarily intended for testing purposes.
 */
 public class TableCollectionView extends JPanel implements ActionListener {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TableCollectionView.class.getName() );
 
     /**
        Constructor
@@ -197,24 +198,41 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	    propertyDlg.showDialog();
 	}
     }
+    
+    JFrame frame = null;
+    PhotoViewer viewer = null;
 
     /**
        Shows the selected photo in a popup window
     */
     public void showSelectedPhoto() {
+	try {
 	PhotoInfo photo = getSelected();
 	if ( photo != null ) {
-	    final JFrame frame = new JFrame( "Photo" );
-	    PhotoViewer viewer = new PhotoViewer();
+ 	    JFrame frame = new JFrame( "Photo" );
+ 	    final PhotoViewer viewer = new PhotoViewer();
 	    frame.getContentPane().add( viewer, BorderLayout.CENTER );
-	    frame.addWindowListener(new WindowAdapter() {
-		    public void windowClosing(WindowEvent e) {
-			frame.dispose();
+	    frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+
+	    // This is a WAR for a memory management problem. For some reason the frame and objects owned by it
+	    // Seem not to be garbage collected. So we free the large image buffers to avoid massive memory leak.
+	    frame.addWindowListener( new WindowAdapter() {
+		    public void windowClosing( WindowEvent e ) {
+			viewer.setPhoto( null );
 		    }
 		} );
+	    log.warn( "Created frame" );
 	    viewer.setPhoto( photo );
+	    log.warn( "Photo set" );
 	    frame.pack();
+	    log.warn( "Frame packed" );
 	    frame.setVisible( true );
+	    log.warn( "Frame visible" );
+	}
+	} catch ( Throwable e ) {
+	    System.err.println( "Out of memory error" );
+	    log.warn( e );
+	    e.printStackTrace();
 	}
     }
 

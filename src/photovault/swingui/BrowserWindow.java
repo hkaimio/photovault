@@ -102,18 +102,26 @@ public class BrowserWindow extends JFrame {
 	JFileChooser fc = new JFileChooser();
 	fc.addChoosableFileFilter( new ImageFilter() );
 	fc.setAccessory( new ImagePreview( fc ) );
+	fc.setMultiSelectionEnabled( true );
 	
 	int retval = fc.showDialog( this, "Import" );
 	if ( retval == JFileChooser.APPROVE_OPTION ) {
 	    // Add the selected file to the database and allow user to edit its attributes
-	    File f = fc.getSelectedFile();
-	    try {
-		PhotoInfo photo = PhotoInfo.addToDB( f );
-		PhotoInfoDlg dlg = new PhotoInfoDlg( this, true, photo );
-		dlg.showDialog();
-	    } catch ( Exception e ) {
-		log.error( "Unexpected exception: " + e.getMessage() );
+	    File[] files = fc.getSelectedFiles();
+
+	    // Add all the selected files to DB
+	    PhotoInfo[] photos = new PhotoInfo[files.length];
+	    for ( int n = 0; n < files.length; n++ ) {
+		try {
+		    photos[n] = PhotoInfo.addToDB( files[n] );
+		} catch ( Exception e ) {
+		    log.error( "Unexpected exception: " + e.getMessage() );
+		}
 	    }
+
+	    // Show editor dialog for the added photos
+	    PhotoInfoDlg dlg = new PhotoInfoDlg( this, false, photos );
+	    dlg.showDialog();
 	}
     }
 

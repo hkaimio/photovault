@@ -56,7 +56,8 @@ public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
 		txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
 		ypos += bounds.getHeight() + 4;
 	    }
-	    if ( showPlace && photo.getShootingPlace() != null ) {
+	    String shootPlace = photo.getShootingPlace();
+	    if ( showPlace && shootPlace != null && shootPlace.length() > 0  ) {
 		TextLayout txt = new TextLayout( photo.getShootingPlace(), attrFont, frc );
 		// Calculate the position for the text
 		Rectangle2D bounds = txt.getBounds();

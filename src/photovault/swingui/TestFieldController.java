@@ -37,12 +37,12 @@ public class TestFieldController extends TestCase {
 	views.add( view2 );
 	
 	fieldCtrl = new  FieldController ( testObject ) {
-		protected void setModelValue() {
-		    TestObject obj = (TestObject) model;
+		protected void setModelValue( Object modelObject ) {
+		    TestObject obj = (TestObject) modelObject;
 		    obj.setField( (String) value );
 		}
-		protected Object getModelValue() {
-		    TestObject obj = (TestObject) model;
+		protected Object getModelValue( Object modelObject ) {
+		    TestObject obj = (TestObject) modelObject;
 		    return obj.getField();
 		}
 		protected void updateView( Object view ) {
@@ -128,6 +128,48 @@ public class TestFieldController extends TestCase {
 	assertEquals( "Views should be modified", "Modified", view1.getField() );
     }
 
+    public void testMultiModel() {
+	Object[] model = new Object[2];
+	model[0] = testObject;
+	TestObject model2 = new TestObject();
+	model[1] = model2;
+
+	testObject.setField( "Value" );
+	model2.setField( "Value" );
+
+	fieldCtrl.setModel( model, false );
+	assertEquals( "Field controller not updated when values are equal", "Value", fieldCtrl.getValue() );
+
+	fieldCtrl.setValue( "Value2" );
+	fieldCtrl.save();
+	assertEquals( "model not changed", "Value2", testObject.getField() );
+	assertEquals( "model not changed", "Value2", model2.getField() );
+
+	// Check that if model values differ they are not copied to controller
+	model2.setField( "Value3" );
+	fieldCtrl.setModel( model, false );
+	assertEquals( "model value should be null if there are several alterantives", null, fieldCtrl.getValue() );
+	fieldCtrl.save();
+	assertEquals( "model changed", "Value2", testObject.getField() );
+	assertEquals( "model changed", "Value3", model2.getField() );
+	
+	fieldCtrl.setValue( "Value4" );
+	fieldCtrl.save();
+	assertEquals( "model not changed", "Value4", testObject.getField() );
+	assertEquals( "model not changed", "Value4", model2.getField() );
+
+	// Check that a null value does not cause problems
+	testObject.setField( null );
+	fieldCtrl.setModel( model, false );
+	assertEquals( "model value should be null if there are several alterantives", null, fieldCtrl.getValue() );
+
+	testObject.setField( "Value5" );
+	model2.setField( null );
+	fieldCtrl.setModel( model, false );
+	assertEquals( "model value should be null if there are several alterantives", null, fieldCtrl.getValue() );
+	
+    }
+    
     public static void main( String[] args ) {
 	//	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );

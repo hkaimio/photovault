@@ -129,6 +129,12 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 	    this.photo.removeChangeListener( this );
 	}
 	this.photo = photo;
+	if ( photo == null ) {
+	    // Free the large BufferedImage objects
+	    setImage( null );
+	    return;
+	}
+
 	photo.addChangeListener( this );
 
 	// Find the original file

@@ -29,6 +29,15 @@ public class PhotoInfoDlg extends JDialog {
 	createUI();
     }
 
+    public PhotoInfoDlg( Frame owner, boolean modal, PhotoInfo[] photos ) {
+	super( owner, DIALOG_TITLE, modal );
+	ctrl = new PhotoInfoController();
+	ctrl.setPhotos( photos );
+	    
+	createUI();
+    }
+
+
     /**
        Creates the UI components needed for this dialog.
     */

@@ -17,12 +17,16 @@ public abstract class FieldController {
 	@param model The object whose field is controlled
     */
     public FieldController( Object model ) {
-	this.model = model;
+	this.model = new Object[1];
+	this.model[0] = model;
 	if ( model != null ) {
-	    value = getModelValue();
+	    value = getModelValue( model );
 	} 
     }
 
+    public FieldController( Object[] model ) {
+	setModel( model, false );
+    }
     
     /**
        Sets the collection of views that this controller updates. Note that the collection is not owned by
@@ -55,24 +59,9 @@ public abstract class FieldController {
        If false, the controller state is changed to match the new model.
     */
     public void setModel( Object model, boolean preserveState ) {
-	this.model = model;
-
-	if ( preserveState ) {
-	    // We are copying the state of this controller to the new model. Set the modified flag to indicate
-	    // that the state must be saved.
-	    modified = true;
-	} else {
-	    // Update value from the model
-	    if ( model != null ) {
-		value = getModelValue();
-	    } else {
-		value = null;
-	    }
-	    // Controller mathces model set flag accordingly
-	    modified = false;
-	    // Update info in all views
-	    updateViews( null );
-	}
+	Object[] modelArr = new Object[1];
+	modelArr[0] = model;
+	setModel( modelArr, preserveState );
     }
 
     /**
@@ -82,8 +71,54 @@ public abstract class FieldController {
     public void setModel( Object model ) {
 	setModel( model, false );
     }
+
+    /**
+       Sets a model that consists of several identical obejcts. If all the objects have an equal value
+       the model value will be the same. However, if the value differs in some of the objects
+       the contrroller value will be numm until the controller is modified.
+    */
+    public void setModel( Object[] model, boolean preserveState ) {
+	this.model = model;
+	if ( preserveState ) {
+	    // We are copying the state of this controller to the new model. Set the modified flag to indicate
+	    // that the state must be saved.
+	    modified = true;
+	} else {
+	    // Check the value of all objects in the model. If these are all equal save it as the model value
+	    boolean allEqual = true;
+	    Object valueCandidate = null;
+	    if ( model != null ) {
+		if ( model[0] != null ) {
+		    valueCandidate = getModelValue( model[0] );
+		}
+		for ( int n = 1; n < model.length; n++ ) {
+		    Object modelObjectValue = getModelValue( model[n] );
+		    if ( modelObjectValue != null ) {
+			if ( !modelObjectValue.equals( valueCandidate ) ) {
+			    allEqual = false;
+			}
+		    } else if ( valueCandidate != null ) {
+			allEqual = false;
+		    }
+		}
+	    }
+	    
+	    if ( allEqual ) {
+		value = valueCandidate;
+	    } else {
+		value = null;
+	    }
+	    
+	    // Controller mathces model set flag accordingly
+	    modified = false;
+	    // Update info in all views
+	    updateViews( null );
+	}
 	
 
+    }
+
+    
     /**
        Sets a new value for the field controlled by this object
     */
@@ -126,7 +161,11 @@ public abstract class FieldController {
     public void save() {
 	if ( model != null ) {
 	    if ( modified ) {
-		setModelValue();
+		for ( int n = 0; n < model.length; n++ ) {
+		    if ( model[n] != null ) {
+			setModelValue( model[n] );
+		    }
+		}
 	    }
 	    modified = false;
 	}
@@ -151,12 +190,12 @@ public abstract class FieldController {
        This abstract method must be overridden in derived classes to set the value stored in value to
        the controlled field in model.
     */
-    protected abstract void setModelValue();
+    protected abstract void setModelValue( Object modelObject );
 
     /** This abstract method must be overridden in derived classes to return current value of the model's
 	field that is controlled by this object.
     */
-    protected abstract Object getModelValue();
+    protected abstract Object getModelValue( Object modelObject );
 
     /** This abstract method must be overridden to update the associated view.
      */
@@ -166,7 +205,11 @@ public abstract class FieldController {
        This abstract method must be overridden to update the contorller value from the view
     */
     protected abstract void updateValue( Object view );
-    protected Object model;
+
+    /**
+       Array of th eobjects that comprise the model
+    */
+    protected Object[] model = null;
     protected Object value;
     protected Collection views = null;
     protected boolean modified = false;       

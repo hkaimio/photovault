@@ -31,12 +31,12 @@ public class PhotoInfoController {
        It will contain one FieldController object for each fields in the model.
     */
     protected void initModelFields() {
-	modelFields.put( PHOTOGRAPHER, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( PHOTOGRAPHER, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    obj.setPhotographer( (String) value );
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    if ( model == null ) {
 			return null;
 		    }
@@ -53,12 +53,12 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( SHOOTING_DATE, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( SHOOTING_DATE, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    obj.setShootTime( (Date) value );
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return obj.getShootTime();
 		}
@@ -72,12 +72,12 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( SHOOTING_PLACE, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( SHOOTING_PLACE, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    obj.setShootingPlace( (String) value );
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return obj.getShootingPlace();
 		}
@@ -91,12 +91,12 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( CAMERA_MODEL, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( CAMERA_MODEL, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    obj.setCamera( (String) value );
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return obj.getCamera();
 		}
@@ -110,12 +110,12 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( FILM_TYPE, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( FILM_TYPE, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    obj.setFilm( (String) value );
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return obj.getFilm();
 		}
@@ -129,12 +129,12 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( LENS_TYPE, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( LENS_TYPE, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    obj.setLens( (String) value );
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return obj.getLens();
 		}
@@ -148,12 +148,12 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( DESCRIPTION, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( DESCRIPTION, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    obj.setDescription( (String) value );
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return obj.getDescription();
 		}
@@ -170,8 +170,8 @@ public class PhotoInfoController {
 
 
 	
-	modelFields.put( F_STOP, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( F_STOP, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    if ( value != null ) {
 			obj.setFStop( ((Number)value).doubleValue() );
@@ -179,7 +179,7 @@ public class PhotoInfoController {
 			obj.setFStop( 0 );
 		    }
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return new Double( obj.getFStop() );
 		}
@@ -193,8 +193,8 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( SHUTTER_SPEED, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( SHUTTER_SPEED, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    if ( value != null ) {
 			obj.setShutterSpeed( ((Number)value).doubleValue() );
@@ -202,7 +202,7 @@ public class PhotoInfoController {
 			obj.setShutterSpeed( 0 );
 		    }
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return new Double( obj.getShutterSpeed() );
 		}
@@ -216,8 +216,8 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( FOCAL_LENGTH, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( FOCAL_LENGTH, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    if ( value != null ) {
 			obj.setFocalLength( ((Number)value).doubleValue() );
@@ -225,7 +225,7 @@ public class PhotoInfoController {
 			obj.setFocalLength( 0 );
 		    }
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return new Double( obj.getFocalLength() );
 		}
@@ -239,8 +239,8 @@ public class PhotoInfoController {
 		}
 	    });
 
-	modelFields.put( FILM_SPEED, new FieldController( photo ) {
-		protected void setModelValue() {
+	modelFields.put( FILM_SPEED, new FieldController( photos ) {
+		protected void setModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    if ( value != null ) {
 			obj.setFilmSpeed( ((Number)value).intValue() );
@@ -248,7 +248,7 @@ public class PhotoInfoController {
 			obj.setFilmSpeed( 0 );
 		    }
 		}
-		protected Object getModelValue() {
+		protected Object getModelValue( Object model ) {
 		    PhotoInfo obj = (PhotoInfo) model;
 		    return new Double( obj.getFilmSpeed() );
 		}
@@ -273,7 +273,7 @@ public class PhotoInfoController {
     }    
 	
 
-    protected PhotoInfo photo = null;
+    protected PhotoInfo[] photos = null;
     protected boolean isCreatingNew = true;
 
     protected Collection views = null;
@@ -288,11 +288,24 @@ public class PhotoInfoController {
 	} else {
 	    isCreatingNew = true;
 	}
- 	this.photo = photo;
+ 	this.photos = new PhotoInfo[1];
+	photos[0] = photo;
 	
 	changeModelInFields( isCreatingNew );
     }
 
+    /**
+       Sets a group of PhotoInfo records that will be edited. If all of the records will have same value for a
+       certain field the views will display this value. Otherwise, <code>null</code> is displayed and if the
+       value is changed in a view, the new value is updated to all controlled objects.
+    */
+    public void setPhotos( PhotoInfo[] photos ) {
+	this.photos = photos;
+	// If we are editing several photos simultaneously we certainly are not creating a new photo...
+	isCreatingNew = false;
+	changeModelInFields( isCreatingNew );
+    }
+    
     /**
        Sets the view that is contorlled by this object
        @param view The controlled view
@@ -315,7 +328,7 @@ public class PhotoInfoController {
 	while ( fieldIter.hasNext() ) {
 	    FieldController fieldCtrl = (FieldController) fieldIter.next();
 	    // If we are creating a new photo we will copy the current field values to it.
-	    fieldCtrl.setModel( photo, preserveFieldState );
+	    fieldCtrl.setModel( photos, preserveFieldState );
 	}
     }
 
@@ -333,6 +346,10 @@ public class PhotoInfoController {
        Returns the hotoInfo record that is currently edited.
     */
     public PhotoInfo getPhoto() {
+	PhotoInfo photo = null;
+	if ( photos != null ) {
+	    photo = photos[0];
+	}
  	return photo;
     }
 
@@ -346,10 +363,11 @@ public class PhotoInfoController {
 
 	// Check if we already have a PhotoInfo object to control
 	if ( isCreatingNew ) {
+	    photos = new PhotoInfo[1];
 	    if ( originalFile != null ) {
-		photo = PhotoInfo.addToDB( originalFile );
+		photos[0] = PhotoInfo.addToDB( originalFile );
 	    } else {
-		photo = PhotoInfo.create();
+		photos[0] = PhotoInfo.create();
 	    }
 		
 	    // Set the model to all fields but preserve field state so that it is changed to the photoInfo
@@ -375,7 +393,7 @@ public class PhotoInfoController {
 	Iterator fieldIter = modelFields.values().iterator();
 	while ( fieldIter.hasNext() ) {
 	    FieldController fieldCtrl = (FieldController) fieldIter.next();
-	    fieldCtrl.setModel( photo );
+	    fieldCtrl.setModel( photos, true );
 	}
     }
 
