@@ -111,18 +111,30 @@ public class BrowserWindow extends JFrame {
 	int retval = fc.showDialog( this, "Import" );
 	if ( retval == JFileChooser.APPROVE_OPTION ) {
 	    // Add the selected file to the database and allow user to edit its attributes
-	    File[] files = fc.getSelectedFiles();
+	    final File[] files = fc.getSelectedFiles();
 
+	    final ProgressDlg pdlg = new ProgressDlg( this, true );
+	    
 	    // Add all the selected files to DB
-	    PhotoInfo[] photos = new PhotoInfo[files.length];
-	    for ( int n = 0; n < files.length; n++ ) {
-		try {
-		    photos[n] = PhotoInfo.addToDB( files[n] );
-		} catch ( Exception e ) {
-		    log.error( "Unexpected exception: " + e.getMessage() );
-		}
-	    }
+	    final PhotoInfo[] photos = new PhotoInfo[files.length];
+	    Thread importThread = new Thread() {
+		    public void run() {
 
+			for ( int n = 0; n < files.length; n++ ) {
+			    try {
+				photos[n] = PhotoInfo.addToDB( files[n] );
+				pdlg.setProgressPercent( (n*100) / files.length );
+			    } catch ( Exception e ) {
+				log.error( "Unexpected exception: " + e.getMessage() );
+			    }
+			}
+			pdlg.completed();
+		    }
+		};
+	    
+	    importThread.start();
+	    pdlg.setVisible( true );
+	    
 	    // Show editor dialog for the added photos
 	    PhotoInfoDlg dlg = new PhotoInfoDlg( this, false, photos );
 	    dlg.showDialog();
