@@ -98,7 +98,7 @@
         <fileset dir="${reports.test}/testresults">
            <include name="TEST-*.xml"/>
         </fileset>
-        <report format="frames" todir="./report/html"/>
+        <report format="frames" todir="./${reports.test}/html"/>
       </junitreport>
 
     </target>
