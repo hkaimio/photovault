@@ -34,7 +34,7 @@ public class ProgressDlg extends JDialog {
 	progressBar.setMaximum( 100 );
 	progressBar.setValue( 50 ); // for debugging purposes
 	pane.add( statusLabel );
-	pane.add(Box.createRigidArea(new Dimension(0, 10)));
+	pane.add(Box.createRigidArea(new Dimension(300, 10)));
 	pane.add( progressBar );
 
 	pack();
