@@ -10,7 +10,7 @@ import org.apache.ojb.broker.query.*;
 import org.apache.ojb.broker.*;
 import org.apache.ojb.odmg.*;
 import photovault.folder.PhotoFolder;
-
+import photovault.swingui.FuzzyDate;
 
 /**
    PhotoQuery class can be used to search for photos using wide variety of criterias.
@@ -63,6 +63,27 @@ public class PhotoQuery implements PhotoCollection {
 	modified();
     }
 
+    /** Set a fuzzy date criteria for finding items (possibly)
+	matching a date range
+	@param field the date field used in search
+	@param accyracyField The field containing accuracy info about
+	the date
+	@param date FuzzyTime describing the date range
+	@param strictness Strictness used when selecting objects into
+	results @see QueryFuzzyTimeCriteria.setStrictness for more info
+	about possible values and their semantics.  */
+
+    public void
+	setFuzzyDateCriteria( int field, int accuracyField,
+			      FuzzyDate date, int strictness ) {
+	QueryFuzzyTimeCriteria c = new QueryFuzzyTimeCriteria( fields[field],
+							       fields[accuracyField] );
+	c.setDate( date );
+	c.setStrictness( strictness );
+	criterias[field] = c;
+	modified();
+    }
+
     /**
        Limits query to photos that belong to a given fodler and its
        subfolders
@@ -101,6 +122,7 @@ public class PhotoQuery implements PhotoCollection {
      * query has been modified and results are needed.
      */
     protected void query() {
+	log.debug( "Entry: PhotoQuery.query" );
 	photos.clear();
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	Implementation odmg = ODMG.getODMGImplementation();
@@ -135,6 +157,8 @@ public class PhotoQuery implements PhotoCollection {
 	}
 	    
 	queryModified = false;
+	log.debug( "Exit: PhotoQuery.query" );
+
     }
 
     /**
@@ -227,25 +251,27 @@ public class PhotoQuery implements PhotoCollection {
     Vector listeners = null;
     PhotoFolder limitFolder = null;
 
-    public static int FIELD_SHOOTING_TIME   = 0;
-    public static int FIELD_FULLTEXT        = 1;
-    public static int FIELD_DESCRIPTION     = 2;
-    public static int FIELD_SHOOTING_PLACE  = 3;
-    public static int FIELD_PHOTOGRAPHER    = 4;
-    public static int FIELD_FSTOP           = 5;
-    public static int FIELD_FOCAL_LENGTH    = 6;
-    public static int FIELD_SHUTTER_SPEED   = 7;
-    public static int FIELD_CAMERA          = 8;
-    public static int FIELD_LENS            = 9;
-    public static int FIELD_FILM            = 10;
-    public static int FIELD_FILM_SPEED      = 11;
+    public static int FIELD_SHOOTING_TIME          = 0;
+    public static int FIELD_SHOOTING_TIME_ACCURACY = 1;
+    public static int FIELD_FULLTEXT               = 2;
+    public static int FIELD_DESCRIPTION            = 3;
+    public static int FIELD_SHOOTING_PLACE         = 4;
+    public static int FIELD_PHOTOGRAPHER           = 5;
+    public static int FIELD_FSTOP                  = 6;
+    public static int FIELD_FOCAL_LENGTH           = 7;
+    public static int FIELD_SHUTTER_SPEED          = 8;
+    public static int FIELD_CAMERA                 = 9;
+    public static int FIELD_LENS                   = 10;
+    public static int FIELD_FILM                   = 11;
+    public static int FIELD_FILM_SPEED             = 12;
     
     static QueryField fields[] = null;
     QueryFieldCriteria criterias[] = null;
     
     {
-	fields = new QueryField[12];
+	fields = new QueryField[13];
 	fields[FIELD_SHOOTING_TIME] = new QueryField( "shootTime" );
+	fields[FIELD_SHOOTING_TIME_ACCURACY] = new QueryField( "timeAccuracy" );
 	fields[FIELD_FULLTEXT] = new QueryField( "shooting_place,description" );
 	fields[FIELD_DESCRIPTION] = new QueryField( "description" );
 	fields[FIELD_SHOOTING_PLACE] = new QueryField( "shootingPlace" );

@@ -11,6 +11,7 @@ import imginfo.*;
 import photovault.folder.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.PropertyConfigurator;
 
 public class BrowserWindow extends JFrame {
 
@@ -217,10 +218,11 @@ public class BrowserWindow extends JFrame {
     public static void main( String [] args ) {
 	// Configure logging
 	//	BasicConfigurator.configure();
-	try {
-	    org.apache.log4j.lf5.DefaultLF5Configurator.configure();
-	} catch ( Exception e ) {}
-	log.info( "Starting application" );
+	PropertyConfigurator.configure( "conf/log4j.properties" );
+	// 	try {
+// 	    org.apache.log4j.lf5.DefaultLF5Configurator.configure();
+// 	} catch ( Exception e ) {}
+// 	log.info( "Starting application" );
 	
 	BrowserWindow br = new BrowserWindow();
     }

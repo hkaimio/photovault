@@ -5,6 +5,7 @@ package imginfo;
 import junit.framework.*;
 import java.util.*;
 import photovault.folder.*;
+import photovault.swingui.FuzzyDate;
 
 public class Test_PhotoQuery extends TestCase {
 
@@ -23,12 +24,12 @@ public class Test_PhotoQuery extends TestCase {
 	photos = new Vector();
 	uids = new Vector();
 	cal.set( 2002, 11, 23 );
-	makePhoto( cal, "Katsokaa kun Lassi ui" );
+	makePhoto( cal, 1, "Katsokaa kun Lassi ui" );
 	cal.set( 2002, 11, 24 );
-	makePhoto( cal, "Lassille kuuluu hyvaa" );
-	makePhoto( cal, "" );
+	makePhoto( cal, 1, "Lassille kuuluu hyvaa" );
+	makePhoto( cal, 2, "" );
 	cal.set( 2002, 11, 25 );
-	makePhoto( cal, "" );
+	makePhoto( cal, 2, "" );
 
         folder = PhotoFolder.create( "QueryTest", PhotoFolder.getRoot() );
 	subfolder = PhotoFolder.create( "QueryTest subfolder", folder );
@@ -39,9 +40,10 @@ public class Test_PhotoQuery extends TestCase {
 
     }
 
-    PhotoInfo makePhoto( Calendar cal, String desc ) {
+    PhotoInfo makePhoto( Calendar cal, double accuracy, String desc ) {
 	PhotoInfo photo = PhotoInfo.create();
 	photo.setShootTime( cal.getTime() );
+	photo.setTimeAccuracy( accuracy );
 	photo.setDescription( desc );
 	int uid = photo.getUid();
 	log.debug( "Created photo " + uid + " " + photo.getShootTime() );
@@ -80,6 +82,55 @@ public class Test_PhotoQuery extends TestCase {
 	q.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME, cal.getTime(), cal.getTime() );
 	boolean[] expected2 = { false, true, true, false };
 	checkResults( q, expected2 );
+    }
+
+    public void testFuzzyDateProbable() {
+	PhotoQuery q = new PhotoQuery();
+
+	// First, check cases where the midpoint belongs to the fuzziness range
+ 	Calendar cal = Calendar.getInstance();
+	cal.set( 2002, 11, 24 );
+	FuzzyDate fd1 = new FuzzyDate( cal.getTime(), 1.0 );
+	// First the case in which there is only lower bound
+ 	q.setFuzzyDateCriteria( PhotoQuery.FIELD_SHOOTING_TIME,
+				PhotoQuery.FIELD_SHOOTING_TIME_ACCURACY,
+				fd1, QueryFuzzyTimeCriteria.INCLUDE_PROBABLE );
+	// Image 2 should not be included since its fuzzy range is
+	// larger that search range
+	boolean[] expected1 = { true, true, false, true };
+	checkResults( q, expected1 );
+    }
+    
+    public void testFuzzyDatePossible() {
+	PhotoQuery q = new PhotoQuery();
+
+	// First, check cases where the midpoint belongs to the fuzziness range
+ 	Calendar cal = Calendar.getInstance();
+	cal.set( 2002, 11, 24 );
+	FuzzyDate fd1 = new FuzzyDate( cal.getTime(), 1.0 );
+ 	q.setFuzzyDateCriteria( PhotoQuery.FIELD_SHOOTING_TIME,
+				PhotoQuery.FIELD_SHOOTING_TIME_ACCURACY,
+				fd1, QueryFuzzyTimeCriteria.INCLUDE_POSSIBLE );
+	// All expected to be included with INCLUDE_POSSIBLE
+	boolean[] expected2 = { true, true, true, true };
+	checkResults( q, expected2 );
+    }
+
+    public void testFuzzyDateCertain() {
+	PhotoQuery q = new PhotoQuery();
+
+	// First, check cases where the midpoint belongs to the fuzziness range
+ 	Calendar cal = Calendar.getInstance();
+	cal.set( 2002, 11, 24 );
+	FuzzyDate fd1 = new FuzzyDate( cal.getTime(), 1.0 );
+	q.setFuzzyDateCriteria( PhotoQuery.FIELD_SHOOTING_TIME,
+				PhotoQuery.FIELD_SHOOTING_TIME_ACCURACY,
+				fd1, QueryFuzzyTimeCriteria.INCLUDE_CERTAIN );
+	// All expected to be included with INCLUDE_POSSIBLE
+	boolean[] expected3 = { false, true, true, false };
+	checkResults( q, expected3 );
+	
+
     }
 
     public void testLowerUnboundedRange() {

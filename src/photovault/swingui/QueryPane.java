@@ -130,8 +130,12 @@ public class QueryPane extends JPanel implements ActionListener {
 				   shootingPlace );
 	}
 	if ( dateCB.isSelected() ) {
-	    query.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME,
-					 shootingDateRange.getStartDate(), shootingDateRange.getEndDate() );
+// 	    query.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME,
+// 					 shootingDateRange.getStartDate(), shootingDateRange.getEndDate() );
+	    query.setFuzzyDateCriteria( PhotoQuery.FIELD_SHOOTING_TIME, PhotoQuery.FIELD_SHOOTING_TIME_ACCURACY,
+					shootingDateRange.getDateRange(),
+					shootingDateRange.getStrictness() );
+
 	}
     }
 
