@@ -129,7 +129,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public void actionPerformed( ActionEvent evt ) {
 	if ( evt.getActionCommand().equals( "save" ) ) {
 	    System.out.println( "Saving data" );
-	    ctrl.save();
+	    try {
+		ctrl.save();
+	    } catch ( Exception e ) {
+	    }
 	} else if ( evt.getActionCommand().equals( "discard" ) ) {
 	    System.out.println( "Discarding data" );
 	    ctrl.discard();
