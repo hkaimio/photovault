@@ -55,6 +55,7 @@ public class PhotoInfoController {
 
 	modelFields.put( FUZZY_DATE, new FieldController( photos ) {
 		protected void setModelValue( Object model ) {
+		    log.debug( "FUZZY_DATE - setModeValue ({}) " );
 		    PhotoInfo obj = (PhotoInfo) model;
 		    FuzzyDate fd = (FuzzyDate) value;
 		    if ( fd != null ) {
@@ -66,16 +67,19 @@ public class PhotoInfoController {
 		    }
 		}
 		protected Object getModelValue( Object model ) {
+		    log.debug( "FUZZY_DATE - getModeValue ({}) " );
 		    PhotoInfo obj = (PhotoInfo) model;
 		    Date date = obj.getShootTime();
 		    double accuracy = obj.getTimeAccuracy();
 		    return new FuzzyDate( date, accuracy );
 		}
 		protected void updateView( Object view ) {
+		    log.debug( "FUZZY_DATE - updateView ({}) " );
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    obj.setFuzzyDate( (FuzzyDate) value );
 		}
 		protected void updateValue( Object view ) {
+		    log.debug( "FUZZY_DATE - updateValue ({}) " );
 		    PhotoInfoView obj = (PhotoInfoView) view;
 		    value = obj.getFuzzyDate();
 		}
@@ -518,7 +522,12 @@ public class PhotoInfoController {
 	    log.warn( "No field " + field );
 	}
     }
-	
+
+    /**
+       Returns the current value for a specified field
+       @param field The field whose value is to be retrieved
+       @return Value of the field or null if fiels is invalid
+    */
 	
     public Object getField( String field ) {
 	Object value = null;

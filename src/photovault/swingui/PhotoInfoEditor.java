@@ -222,7 +222,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     public String getPhotographer( ) {
-	return photographerField.getText( );
+	String str = photographerField.getText( );
+	return str;
     }
 
     public void setFuzzyDate( FuzzyDate d ) {
@@ -235,6 +236,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     
     public FuzzyDate getFuzzyDate( ) {
 	String str = fuzzyDateField.getText( );
+	log.debug( "fuzzyDate = " + str );
 	FuzzyDate d = FuzzyDate.parse( str );
 	return d;
     }
@@ -345,14 +347,19 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     
 
     public Number getQuality() {
-	return new Integer( qualityField.getSelectedIndex() );
+	int q = qualityField.getSelectedIndex();
+	Integer retval = null;
+	if ( q >= 0 ) {
+	    retval = new Integer( q );
+	}
+	return retval;
     }
 
     public void setQuality( Number quality ) {
 	if ( quality != null ) {
 	    qualityField.setSelectedIndex( quality.intValue() );
 	} else {
-	    qualityField.setSelectedIndex( 0 );
+	    qualityField.setSelectedIndex( -1 );
 	}
 	    
     }
@@ -409,7 +416,12 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	    ctrl.discard();
 	} else if ( evt.getSource() == qualityField ) {
 	    log.debug( "quality changed"  );
-	    ctrl.viewChanged( this, PhotoInfoController.QUALITY );
+	    // If getQuality returns null this action event is generated
+	    // by the controller that is setting up quality field to display
+	    // model with multiple quality values.
+	    if ( getQuality() != null ) {
+		ctrl.viewChanged( this, PhotoInfoController.QUALITY );
+	    }
 	}
     }
 
@@ -418,9 +430,16 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
 
     public void insertUpdate( DocumentEvent ev ) {
+	log.debug( "insertUpdate,  " );
 	Document changedDoc = ev.getDocument();
 	String changedField = (String) changedDoc.getProperty( FIELD_NAME );
-	ctrl.viewChanged( this, changedField );
+	Object fieldValue = ctrl.getField( changedField );
+	/* Avoid emptying model when the field has multiple values
+	   in the model.
+	*/
+	if ( fieldValue != null || changedDoc.getLength() > 0 ) {
+	    ctrl.viewChanged( this, changedField );
+	}
 
 // 	// Handle fuzzy time
 // 	if ( changedDoc == fuzzyDateDoc ) {
@@ -456,8 +475,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 		 value it is no longer null.
 		*/
 		if ( value != null ) {
-		    log.warn( "Property changed: " + (String) field );
-		    System.out.println( "Property changed: " + (String) field );
+		    log.debug( "Property changed: " + (String) field );
 		    ctrl.viewChanged( this, (String) field );
 		}
 	    } 

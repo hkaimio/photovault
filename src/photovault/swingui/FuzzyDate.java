@@ -122,6 +122,10 @@ public class FuzzyDate {
     public String format() {
 	long lAccuracy = (long) (accuracy  * 24 * 3600 * 1000);
 	String dateStr = "";
+	if ( date == null ) {
+	    return "";
+	}
+	
 	if ( accuracy > 0 ) {
 	    
 	    // Find the correct format to use
@@ -148,5 +152,18 @@ public class FuzzyDate {
 	    dateStr = df.format( date );
 	}
 	return dateStr;
+    }
+
+    public boolean equals( Object obj ) {
+	boolean isEqual = false;
+	if ( obj instanceof FuzzyDate ) {
+	    FuzzyDate fd = (FuzzyDate) obj;
+	    if ( date != null ) {
+		isEqual = date.equals( fd.date ) && (accuracy == fd.accuracy );
+	    } else {
+		isEqual = (fd.date == null ) && ( accuracy == fd.accuracy );
+	    }
+	}
+	return isEqual;
     }
 }

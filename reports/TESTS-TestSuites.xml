@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <testsuites>
-  <testsuite errors="0" failures="0" name="Test_DateRangeQuery" package="imginfo" tests="5" time="3.166">
+  <testsuite errors="0" failures="0" name="Test_DateRangeQuery" package="imginfo" tests="5" time="2.918">
   
     <properties>
     
@@ -14,7 +14,7 @@
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -36,7 +36,7 @@
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -106,7 +106,7 @@
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -134,7 +134,7 @@
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -154,23 +154,23 @@
 
       </properties>
 
-      <testcase classname="imginfo.Test_DateRangeQuery" name="testUpperUnboundedRange" time="1.622"></testcase>
+      <testcase classname="imginfo.Test_DateRangeQuery" name="testUpperUnboundedRange" time="1.545"></testcase>
 
       <testcase classname="imginfo.Test_DateRangeQuery" name="testBoundedRange" time="0.049"></testcase>
 
-      <testcase classname="imginfo.Test_DateRangeQuery" name="testLowerUnboundedRange" time="0.807"></testcase>
+      <testcase classname="imginfo.Test_DateRangeQuery" name="testLowerUnboundedRange" time="0.73"></testcase>
 
-      <testcase classname="imginfo.Test_DateRangeQuery" name="testQueryModification" time="0.438"></testcase>
+      <testcase classname="imginfo.Test_DateRangeQuery" name="testQueryModification" time="0.343"></testcase>
 
-      <testcase classname="imginfo.Test_DateRangeQuery" name="testNotification" time="0.026"></testcase>
+      <testcase classname="imginfo.Test_DateRangeQuery" name="testNotification" time="0.031"></testcase>
 
       <system-out><![CDATA[(core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 231 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 223 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 54 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 50 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -185,7 +185,7 @@
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@b307f0[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@e70e30[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -201,7 +201,7 @@
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@737371[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@54c4ad[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -211,7 +211,7 @@
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="3" name="Test_ImageInstance" package="imginfo" tests="3" time="1.132">
+  <testsuite errors="0" failures="3" name="Test_ImageInstance" package="imginfo" tests="3" time="1.276">
   
     <properties>
     
@@ -225,7 +225,7 @@
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -247,7 +247,7 @@
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -317,7 +317,7 @@
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -345,7 +345,7 @@
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -365,7 +365,7 @@
 
       </properties>
 
-      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceCreate" time="0.897">
+      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceCreate" time="1.054">
     
       <failure message="Unable to retrieve PhotoInfo object" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Unable to retrieve PhotoInfo object
 	at imginfo.Test_ImageInstance.setUp(Test_ImageInstance.java:27)
@@ -373,7 +373,7 @@
 
       </testcase>
 
-      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceUpdate" time="0.0060">
+      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceUpdate" time="0.0050">
     
       <failure message="Unable to retrieve PhotoInfo object" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Unable to retrieve PhotoInfo object
 	at imginfo.Test_ImageInstance.setUp(Test_ImageInstance.java:27)
@@ -381,7 +381,7 @@
 
       </testcase>
 
-      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceDelete" time="0.0040">
+      <testcase classname="imginfo.Test_ImageInstance" name="testImageInstanceDelete" time="0.0050">
     
       <failure message="Unable to retrieve PhotoInfo object" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Unable to retrieve PhotoInfo object
 	at imginfo.Test_ImageInstance.setUp(Test_ImageInstance.java:27)
@@ -392,10 +392,10 @@
       <system-out><![CDATA[(core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 227 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 225 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 50 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 53 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -404,7 +404,7 @@
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@1fb050c[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@145fe3b[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -420,7 +420,7 @@
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1e8fa70[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@42a6eb[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -430,7 +430,7 @@
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="1" failures="6" name="Test_PhotoInfo" package="imginfo" tests="18" time="8.73">
+  <testsuite errors="1" failures="6" name="Test_PhotoInfo" package="imginfo" tests="18" time="8.317">
   
     <properties>
     
@@ -444,7 +444,7 @@
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -466,7 +466,7 @@
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -536,7 +536,7 @@
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -564,7 +564,7 @@
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -584,7 +584,7 @@
 
       </properties>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testRetrievalSuccess" time="1.037">
+      <testcase classname="imginfo.Test_PhotoInfo" name="testRetrievalSuccess" time="1.022">
     
       <failure message="Photo 1 not found" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 1 not found
 	at imginfo.Test_PhotoInfo.testRetrievalSuccess(Test_PhotoInfo.java:46)
@@ -595,7 +595,7 @@
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testRetrievalNotFound" time="0.622"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testRetrievalNotFound" time="0.66"></testcase>
 
       <testcase classname="imginfo.Test_PhotoInfo" name="testUpdate" time="0.0030">
     
@@ -619,7 +619,7 @@
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testPhotoCreation" time="0.066"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testPhotoCreation" time="0.079"></testcase>
 
       <testcase classname="imginfo.Test_PhotoInfo" name="testPhotoDeletion" time="0.011">
     
@@ -632,21 +632,21 @@
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testInstanceAddition" time="0.147"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testInstanceAddition" time="0.115"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testCreationFromImage" time="0.051"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testCreationFromImage" time="0.049"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testfailedCreation" time="0.0020"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testfailedCreation" time="0.0010"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreate" time="1.209"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreate" time="1.183"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreateNoInstances" time="0.0090"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreateNoInstances" time="0.0080"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreateCorruptInstances" time="0.029"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailCreateCorruptInstances" time="0.031"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testGetThumbnail" time="1.168"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testGetThumbnail" time="1.135"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbWithNoInstances" time="0.021">
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbWithNoInstances" time="0.019">
     
       <failure message="After instance addition, getThumbnail should not return default thumbnail" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: After instance addition, getThumbnail should not return default thumbnail
 	at imginfo.Test_PhotoInfo.testThumbWithNoInstances(Test_PhotoInfo.java:487)
@@ -657,7 +657,7 @@
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailRotation" time="1.197">
+      <testcase classname="imginfo.Test_PhotoInfo" name="testThumbnailRotation" time="1.166">
     
       <failure message="Thumbnail with 45 deg rotation does not match" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Thumbnail with 45 deg rotation does not match
 	at imginfo.Test_PhotoInfo.testThumbnailRotation(Test_PhotoInfo.java:514)
@@ -668,9 +668,9 @@
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testListener" time="0.026"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testListener" time="0.035"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoInfo" name="testExport" time="2.704"></testcase>
+      <testcase classname="imginfo.Test_PhotoInfo" name="testExport" time="2.565"></testcase>
 
       <testcase classname="imginfo.Test_PhotoInfo" name="testExportWriteNotAllowed" time="0.0010">
     
@@ -686,10 +686,10 @@
       <system-out><![CDATA[(core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 218 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 213 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 52 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 50 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -698,7 +698,7 @@
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@18c458[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@17a7706[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -714,7 +714,7 @@
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1c70315[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@38d460[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -727,36 +727,36 @@
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
 (imginfo.PhotoInfo                   114 ) Error copying file: /tmp/_dirThatDoNotExist/test1.jpg (No such file or directory)
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   405 ) Found original, reading it...
-(imginfo.PhotoInfo                   416 ) Done, finding name
-(imginfo.PhotoInfo                   420 ) name = 20021102_00010.jpg
-(imginfo.PhotoInfo                   437 ) Filtering...
-(imginfo.PhotoInfo                   440 ) done Filtering...
-(imginfo.PhotoInfo                   455 ) Loading thumbnail...
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   401 ) Error - no original image was found!!!
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   401 ) Error - no original image was found!!!
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   401 ) Error - no original image was found!!!
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   405 ) Found original, reading it...
-(imginfo.PhotoInfo                   416 ) Done, finding name
-(imginfo.PhotoInfo                   420 ) name = 20021102_00010.jpg
-(imginfo.PhotoInfo                   437 ) Filtering...
-(imginfo.PhotoInfo                   440 ) done Filtering...
-(imginfo.PhotoInfo                   455 ) Loading thumbnail...
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   401 ) Error - no original image was found!!!
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   405 ) Found original, reading it...
-(imginfo.PhotoInfo                   416 ) Done, finding name
-(imginfo.PhotoInfo                   420 ) name = 20021102_00010.jpg
-(imginfo.PhotoInfo                   437 ) Filtering...
-(imginfo.PhotoInfo                   440 ) done Filtering...
-(imginfo.PhotoInfo                   455 ) Loading thumbnail...
-(imginfo.PhotoInfo                   498 ) Export: reading image /home/harri/projects/photovault/testdb/2005/200501/20050107_00023.jpg
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   427 ) Found original, reading it...
+(imginfo.PhotoInfo                   438 ) Done, finding name
+(imginfo.PhotoInfo                   442 ) name = 20021102_00016.jpg
+(imginfo.PhotoInfo                   459 ) Filtering...
+(imginfo.PhotoInfo                   462 ) done Filtering...
+(imginfo.PhotoInfo                   477 ) Loading thumbnail...
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   423 ) Error - no original image was found!!!
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   423 ) Error - no original image was found!!!
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   423 ) Error - no original image was found!!!
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   427 ) Found original, reading it...
+(imginfo.PhotoInfo                   438 ) Done, finding name
+(imginfo.PhotoInfo                   442 ) name = 20021102_00016.jpg
+(imginfo.PhotoInfo                   459 ) Filtering...
+(imginfo.PhotoInfo                   462 ) done Filtering...
+(imginfo.PhotoInfo                   477 ) Loading thumbnail...
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   423 ) Error - no original image was found!!!
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   427 ) Found original, reading it...
+(imginfo.PhotoInfo                   438 ) Done, finding name
+(imginfo.PhotoInfo                   442 ) name = 20021102_00016.jpg
+(imginfo.PhotoInfo                   459 ) Filtering...
+(imginfo.PhotoInfo                   462 ) done Filtering...
+(imginfo.PhotoInfo                   477 ) Loading thumbnail...
+(imginfo.PhotoInfo                   520 ) Export: reading image /home/harri/projects/photovault/testdb/2005/200501/20050107_00035.jpg
 ]]></system-out>
 
       <system-err><![CDATA[line 1: unexpected token: -
@@ -770,7 +770,7 @@ Equal size
 ]]></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="4" name="Test_PhotoQuery" package="imginfo" tests="12" time="3.495">
+  <testsuite errors="0" failures="4" name="Test_PhotoQuery" package="imginfo" tests="12" time="3.423">
   
     <properties>
     
@@ -784,7 +784,7 @@ Equal size
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -806,7 +806,7 @@ Equal size
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -876,7 +876,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -904,7 +904,7 @@ Equal size
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -924,21 +924,21 @@ Equal size
 
       </properties>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testUpperUnboundedRange" time="1.377"></testcase>
+      <testcase classname="imginfo.Test_PhotoQuery" name="testUpperUnboundedRange" time="1.363"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testBoundedRange" time="0.102"></testcase>
+      <testcase classname="imginfo.Test_PhotoQuery" name="testBoundedRange" time="0.122"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testLowerUnboundedRange" time="0.731"></testcase>
+      <testcase classname="imginfo.Test_PhotoQuery" name="testLowerUnboundedRange" time="0.622"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testQueryModification" time="0.396"></testcase>
+      <testcase classname="imginfo.Test_PhotoQuery" name="testQueryModification" time="0.363"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testNotification" time="0.062"></testcase>
+      <testcase classname="imginfo.Test_PhotoQuery" name="testNotification" time="0.088"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testFuzzyDateProbable" time="0.079">
+      <testcase classname="imginfo.Test_PhotoQuery" name="testFuzzyDateProbable" time="0.094">
     
-      <failure message="Photo 2 (id15447) not included in result set" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 2 (id15447) not included in result set
-	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:213)
-	at imginfo.Test_PhotoQuery.testFuzzyDateProbable(Test_PhotoQuery.java:100)
+      <failure message="Photo 3 (id16568) not included in result set" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 3 (id16568) not included in result set
+	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:214)
+	at imginfo.Test_PhotoQuery.testFuzzyDateProbable(Test_PhotoQuery.java:101)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
@@ -946,11 +946,11 @@ Equal size
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testFuzzyDatePossible" time="0.098">
+      <testcase classname="imginfo.Test_PhotoQuery" name="testFuzzyDatePossible" time="0.093">
     
-      <failure message="Photo 0 (id15449) not included in result set" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 0 (id15449) not included in result set
-	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:213)
-	at imginfo.Test_PhotoQuery.testFuzzyDatePossible(Test_PhotoQuery.java:115)
+      <failure message="Photo 0 (id16569) not included in result set" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 0 (id16569) not included in result set
+	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:214)
+	at imginfo.Test_PhotoQuery.testFuzzyDatePossible(Test_PhotoQuery.java:116)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
@@ -958,11 +958,11 @@ Equal size
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testFuzzyDateCertain" time="0.071">
+      <testcase classname="imginfo.Test_PhotoQuery" name="testFuzzyDateCertain" time="0.079">
     
-      <failure message="Photo 1 (id15454) not included in result set" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 1 (id15454) not included in result set
-	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:213)
-	at imginfo.Test_PhotoQuery.testFuzzyDateCertain(Test_PhotoQuery.java:130)
+      <failure message="Photo 1 (id16574) not included in result set" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 1 (id16574) not included in result set
+	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:214)
+	at imginfo.Test_PhotoQuery.testFuzzyDateCertain(Test_PhotoQuery.java:131)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
@@ -970,11 +970,11 @@ Equal size
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testFulltext" time="0.114">
+      <testcase classname="imginfo.Test_PhotoQuery" name="testFulltext" time="0.142">
     
-      <failure message="Photo 1 (id15458) not included in result set" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 1 (id15458) not included in result set
-	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:213)
-	at imginfo.Test_PhotoQuery.testFulltext(Test_PhotoQuery.java:149)
+      <failure message="Photo 1 (id16578) not included in result set" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Photo 1 (id16578) not included in result set
+	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:214)
+	at imginfo.Test_PhotoQuery.testFulltext(Test_PhotoQuery.java:150)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
@@ -982,19 +982,19 @@ Equal size
 
       </testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testLike" time="0.114"></testcase>
+      <testcase classname="imginfo.Test_PhotoQuery" name="testLike" time="0.106"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testFolderLimit" time="0.07"></testcase>
+      <testcase classname="imginfo.Test_PhotoQuery" name="testFolderLimit" time="0.072"></testcase>
 
-      <testcase classname="imginfo.Test_PhotoQuery" name="testFolderLimitSubfolders" time="0.074"></testcase>
+      <testcase classname="imginfo.Test_PhotoQuery" name="testFolderLimitSubfolders" time="0.078"></testcase>
 
       <system-out><![CDATA[(core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 206 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 199 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 49 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 47 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -1009,7 +1009,7 @@ Equal size
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@4fdf11[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@1ed7ac[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -1025,7 +1025,7 @@ Equal size
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1627c16[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@24eafa[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -1062,7 +1062,7 @@ Equal size
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
-(imginfo.ImageInstance               105 ) Error while initializing imageFile: /home/harri/projects/photovault/testdb/2005/200501/20050107_00023.jpg does not exist in volume
+(imginfo.ImageInstance               105 ) Error while initializing imageFile: /home/harri/projects/photovault/testdb/2005/200501/20050107_00035.jpg does not exist in volume
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
@@ -1120,8 +1120,8 @@ org.apache.ojb.broker.PersistenceBrokerException: java.lang.StringIndexOutOfBoun
 	at org.apache.ojb.broker.core.DelegatingPersistenceBroker.getCollectionByQuery(Unknown Source)
 	at imginfo.PhotoQuery.query(PhotoQuery.java:150)
 	at imginfo.PhotoQuery.getPhotoCount(PhotoQuery.java:195)
-	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:196)
-	at imginfo.Test_PhotoQuery.testFuzzyDatePossible(Test_PhotoQuery.java:115)
+	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:197)
+	at imginfo.Test_PhotoQuery.testFuzzyDatePossible(Test_PhotoQuery.java:116)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
@@ -1168,7 +1168,7 @@ Caused by: java.lang.StringIndexOutOfBoundsException: String index out of range:
 	at org.apache.ojb.broker.core.PersistenceBrokerImpl.getIteratorFromQuery(Unknown Source)
 	at org.apache.ojb.broker.core.QueryReferenceBroker.getCollectionByQuery(Unknown Source)
 	... 36 more
-(odmg.TransactionImpl                ?   ) Abort transaction was called on tx org.apache.ojb.odmg.TransactionImpl@5f3bad, associated PB was org.apache.ojb.broker.core.PersistenceBrokerHandle@168c1e1
+(odmg.TransactionImpl                ?   ) Abort transaction was called on tx org.apache.ojb.odmg.TransactionImpl@cb4138, associated PB was org.apache.ojb.broker.core.PersistenceBrokerHandle@e634bf
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
@@ -1190,8 +1190,8 @@ org.apache.ojb.broker.PersistenceBrokerException: java.lang.StringIndexOutOfBoun
 	at org.apache.ojb.broker.core.DelegatingPersistenceBroker.getCollectionByQuery(Unknown Source)
 	at imginfo.PhotoQuery.query(PhotoQuery.java:150)
 	at imginfo.PhotoQuery.getPhotoCount(PhotoQuery.java:195)
-	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:196)
-	at imginfo.Test_PhotoQuery.testFuzzyDateCertain(Test_PhotoQuery.java:130)
+	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:197)
+	at imginfo.Test_PhotoQuery.testFuzzyDateCertain(Test_PhotoQuery.java:131)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
@@ -1238,7 +1238,7 @@ Caused by: java.lang.StringIndexOutOfBoundsException: String index out of range:
 	at org.apache.ojb.broker.core.PersistenceBrokerImpl.getIteratorFromQuery(Unknown Source)
 	at org.apache.ojb.broker.core.QueryReferenceBroker.getCollectionByQuery(Unknown Source)
 	... 36 more
-(odmg.TransactionImpl                ?   ) Abort transaction was called on tx org.apache.ojb.odmg.TransactionImpl@4f33c1, associated PB was org.apache.ojb.broker.core.PersistenceBrokerHandle@bafda6
+(odmg.TransactionImpl                ?   ) Abort transaction was called on tx org.apache.ojb.odmg.TransactionImpl@1aca5e2, associated PB was org.apache.ojb.broker.core.PersistenceBrokerHandle@130b13c
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
 (core.PersistenceBrokerImpl          ?   ) Cascade store for this reference-descriptor (parent) was set to false.
@@ -1320,8 +1320,8 @@ Added
 	at org.apache.ojb.broker.core.DelegatingPersistenceBroker.getCollectionByQuery(Unknown Source)
 	at imginfo.PhotoQuery.query(PhotoQuery.java:150)
 	at imginfo.PhotoQuery.getPhotoCount(PhotoQuery.java:195)
-	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:196)
-	at imginfo.Test_PhotoQuery.testFuzzyDatePossible(Test_PhotoQuery.java:115)
+	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:197)
+	at imginfo.Test_PhotoQuery.testFuzzyDatePossible(Test_PhotoQuery.java:116)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
@@ -1374,8 +1374,8 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 	at org.apache.ojb.broker.core.DelegatingPersistenceBroker.getCollectionByQuery(Unknown Source)
 	at imginfo.PhotoQuery.query(PhotoQuery.java:150)
 	at imginfo.PhotoQuery.getPhotoCount(PhotoQuery.java:195)
-	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:196)
-	at imginfo.Test_PhotoQuery.testFuzzyDateCertain(Test_PhotoQuery.java:130)
+	at imginfo.Test_PhotoQuery.checkResults(Test_PhotoQuery.java:197)
+	at imginfo.Test_PhotoQuery.testFuzzyDateCertain(Test_PhotoQuery.java:131)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
@@ -1406,7 +1406,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 ]]></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_Volume" package="imginfo" tests="6" time="1.847">
+  <testsuite errors="0" failures="0" name="Test_Volume" package="imginfo" tests="6" time="1.784">
   
     <properties>
     
@@ -1420,7 +1420,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -1442,7 +1442,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -1512,7 +1512,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -1540,7 +1540,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -1566,20 +1566,20 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
       <testcase classname="imginfo.Test_Volume" name="testManyDateCreation" time="0.0010"></testcase>
 
-      <testcase classname="imginfo.Test_Volume" name="testMassCreation" time="0.45"></testcase>
+      <testcase classname="imginfo.Test_Volume" name="testMassCreation" time="0.427"></testcase>
 
       <testcase classname="imginfo.Test_Volume" name="testFnameMapping" time="0.0010"></testcase>
 
-      <testcase classname="imginfo.Test_Volume" name="testNamingWithNoDate" time="0.907"></testcase>
+      <testcase classname="imginfo.Test_Volume" name="testNamingWithNoDate" time="0.876"></testcase>
 
       <system-out><![CDATA[c:\temp\photoVaultVolumeTest/2002/200212/20021213_00001.jpg
 (core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 214 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 209 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 47 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 44 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -1594,7 +1594,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@8e3115[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@5afcb1[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -1610,7 +1610,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@13eae6e[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1dd5a3d[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -1620,7 +1620,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="1" failures="1" name="Test_PhotoFolder" package="photovault.folder" tests="9" time="1.723">
+  <testsuite errors="1" failures="1" name="Test_PhotoFolder" package="photovault.folder" tests="9" time="1.688">
   
     <properties>
     
@@ -1634,7 +1634,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -1656,7 +1656,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -1726,7 +1726,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -1754,7 +1754,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -1774,11 +1774,11 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
       </properties>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testListener" time="1.217"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testListener" time="1.177"></testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testCreate" time="0.068"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testCreate" time="0.065"></testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testRetrieve" time="0.019">
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testRetrieve" time="0.02">
     
       <failure message="Top folder not found" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: Top folder not found
 	at photovault.folder.Test_PhotoFolder.testRetrieve(Test_PhotoFolder.java:112)
@@ -1789,9 +1789,9 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
       </testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoAddition" time="0.105"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoAddition" time="0.115"></testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoRetrieval" time="0.017"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoRetrieval" time="0.016"></testcase>
 
       <testcase classname="photovault.folder.Test_PhotoFolder" name="testPersistence" time="0.01">
     
@@ -1805,19 +1805,19 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
       </testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testSubfolders" time="0.025"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testSubfolders" time="0.031"></testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoDelete" time="0.034"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testPhotoDelete" time="0.036"></testcase>
 
-      <testcase classname="photovault.folder.Test_PhotoFolder" name="testGetRoot" time="0.014"></testcase>
+      <testcase classname="photovault.folder.Test_PhotoFolder" name="testGetRoot" time="0.012"></testcase>
 
       <system-out><![CDATA[(core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 210 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 202 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 47 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 49 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -1832,7 +1832,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@baf4ae[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@7e05c4[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -1848,7 +1848,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@b7141a[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1d95033[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -1887,7 +1887,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 ]]></system-err>
 
   </testsuite>
-  <testsuite errors="1" failures="0" name="Test_ImageXform" package="photovault.image" tests="2" time="10.963">
+  <testsuite errors="1" failures="0" name="Test_ImageXform" package="photovault.image" tests="2" time="10.629">
   
     <properties>
     
@@ -1901,7 +1901,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -1923,7 +1923,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -1993,7 +1993,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2021,7 +2021,7 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -2041,14 +2041,14 @@ java.lang.StringIndexOutOfBoundsException: String index out of range: -2
 
       </properties>
 
-      <testcase classname="photovault.image.Test_ImageXform" name="testScaling" time="7.485">
+      <testcase classname="photovault.image.Test_ImageXform" name="testScaling" time="7.272">
     
       <error message="Java heap space" type="java.lang.OutOfMemoryError">java.lang.OutOfMemoryError: Java heap space
 </error>
 
       </testcase>
 
-      <testcase classname="photovault.image.Test_ImageXform" name="testFitting" time="3.268"></testcase>
+      <testcase classname="photovault.image.Test_ImageXform" name="testFitting" time="3.155"></testcase>
 
       <system-out></system-out>
 
@@ -2067,7 +2067,7 @@ Equal size
 ]]></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_FieldController" package="photovault.swingui" tests="7" time="0.207">
+  <testsuite errors="0" failures="0" name="Test_FieldController" package="photovault.swingui" tests="7" time="0.2">
   
     <properties>
     
@@ -2081,7 +2081,7 @@ Equal size
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -2103,7 +2103,7 @@ Equal size
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -2173,7 +2173,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2201,7 +2201,7 @@ Equal size
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -2221,26 +2221,26 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.swingui.Test_FieldController" name="testFieldSetting" time="0.0030"></testcase>
+      <testcase classname="photovault.swingui.Test_FieldController" name="testFieldSetting" time="0.0020"></testcase>
 
       <testcase classname="photovault.swingui.Test_FieldController" name="testSaveWithoutModification" time="0.0"></testcase>
 
       <testcase classname="photovault.swingui.Test_FieldController" name="testFieldModification" time="0.0"></testcase>
 
-      <testcase classname="photovault.swingui.Test_FieldController" name="testViewsModification" time="0.0"></testcase>
+      <testcase classname="photovault.swingui.Test_FieldController" name="testViewsModification" time="0.0010"></testcase>
 
       <testcase classname="photovault.swingui.Test_FieldController" name="testNullModel" time="0.0"></testcase>
 
       <testcase classname="photovault.swingui.Test_FieldController" name="testModelChange" time="0.0"></testcase>
 
-      <testcase classname="photovault.swingui.Test_FieldController" name="testMultiModel" time="0.0010"></testcase>
+      <testcase classname="photovault.swingui.Test_FieldController" name="testMultiModel" time="0.0"></testcase>
 
       <system-out></system-out>
 
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_PhotoFolderTreeModel" package="photovault.swingui" tests="3" time="1.183">
+  <testsuite errors="0" failures="0" name="Test_FuzzyDate" package="photovault.swingui" tests="2" time="0.276">
   
     <properties>
     
@@ -2254,7 +2254,7 @@ Equal size
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -2276,7 +2276,7 @@ Equal size
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -2346,7 +2346,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2374,7 +2374,7 @@ Equal size
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -2394,19 +2394,182 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testListener" time="0.891"></testcase>
+      <testcase classname="photovault.swingui.Test_FuzzyDate" name="testNullDate" time="0.076"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testChildRetrieval" time="0.012"></testcase>
+      <testcase classname="photovault.swingui.Test_FuzzyDate" name="testEquals" time="0.0"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testRootModifications" time="0.074"></testcase>
+      <system-out></system-out>
+
+      <system-err></system-err>
+
+  </testsuite>
+  <testsuite errors="0" failures="0" name="Test_PhotoFolderTreeModel" package="photovault.swingui" tests="3" time="1.138">
+  
+    <properties>
+    
+      <property name="java.vendor" value="Sun Microsystems Inc."></property>
+
+          <property name="sun.management.compiler" value="HotSpot Client Compiler"></property>
+
+          <property name="dist" value="/home/harri/projects/photovault/dist"></property>
+
+          <property name="os.name" value="Linux"></property>
+
+          <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
+
+          <property name="TODAY" value="March 12 2005"></property>
+
+          <property name="sun.desktop" value="gnome"></property>
+
+          <property name="java.vm.specification.vendor" value="Sun Microsystems Inc."></property>
+
+          <property name="ant.home" value="/usr/local/java/apache-ant-1.6.2"></property>
+
+          <property name="java.runtime.version" value="1.5.0_01-b08"></property>
+
+          <property name="user.name" value="harri"></property>
+
+          <property name="build.dir" value="build"></property>
+
+          <property name="user.language" value="en"></property>
+
+          <property name="build" value="/home/harri/projects/photovault/build"></property>
+
+          <property name="sun.boot.library.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/i386"></property>
+
+          <property name="ant.project.name" value="PhotoVault"></property>
+
+          <property name="DSTAMP" value="20050312"></property>
+
+          <property name="java.version" value="1.5.0_01"></property>
+
+          <property name="user.timezone" value=""></property>
+
+          <property name="sun.arch.data.model" value="32"></property>
+
+          <property name="java.endorsed.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/endorsed"></property>
+
+          <property name="sun.cpu.isalist" value=""></property>
+
+          <property name="sun.jnu.encoding" value="ISO-8859-1"></property>
+
+          <property name="file.encoding.pkg" value="sun.io"></property>
+
+          <property name="file.separator" value="/"></property>
+
+          <property name="java.specification.name" value="Java Platform API Specification"></property>
+
+          <property name="java.class.version" value="49.0"></property>
+
+          <property name="src" value="/home/harri/projects/photovault/src"></property>
+
+          <property name="source.test.dir" value="src/test"></property>
+
+          <property name="build.classes.dir" value="build/classes/"></property>
+
+          <property name="user.country" value="US"></property>
+
+          <property name="java.home" value="/usr/local/java/jdk1.5.0_01/jre"></property>
+
+          <property name="java.vm.info" value="mixed mode, sharing"></property>
+
+          <property name="ant.file" value="/home/harri/projects/photovault/build.xml"></property>
+
+          <property name="os.version" value="2.6.8-1-686"></property>
+
+          <property name="ant.file.PhotoVault" value="/home/harri/projects/photovault/build.xml"></property>
+
+          <property name="build.lib.dir" value="lib"></property>
+
+          <property name="path.separator" value=":"></property>
+
+          <property name="java.vm.version" value="1.5.0_01-b08"></property>
+
+          <property name="ant.library.dir" value="/usr/local/java/apache-ant-1.6.2/lib"></property>
+
+          <property name="source.java.dir" value="src"></property>
+
+          <property name="java.awt.printerjob" value="sun.print.PSPrinterJob"></property>
+
+          <property name="sun.io.unicode.encoding" value="UnicodeLittle"></property>
+
+          <property name="user.home" value="/home/harri"></property>
+
+          <property name="java.specification.vendor" value="Sun Microsystems Inc."></property>
+
+          <property name="java.library.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/i386/client:/usr/local/java/jdk1.5.0_01/jre/lib/i386:/usr/local/java/jdk1.5.0_01/jre/../lib/i386"></property>
+
+          <property name="java.vendor.url" value="http://java.sun.com/"></property>
+
+          <property name="java.vm.vendor" value="Sun Microsystems Inc."></property>
+
+          <property name="java.runtime.name" value="Java(TM) 2 Runtime Environment, Standard Edition"></property>
+
+          <property name="java.class.path" value="/usr/local/java/apache-ant-1.6.2/lib/ant-launcher.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-antlr.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-apache-bcel.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-apache-bsf.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-apache-log4j.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-apache-oro.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-apache-regexp.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-apache-resolver.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-commons-logging.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-commons-net.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-icontract.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-jai.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-javamail.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-jdepend.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-jmf.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-jsch.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-junit.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-launcher.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-netrexx.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-nodeps.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-starteam.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-stylebook.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-swing.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-trax.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-vaj.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-weblogic.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-xalan1.jar:/usr/local/java/apache-ant-1.6.2/lib/ant-xslp.jar:/usr/local/java/apache-ant-1.6.2/lib/ant.jar:/usr/local/java/apache-ant-1.6.2/lib/xercesImpl.jar:/usr/local/java/apache-ant-1.6.2/lib/xml-apis.jar:/usr/local/java/apache-ant-1.6.2/lib/junit.jar:/usr/local/java/apache-ant-1.6.2/lib/catalina-ant.jar:/usr/local/java/jdk1.5.0_01/lib/tools.jar"></property>
+
+          <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
+
+          <property name="TSTAMP" value="0926"></property>
+
+          <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
+
+          <property name="java.vm.specification.version" value="1.0"></property>
+
+          <property name="sun.cpu.endian" value="little"></property>
+
+          <property name="sun.os.patch.level" value="unknown"></property>
+
+          <property name="build.resource.dir" value="build/resources/"></property>
+
+          <property name="java.io.tmpdir" value="/tmp"></property>
+
+          <property name="source.resource.dir" value="src/resources"></property>
+
+          <property name="java.vendor.url.bug" value="http://java.sun.com/cgi-bin/bugreport.cgi"></property>
+
+          <property name="conf.dir" value="conf"></property>
+
+          <property name="reports.test" value="reports"></property>
+
+          <property name="os.arch" value="i386"></property>
+
+          <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment"></property>
+
+          <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
+
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
+
+          <property name="line.separator" value=" "></property>
+
+          <property name="java.vm.name" value="Java HotSpot(TM) Client VM"></property>
+
+          <property name="basedir" value="/home/harri/projects/photovault"></property>
+
+          <property name="ant.java.version" value="1.5"></property>
+
+          <property name="file.encoding" value="ISO-8859-1"></property>
+
+          <property name="target.dir" value="target"></property>
+
+          <property name="source.dir" value="src"></property>
+
+          <property name="java.specification.version" value="1.5"></property>
+
+      </properties>
+
+      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testListener" time="0.856"></testcase>
+
+      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testChildRetrieval" time="0.013"></testcase>
+
+      <testcase classname="photovault.swingui.Test_PhotoFolderTreeModel" name="testRootModifications" time="0.069"></testcase>
 
       <system-out><![CDATA[(core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 218 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 197 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 46 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 44 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -2415,7 +2578,7 @@ Equal size
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@1f1a3a8[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@4f12c2[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -2431,7 +2594,7 @@ Equal size
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1bde392[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@171f735[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -2505,7 +2668,7 @@ Equal size
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="0" name="Test_PhotoInfoController" package="photovault.swingui" tests="4" time="1.652">
+  <testsuite errors="0" failures="0" name="Test_PhotoInfoController" package="photovault.swingui" tests="4" time="1.591">
   
     <properties>
     
@@ -2519,7 +2682,7 @@ Equal size
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -2541,7 +2704,7 @@ Equal size
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -2611,7 +2774,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2639,7 +2802,7 @@ Equal size
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -2659,21 +2822,21 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testPhotoModification" time="1.306"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testPhotoModification" time="0.952"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testChangeDiscarding" time="0.035"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testChangeDiscarding" time="0.031"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testNewPhotoCreation" time="0.082"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testNewPhotoCreation" time="0.088"></testcase>
 
-      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testOnlyRecordCreation" time="0.022"></testcase>
+      <testcase classname="photovault.swingui.Test_PhotoInfoController" name="testOnlyRecordCreation" time="0.023"></testcase>
 
       <system-out><![CDATA[(core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 209 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 198 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 46 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 44 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -2688,7 +2851,7 @@ Equal size
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@1912a56[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@126f304[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -2704,7 +2867,7 @@ Equal size
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@d01311[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1c26db4[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
@@ -2714,7 +2877,7 @@ Equal size
       <system-err></system-err>
 
   </testsuite>
-  <testsuite errors="0" failures="2" name="Test_ThumbnailView" package="photovault.swingui" tests="2" time="5.459">
+  <testsuite errors="0" failures="2" name="Test_ThumbnailView" package="photovault.swingui" tests="2" time="5.198">
   
     <properties>
     
@@ -2728,7 +2891,7 @@ Equal size
 
           <property name="sun.boot.class.path" value="/usr/local/java/jdk1.5.0_01/jre/lib/rt.jar:/usr/local/java/jdk1.5.0_01/jre/lib/i18n.jar:/usr/local/java/jdk1.5.0_01/jre/lib/sunrsasign.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jsse.jar:/usr/local/java/jdk1.5.0_01/jre/lib/jce.jar:/usr/local/java/jdk1.5.0_01/jre/lib/charsets.jar:/usr/local/java/jdk1.5.0_01/jre/classes"></property>
 
-          <property name="TODAY" value="March 6 2005"></property>
+          <property name="TODAY" value="March 12 2005"></property>
 
           <property name="sun.desktop" value="gnome"></property>
 
@@ -2750,7 +2913,7 @@ Equal size
 
           <property name="ant.project.name" value="PhotoVault"></property>
 
-          <property name="DSTAMP" value="20050306"></property>
+          <property name="DSTAMP" value="20050312"></property>
 
           <property name="java.version" value="1.5.0_01"></property>
 
@@ -2820,7 +2983,7 @@ Equal size
 
           <property name="ant.version" value="Apache Ant version 1.6.2 compiled on July 16 2004"></property>
 
-          <property name="TSTAMP" value="0837"></property>
+          <property name="TSTAMP" value="0926"></property>
 
           <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
 
@@ -2848,7 +3011,7 @@ Equal size
 
           <property name="java.ext.dirs" value="/usr/local/java/jdk1.5.0_01/jre/lib/ext"></property>
 
-          <property name="user.dir" value="/home/harri/projects/photovault/src/imginfo"></property>
+          <property name="user.dir" value="/home/harri/projects/photovault/src/photovault/swingui"></property>
 
           <property name="line.separator" value=" "></property>
 
@@ -2868,7 +3031,7 @@ Equal size
 
       </properties>
 
-      <testcase classname="photovault.swingui.Test_ThumbnailView" name="testThumbnailShow" time="3.757">
+      <testcase classname="photovault.swingui.Test_ThumbnailView" name="testThumbnailShow" time="3.618">
     
       <failure type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError
 	at photovault.swingui.Test_ThumbnailView.testThumbnailShow(Test_ThumbnailView.java:77)
@@ -2879,7 +3042,7 @@ Equal size
 
       </testcase>
 
-      <testcase classname="photovault.swingui.Test_ThumbnailView" name="testRotationChange" time="1.498">
+      <testcase classname="photovault.swingui.Test_ThumbnailView" name="testRotationChange" time="1.385">
     
       <failure message="thumbnailRotationn not correct" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: thumbnailRotationn not correct
 	at photovault.swingui.Test_ThumbnailView.testRotationChange(Test_ThumbnailView.java:104)
@@ -2893,10 +3056,10 @@ Equal size
       <system-out><![CDATA[(core.PersistenceBrokerFactoryDefaultImpl ?   ) Create PersistenceBroker instance pool, pool configuration was {whenExhaustedAction=0, maxIdle=-1, maxActive=100, maxWait=2000, removeAbandoned=false, numTestsPerEvictionRun=10, testWhileIdle=false, minEvictableIdleTimeMillis=1000000, testOnReturn=false, logAbandoned=false, removeAbandonedTimeout=300, timeBetweenEvictionRunsMillis=-1, testOnBorrow=false}
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read class descriptors took 207 ms
+(metadata.RepositoryPersistor        ?   ) Read class descriptors took 674 ms
 (metadata.RepositoryPersistor        ?   ) OJB Descriptor Repository: file:/home/harri/projects/photovault/conf/repository.xml
 (metadata.RepositoryPersistor        ?   ) Building repository from :file:/home/harri/projects/photovault/conf/repository.xml
-(metadata.RepositoryPersistor        ?   ) Read connection repository took 43 ms
+(metadata.RepositoryPersistor        ?   ) Read connection repository took 44 ms
 (core.PersistenceBrokerFactoryBaseImpl ?   ) Create new PB instance for PBKey org.apache.ojb.broker.PBKey: jcdAlias=repository.xml, user=harri, password=*****, already created persistence broker instances: 0
 (DEFAULT                             ?   ) [PlatformFactory] problems with platform org.apache.ojb.broker.platforms.PlatformMysqlImpl: org.apache.ojb.broker.platforms.PlatformMysqlImpl
 (DEFAULT                             ?   ) [PlatformFactory] OJB will use PlatformDefaultImpl instead
@@ -2911,7 +3074,7 @@ Equal size
 (cache.CacheDistributor              ?   ) Use property 'descriptorBasedCaches' is set 'false'
 (cache.ObjectCacheFactory            ?   ) Instantiate new org.apache.ojb.broker.cache.CacheDistributor class object
 (cache.ObjectCacheFactory            ?   ) New ObjectCache instance was created
-(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@154024[
+(accesslayer.ConnectionFactoryPooledImpl ?   ) Create new connection pool:org.apache.ojb.broker.metadata.JdbcConnectionDescriptor@6250d2[
   jcd-alias=repository.xml
   default-connection=true
   dbms=mysql
@@ -2927,27 +3090,28 @@ Equal size
   batchMode=false
   useAutoCommit=AUTO_COMMIT_SET_TRUE_AND_TEMPORARY_FALSE
   ignoreAutoCommitExceptions=false
-  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@15ddf5[
+  sequenceDescriptor=org.apache.ojb.broker.metadata.SequenceDescriptor@1c3dc66[
      sequenceManagerClass=class org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl
      Properties={grabSize=20}
 ]
 ]
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   405 ) Found original, reading it...
-(imginfo.PhotoInfo                   416 ) Done, finding name
-(imginfo.PhotoInfo                   420 ) name = 20021102_00011.jpg
-(imginfo.PhotoInfo                   437 ) Filtering...
-(imginfo.PhotoInfo                   440 ) done Filtering...
-(imginfo.PhotoInfo                   455 ) Loading thumbnail...
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   427 ) Found original, reading it...
+(imginfo.PhotoInfo                   438 ) Done, finding name
+(imginfo.PhotoInfo                   442 ) name = 20021102_00017.jpg
+(imginfo.PhotoInfo                   459 ) Filtering...
+(imginfo.PhotoInfo                   462 ) done Filtering...
+(imginfo.PhotoInfo                   477 ) Loading thumbnail...
 (swingui.ThumbnailView               54  ) Accuracy = 0
 (swingui.ThumbnailView               54  ) Accuracy = 0
-(imginfo.PhotoInfo                   385 ) Creating thumbnail
-(imginfo.PhotoInfo                   405 ) Found original, reading it...
-(imginfo.PhotoInfo                   416 ) Done, finding name
-(imginfo.PhotoInfo                   420 ) name = 20021102_00011.jpg
-(imginfo.PhotoInfo                   437 ) Filtering...
-(imginfo.PhotoInfo                   440 ) done Filtering...
-(imginfo.PhotoInfo                   455 ) Loading thumbnail...
+(swingui.ThumbnailView               54  ) Accuracy = 0
+(imginfo.PhotoInfo                   407 ) Creating thumbnail
+(imginfo.PhotoInfo                   427 ) Found original, reading it...
+(imginfo.PhotoInfo                   438 ) Done, finding name
+(imginfo.PhotoInfo                   442 ) name = 20021102_00017.jpg
+(imginfo.PhotoInfo                   459 ) Filtering...
+(imginfo.PhotoInfo                   462 ) done Filtering...
+(imginfo.PhotoInfo                   477 ) Loading thumbnail...
 (swingui.ThumbnailView               54  ) Accuracy = 0
 ]]></system-out>
 
