@@ -10,6 +10,28 @@
   <path id="project.class.path">
     <pathelement location="c:\java\lib\metadataExtractor.jar/"/>
     <pathelement location="C:\java\abbot-0.8.2\lib\abbot.jar/"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\commons-beanutils.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\commons-beanutils.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\commons-collections-2.0.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\commons-dbcp.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\commons-lang-1.0-mod.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\commons-logging.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\commons-pool.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\hsqldb.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\jboss-common.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\jboss-system.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\jca1.0.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\jcs.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\jdbc2_0-stdext.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\jmxri.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\jndi.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\jta-spec1_0_1.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\p6spy.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\proxy.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\xdoclet.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\xercesImpl.jar"/>
+    <pathelement location="c:\java\jakarta-ojb\lib\xml-apis.jar"/>
+    <pathelement location="c:\java\lib\jakarta-ojb-0.9.9.jar"/>
     <pathelement path="${java.class.path}/"/>
   </path>
 

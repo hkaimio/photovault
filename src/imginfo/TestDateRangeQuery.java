@@ -7,6 +7,9 @@ import java.util.*;
 
 public class TestDateRangeQuery extends TestCase {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestDateRangeQuery.class.getName() );
+
+
     Vector photos = null;
     Vector uids = null;
     
@@ -32,7 +35,7 @@ public class TestDateRangeQuery extends TestCase {
 	photo.setShootTime( cal.getTime() );
 	photo.updateDB();
 	int uid = photo.getUid();
-	System.err.println( "Created photo " + uid + " " + photo.getShootTime() );
+	log.debug( "Created photo " + uid + " " + photo.getShootTime() );
 	photos.add( photo );
 	uids.add( new Integer( photo.getUid() ) );
 	return photo;
@@ -100,22 +103,22 @@ public class TestDateRangeQuery extends TestCase {
     }
 
     void checkResults( DateRangeQuery q, boolean[] expected ) {
-	System.err.println( "Checking results" );
+	log.debug( "Checking results" );
 	for( int n = 0; n < q.getPhotoCount(); n++ ) {
 	    PhotoInfo photo = q.getPhoto( n );
 	    int m = uids.indexOf( new Integer( photo.getUid() ) );
-	    System.err.println( "Getting photo " + photo.getUid() + " " + photo.getShootTime() + " " + m );
+	    log.debug( "Getting photo " + photo.getUid() + " " + photo.getShootTime() + " " + m );
 	    if ( m >= 0 ) {
 		if ( expected[m] ) {
 		    expected[m] = false;
-		    System.err.println( "Photo " + photo.getUid() + " found" );
+		    log.debug( "Photo " + photo.getUid() + " found" );
 		} else {
 		    fail( "Photo dated " + photo.getShootTime().toString() + " not expected!!!" );
 		}
 	    }
 	}
 	// Check that all photos were found
-	System.err.println( "Checking that all are found" );
+	log.debug( "Checking that all are found" );
 	for ( int n = 0; n < expected.length; n++ ) {
 	    if ( expected[n] ) {
 		fail( "Photo "+ n + " (id" + ((PhotoInfo)photos.elementAt( n )).getUid() + ") not included in result set" );

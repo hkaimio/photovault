@@ -5,6 +5,7 @@ package photovault.swingui;
 import java.util.*;
 import java.io.*;
 import imginfo.*;
+import org.apache.log4j.Logger;
 
 /**
    PhotoInfoController contains the application logic for creating and editing PhotoInfo records in database,
@@ -12,6 +13,8 @@ import imginfo.*;
 */
 
 public class PhotoInfoController {
+
+    static Logger log = Logger.getLogger( PhotoInfoController.class.getName() );
 
     /**
        Default constructor
@@ -398,7 +401,7 @@ public class PhotoInfoController {
 	if ( fieldCtrl != null ) {
 	    fieldCtrl.setValue( value );
 	} else {
-	    System.err.println( "No field " + field );
+	    log.warn( "No field " + field );
 	}
     }
 
@@ -414,7 +417,7 @@ public class PhotoInfoController {
 	if ( fieldCtrl != null ) {
 	    fieldCtrl.viewChanged( view, newValue );
 	} else {
-	    System.err.println( "No field " + field );
+	    log.warn( "No field " + field );
 	}
     }
 
@@ -429,7 +432,7 @@ public class PhotoInfoController {
 	if ( fieldCtrl != null ) {
 	    fieldCtrl.viewChanged( view );
 	} else {
-	    System.err.println( "No field " + field );
+	    log.warn( "No field " + field );
 	}
     }
 	

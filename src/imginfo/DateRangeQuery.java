@@ -14,6 +14,10 @@ import dbhelper.*;
 */
 
 public class DateRangeQuery implements PhotoCollection {
+
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( DateRangeQuery.class.getName() );
+
+
     public DateRangeQuery() {
 	photos = new Vector();
 	listeners = new Vector();
@@ -70,7 +74,7 @@ public class DateRangeQuery implements PhotoCollection {
 		sqlBuf.append( "shoot_time <= ?" );
 	    }
 	}
-	System.err.println( "Date rage query: " + sqlBuf.toString() );
+	log.debug( "Date rage query: " + sqlBuf.toString() );
 
 	try {
 	    Connection conn = ImageDb.getConnection();
@@ -88,12 +92,12 @@ public class DateRangeQuery implements PhotoCollection {
 	    while( rs.next() ) {
 		PhotoInfo photo = PhotoInfo.createFromResultSet( rs );
 		if ( photo == null ) {
-		    System.err.println( "Photo not created correctly" );
+		    log.warn( "Photo not created correctly" );
 		}
 		photos.add( photo );
 	    }
 	} catch ( SQLException e ) {
-	    System.err.println( "Error executying dateRangeQuery: " + e.getMessage() );
+	    log.warn( "Error executying dateRangeQuery: " + e.getMessage() );
 	}
 	rangeModified = false;
     }

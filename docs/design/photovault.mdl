@@ -56,7 +56,11 @@
 		    (object Dependency_Relationship
 			quid       	"3DF1A0700088"
 			supplier   	"Use Case View::Save photo outside DB"
-			quidu      	"3DF1A0580030")))
+			quidu      	"3DF1A0580030")
+		    (object Dependency_Relationship
+			quid       	"3E4E41970104"
+			supplier   	"Use Case View::Add photo to album"
+			quidu      	"3E4E418502D5")))
 	    (object Class "PhotoBrowser"
 		quid       	"3DF19FC8005B"
 		stereotype 	"Actor"
@@ -68,7 +72,11 @@
 		    (object Dependency_Relationship
 			quid       	"3DF1A075011D"
 			supplier   	"Use Case View::Save photo outside DB"
-			quidu      	"3DF1A0580030")))
+			quidu      	"3DF1A0580030")
+		    (object Dependency_Relationship
+			quid       	"3E4E419B0381"
+			supplier   	"Use Case View::Add photo to album"
+			quidu      	"3E4E418502D5")))
 	    (object UseCase "Add photo to DB"
 		quid       	"3DF19FDE02D7")
 	    (object UseCase "Find photo from DB"
@@ -78,7 +86,9 @@
 	    (object UseCase "Create photo album"
 		quid       	"3DF1A0370060")
 	    (object UseCase "Save photo outside DB"
-		quid       	"3DF1A0580030"))
+		quid       	"3DF1A0580030")
+	    (object UseCase "Add photo to album"
+		quid       	"3E4E418502D5"))
 	logical_presentations 	(list unit_reference_list
 	    (object UseCaseDiagram "Main"
 		quid       	"3DF19F51002D"
@@ -87,7 +97,7 @@
 		max_height 	28350
 		max_width  	21600
 		origin_x   	0
-		origin_y   	0
+		origin_y   	1000
 		items      	(list diagram_item_list
 		    (object ClassView "Class" "Use Case View::Photographer" @1
 			ShowCompartmentStereotypes 	TRUE
@@ -194,7 +204,7 @@
 			supplier   	@3
 			line_style 	0)
 		    (object UseCaseView "Use Case View::Find photo from DB" @5
-			location   	(1408, 1072)
+			location   	(1456, 1536)
 			font       	(object Font
 			    size       	10
 			    face       	"Arial"
@@ -206,7 +216,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@5
-			    location   	(1408, 1210)
+			    location   	(1456, 1674)
 			    anchor_loc 	1
 			    nlines     	2
 			    max_width  	630
@@ -249,7 +259,7 @@
 			supplier   	@6
 			line_style 	0)
 		    (object UseCaseView "Use Case View::Create photo album" @8
-			location   	(1424, 800)
+			location   	(1456, 784)
 			font       	(object Font
 			    size       	10
 			    face       	"Arial"
@@ -261,7 +271,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@8
-			    location   	(1424, 938)
+			    location   	(1456, 922)
 			    anchor_loc 	1
 			    nlines     	2
 			    max_width  	630
@@ -287,7 +297,7 @@
 			supplier   	@5
 			line_style 	0)
 		    (object UseCaseView "Use Case View::Save photo outside DB" @11
-			location   	(1408, 1344)
+			location   	(1440, 1776)
 			font       	(object Font
 			    size       	10
 			    face       	"Arial"
@@ -299,7 +309,7 @@
 			    default_color 	TRUE)
 			label      	(object ItemLabel
 			    Parent_View 	@11
-			    location   	(1408, 1482)
+			    location   	(1440, 1914)
 			    anchor_loc 	1
 			    nlines     	2
 			    max_width  	630
@@ -323,6 +333,44 @@
 			quidu      	"3DF1A075011D"
 			client     	@2
 			supplier   	@11
+			line_style 	0)
+		    (object UseCaseView "Use Case View::Add photo to album" @14
+			location   	(1440, 1088)
+			font       	(object Font
+			    size       	10
+			    face       	"Arial"
+			    bold       	FALSE
+			    italics    	FALSE
+			    underline  	FALSE
+			    strike     	FALSE
+			    color      	0
+			    default_color 	TRUE)
+			label      	(object ItemLabel
+			    Parent_View 	@14
+			    location   	(1440, 1226)
+			    anchor_loc 	1
+			    nlines     	2
+			    max_width  	630
+			    justify    	0
+			    label      	"Add photo to album")
+			icon_style 	"Icon"
+			line_color 	3342489
+			fill_color 	13434879
+			quidu      	"3E4E418502D5"
+			height     	118)
+		    (object DependencyView "" @15
+			stereotype 	TRUE
+			line_color 	3342489
+			quidu      	"3E4E41970104"
+			client     	@1
+			supplier   	@14
+			line_style 	0)
+		    (object DependencyView "" @16
+			stereotype 	TRUE
+			line_color 	3342489
+			quidu      	"3E4E419B0381"
+			client     	@2
+			supplier   	@14
 			line_style 	0)))))
     root_category 	(object Class_Category "Logical View"
 	quid       	"3DF19F51000F"
@@ -448,7 +496,7 @@
 				quidu      	"3E24619A0356")))
 		    (object Class "Thumbnail"
 			quid       	"3E3AD2B601CA")
-		    (object Mechanism @14
+		    (object Mechanism @17
 			logical_models 	(list unit_reference_list
 			    (object Object "$UNNAMED$0"
 				quid       	"3DF1A93801E0"
@@ -464,7 +512,7 @@
 				persistence 	"Transient"
 				creationObj 	FALSE
 				multi      	FALSE)))
-		    (object Mechanism @15
+		    (object Mechanism @18
 			logical_models 	(list unit_reference_list
 			    (object Object "Thumbnail requestor"
 				quid       	"3E3AD35A0202"
@@ -520,7 +568,7 @@
 			origin_x   	0
 			origin_y   	0
 			items      	(list diagram_item_list
-			    (object ClassView "Class" "Logical View::Image infromation classes::PhotoInfo" @16
+			    (object ClassView "Class" "Logical View::Image infromation classes::PhotoInfo" @19
 				ShowCompartmentStereotypes 	TRUE
 				IncludeAttribute 	TRUE
 				IncludeOperation 	TRUE
@@ -535,7 +583,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@16
+				    Parent_View 	@19
 				    location   	(682, 92)
 				    fill_color 	13434879
 				    nlines     	1
@@ -546,28 +594,11 @@
 				line_color 	3342489
 				fill_color 	13434879
 				quidu      	"3DF1A19C001E"
-				compartment 	(object Compartment
-				    Parent_View 	@16
-				    location   	(682, 153)
-				    font       	(object Font
-					size       	10
-					face       	"Arial"
-					bold       	FALSE
-					italics    	FALSE
-					underline  	FALSE
-					strike     	FALSE
-					color      	0
-					default_color 	TRUE)
-				    icon_style 	"Icon"
-				    fill_color 	13434879
-				    anchor     	2
-				    nlines     	13
-				    max_width  	434)
 				width      	446
 				height     	736
 				annotation 	8
 				autoResize 	TRUE)
-			    (object ClassView "Class" "Logical View::Image infromation classes::ImageFile" @17
+			    (object ClassView "Class" "Logical View::Image infromation classes::ImageFile" @20
 				ShowCompartmentStereotypes 	TRUE
 				IncludeAttribute 	TRUE
 				IncludeOperation 	TRUE
@@ -582,7 +613,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@17
+				    Parent_View 	@20
 				    location   	(1611, 717)
 				    fill_color 	13434879
 				    nlines     	1
@@ -597,7 +628,7 @@
 				height     	126
 				annotation 	8
 				autoResize 	TRUE)
-			    (object UsesView "is available as" @18
+			    (object UsesView "is available as" @21
 				font       	(object Font
 				    size       	10
 				    face       	"Arial"
@@ -608,7 +639,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@18
+				    Parent_View 	@21
 				    location   	(1360, 630)
 				    anchor_loc 	1
 				    nlines     	1
@@ -618,10 +649,10 @@
 				stereotype 	TRUE
 				line_color 	3342489
 				quidu      	"3DF1A2430003"
-				client     	@16
-				supplier   	@17
+				client     	@19
+				supplier   	@20
 				line_style 	0)
-			    (object ClassView "Class" "Logical View::Image infromation classes::PhotoCollection" @19
+			    (object ClassView "Class" "Logical View::Image infromation classes::PhotoCollection" @22
 				ShowCompartmentStereotypes 	TRUE
 				IncludeAttribute 	TRUE
 				IncludeOperation 	TRUE
@@ -636,7 +667,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@19
+				    Parent_View 	@22
 				    location   	(1983, 1196)
 				    anchor_loc 	1
 				    nlines     	2
@@ -648,28 +679,11 @@
 				line_color 	3342489
 				fill_color 	13434879
 				quidu      	"3E24619A0356"
-				compartment 	(object Compartment
-				    Parent_View 	@19
-				    location   	(1797, 1237)
-				    font       	(object Font
-					size       	10
-					face       	"Arial"
-					bold       	FALSE
-					italics    	FALSE
-					underline  	FALSE
-					strike     	FALSE
-					color      	0
-					default_color 	TRUE)
-				    icon_style 	"Icon"
-				    anchor     	2
-				    nlines     	3
-				    max_width  	369
-				    justify    	0)
 				width      	58
 				height     	58
 				annotation 	8
 				autoResize 	TRUE)
-			    (object ClassView "Class" "Logical View::Image infromation classes::Thumbnail" @20
+			    (object ClassView "Class" "Logical View::Image infromation classes::Thumbnail" @23
 				ShowCompartmentStereotypes 	TRUE
 				IncludeAttribute 	TRUE
 				IncludeOperation 	TRUE
@@ -684,7 +698,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@20
+				    Parent_View 	@23
 				    location   	(421, 925)
 				    fill_color 	13434879
 				    nlines     	1
@@ -700,7 +714,7 @@
 				annotation 	8
 				autoResize 	TRUE)))
 		    (object InteractionDiagram "Add photo to DB"
-			mechanism_ref 	@14
+			mechanism_ref 	@17
 			quid       	"3DF1A924027F"
 			title      	"Add photo to DB"
 			zoom       	100
@@ -709,7 +723,7 @@
 			origin_x   	0
 			origin_y   	0
 			items      	(list diagram_item_list
-			    (object InterObjView "$UNNAMED$0" @21
+			    (object InterObjView "$UNNAMED$0" @24
 				location   	(464, 224)
 				font       	(object Font
 				    size       	10
@@ -721,7 +735,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@21
+				    Parent_View 	@24
 				    location   	(464, 249)
 				    anchor_loc 	1
 				    nlines     	2
@@ -739,7 +753,7 @@
 				icon_width 	120
 				icon_y_offset 	0
 				annotation 	1)
-			    (object InterObjView "$UNNAMED$1" @22
+			    (object InterObjView "$UNNAMED$1" @25
 				location   	(1152, 224)
 				font       	(object Font
 				    size       	10
@@ -751,7 +765,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@22
+				    Parent_View 	@25
 				    location   	(1152, 224)
 				    fill_color 	13434879
 				    anchor_loc 	1
@@ -770,7 +784,7 @@
 				icon_y_offset 	0
 				annotation 	1)))
 		    (object InteractionDiagram "Getting thumbnail"
-			mechanism_ref 	@15
+			mechanism_ref 	@18
 			quid       	"3E3AD2ED0237"
 			title      	"Getting thumbnail"
 			zoom       	100
@@ -779,7 +793,7 @@
 			origin_x   	0
 			origin_y   	0
 			items      	(list diagram_item_list
-			    (object InterObjView "Thumbnail requestor" @23
+			    (object InterObjView "Thumbnail requestor" @26
 				location   	(336, 224)
 				font       	(object Font
 				    size       	10
@@ -791,7 +805,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@23
+				    Parent_View 	@26
 				    location   	(336, 224)
 				    fill_color 	13434879
 				    anchor_loc 	1
@@ -809,14 +823,14 @@
 				icon_width 	0
 				icon_y_offset 	0
 				annotation 	1
-				Focus_Of_Control 	(object Focus_Of_Control "" @24
+				Focus_Of_Control 	(object Focus_Of_Control "" @27
 				    location   	(336, 384)
 				    line_color 	3342489
-				    InterObjView 	@23
+				    InterObjView 	@26
 				    height     	120
 				    y_coord    	60
 				    Nested     	FALSE))
-			    (object InterObjView "photo" @25
+			    (object InterObjView "photo" @28
 				location   	(832, 224)
 				font       	(object Font
 				    size       	10
@@ -828,7 +842,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@25
+				    Parent_View 	@28
 				    location   	(832, 224)
 				    fill_color 	13434879
 				    anchor_loc 	1
@@ -846,14 +860,14 @@
 				icon_width 	0
 				icon_y_offset 	0
 				annotation 	1
-				Focus_Of_Control 	(object Focus_Of_Control "" @26
+				Focus_Of_Control 	(object Focus_Of_Control "" @29
 				    location   	(832, 384)
 				    line_color 	3342489
-				    InterObjView 	@25
+				    InterObjView 	@28
 				    height     	60
 				    y_coord    	0
 				    Nested     	FALSE))
-			    (object InterObjView "volume" @27
+			    (object InterObjView "volume" @30
 				location   	(1680, 224)
 				font       	(object Font
 				    size       	10
@@ -865,7 +879,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@27
+				    Parent_View 	@30
 				    location   	(1680, 224)
 				    fill_color 	13434879
 				    anchor_loc 	1
@@ -883,7 +897,7 @@
 				icon_width 	0
 				icon_y_offset 	0
 				annotation 	1)
-			    (object InterObjView "thumbnail" @28
+			    (object InterObjView "thumbnail" @31
 				location   	(2160, 224)
 				font       	(object Font
 				    size       	10
@@ -895,7 +909,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@28
+				    Parent_View 	@31
 				    location   	(2160, 224)
 				    fill_color 	13434879
 				    anchor_loc 	1
@@ -913,7 +927,7 @@
 				icon_width 	0
 				icon_y_offset 	0
 				annotation 	1)
-			    (object InterObjView "instance" @29
+			    (object InterObjView "instance" @32
 				location   	(1264, 224)
 				font       	(object Font
 				    size       	10
@@ -925,7 +939,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@29
+				    Parent_View 	@32
 				    location   	(1264, 224)
 				    fill_color 	13434879
 				    anchor_loc 	1
@@ -943,7 +957,7 @@
 				icon_width 	0
 				icon_y_offset 	0
 				annotation 	1)
-			    (object InterMessView "" @30
+			    (object InterMessView "" @33
 				location   	(592, 384)
 				font       	(object Font
 				    size       	10
@@ -954,8 +968,8 @@
 				    strike     	FALSE
 				    color      	0
 				    default_color 	TRUE)
-				label      	(object SegLabel @31
-				    Parent_View 	@30
+				label      	(object SegLabel @34
+				    Parent_View 	@33
 				    location   	(583, 340)
 				    font       	(object Font
 					size       	10
@@ -976,10 +990,10 @@
 				    height     	45
 				    orientation 	0)
 				line_color 	3342489
-				client     	@23
-				supplier   	@25
-				Focus_Src  	@24
-				Focus_Entry 	@26
+				client     	@26
+				supplier   	@28
+				Focus_Src  	@27
+				Focus_Entry 	@29
 				origin     	(351, 384)
 				terminus   	(816, 384)
 				ordinal    	0)))))
@@ -1186,7 +1200,7 @@
 				    origin_x   	0
 				    origin_y   	0
 				    items      	(list diagram_item_list
-					(object StateView "StartState" "$UNNAMED$2" @32
+					(object StateView "StartState" "$UNNAMED$2" @35
 					    location   	(608, 400)
 					    font       	(object Font
 						size       	10
@@ -1198,7 +1212,7 @@
 						color      	0
 						default_color 	TRUE)
 					    label      	(object ItemLabel
-						Parent_View 	@32
+						Parent_View 	@35
 						location   	(650, 370)
 						nlines     	2
 						max_width  	600
@@ -1207,7 +1221,7 @@
 					    line_color 	3342489
 					    quidu      	"3E246A500276"
 					    autoResize 	TRUE)
-					(object StateView "Normal" "No image" @33
+					(object StateView "Normal" "No image" @36
 					    location   	(1056, 400)
 					    font       	(object Font
 						size       	10
@@ -1219,7 +1233,7 @@
 						color      	0
 						default_color 	TRUE)
 					    label      	(object ItemLabel
-						Parent_View 	@33
+						Parent_View 	@36
 						location   	(1056, 389)
 						fill_color 	13434879
 						anchor_loc 	1
@@ -1232,15 +1246,15 @@
 					    fill_color 	13434879
 					    quidu      	"3E246A53034D"
 					    autoResize 	TRUE)
-					(object TransView "" @34
+					(object TransView "" @37
 					    stereotype 	TRUE
 					    line_color 	3342489
 					    quidu      	"3E246A8600CF"
-					    client     	@32
-					    supplier   	@33
+					    client     	@35
+					    supplier   	@36
 					    line_style 	0
 					    x_offset   	FALSE)
-					(object StateView "Normal" "Image displayed" @35
+					(object StateView "Normal" "Image displayed" @38
 					    location   	(1952, 592)
 					    font       	(object Font
 						size       	10
@@ -1252,7 +1266,7 @@
 						color      	0
 						default_color 	TRUE)
 					    label      	(object ItemLabel
-						Parent_View 	@35
+						Parent_View 	@38
 						location   	(1952, 402)
 						fill_color 	13434879
 						anchor_loc 	1
@@ -1267,8 +1281,8 @@
 					    width      	893
 					    height     	492
 					    autoResize 	TRUE)
-					(object StateView "Normal" "Unfitted" @36
-					    Parent_View 	@35
+					(object StateView "Normal" "Unfitted" @39
+					    Parent_View 	@38
 					    location   	(1952, 480)
 					    font       	(object Font
 						size       	10
@@ -1280,7 +1294,7 @@
 						color      	0
 						default_color 	TRUE)
 					    label      	(object ItemLabel
-						Parent_View 	@36
+						Parent_View 	@39
 						location   	(1952, 469)
 						fill_color 	13434879
 						anchor_loc 	1
@@ -1293,8 +1307,8 @@
 					    fill_color 	13434879
 					    quidu      	"3E246B6100CB"
 					    autoResize 	TRUE)
-					(object StateView "Normal" "Fitted" @37
-					    Parent_View 	@35
+					(object StateView "Normal" "Fitted" @40
+					    Parent_View 	@38
 					    location   	(2048, 752)
 					    font       	(object Font
 						size       	10
@@ -1306,7 +1320,7 @@
 						color      	0
 						default_color 	TRUE)
 					    label      	(object ItemLabel
-						Parent_View 	@37
+						Parent_View 	@40
 						location   	(2048, 741)
 						fill_color 	13434879
 						anchor_loc 	1
@@ -1319,8 +1333,8 @@
 					    fill_color 	13434879
 					    quidu      	"3E246B6C0080"
 					    autoResize 	TRUE)
-					(object StateView "StartState" "$UNNAMED$3" @38
-					    Parent_View 	@35
+					(object StateView "StartState" "$UNNAMED$3" @41
+					    Parent_View 	@38
 					    location   	(1616, 544)
 					    font       	(object Font
 						size       	10
@@ -1332,7 +1346,7 @@
 						color      	0
 						default_color 	TRUE)
 					    label      	(object ItemLabel
-						Parent_View 	@38
+						Parent_View 	@41
 						location   	(1658, 514)
 						nlines     	2
 						max_width  	600
@@ -1341,15 +1355,15 @@
 					    line_color 	3342489
 					    quidu      	"3E246B8B0002"
 					    autoResize 	TRUE)
-					(object TransView "" @39
+					(object TransView "" @42
 					    stereotype 	TRUE
 					    line_color 	3342489
 					    quidu      	"3E246B9000A0"
-					    client     	@38
-					    supplier   	@36
+					    client     	@41
+					    supplier   	@39
 					    line_style 	0
 					    x_offset   	FALSE)
-					(object TransView "" @40
+					(object TransView "" @43
 					    font       	(object Font
 						size       	10
 						face       	"Arial"
@@ -1359,8 +1373,8 @@
 						strike     	FALSE
 						color      	0
 						default_color 	TRUE)
-					    label      	(object SegLabel @41
-						Parent_View 	@40
+					    label      	(object SegLabel @44
+						Parent_View 	@43
 						location   	(2029, 571)
 						font       	(object Font
 						    size       	10
@@ -1382,11 +1396,11 @@
 					    stereotype 	TRUE
 					    line_color 	3342489
 					    quidu      	"3E246B9401BE"
-					    client     	@36
-					    supplier   	@37
+					    client     	@39
+					    supplier   	@40
 					    line_style 	0
 					    x_offset   	FALSE)
-					(object SelfTransView "" @42
+					(object SelfTransView "" @45
 					    location   	(1952, 196)
 					    font       	(object Font
 						size       	10
@@ -1397,8 +1411,8 @@
 						strike     	FALSE
 						color      	0
 						default_color 	TRUE)
-					    label      	(object SegLabel @43
-						Parent_View 	@42
+					    label      	(object SegLabel @46
+						Parent_View 	@45
 						location   	(1951, 137)
 						font       	(object Font
 						    size       	10
@@ -1420,10 +1434,10 @@
 					    stereotype 	TRUE
 					    line_color 	3342489
 					    quidu      	"3E246BC002D0"
-					    client     	@35
-					    supplier   	@35
+					    client     	@38
+					    supplier   	@38
 					    line_style 	4)
-					(object TransView "" @44
+					(object TransView "" @47
 					    font       	(object Font
 						size       	10
 						face       	"Arial"
@@ -1433,8 +1447,8 @@
 						strike     	FALSE
 						color      	0
 						default_color 	TRUE)
-					    label      	(object SegLabel @45
-						Parent_View 	@44
+					    label      	(object SegLabel @48
+						Parent_View 	@47
 						location   	(1991, 609)
 						font       	(object Font
 						    size       	10
@@ -1456,15 +1470,15 @@
 					    stereotype 	TRUE
 					    line_color 	3342489
 					    quidu      	"3E246B9A0018"
-					    client     	@37
-					    supplier   	@36
+					    client     	@40
+					    supplier   	@39
 					    vertices   	(list Points
 						(1989, 684)
 						(1934, 622)
 						(1943, 547))
 					    line_style 	0
 					    x_offset   	FALSE)
-					(object SelfTransView "" @46
+					(object SelfTransView "" @49
 					    location   	(2252, 480)
 					    font       	(object Font
 						size       	10
@@ -1475,8 +1489,8 @@
 						strike     	FALSE
 						color      	0
 						default_color 	TRUE)
-					    label      	(object SegLabel @47
-						Parent_View 	@46
+					    label      	(object SegLabel @50
+						Parent_View 	@49
 						location   	(2312, 480)
 						font       	(object Font
 						    size       	10
@@ -1498,10 +1512,10 @@
 					    stereotype 	TRUE
 					    line_color 	3342489
 					    quidu      	"3E246BD20022"
-					    client     	@36
-					    supplier   	@36
+					    client     	@39
+					    supplier   	@39
 					    line_style 	32)
-					(object TransView "" @48
+					(object TransView "" @51
 					    font       	(object Font
 						size       	10
 						face       	"Arial"
@@ -1511,8 +1525,8 @@
 						strike     	FALSE
 						color      	0
 						default_color 	TRUE)
-					    label      	(object SegLabel @49
-						Parent_View 	@48
+					    label      	(object SegLabel @52
+						Parent_View 	@51
 						location   	(1365, 421)
 						font       	(object Font
 						    size       	10
@@ -1534,8 +1548,8 @@
 					    stereotype 	TRUE
 					    line_color 	3342489
 					    quidu      	"3E246BEE0041"
-					    client     	@33
-					    supplier   	@35
+					    client     	@36
+					    supplier   	@38
 					    line_style 	0
 					    x_offset   	FALSE)))))))
 		logical_presentations 	(list unit_reference_list
@@ -1548,7 +1562,7 @@
 			origin_x   	0
 			origin_y   	0
 			items      	(list diagram_item_list
-			    (object ClassView "Class" "Logical View::Swing UI::PhotoView" @50
+			    (object ClassView "Class" "Logical View::Swing UI::PhotoView" @53
 				ShowCompartmentStereotypes 	TRUE
 				IncludeAttribute 	TRUE
 				IncludeOperation 	TRUE
@@ -1563,7 +1577,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@50
+				    Parent_View 	@53
 				    location   	(393, 221)
 				    fill_color 	13434879
 				    nlines     	1
@@ -1578,7 +1592,7 @@
 				height     	126
 				annotation 	8
 				autoResize 	TRUE)
-			    (object ClassView "Class" "Logical View::Swing UI::PhotoViewer" @51
+			    (object ClassView "Class" "Logical View::Swing UI::PhotoViewer" @54
 				ShowCompartmentStereotypes 	TRUE
 				IncludeAttribute 	TRUE
 				IncludeOperation 	TRUE
@@ -1593,7 +1607,7 @@
 				    color      	0
 				    default_color 	TRUE)
 				label      	(object ItemLabel
-				    Parent_View 	@51
+				    Parent_View 	@54
 				    location   	(894, 443)
 				    fill_color 	13434879
 				    nlines     	1
@@ -1618,7 +1632,7 @@
 		origin_x   	0
 		origin_y   	0
 		items      	(list diagram_item_list
-		    (object CategoryView "Logical View::Image infromation classes" @52
+		    (object CategoryView "Logical View::Image infromation classes" @55
 			location   	(1152, 416)
 			font       	(object Font
 			    size       	10
@@ -1630,7 +1644,7 @@
 			    color      	0
 			    default_color 	TRUE)
 			label      	(object ItemLabel
-			    Parent_View 	@52
+			    Parent_View 	@55
 			    location   	(985, 332)
 			    fill_color 	13434879
 			    nlines     	2
@@ -1643,7 +1657,7 @@
 			quidu      	"3DF1A0EE02AE"
 			width      	346
 			height     	180)
-		    (object CategoryView "Logical View::Data base utilities" @53
+		    (object CategoryView "Logical View::Data base utilities" @56
 			location   	(816, 1136)
 			font       	(object Font
 			    size       	10
@@ -1655,7 +1669,7 @@
 			    color      	0
 			    default_color 	TRUE)
 			label      	(object ItemLabel
-			    Parent_View 	@53
+			    Parent_View 	@56
 			    location   	(672, 1052)
 			    fill_color 	13434879
 			    nlines     	2
@@ -1668,14 +1682,14 @@
 			quidu      	"3DF1A17503A1"
 			width      	300
 			height     	180)
-		    (object ImportView "" @54
+		    (object ImportView "" @57
 			stereotype 	TRUE
 			line_color 	3342489
 			quidu      	"3DF1A18B036A"
-			client     	@52
-			supplier   	@53
+			client     	@55
+			supplier   	@56
 			line_style 	0)
-		    (object CategoryView "Logical View::Swing UI" @55
+		    (object CategoryView "Logical View::Swing UI" @58
 			location   	(1968, 784)
 			font       	(object Font
 			    size       	10
@@ -1687,7 +1701,7 @@
 			    color      	0
 			    default_color 	TRUE)
 			label      	(object ItemLabel
-			    Parent_View 	@55
+			    Parent_View 	@58
 			    location   	(1824, 700)
 			    fill_color 	13434879
 			    nlines     	2

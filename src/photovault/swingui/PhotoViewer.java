@@ -13,6 +13,7 @@ import java.text.*;
 import java.util.*;
 
 public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoViewer.class.getName() );
 
     public PhotoViewer() {
 	super();
@@ -44,12 +45,12 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 		public void actionPerformed( ActionEvent ev ) {
 		    JComboBox cb = (JComboBox) ev.getSource();
 		    String selected = (String)cb.getSelectedItem();
-		    System.out.println( "Selected: " + selected );
+		    log.debug( "Selected: " + selected );
 
 		    // Parse the pattern
 		    DecimalFormat percentFormat = new DecimalFormat( "#####.#%" );
 		    if ( selected == "Fit" ) {
-			System.out.println( "Fitting to window" );
+			log.debug( "Fitting to window" );
 			fit();
 			float newScale = getScale();
 			String strNewScale = percentFormat.format( newScale );
@@ -80,7 +81,7 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 			    }
 			}
 			if ( success ) {
-			    System.out.println( "New scale: " + newScale );
+			    log.debug( "New scale: " + newScale );
 			    viewer.setScale( newScale );
 			    String strNewScale = percentFormat.format( newScale );
 			    cb.setSelectedItem( strNewScale );
@@ -141,14 +142,14 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 	    } 
 	}
 	if ( original == null ) {
-	    System.err.println( "Error - no original image was found!!!" );
+	    log.debug( "Error - no original image was found!!!" );
 	} else {
 	    BufferedImage origImage = null;
 	    try {
 		origImage = ImageIO.read( original.getImageFile() );
 		setImage( origImage );
 	    } catch ( IOException e ) {
-		System.err.println( "Error reading image: " + e.getMessage() );
+		log.warn( "Error reading image: " + e.getMessage() );
 		return;
 	    }
 	    instanceRotation = original.getRotated();
@@ -199,11 +200,11 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener {
 	    if ( args[0].equals( "-id" ) ) {
 		try {
 		    int id = Integer.parseInt( args[1] );
-		    System.err.println( "Getting photo " + id );
+		    log.debug( "Getting photo " + id );
 		    photo = PhotoInfo.retrievePhotoInfo( id );
 		    viewer.setPhoto( photo );
 		} catch ( Exception e ) {
-		    System.err.println( e.getMessage() );
+		    log.warn( e.getMessage() );
 		    e.printStackTrace();
 		}
 	    }

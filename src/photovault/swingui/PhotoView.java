@@ -15,6 +15,8 @@ import java.awt.geom.AffineTransform;
 */
 public class PhotoView extends JPanel {
     
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
+
     public PhotoView() {
 	super();
 	imgRot = 0;

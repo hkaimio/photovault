@@ -20,6 +20,8 @@ import com.drew.imaging.jpeg.*;
 */
 public class PhotoInfo {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
+
     public PhotoInfo() {
 	changeListeners = new HashSet();
     }
@@ -60,7 +62,7 @@ public class PhotoInfo {
 // 	    photo.description = rs.getString( "description" );
 	    
 	} catch (SQLException e ) {
-	    System.err.println( "Error fetching record: " + e.getMessage() );
+	    log.warn( "Error fetching record: " + e.getMessage() );
 	    // TODO: Actually this is not the right exception for this purpose
 	    throw new PhotoNotFoundException();
 	}
@@ -91,7 +93,7 @@ public class PhotoInfo {
 	    photo.prefRotation = rs.getDouble( "pref_rotation" );
 	    photo.description = rs.getString( "description" );
 	} catch ( SQLException e ) {
-	    System.err.println( "Error fetching record: " + e.getMessage() );
+	    log.warn( "Error fetching record: " + e.getMessage() );
 	}
 	return photo;
     }
@@ -114,7 +116,7 @@ public class PhotoInfo {
 	    stmt.executeUpdate( "INSERT INTO photos values ( " + photo.uid + ", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)" );
 	    stmt.close();
 	} catch ( SQLException e ) {
-	    System.err.println( "Error creating new PhotoInfo: " + e.getMessage() );
+	    log.warn( "Error creating new PhotoInfo: " + e.getMessage() );
 	}
 	return photo;
     }
@@ -145,7 +147,7 @@ public class PhotoInfo {
 	    out.close();
 	    in.close();
 	} catch ( Exception e ) {
-	    System.err.println( "Error copying file: " + e.getMessage() );
+	    log.warn( "Error copying file: " + e.getMessage() );
 	    throw new PhotoNotFoundException();
 	}
 	    
@@ -186,37 +188,37 @@ public class PhotoInfo {
 	try {
 	    java.util.Date origDate = exif.getDate( exif.TAG_DATETIME_ORIGINAL );
 	    setShootTime( origDate );
-	    System.err.println( "TAG_DATETIME_ORIGINAL: " + origDate.toString() );
+	    log.debug( "TAG_DATETIME_ORIGINAL: " + origDate.toString() );
 	} catch ( MetadataException e ) {
-	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	    log.info( "Error reading origDate: " + e.getMessage() );
 	}
 
 	// Exposure
 	try {
 	    double fstop = exif.getDouble( exif.TAG_FNUMBER );
-	    System.err.println( "TAG_FNUMBER: " + fstop );
+	    log.debug( "TAG_FNUMBER: " + fstop );
 	    setFStop( fstop );
 	} catch ( MetadataException e ) {
-	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	    log.info( "Error reading origDate: " + e.getMessage() );
 	}
 	try {
 	    double sspeed = exif.getDouble( exif.TAG_EXPOSURE_TIME );
 	    setShutterSpeed( sspeed );
-	    System.err.println( "TAG_EXPOSURE_TIME: " + sspeed );
+	    log.debug( "TAG_EXPOSURE_TIME: " + sspeed );
 	} catch ( MetadataException e ) {
-	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	    log.info( "Error reading origDate: " + e.getMessage() );
 	}
 	try {
 	    double flen = exif.getDouble( exif.TAG_FOCAL_LENGTH );
 	    setFocalLength( flen );
 	} catch ( MetadataException e ) {
-	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	    log.info( "Error reading origDate: " + e.getMessage() );
 	}
 	try {
 	    int filmSpeed = exif.getInt( exif.TAG_ISO_EQUIVALENT );
 	    setFilmSpeed( filmSpeed );
 	} catch ( MetadataException e ) {
-	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	    log.info( "Error reading origDate: " + e.getMessage() );
 	}
 
 	// Camera name. Put here both camera manufacturer and model
@@ -248,7 +250,7 @@ public class PhotoInfo {
 	    stmt.executeUpdate( sql );
 	    stmt.close();
 	} catch ( SQLException e ) {
-	    System.err.println( "Error deletin image file from DB: " + e.getMessage() );
+	    log.warn( "Error deletin image file from DB: " + e.getMessage() );
 	}
     }
 	
@@ -282,7 +284,7 @@ public class PhotoInfo {
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch (SQLException e ) {
-	    System.err.println( "Error executing update: " + e.getMessage() );
+	    log.warn( "Error executing update: " + e.getMessage() );
 	}
     }
 
@@ -360,10 +362,10 @@ public class PhotoInfo {
 		numInstances = rs.getInt( 1 );
 	    } else {
 		// If execution comes here there is some weird error, e.g. sntax error in SQL
-		System.err.println( "No records returned by: " + sql );
+		log.debug( "No records returned by: " + sql );
 	    }
 	} catch ( SQLException e ) {
-	    System.err.println( "Error counting number of instances: " + e.getMessage() );
+	    log.warn( "Error counting number of instances: " + e.getMessage() );
 	}
 	return numInstances;
     }
@@ -409,7 +411,7 @@ public class PhotoInfo {
 		ImageInstance instance = (ImageInstance) instances.get( n );
 		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
 		     && instance.getRotated() == prefRotation ) {
-		    System.err.println( "Found existing thumbnail" );
+		    log.debug( "Found existing thumbnail" );
 		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
 		    break;
 		} 
@@ -448,7 +450,7 @@ public class PhotoInfo {
 	}
 	if ( original == null ) {
 	    // If there are no instances, no thumbnail can be created
-	    System.err.println( "Error - no original image was found!!!" );
+	    log.debug( "Error - no original image was found!!!" );
 	    return;
 	}
 	
@@ -457,7 +459,7 @@ public class PhotoInfo {
 	try {
 	    origImage = ImageIO.read( original.getImageFile() );
 	} catch ( IOException e ) {
-	    System.err.println( "Error reading image: " + e.getMessage() );
+	    log.warn( "Error reading image: " + e.getMessage() );
 	    return;
 	}
 	
@@ -535,7 +537,7 @@ public class PhotoInfo {
 	try {	    
 	    ImageIO.write( thumbImage, "jpg", thumbnailFile );
 	} catch ( IOException e ) {
-	    System.err.println( "Error writing thumbnail: " + e.getMessage() );
+	    log.warn( "Error writing thumbnail: " + e.getMessage() );
 	}
 
 	// add the created instance to this perdsisten object

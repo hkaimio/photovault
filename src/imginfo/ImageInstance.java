@@ -15,6 +15,9 @@ import java.io.*;
 
 public class ImageInstance {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ImageInstance.class.getName() );
+
+
     /**
        Creates a new image file object. The object is persistent, i.e. it is stored in database
        @param volume Volume in which the instance is stored
@@ -32,7 +35,7 @@ public class ImageInstance {
 	try {
 	    f.readImageFile();
 	} catch (IOException e ) {
-	    System.err.println( "Error opening image file: " + e.getMessage() );
+	    log.warn( "Error opening image file: " + e.getMessage() );
 	    // The image does not exist, so it cannot be read!!!
 	    return null;
 	}
@@ -49,7 +52,7 @@ public class ImageInstance {
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch  (SQLException e ) {
-	    System.err.println( "Error creating ImageFile: " + e.getMessage() );
+	    log.warn( "Error creating ImageFile: " + e.getMessage() );
 	    // Something went wrong, do not return this image file!!!
 	    f = null;
 	}
@@ -108,7 +111,7 @@ public class ImageInstance {
 	    rs.close();
 	    stmt.close();
 	} catch ( SQLException e ) {
-	    System.err.println( "Error fetching image file from db: " + e.getMessage() );
+	    log.warn( "Error fetching image file from db: " + e.getMessage() );
 	}
 	return instances;
     }
@@ -175,7 +178,7 @@ public class ImageInstance {
 		strInstanceType = "thumbnail";
 		break;
 	    default:
-		System.err.println( "This is not an allowed value" );
+		log.warn( "This is not an allowed value" );
 	    }
 	    stmt.setString( 5, strInstanceType );
 	    stmt.setString( 6, volume.getName() );
@@ -183,7 +186,7 @@ public class ImageInstance {
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch ( SQLException e ) {
-	    System.err.println( "Error updating image instance in DB: " + e.getMessage() );
+	    log.warn( "Error updating image instance in DB: " + e.getMessage() );
 	}
     }
 
@@ -279,7 +282,7 @@ public class ImageInstance {
 	
 	// Make a sanity check that the image file is uder the base directory
 	if ( !filePath.substring( 0, baseDir.length() ).equals( baseDir ) ) {
-	    System.err.println( "ERROR: " + filePath + " not under " + baseDir );
+	    log.warn( "ERROR: " + filePath + " not under " + baseDir );
 	    return "";
 	}
 

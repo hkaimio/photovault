@@ -15,6 +15,9 @@ import java.io.*;
 
 public class Thumbnail {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Thumbnail.class.getName() );
+
+
     /**
        Constructor. It is not expected that Thumbnails are created independently but
        only via PhotoInfo.getThumbnail()
@@ -56,7 +59,7 @@ public class Thumbnail {
 	try {
 	    thumb.image = ImageIO.read( thumbnailFile );
 	} catch ( IOException e ) {
-	    System.err.println( "Error reading thumbnail image: " + e.getMessage() );
+	    log.warn( "Error reading thumbnail image: " + e.getMessage() );
 	    return null;
 	}
 	return thumb;

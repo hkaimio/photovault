@@ -12,6 +12,7 @@ import imginfo.*;
 */
 
 public class QueryPane extends JPanel implements ActionListener {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( QueryPane.class.getName() );
 
     public QueryPane() {
 	super();
@@ -41,7 +42,7 @@ public class QueryPane extends JPanel implements ActionListener {
 
     public void actionPerformed( ActionEvent e ) {
 	if ( e.getActionCommand() == SEARCH_CMD ) {
-	    System.err.println( "Action performed" );
+	    log.debug( "Action performed" );
 	    updateQuery();
 	}
     }

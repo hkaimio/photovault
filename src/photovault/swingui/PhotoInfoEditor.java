@@ -25,6 +25,8 @@ import javax.swing.event.*;
 
 public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionListener, DocumentListener, PropertyChangeListener {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoEditor.class.getName() );
+
     public PhotoInfoEditor( PhotoInfoController ctrl ) {
 	super();
 	createUI();
@@ -321,11 +323,11 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	    try {
 		ctrl.save();
 	    } catch ( Exception e ) {
-		System.err.println( "exception while saving" + e.getMessage() );
+		log.warn( "exception while saving" + e.getMessage() );
 		e.printStackTrace();
 	    }
 	} else if ( evt.getActionCommand().equals( "discard" ) ) {
-	    System.out.println( "Discarding data" );
+	    log.debug( "Discarding data" );
 	    ctrl.discard();
 	}
     }
@@ -385,24 +387,24 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public static void main( String args[] ) {
 	// Parse the arguments
 	PhotoInfo photo = null;
-	System.err.println( "Number of args" + args.length );
-	System.err.println( args.toString() );
+	log.debug( "Number of args" + args.length );
+	log.debug( args.toString() );
 	if ( args.length == 2 ) {
 	    if ( args[0].equals( "-f" ) ) {
 		File f = new File( args[1] );
 		try {
-		    System.err.println( "Getting file " + f.getPath() );
+		    log.debug( "Getting file " + f.getPath() );
 		    photo = PhotoInfo.addToDB( f );
 		} catch ( Exception e ) {
-		    System.err.println( e.getMessage() );
+		    log.warn( e.getMessage() );
 		}
 	    } else if ( args[0].equals( "-id" ) ) {
 		try {
 		    int id = Integer.parseInt( args[1] );
-		    System.err.println( "Getting photo " + id );
+		    log.debug( "Getting photo " + id );
 		    photo = PhotoInfo.retrievePhotoInfo( id );
 		} catch ( Exception e ) {
-		    System.err.println( e.getMessage() );
+		    log.warn( e.getMessage() );
 		}
 	    }
 	}

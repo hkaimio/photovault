@@ -5,9 +5,13 @@ package photovault.swingui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
 
 public class BrowserWindow extends JPanel {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
+    
     /**
        Constructor
     */
@@ -34,6 +38,13 @@ public class BrowserWindow extends JPanel {
        Simple main program for testing the compnent
     */
     public static void main( String [] args ) {
+	// Configure logging
+	//	BasicConfigurator.configure();
+	try {
+	    org.apache.log4j.lf5.DefaultLF5Configurator.configure();
+	} catch ( Exception e ) {}
+	log.info( "Starting application" );
+	
 	JFrame frame = new JFrame( "BrowserWindow test" );
 	BrowserWindow br = new BrowserWindow();
 	frame.getContentPane().add( br, BorderLayout.CENTER );

@@ -19,6 +19,7 @@ import imginfo.*;
 */
 
 public class TestThumbnailView extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestThumbnailView.class.getName() );
 
     public TestThumbnailView() {
 	testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\swingui\\TestThumbnailView\\" );
@@ -115,13 +116,13 @@ public class TestThumbnailView extends TestCase {
 
     private boolean compareImgToFile( BufferedImage img, File file ) {
 	if ( file.exists() ) {
-	    System.err.println( "File exists" );
+	    log.debug( "File exists" );
 	    BufferedImage fImg = null;
 	    try {
 		fImg = ImageIO.read( file );
-	    System.err.println( "Read image" );
+	    log.debug( "Read image" );
 	    } catch ( IOException e ) {
-		System.err.println( "Error reading image: " + e.getMessage() );
+		log.warn( "Error reading image: " + e.getMessage() );
 		return false;
 	    }
 	    boolean eq = equals( img, fImg );
@@ -165,7 +166,7 @@ public class TestThumbnailView extends TestCase {
 	if ( img1.getHeight() != img2.getHeight() ) {
 	    return false;
 	}
-	System.err.println( "Equal size" );
+	log.debug( "Equal size" );
 	
 	
 	// Compare the images pixel by pixel
