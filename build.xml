@@ -85,8 +85,7 @@
         <!--<test name="imginfo.PhotoInfoTest" outfile="${reports.test}/imginfo"/>-->
         <batchtest todir="${reports.test}/testresults">
            <fileset dir="build">
-              <include name="**/*Test*.class"/>
-              <exclude name="**/TestPkg.class"/>
+              <include name="**/Test_*.class"/>
               <!-- Exlude inner classes sinc ethese do not contain any test cases --> 
               <exclude name="**/*$$*.class"/>
            </fileset>
