@@ -11,6 +11,7 @@ import java.io.*;
 import java.text.*;
 import java.util.*;
 import javax.swing.table.*;
+import photovault.folder.*;
 
 /**
    TableColelctionView implements a simple table based interface for viewing PhotoCollections.
@@ -170,6 +171,8 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	    rotateSelectedPhoto( -90 );
 	} else if ( cmd == PHOTO_ROTATE_180_CMD ) {
 	    rotateSelectedPhoto( 180 );
+	} else if ( cmd == PHOTO_ADD_TO_FOLDER_CMD ) {
+	    queryForNewFolder();
 	}
     }
 
@@ -234,6 +237,29 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	    log.warn( e );
 	    e.printStackTrace();
 	}
+    }
+
+    /**
+       Queries the user for a new folder into which the photo will be added.
+    */
+    public void queryForNewFolder() {
+	// Try to find the frame in which this component is in
+	Frame frame = null;
+	Container c = getTopLevelAncestor();
+	if ( c instanceof Frame ) {
+	    frame = (Frame) c;
+	}
+
+	PhotoFolderSelectionDlg dlg = new PhotoFolderSelectionDlg( frame, true );
+	if ( dlg.showDialog() ) {
+	    // A folder was selected, so add the selected photo to this folder
+	    PhotoInfo photo = getSelected();
+	    PhotoFolder folder = dlg.getSelectedFolder();
+	    if ( photo != null ) {
+		folder.addPhoto ( photo );
+	    }
+	}
+
     }
 
     /**
@@ -316,11 +342,15 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	JMenuItem rotate180deg = new JMenuItem( "Rotate 180 degrees" );
 	rotate180deg.addActionListener( this );
 	rotate180deg.setActionCommand( PHOTO_ROTATE_180_CMD );
+	JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
+	addToFolder.addActionListener( this );
+	addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
 	popup.add( showItem );
 	popup.add( propsItem );
 	popup.add( rotateCW );
 	popup.add( rotateCCW );
 	popup.add( rotate180deg );
+	popup.add( addToFolder );
 	MouseListener popupListener = new PopupListener();
 	table.addMouseListener( popupListener );
 
@@ -336,6 +366,7 @@ public class TableCollectionView extends JPanel implements ActionListener {
     private static final String PHOTO_ROTATE_CW_CMD = "rotateCW";
     private static final String PHOTO_ROTATE_CCW_CMD = "rotateCCW";
     private static final String PHOTO_ROTATE_180_CMD = "rotate180";
+    private static final String PHOTO_ADD_TO_FOLDER_CMD = "addToFolder";
     
     
     /**
