@@ -38,9 +38,13 @@ public class TestImageInstance extends TestCase {
 	
 	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
 	File instanceFile = volume.getFilingFname( testFile );
-	FileUtils.copyFile( testFile, instanceFile );
+	try {
+	    FileUtils.copyFile( testFile, instanceFile );
+	} catch ( IOException e ) {
+	    fail( e.getMessage() );
+	}
 	ImageInstance f = ImageInstance.create( volume, instanceFile, photo );
-	assertNotNull( f );
+	assertNotNull( "Image instance is null", f );
 	f.delete();
     }
 		  
@@ -48,9 +52,13 @@ public class TestImageInstance extends TestCase {
 	
 	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
 	File instanceFile = volume.getFilingFname( testFile );
-	FileUtils.copyFile( testFile, instanceFile );
+	try {
+	    FileUtils.copyFile( testFile, instanceFile );
+	} catch ( IOException e ) {
+	    fail( e.getMessage() );
+	}
 	ImageInstance f = ImageInstance.create( volume, instanceFile, photo );
-	assertNotNull( f );
+	assertNotNull( "Image instance is null", f );
 	int width = f.getWidth();
 	int height = f.getHeight();
 	int hist = f.getInstanceType();
@@ -58,17 +66,21 @@ public class TestImageInstance extends TestCase {
 	f.setWidth( width + 1 );
 	f.setInstanceType( ImageInstance.INSTANCE_TYPE_THUMBNAIL );
 	f.updateDB();
-
+	File imgFile = f.getImageFile();
+	
 	// Reload the object from database and check that the modifications are OK
 	try {
-	    f = ImageInstance.retrieve( "c:\\java\\photovault\\testfiles", "test1.jpg" );
+	    f = ImageInstance.retrieve( volume, imgFile.getName() );
 	} catch ( PhotoNotFoundException e ) {
 	    fail( "Image file not found after update" );
 	}
-	assertNotNull( f );
-	assertEquals( f.getWidth(), width+1 );
-	assertEquals( f.getHeight(), height+1 );
-	assertEquals( f.getInstanceType(), ImageInstance.INSTANCE_TYPE_THUMBNAIL );
+	assertNotNull( "Image instance is null", f );
+	assertEquals( "Width not updated", f.getWidth(), width+1 );
+	assertEquals( "height not updated", f.getHeight(), height+1 );
+	assertEquals( "Instance type not updated", f.getInstanceType(), ImageInstance.INSTANCE_TYPE_THUMBNAIL );
+	File imgFile2 = f.getImageFile();
+	assertTrue( "Image file does not exist", imgFile2.exists() );
+	assertTrue( "Image file name not same after update", imgFile.equals( imgFile2 ) );
 	// Tidy up after execution
 	f.delete();
     }
@@ -76,7 +88,11 @@ public class TestImageInstance extends TestCase {
     public void testImageInstanceDelete() {
 	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
 	File instanceFile = volume.getFilingFname( testFile );
-	FileUtils.copyFile( testFile, instanceFile );
+	try {
+	    FileUtils.copyFile( testFile, instanceFile );
+	} catch ( IOException e ) {
+	    fail( e.getMessage() );
+	}
 	ImageInstance f = ImageInstance.create( volume, instanceFile, photo );
 	assertNotNull( f );
 	f.delete();

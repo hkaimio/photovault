@@ -138,6 +138,23 @@ public class Volume {
     }
 
     /**
+       Maps a file name to a path in this volume. File names in a volume are unique but for
+       performance reasons they are divided to several directories bsaed on year and month of shooting
+       @param fname The file name to be mapped
+       @return Path to the actual file
+       @throws FineNotFoundException if the file does not exist
+    */
+    public File mapFileName( String fname ) throws FileNotFoundException {
+	File yearDir = new File( volumeBaseDir, fname.substring( 0, 4 ) );
+	File monthDir = new File ( yearDir, fname.substring( 0, 6 ) );
+	File archiveFile = new File( monthDir, fname );
+	if ( !archiveFile.exists() ) {
+	    throw new FileNotFoundException( archiveFile.getPath() + " does not exist in volume" );
+	}
+	return archiveFile;
+    }
+
+    /**
        Returns the base directory for the volume.
     */
     
@@ -145,7 +162,7 @@ public class Volume {
 	return volumeBaseDir;
     }
 
-    private String volumeName;
+    private String volumeName = "";
 
     /**
        Returns the volume name
@@ -155,6 +172,7 @@ public class Volume {
     }
 
     
+    
     /** returns true if the vulome is available, flase otherwise (if e.g. the volume is
 	stored on CD-ROM thatis not mounted currently
     */
@@ -162,6 +180,7 @@ public class Volume {
     public boolean isAvailable() {
 	return true;
     }
+    
 
     
     private File volumeBaseDir;

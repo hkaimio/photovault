@@ -39,8 +39,8 @@ public class ImageInstance {
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
-	    stmt.setString( 1, "defaultVolume" );
-	    stmt.setString( 2, imageFile.getPath() );
+	    stmt.setString( 1, volume.getName() );
+	    stmt.setString( 2, imageFile.getName() );
 	    stmt.setInt( 3, photo.getUid() );
 	    stmt.setInt( 4, f.getWidth() ); // width
 	    stmt.setInt( 5, f.getHeight() ); // height
@@ -62,19 +62,18 @@ public class ImageInstance {
        @return ImageFile object representing the image
        @throws PhotoNotFound exception if the object can not be retrieved.
     */
-    /*
-      TODO: modify to match new imageInstance paradigms
-    public static ImageFile retrieve( String dirname, String fname ) throws PhotoNotFoundException {
-	String sql = "SELECT * FROM image_files WHERE dirname = ? AND fname = ?";
-	ImageFile ifile = null;
+    
+    public static ImageInstance retrieve( Volume volume, String fname ) throws PhotoNotFoundException {
+	String sql = "SELECT * FROM image_instances WHERE volume_id = ? AND fname = ?";
+	ImageInstance instance = null;
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
-	    stmt.setString( 1, dirname );
+	    stmt.setString( 1, volume.getName() );
 	    stmt.setString( 2, fname );
 	    ResultSet rs = stmt.executeQuery();
-	    ifile = createFromResultSet( rs );
-	    if ( ifile == null ) {
+	    instance = createFromResultSet( rs );
+	    if ( instance == null ) {
 		throw new PhotoNotFoundException();
 	    }
 	    rs.close();
@@ -84,9 +83,8 @@ public class ImageInstance {
 	    System.err.println( "Error fetching image file from db: " + e.getMessage() );
 	    throw new PhotoNotFoundException();
 	}
-	return ifile;
+	return instance;
     }
-    */
     
     /**
        Retrieve all instances of a specified photo from DB
@@ -122,10 +120,14 @@ public class ImageInstance {
 	try {
 	    if ( rs.next() ) {
 		instance = new ImageInstance();
-		String volName =  rs.getString( "volume" );
+		String volName =  rs.getString( "volume_id" );
 		instance.volume = Volume.getVolume( volName );
 		String fname =  rs.getString( "fname" );
-		instance.imageFile = new File( instance.volume.getBaseDir(), fname ); 
+		try {
+		    instance.imageFile = instance.volume.mapFileName( fname );
+		} catch ( FileNotFoundException e ) {
+		    System.err.println( "File not found: " + e.getMessage() );
+		}
 		instance.photoUid = rs.getInt( "photo_id" );
 		instance.width = rs.getInt( "width" );
 		instance.height = rs.getInt( "height" );
@@ -151,7 +153,7 @@ public class ImageInstance {
        Updates the corresponding record in database to match any modifications to the object
     */
     public void updateDB() {
-	String sql = "UPDATE image_instances SET photo_id = ?, width = ?, height = ?, instance_type = ? WHERE volume = ? AND fname = ?";
+	String sql = "UPDATE image_instances SET photo_id = ?, width = ?, height = ?, instance_type = ? WHERE volume_id = ? AND fname = ?";
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
@@ -174,7 +176,7 @@ public class ImageInstance {
 	    }
 	    stmt.setString( 4, strInstanceType );
 	    stmt.setString( 5, volume.getName() );
-	    stmt.setString( 6, getRelativePath() );
+	    stmt.setString( 6, imageFile.getName() );
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch ( SQLException e ) {
@@ -186,20 +188,20 @@ public class ImageInstance {
        Deletes the ImageInstance object from database.
     */
     public void delete() {
-	String sql = "DELETE FROM image_instances WHERE volume = ? AND fname = ?";
+	// Delete the database record for this image instance
+	String sql = "DELETE FROM image_instances WHERE volume_id = ? AND fname = ?";
 	try {
 	    Connection conn = ImageDb.getConnection();
 	    PreparedStatement stmt = conn.prepareStatement( sql );
 	    stmt.setString( 1, volume.getName() );
-	    stmt.setString( 2, getRelativePath() );
+	    stmt.setString( 2, imageFile.getName() );
 	    stmt.executeUpdate();
 	    stmt.close();
 	} catch ( SQLException e ) {
 	    System.err.println( "Error deletin image file from DB: " + e.getMessage() );
 	}
-	// Delete the actual image file
-	// File f = new File( dirname, fname );
-	// f.delete();
+	// Delete the actual image instance from volume
+	imageFile.delete();
     }
 
     /**

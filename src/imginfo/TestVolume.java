@@ -13,7 +13,7 @@ public class TestVolume extends TestCase {
     */
     public void setUp() {
 	String volumeRoot =  "c:\\temp\\photoVaultVolumeTest";
-	volume = new Volume( volumeRoot );
+	volume = new Volume( "testVolume", volumeRoot );
     }
     private Volume volume;
     
@@ -190,8 +190,40 @@ public class TestVolume extends TestCase {
 
 	}
     }
+
+    public void testFnameMapping() {
+	File f = null;
+
+	try {
+	    f = File.createTempFile( "volumeTest", ".jpg" );
+	} catch (IOException e ) {
+	    fail( "Temp file could not be created" );
+	}
+	
+	Calendar cal = Calendar.getInstance();
+	// The time will be 13 Dec 2002 (Java numbers months from 0 onwards!!!)
+	cal.set( 2002, 11, 13 );
+	f.setLastModified( cal.getTimeInMillis() );
+
+	// Get a name for the file and check that it is what is expected
+	File volFile = volume.getFilingFname( f );
+	try {
+	    volFile.createNewFile();
+	} catch ( IOException e ) {
+	    fail( e.getMessage() );
+	}
+
+	File mappedFile = null;
+	try {
+	    mappedFile = volume.mapFileName( volFile.getName() );
+	} catch ( FileNotFoundException e ) {
+	    fail( "Mapped file not found: " + e.getMessage() );
+	}
+	assertEquals( "Mapped file does not match", volFile, mappedFile );
+    }
     
     public static Test suite() {
+
 	return new TestSuite( TestVolume.class );
     }
 }

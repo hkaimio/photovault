@@ -3,6 +3,8 @@ package imginfo;
 
 import java.io.*;
 import junit.framework.*;
+import java.util.*;
+
 
 
 public class PhotoInfoTest extends TestCase {
@@ -166,18 +168,28 @@ public class PhotoInfoTest extends TestCase {
     }
     
     public void testInstanceAddition() {
-	String dirname = "c:\\java\\photovault\\testfiles";
-	String fname = "test1.jpg";
+	File testFile = new File( "c:\\java\\photovault\\testfiles\\test1.jpg" );
+	File instanceFile = Volume.getDefaultVolume().getFilingFname( testFile );
+	try {
+	    FileUtils.copyFile( testFile, instanceFile );
+	} catch ( IOException e ) {
+	    fail( e.getMessage() );
+	}
 	PhotoInfo photo = PhotoInfo.create();
 	assertNotNull( photo );
 
 	int numInstances = photo.getNumInstances();
-	photo.addInstance( dirname, fname, ImageFile.FILE_HISTORY_ORIGINAL );
+	photo.addInstance( Volume.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
+	// Check that number of instances is consistent with addition
 	assertEquals( numInstances+1, photo.getNumInstances() );
+	ArrayList instances = photo.getInstances();
+	assertEquals( instances.size(), numInstances+1 );
+
+	// Try to find the instance
 	boolean found = false;
 	for ( int i = 0 ; i < photo.getNumInstances(); i++ ) {
-	    ImageFile ifile = photo.getInstance( i );
-	    if ( ifile.getDirname().equals( dirname ) && ifile.getFname().equals( fname ) ) {
+	    ImageInstance ifile = photo.getInstance( i );
+	    if ( ifile.getImageFile().equals( instanceFile ) ) {
 		found = true;
 	    }
 	}
@@ -240,10 +252,10 @@ public class PhotoInfoTest extends TestCase {
 		     instanceCount+1, photo.getNumInstances() );
 	// Try to find the new thumbnail
 	boolean foundThumbnail = false;
-	ImageFile thumbnail = null;
+	ImageInstance thumbnail = null;
 	for ( int n = 0; n < instanceCount+1; n++ ) {
-	    ImageFile instance = photo.getInstance( n );
-	    if ( instance.getFileHistory() == ImageFile.FILE_HISTORY_THUMBNAIL ) {
+	    ImageInstance instance = photo.getInstance( n );
+	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL ) {
 		foundThumbnail = true;
 		thumbnail = instance; 
 		break;
@@ -251,7 +263,7 @@ public class PhotoInfoTest extends TestCase {
 	}
 	assertTrue( "Could not find the created thumbnail", foundThumbnail );
 	assertEquals( "Thumbnail width should be 100", 100, thumbnail.getWidth() );
-	File thumbnailFile = thumbnail.getFile();
+	File thumbnailFile = thumbnail.getImageFile();
 	assertTrue( "Image file does not exist", thumbnailFile.exists() );
 	photo.delete();
 	assertFalse( "Image file does exist after delete", thumbnailFile.exists() );

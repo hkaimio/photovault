@@ -24,6 +24,7 @@ public class TestPkg extends TestCase {
 	TestSuite s = new TestSuite();
 	s.addTestSuite( PhotoInfoTest.class );
 	s.addTestSuite( TestImageFile.class );
+	s.addTestSuite( TestImageInstance.class );
 	s.addTestSuite( TestVolume.class );
 	return s;
     }

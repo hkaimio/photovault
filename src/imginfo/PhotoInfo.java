@@ -103,7 +103,7 @@ class PhotoInfo {
 
 	// Create the image
 	PhotoInfo photo = PhotoInfo.create();
-	photo.addInstance( f.getParent(), f.getName(), ImageFile.FILE_HISTORY_ORIGINAL );
+	photo.addInstance( vol, f, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
 	photo.setShootTime( shootTime );
 	photo.updateDB();
@@ -118,10 +118,10 @@ class PhotoInfo {
 	String sql = "DELETE FROM photos WHERE photo_id = " + uid;
 	// First delete all instances
 	if ( instances == null ) {
-	    instances = ImageFile.retrieveInstances( this );
+	    getInstances();
 	}
 	for ( int i = 0; i < instances.size(); i++ ) {
-	    ImageFile f = (ImageFile) instances.get( i );
+	    ImageInstance f = (ImageInstance) instances.get( i );
 	    f.delete();
 	}
 
@@ -174,16 +174,16 @@ class PhotoInfo {
     
     /**
        Adds a new instance of the photo into the database.
-       @param dirname Directory where the image instance is stored
-       @param fname File name of the instance
+       @param volume Volume in which the instance is stored
+       @param instanceName File name of the instance
        @instanceType Type of the instance - original, modified or thumbnail.
-       See ImageFile class documentation for details.
+       @see ImageInstance class documentation for details.
     */
-    public void addInstance( String dirname, String fname, int instanceType ) {
+    public void addInstance( Volume volume, File instanceFile, int instanceType ) {
 	ArrayList origInstances = getInstances();
-	ImageFile f = ImageFile.create( dirname, fname, this );
-	f.setFileHistory( instanceType );
-	origInstances.add( f );
+	ImageInstance instance = ImageInstance.create( volume, instanceFile, this );
+	instance.setInstanceType( instanceType );
+	origInstances.add( instance );
     }
 
     /**
@@ -191,7 +191,7 @@ class PhotoInfo {
     */
     public int getNumInstances() {
 	// Count number of instances from database
-	String sql = "SELECT COUNT(*) FROM image_files WHERE photo_id = " + uid;
+	String sql = "SELECT COUNT(*) FROM image_instances WHERE photo_id = " + uid;
 	int numInstances = 0;
 	try {
 	    Connection conn = ImageDb.getConnection();
@@ -215,7 +215,7 @@ class PhotoInfo {
     */
     public ArrayList getInstances() {
 	if ( instances  == null ) {
-	    instances = ImageFile.retrieveInstances( this );
+	    instances = ImageInstance.retrieveInstances( this );
 	}
 	return instances;
     }
@@ -227,8 +227,8 @@ class PhotoInfo {
        @param instanceNum Number of the instance to return
        @throws IndexOutOfBoundsException if instanceNum is < 0 or >= the number of instances 
     */
-    public ImageFile getInstance( int instanceNum ) throws IndexOutOfBoundsException {
-	ImageFile instance =  (ImageFile) getInstances().get(instanceNum );
+    public ImageInstance getInstance( int instanceNum ) throws IndexOutOfBoundsException {
+	ImageInstance instance =  (ImageInstance) getInstances().get(instanceNum );
 	return instance;
     }
 
@@ -238,16 +238,15 @@ class PhotoInfo {
 	@param volume The volume in which the instance is to be created
     */
     protected void createThumbnail( Volume volume ) {
-	
-	
+
 	// Find the original image to use as a staring point
-	ImageFile original = null;
+	ImageInstance original = null;
 	if ( instances == null ) {
-	    instances = ImageFile.retrieveInstances( this );
+	    getInstances();
 	}
 	for ( int n = 0; n < instances.size(); n++ ) {
-	    ImageFile instance = (ImageFile) instances.get( n );
-	    if ( instance.getFileHistory() == ImageFile.FILE_HISTORY_ORIGINAL ) {
+	    ImageInstance instance = (ImageInstance) instances.get( n );
+	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
 		original = instance;
 		break;
 	    } 
@@ -259,7 +258,7 @@ class PhotoInfo {
 	// Read the image
 	BufferedImage origImage = null;
 	try {
-	    origImage = ImageIO.read( original.getFile() );
+	    origImage = ImageIO.read( original.getImageFile() );
 	} catch ( IOException e ) {
 	    System.err.println( "Error reading image: " + e.getMessage() );
 	    return;
@@ -303,8 +302,8 @@ class PhotoInfo {
 	}
 
 	// add the created instance to this perdsisten object
-	addInstance( thumbnailFile.getParent(), thumbnailFile.getName(),
-		     ImageFile.FILE_HISTORY_THUMBNAIL );
+	addInstance( volume, thumbnailFile,
+		     ImageInstance.INSTANCE_TYPE_THUMBNAIL );
     }
 
     /** Creates a new thumbnail on the default volume
