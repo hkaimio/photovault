@@ -25,7 +25,7 @@ using the MetadataManager.
    		subprotocol="mysql"
    		dbalias="///pv_test"
    		username="harri"
-   		password=""
+   		password="r1t1rat1"
    		batch-mode="false"
      >
 
