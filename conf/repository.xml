@@ -80,7 +80,7 @@
     </field-descriptor>
     <field-descriptor name="focalLength" column="focal_length" jdbc-type="FLOAT">
     </field-descriptor>
-    <field-descriptor name="shootTime" column="shoot_time" jdbc-type="DATE">
+    <field-descriptor name="shootTime" column="shoot_time" jdbc-type="TIMESTAMP" conversion="imginfo.Timestamp2DateConversion">
     </field-descriptor>
     <field-descriptor name="timeAccuracy" column="time_accuracy" jdbc-type="DOUBLE">
     </field-descriptor>
@@ -102,7 +102,7 @@
     </field-descriptor>
     <field-descriptor name="quality" column="photo_quality" jdbc-type="INTEGER">
     </field-descriptor>
-    <field-descriptor name="lastModified" column="last_modified" jdbc-type="DATE">
+    <field-descriptor name="lastModified" column="last_modified" jdbc-type="TIMESTAMP"  conversion="imginfo.Timestamp2DateConversion">
     </field-descriptor>
     <field-descriptor name="origFname" column="orig_fname" jdbc-type="VARCHAR">
     </field-descriptor>

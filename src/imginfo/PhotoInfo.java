@@ -468,7 +468,7 @@ public class PhotoInfo {
 	scaleParams.setParameter( "transform", xform );
 	scaleParams.setParameter( "interpolation",
 				  Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
-	RenderedImage thumbImage = JAI.create( "affine", scaleParams );
+	PlanarImage thumbImage = JAI.create( "affine", scaleParams );
 	
 
 	// Save it
@@ -487,6 +487,8 @@ public class PhotoInfo {
 	try {
 	    encoder.encode( thumbImage );
 	    out.close();
+	    origImage.dispose();
+	    thumbImage.dispose();
 	} catch (IOException e) {
 	    log.error( "Error writing thumbnail: " + e.getMessage() );
 	    txw.abort();

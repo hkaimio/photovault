@@ -19,8 +19,9 @@ public class FuzzyDate {
     static final double MILLIS_IN_DAY = 24 * 3600 * 1000;
 
     
-    static double accuracyFormatLimits[] = {0, 3, 14, 180};
+    static double accuracyFormatLimits[] = {0, 0, 3, 14, 180};
     static String accuracyFormatStrings[] = {
+	"dd.MM.yyyy k:mm",
 	"dd.MM.yyyy",
 	"'wk' w yyyy",
 	"MMMM yyyy",
