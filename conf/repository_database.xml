@@ -16,16 +16,36 @@ using the MetadataManager.
 
     <!-- this connection was used as the default one within OJB -->
     <jdbc-connection-descriptor
-   		jcd-alias="repository.xml"
-   		default-connection="true"
+   		jcd-alias="pv_test"
    		platform="mysql"
    		jdbc-level="2.0"
    		driver="com.mysql.jdbc.Driver"
    		protocol="jdbc"
    		subprotocol="mysql"
    		dbalias="///pv_test"
-   		username="harri"
-   		password="r1t1rat1"
+   		batch-mode="false"
+     >
+
+        <connection-pool
+            maxActive="21"
+            validationQuery="" />
+
+        <sequence-manager className="org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl">
+            <attribute attribute-name="grabSize" attribute-value="20"/>
+        </sequence-manager>
+   </jdbc-connection-descriptor>
+
+
+<!-- Production environment -->
+
+    <jdbc-connection-descriptor
+   		jcd-alias="photovault"
+   		platform="mysql"
+   		jdbc-level="2.0"
+   		driver="com.mysql.jdbc.Driver"
+   		protocol="jdbc"
+   		subprotocol="mysql"
+   		dbalias="///pv_test"
    		batch-mode="false"
      >
 

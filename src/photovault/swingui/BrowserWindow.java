@@ -203,9 +203,10 @@ public class BrowserWindow extends JFrame {
     protected PhotoFolderTree treePane = null;
     
     
-  //    protected TableCollectionView viewPane = null;
-  protected PhotoCollectionThumbView viewPane = null;
-  
+    //    protected TableCollectionView viewPane = null;
+    protected PhotoCollectionThumbView viewPane = null;
+
+    
     /**
        Simple main program for testing the compnent
     */
@@ -217,6 +218,7 @@ public class BrowserWindow extends JFrame {
 // 	    org.apache.log4j.lf5.DefaultLF5Configurator.configure();
 // 	} catch ( Exception e ) {}
 // 	log.info( "Starting application" );
+
 	
 	BrowserWindow br = new BrowserWindow();
     }

@@ -37,9 +37,29 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
     }
     
     public void actionPerformed( ActionEvent ev ) {
+	Frame parentFrame = null;
+	Container c = view.getTopLevelAncestor();
+	if ( c instanceof Frame ) {
+	    parentFrame = (Frame) c;
+	}
         try {
             Collection selectedPhotos = view.getSelection();
-            Iterator iter = selectedPhotos.iterator();
+	    if ( selectedPhotos.size() > 1 ) {
+		// If user wants to open many photos at once ask for confirmation
+		// Try to find the frame in which this component is in
+		int n = JOptionPane.showConfirmDialog( parentFrame,
+						       "You have selected " + selectedPhotos.size() + " photos\n" +
+						       "Are you sure that you want to\ndisplay all of them at once?",
+						       "Open multiple photos",
+						       JOptionPane.YES_NO_OPTION );
+		if ( n != JOptionPane.YES_OPTION ) {
+		    return;
+		}
+	    }
+
+	    Cursor oldCursor = c.getCursor();
+	    c.setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
+	    Iterator iter = selectedPhotos.iterator();
             while ( iter.hasNext() ) {
                 PhotoInfo photo = (PhotoInfo) iter.next();
                 JFrame frame = new JFrame( "Photo" );
@@ -61,6 +81,7 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
                 frame.pack();
                 frame.setVisible( true );
             }
+	    c.setCursor( oldCursor );
         } catch ( Throwable e ) {
             System.err.println( "Out of memory error" );
             log.warn( e );
