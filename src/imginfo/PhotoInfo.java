@@ -101,6 +101,58 @@ class PhotoInfo {
 	return uid;
     }
     
+    /**
+       Adds a new instance of the photo into the database.
+       @param dirname Directory where the image instance is stored
+       @param fname File name of the instance
+       @instanceType Type of the instance - original, modified or thumbnail.
+       See ImageFile class documentation for details.
+    */
+    public void addInstance( String dirname, String fname, int instanceType ) {
+	ImageFile f = ImageFile.create( dirname, fname, this );
+	f.setFileHistory( instanceType );
+    }
+
+    /**
+       Returns the number of instances of this photo that are stored in database
+    */
+    public int getNumInstances() {
+	// Count number of instances from database
+	String sql = "SELECT COUNT(*) FROM image_files WHERE photo_id = " + uid;
+	int numInstances = 0;
+	try {
+	    Connection conn = ImageDb.getConnection();
+	    Statement stmt = conn.createStatement();
+	    ResultSet rs = stmt.executeQuery( sql );
+	    if ( rs.next() ) {
+		numInstances = rs.getInt( 1 );
+	    } else {
+		// If execution comes here there is some weird error, e.g. sntax error in SQL
+		System.err.println( "No records returned by: " + sql );
+	    }
+	} catch ( SQLException e ) {
+	    System.err.println( "Error counting number of instances: " + e.getMessage() );
+	}
+	return numInstances;
+    }
+
+    ArrayList instances = null;
+
+    /**
+       Return a single image instance based on its order number
+       @param instanceNum Number of the instance to return
+    */
+    public ImageFile getInstance( int instanceNum ) {
+	ImageFile instance = null;
+	if ( instances  == null ) {
+	    instances = ImageFile.retrieveInstances( this );
+	}
+	if ( instanceNum >= 0 && instanceNum < instances.size() ) {
+	    instance = (ImageFile) instances.get(instanceNum );
+	}
+	return instance;
+    }
+    
     java.util.Date shootTime;
     
     /**

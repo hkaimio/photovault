@@ -4,6 +4,7 @@ package imginfo;
 
 import dbhelper.*;
 import java.sql.*;
+import java.util.*;
 
 /**
    This class abstracts an image file, i.e. single instance of a photo that is stored in certain
@@ -62,25 +63,13 @@ public class ImageFile {
 	    stmt.setString( 1, dirname );
 	    stmt.setString( 2, fname );
 	    ResultSet rs = stmt.executeQuery();
-	    if ( !rs.next() ) {
+	    ifile = createFromResultSet( rs );
+	    if ( ifile == null ) {
 		throw new PhotoNotFoundException();
 	    }
-	    ifile = new ImageFile();
-	    ifile.dirname = rs.getString( "dirname" );
-	    ifile.fname = rs.getString( "fname" );
-	    ifile.photoUid = rs.getInt( "photo_id" );
-	    ifile.width = rs.getInt( "width" );
-	    ifile.height = rs.getInt( "height" );
-	    String strFileHist = rs.getString( "filehist" );
-	    if ( strFileHist.equals( "original" ) ) {
-		ifile.fileHistory = FILE_HISTORY_ORIGINAL;
-	    } else if ( strFileHist.equals( "modified" ) ) {
-		ifile.fileHistory = FILE_HISTORY_MODIFIED;
-	    } else {
-		ifile.fileHistory = FILE_HISTORY_THUMBNAIL;
-	    }
-			
-	    // TODO: Add other parameters
+	    rs.close();
+	    stmt.close();
+		
 	} catch ( SQLException e ) {
 	    System.err.println( "Error fetching image file from db: " + e.getMessage() );
 	    throw new PhotoNotFoundException();
@@ -88,6 +77,63 @@ public class ImageFile {
 	return ifile;
     }
 
+    /**
+       Retrieve all instances of a specified photo from DB
+       @param photo The PhotoInfo whose instances to retrieve
+       @return ArrayList containing the photoInfo objects
+    */
+
+    public static ArrayList retrieveInstances( PhotoInfo photo ) {
+	ArrayList instances = new ArrayList();
+	String sql = "select * FROM image_files WHERE photo_id = " + photo.getUid();
+	try {
+	    Connection conn = ImageDb.getConnection();
+	    Statement stmt = conn.createStatement( );
+	    ResultSet rs = stmt.executeQuery( sql );
+	    ImageFile f = createFromResultSet( rs );
+	    while ( f != null ) {
+		instances.add( f );
+		f = createFromResultSet( rs );
+	    }
+	    rs.close();
+	    stmt.close();
+	} catch ( SQLException e ) {
+	    System.err.println( "Error fetching image file from db: " + e.getMessage() );
+	}
+	return instances;
+    }
+
+	
+	
+	
+    private static ImageFile createFromResultSet( ResultSet rs ) {
+	ImageFile ifile = null;
+	try {
+	    if ( rs.next() ) {
+		ifile = new ImageFile();
+		ifile.dirname = rs.getString( "dirname" );
+		ifile.fname = rs.getString( "fname" );
+		ifile.photoUid = rs.getInt( "photo_id" );
+		ifile.width = rs.getInt( "width" );
+		ifile.height = rs.getInt( "height" );
+		String strFileHist = rs.getString( "filehist" );
+		if ( strFileHist.equals( "original" ) ) {
+		    ifile.fileHistory = FILE_HISTORY_ORIGINAL;
+		} else if ( strFileHist.equals( "modified" ) ) {
+		    ifile.fileHistory = FILE_HISTORY_MODIFIED;
+		} else {
+		    ifile.fileHistory = FILE_HISTORY_THUMBNAIL;
+		}
+		// TODO: Add other parameters
+	    }
+	} catch ( SQLException e ) {
+	    // Something went wrong, so let's not return the created object
+	    ifile = null;
+	    System.err.println( "Error reading ImageFile from DB: " + e.getMessage() );
+	}
+	return ifile;
+    }
+	
     /**
        Updates the corresponding record in database to match any modifications to the object
     */

@@ -33,9 +33,9 @@
   </target>
 
   <target name="doc">
-    <javadoc 
+    <javadoc packagenames = "*"
              destdir="docs/api"
-	     sourcefiles="src/*.java"
+	     sourcepath="src"
              author="true"
              version="true"
              use="true"

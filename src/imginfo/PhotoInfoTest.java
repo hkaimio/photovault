@@ -140,6 +140,28 @@ public class PhotoInfoTest extends TestCase {
 	}
     }
 
+    public void testInstanceAddition() {
+	String dirname = "c:\\temp";
+	String fname = "instance.jpg";
+	PhotoInfo photo = PhotoInfo.create();
+	assertNotNull( photo );
+
+	int numInstances = photo.getNumInstances();
+	photo.addInstance( dirname, fname, ImageFile.FILE_HISTORY_ORIGINAL );
+	assertEquals( numInstances+1, photo.getNumInstances() );
+	boolean found = false;
+	for ( int i = 0 ; i < photo.getNumInstances(); i++ ) {
+	    ImageFile ifile = photo.getInstance( i );
+	    if ( ifile.getDirname().equals( dirname ) && ifile.getFname().equals( fname ) ) {
+		found = true;
+	    }
+	}
+	if ( found == false ) {
+	    fail( "Created instance not found" );
+	}
+    }
+	
+
     public static Test suite() {
 	return new TestSuite( PhotoInfoTest.class );
     }
