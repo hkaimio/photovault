@@ -8,6 +8,7 @@ import dbhelper.*;
 import java.io.*;
 
 public class TestImageInstance extends TestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TestImageInstance.class.getName() );
 
     PhotoInfo photo = null;
 
@@ -65,7 +66,6 @@ public class TestImageInstance extends TestCase {
 	f.setHeight( height + 1 );
 	f.setWidth( width + 1 );
 	f.setInstanceType( ImageInstance.INSTANCE_TYPE_THUMBNAIL );
-	f.updateDB();
 	File imgFile = f.getImageFile();
 	
 	// Reload the object from database and check that the modifications are OK
@@ -108,7 +108,15 @@ public class TestImageInstance extends TestCase {
 	    fail( "DB error:; " + e.getMessage() );
 	}
     }
-					      
+
+    public static void main( String[] args ) {
+	//	org.apache.log4j.BasicConfigurator.configure();
+	log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger instLog = org.apache.log4j.Logger.getLogger( ImageInstance.class.getName() );
+	instLog.setLevel( org.apache.log4j.Level.DEBUG );
+	junit.textui.TestRunner.run( suite() );
+    }
+    
 
     public static Test suite() {
 	return new TestSuite( TestImageInstance.class );

@@ -3,6 +3,7 @@
 package imginfo;
 
 import dbhelper.*;
+import org.odmg.*;
 import java.sql.*;
 import java.util.*;
 import javax.imageio.*;
@@ -26,99 +27,96 @@ public class ImageInstance {
        @return A ImageInstance object
     */
     public static ImageInstance create( Volume volume, File imageFile, PhotoInfo photo ) {
-	String sql = "INSERT INTO image_instances VALUES ( ?, ?, ?, ?, ?, ?, ? )";
+
+	log.debug( "Creating instance, volume = " + volume.getName() + " photo = " + photo.getUid()
+		   + " image file = " + imageFile.getName() );
+	// Initialize transaction context
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	
 	ImageInstance f = new ImageInstance();
+	// Set up the primary key fields before locking the object
 	f.volume = volume;
+	f.volumeId = volume.getName();
 	f.imageFile = imageFile;
+	f.fname = imageFile.getName();
+	txw.lock( f, Transaction.WRITE );
+	log.debug( "locked instance" );
+	
 	f.photoUid = photo.getUid();
 	// Read the rest of fields from the image file
 	try {
 	    f.readImageFile();
 	} catch (IOException e ) {
+	    txw.abort();
 	    log.warn( "Error opening image file: " + e.getMessage() );
 	    // The image does not exist, so it cannot be read!!!
 	    return null;
 	}
-	try {
-	    Connection conn = ImageDb.getConnection();
-	    PreparedStatement stmt = conn.prepareStatement( sql );
-	    stmt.setString( 1, volume.getName() );
-	    stmt.setString( 2, imageFile.getName() );
-	    stmt.setInt( 3, photo.getUid() );
-	    stmt.setInt( 4, f.getWidth() ); // width
-	    stmt.setInt( 5, f.getHeight() ); // height
-	    stmt.setDouble( 6, 0 );
-	    stmt.setString( 7, "original" );
-	    stmt.executeUpdate();
-	    stmt.close();
-	} catch  (SQLException e ) {
-	    log.warn( "Error creating ImageFile: " + e.getMessage() );
-	    // Something went wrong, do not return this image file!!!
-	    f = null;
-	}
+	txw.commit();
 	return f;
     }
 
     /**
        Retrieves the info record for a image file based on its name and path.
-       @param dirname Directory of the image file
+       @param volume Volume in which the instance is stored
        @param fname Finle name for the image
        @return ImageFile object representing the image
-       @throws PhotoNotFound exception if the object can not be retrieved.
+       @throws PhotoNotFoundException exception if the object can not be retrieved.
     */
     
     public static ImageInstance retrieve( Volume volume, String fname ) throws PhotoNotFoundException {
-	String sql = "SELECT * FROM image_instances WHERE volume_id = ? AND fname = ?";
-	ImageInstance instance = null;
+	String oql = "select instance from " + ImageInstance.class.getName()
+	    + " where volumeId = \"" + volume.getName() + "\" and fname = \"" + fname + "\"";
+
+	DList instances = null;
+
+	// Get transaction context
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	Implementation odmg = ODMG.getODMGImplementation();
 	try {
-	    Connection conn = ImageDb.getConnection();
-	    PreparedStatement stmt = conn.prepareStatement( sql );
-	    stmt.setString( 1, volume.getName() );
-	    stmt.setString( 2, fname );
-	    ResultSet rs = stmt.executeQuery();
-	    instance = createFromResultSet( rs );
-	    if ( instance == null ) {
-		throw new PhotoNotFoundException();
-	    }
-	    rs.close();
-	    stmt.close();
-		
-	} catch ( SQLException e ) {
-	    System.err.println( "Error fetching image file from db: " + e.getMessage() );
-	    throw new PhotoNotFoundException();
+	    OQLQuery query = odmg.newOQLQuery();
+	    query.create( oql );
+	    instances = (DList) query.execute();
+	    txw.commit();
+	} catch ( Exception e ) {
+	    txw.abort();
+	    return null;
 	}
+	
+	ImageInstance instance = (ImageInstance) instances.get( 0 );
 	return instance;
     }
-    
-    /**
-       Retrieve all instances of a specified photo from DB
-       @param photo The PhotoInfo whose instances to retrieve
-       @return ArrayList containing the photoInfo objects
-    */
 
-    public static ArrayList retrieveInstances( PhotoInfo photo ) {
-	ArrayList instances = new ArrayList();
-	String sql = "select * FROM image_instances WHERE photo_id = " + photo.getUid();
-	try {
-	    Connection conn = ImageDb.getConnection();
-	    Statement stmt = conn.createStatement( );
-	    ResultSet rs = stmt.executeQuery( sql );
-	    ImageInstance f = createFromResultSet( rs );
-	    while ( f != null ) {
-		instances.add( f );
-		f = createFromResultSet( rs );
-	    }
-	    rs.close();
-	    stmt.close();
-	} catch ( SQLException e ) {
-	    log.warn( "Error fetching image file from db: " + e.getMessage() );
-	}
-	return instances;
-    }
+    // Unnecessary when using OJB
+//     /**
+//        Retrieve all instances of a specified photo from DB
+//        @param photo The PhotoInfo whose instances to retrieve
+//        @return ArrayList containing the photoInfo objects
+//     */
+
+//     public static ArrayList retrieveInstances( PhotoInfo photo ) {
+// 	ArrayList instances = new ArrayList();
+// 	String sql = "select * FROM image_instances WHERE photo_id = " + photo.getUid();
+// 	try {
+// 	    Connection conn = ImageDb.getConnection();
+// 	    Statement stmt = conn.createStatement( );
+// 	    ResultSet rs = stmt.executeQuery( sql );
+// 	    ImageInstance f = createFromResultSet( rs );
+// 	    while ( f != null ) {
+// 		instances.add( f );
+// 		f = createFromResultSet( rs );
+// 	    }
+// 	    rs.close();
+// 	    stmt.close();
+// 	} catch ( SQLException e ) {
+// 	    log.warn( "Error fetching image file from db: " + e.getMessage() );
+// 	}
+// 	return instances;
+//     }
 
 	
 	
-	
+    // TODO: remove this
     private static ImageInstance createFromResultSet( ResultSet rs ) {
 	ImageInstance instance = null;
 	try {
@@ -154,60 +152,53 @@ public class ImageInstance {
 	return instance;
     }
 	
-    /**
-       Updates the corresponding record in database to match any modifications to the object
-    */
-    public void updateDB() {
-	String sql = "UPDATE image_instances SET photo_id = ?, width = ?, height = ?, rotated = ?, instance_type = ? WHERE volume_id = ? AND fname = ?";
-	try {
-	    Connection conn = ImageDb.getConnection();
-	    PreparedStatement stmt = conn.prepareStatement( sql );
-	    stmt.setInt( 1, photoUid );
-	    stmt.setInt( 2, width );
-	    stmt.setInt( 3, height );
-	    stmt.setDouble( 4, rotated );
-	    String strInstanceType = null;
-	    switch ( instanceType ) {
-	    case INSTANCE_TYPE_ORIGINAL :
-		strInstanceType = "original";
-		break;
-	    case INSTANCE_TYPE_MODIFIED:
-		strInstanceType = "modified";
-		break;
-	    case INSTANCE_TYPE_THUMBNAIL:
-		strInstanceType = "thumbnail";
-		break;
-	    default:
-		log.warn( "This is not an allowed value" );
-	    }
-	    stmt.setString( 5, strInstanceType );
-	    stmt.setString( 6, volume.getName() );
-	    stmt.setString( 7, imageFile.getName() );
-	    stmt.executeUpdate();
-	    stmt.close();
-	} catch ( SQLException e ) {
-	    log.warn( "Error updating image instance in DB: " + e.getMessage() );
-	}
-    }
+//     /**
+//        Updates the corresponding record in database to match any modifications to the object
+//     */
+//     public void updateDB() {
+// 	String sql = "UPDATE image_instances SET photo_id = ?, width = ?, height = ?, rotated = ?, instance_type = ? WHERE volume_id = ? AND fname = ?";
+// 	try {
+// 	    Connection conn = ImageDb.getConnection();
+// 	    PreparedStatement stmt = conn.prepareStatement( sql );
+// 	    stmt.setInt( 1, photoUid );
+// 	    stmt.setInt( 2, width );
+// 	    stmt.setInt( 3, height );
+// 	    stmt.setDouble( 4, rotated );
+// 	    String strInstanceType = null;
+// 	    switch ( instanceType ) {
+// 	    case INSTANCE_TYPE_ORIGINAL :
+// 		strInstanceType = "original";
+// 		break;
+// 	    case INSTANCE_TYPE_MODIFIED:
+// 		strInstanceType = "modified";
+// 		break;
+// 	    case INSTANCE_TYPE_THUMBNAIL:
+// 		strInstanceType = "thumbnail";
+// 		break;
+// 	    default:
+// 		log.warn( "This is not an allowed value" );
+// 	    }
+// 	    stmt.setString( 5, strInstanceType );
+// 	    stmt.setString( 6, volume.getName() );
+// 	    stmt.setString( 7, imageFile.getName() );
+// 	    stmt.executeUpdate();
+// 	    stmt.close();
+// 	} catch ( SQLException e ) {
+// 	    log.warn( "Error updating image instance in DB: " + e.getMessage() );
+// 	}
+//     }
 
     /**
        Deletes the ImageInstance object from database.
     */
     public void delete() {
-	// Delete the database record for this image instance
-	String sql = "DELETE FROM image_instances WHERE volume_id = ? AND fname = ?";
-	try {
-	    Connection conn = ImageDb.getConnection();
-	    PreparedStatement stmt = conn.prepareStatement( sql );
-	    stmt.setString( 1, volume.getName() );
-	    stmt.setString( 2, imageFile.getName() );
-	    stmt.executeUpdate();
-	    stmt.close();
-	} catch ( SQLException e ) {
-	    System.err.println( "Error deletin image file from DB: " + e.getMessage() );
-	}
-	// Delete the actual image instance from volume
+	Implementation odmg = ODMG.getODMGImplementation();
+	Database db = ODMG.getODMGDatabase();
+	
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	db.deletePersistent( this );
 	imageFile.delete();
+	txw.commit();
     }
 
     /**
@@ -230,6 +221,14 @@ public class ImageInstance {
 	iis.close();
 	
     }
+
+    /**
+       Id of the volume (for OJB)
+    */
+    String volumeId;
+    /**
+       reference to the volume where the image file is located
+    */
     Volume volume;
     
     /**
@@ -237,6 +236,9 @@ public class ImageInstance {
      * @return value of volume.
      */
     public Volume getVolume() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return volume;
     }
     
@@ -245,15 +247,32 @@ public class ImageInstance {
      * @param v  Value to assign to volume.
      */
     public void setVolume(Volume  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.volume = v;
+	txw.commit();
     }
+
+    /**
+       The image file
+    */
     File imageFile;
+
+    /**
+       File name of the image file without directory (as returner by imageFile.getName()).
+       Used as OJB reference.
+    */
+    String fname;
+
     
     /**
      * Get the value of imageFile.
      * @return value of imageFile.
      */
     public File getImageFile() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return imageFile;
     }
     
@@ -262,7 +281,10 @@ public class ImageInstance {
      * @param v  Value to assign to imageFile.
      */
     public void setImageFile(File  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.imageFile = v;
+	txw.commit();
     }
 
     /**
@@ -298,6 +320,9 @@ public class ImageInstance {
      * @return value of width.
      */
     public int getWidth() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return width;
     }
     
@@ -306,7 +331,10 @@ public class ImageInstance {
      * @param v  Value to assign to width.
      */
     public void setWidth(int  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.width = v;
+	txw.commit();
     }
     int height;
     
@@ -315,6 +343,9 @@ public class ImageInstance {
      * @return value of height.
      */
     public int getHeight() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return height;
     }
     
@@ -323,7 +354,10 @@ public class ImageInstance {
      * @param v  Value to assign to height.
      */
     public void setHeight(int  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.height = v;
+	txw.commit();
     }
 
     // File history
@@ -348,6 +382,9 @@ public class ImageInstance {
      * @return value of instanceType.
      */
     public int getInstanceType() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return instanceType;
     }
     
@@ -356,7 +393,10 @@ public class ImageInstance {
      * @param v  Value to assign to instanceType.
      */
     public void setInstanceType(int  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.instanceType = v;
+	txw.commit();
     }
 
     double rotated;
@@ -366,6 +406,9 @@ public class ImageInstance {
      * @return value of rotated.
      */
     public double getRotated() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
 	return rotated;
     }
     
@@ -374,7 +417,10 @@ public class ImageInstance {
      * @param v  Value to assign to rotated.
      */
     public void setRotated(double  v) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
 	this.rotated = v;
+	txw.commit();
     }
     
     int photoUid;

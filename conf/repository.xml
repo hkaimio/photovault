@@ -18,6 +18,9 @@
     &internal;
 
     <!-- include user defined mappings here -->
+
+  <!-- PhotoFolder mappings -->
+
   <class-descriptor class="photovault.folder.PhotoFolder" table="photo_collections">
 
     <!-- one of (field-descriptor extent-class) -->
@@ -40,5 +43,57 @@
     </collection-descriptor>
   </class-descriptor>
 
+  <!-- ImageInstance mappings -->
+  <class-descriptor class="imginfo.ImageInstance" table="image_instances">
+    <field-descriptor name="volumeId" column="volume_id" jdbc-type="VARCHAR" primarykey="true" nullable="false">
+      <documentation></documentation>
+    </field-descriptor>
+    <field-descriptor name="fname" column="fname" jdbc-type="VARCHAR" primarykey="true" nullable="false">
+    </field-descriptor>
+    <field-descriptor name="photoUid" column="photo_id" jdbc-type="INTEGER">
+    </field-descriptor>
+    <field-descriptor name="width" column="width" jdbc-type="INTEGER">
+    </field-descriptor>
+    <field-descriptor name="height" column="height" jdbc-type="INTEGER">
+    </field-descriptor>
+    <field-descriptor name="rotated" column="rotated" jdbc-type="FLOAT">
+    </field-descriptor>
+  </class-descriptor>
+
+  <!-- PhotoInfo mappings -->
+  <class-descriptor class="imginfo.PhotoInfo" table="photos">
+    <field-descriptor name="uid" column="photo_id" jdbc-type="INTEGER" primarykey="true">
+    </field-descriptor>
+    <field-descriptor name="shootingPlace" column="shooting_place" jdbc-type="VARCHAR">
+    </field-descriptor>
+    <field-descriptor name="photographer" column="photographer" jdbc-type="VARCHAR">
+    </field-descriptor>
+    <field-descriptor name="FStop" column="f_stop" jdbc-type="FLOAT">
+    </field-descriptor>
+    <field-descriptor name="focalLength" column="focal_length" jdbc-type="FLOAT">
+    </field-descriptor>
+    <field-descriptor name="shootTime" column="shoot_time" jdbc-type="DATE">
+    </field-descriptor>
+    <field-descriptor name="shutterSpeed" column="shutter_speed" jdbc-type="DOUBLE">
+    </field-descriptor>
+    <field-descriptor name="camera" column="camera" jdbc-type="VARCHAR">
+    </field-descriptor>
+    <field-descriptor name="lens" column="lens" jdbc-type="VARCHAR">
+    </field-descriptor>
+    <field-descriptor name="film" column="film" jdbc-type="VARCHAR">
+    </field-descriptor>
+    <field-descriptor name="filmSpeed" column="film_speed" jdbc-type="INTEGER">
+    </field-descriptor>
+    <field-descriptor name="prefRotation" column="pref_rotation" jdbc-type="DOUBLE">
+    </field-descriptor>
+    <field-descriptor name="description" column="description" jdbc-type="VARCHAR">
+    </field-descriptor>
+
+    <!-- instances collection -->
+    <collection-descriptor name="instances" element-class-ref="imginfo.ImageInstance">
+      <inverse-foreignkey field-ref="photoId">
+      </inverse-foreignkey>
+    </collection-descriptor>
+  </class-descriptor>
 
 </descriptor-repository>

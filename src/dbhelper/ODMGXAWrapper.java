@@ -1,4 +1,4 @@
-// $Id: ODMGXAWrapper.java,v 1.1 2003/02/25 20:57:11 kaimio Exp $
+// $Id: ODMGXAWrapper.java,v 1.2 2003/02/28 20:34:34 kaimio Exp $
 
 
 package dbhelper;
@@ -17,7 +17,7 @@ public class ODMGXAWrapper {
     Transaction tx = null;
     boolean ownsTx = false;
     static Implementation odmg = ODMG.getODMGImplementation();
-    
+    static Database db = ODMG.getODMGDatabase();
 
     public ODMGXAWrapper() {
 	tx = odmg.currentTransaction();
