@@ -10,6 +10,9 @@ import dbhelper.*;
 import javax.imageio.*;
 import java.awt.image.*;
 import java.awt.geom.*;
+import com.drew.metadata.*;
+import com.drew.metadata.exif.*;
+import com.drew.imaging.jpeg.*;
 
 /**
    PhotoInfo represents information about a single photograph
@@ -113,10 +116,77 @@ public class PhotoInfo {
 	photo.addInstance( vol, f, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
 	photo.setShootTime( shootTime );
+	photo.updateFromFileMetadata( f );
 	photo.updateDB();
 	return photo;
     }
-    
+
+    /**
+       This method reads the metadata from image file and updates the PhotoInfo record from it
+       @param f The file to read
+    */
+    void updateFromFileMetadata( File f ) {
+	ExifDirectory exif = null;
+        try {
+            Metadata metadata = JpegMetadataReader.readMetadata(f);
+	    if ( metadata.containsDirectory( ExifDirectory.class ) ) {
+		try {
+		    exif = (ExifDirectory) metadata.getDirectory( ExifDirectory.class );
+		} catch ( MetadataException e ) {
+		}
+	    } else {
+		// No known directory was found no reason to continue
+		return;
+	    }
+        } catch (FileNotFoundException e) {
+	    // If error, just return - this is just an additional 'nice-if-succesful' operation.
+	    // If there is no metadata this will happen...
+            return;
+        }
+	// Shooting date
+	try {
+	    java.util.Date origDate = exif.getDate( exif.TAG_DATETIME_ORIGINAL );
+	    setShootTime( origDate );
+	    System.err.println( "TAG_DATETIME_ORIGINAL: " + origDate.toString() );
+	} catch ( MetadataException e ) {
+	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	}
+
+	// Exposure
+	try {
+	    double fstop = exif.getDouble( exif.TAG_FNUMBER );
+	    System.err.println( "TAG_FNUMBER: " + fstop );
+	    setFStop( fstop );
+	} catch ( MetadataException e ) {
+	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	}
+	try {
+	    double sspeed = exif.getDouble( exif.TAG_EXPOSURE_TIME );
+	    setShutterSpeed( sspeed );
+	    System.err.println( "TAG_EXPOSURE_TIME: " + sspeed );
+	} catch ( MetadataException e ) {
+	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	}
+	try {
+	    double flen = exif.getDouble( exif.TAG_FOCAL_LENGTH );
+	    setFocalLength( flen );
+	} catch ( MetadataException e ) {
+	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	}
+	try {
+	    int filmSpeed = exif.getInt( exif.TAG_ISO_EQUIVALENT );
+	    setFilmSpeed( filmSpeed );
+	} catch ( MetadataException e ) {
+	    System.err.println( "Error reading origDate: " + e.getMessage() );
+	}
+
+	// Camera name. Put here both camera manufacturer and model
+	String maker = exif.getString( exif.TAG_MAKE );
+	String model = exif.getString( exif.TAG_MODEL );
+	setCamera( maker + " " + model );
+
+    }
+	
 	
     /**
        Deletes the PhotoInfo and all related instances from database

@@ -13,6 +13,7 @@ import java.awt.event.*;
 import java.util.*;
 import java.text.*;
 import java.beans.*;
+import java.io.File;
 
 import imginfo.*;
 import dbhelper.*;
@@ -382,9 +383,36 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     /** Main method to aid in testing this component
      */
     public static void main( String args[] ) {
+	// Parse the arguments
+	PhotoInfo photo = null;
+	System.err.println( "Number of args" + args.length );
+	System.err.println( args.toString() );
+	if ( args.length == 2 ) {
+	    if ( args[0].equals( "-f" ) ) {
+		File f = new File( args[1] );
+		try {
+		    System.err.println( "Getting file " + f.getPath() );
+		    photo = PhotoInfo.addToDB( f );
+		} catch ( Exception e ) {
+		    System.err.println( e.getMessage() );
+		}
+	    } else if ( args[0].equals( "-id" ) ) {
+		try {
+		    int id = Integer.parseInt( args[1] );
+		    System.err.println( "Getting photo " + id );
+		    photo = PhotoInfo.retrievePhotoInfo( id );
+		} catch ( Exception e ) {
+		    System.err.println( e.getMessage() );
+		}
+	    }
+	}
+	
 	JFrame frame = new JFrame( "PhotoInfoEditorTest" );
 	PhotoInfoController ctrl = new PhotoInfoController();
 	PhotoInfoEditor editor = new PhotoInfoEditor( ctrl );
+	if ( photo != null ) {
+	    ctrl.setPhoto( photo );
+	}
 	frame.getContentPane().add( editor, BorderLayout.CENTER );
 	frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e) {
