@@ -357,13 +357,36 @@ public class PhotoCollectionThumbView
         log.warn( "mouseClicked (" + mouseEvent.getX() + ", " + mouseEvent.getY() );
 
 
-        if ( !mouseEvent.isControlDown() ) {
-            selection.clear();
+        PhotoInfo clickedPhoto = getPhotoAtLocation( mouseEvent.getX(), mouseEvent.getY() );
+        if ( clickedPhoto != null ) {
+            if ( mouseEvent.isControlDown() ) {
+                photoClickedCtrlDown( clickedPhoto );
+            } else {
+                photoClickedNoModifiers( clickedPhoto );
+            }
+        } else {
+            // The click was between photos. Clear the selection
+            if ( !mouseEvent.isControlDown() ) {
+                selection.clear();
+            }
         }
-        selection.add( getPhotoAtLocation( mouseEvent.getX(), mouseEvent.getY() ) );
         repaint();
     }
 
+    private void photoClickedCtrlDown( PhotoInfo clickedPhoto ) {
+        if ( selection.contains( clickedPhoto ) ) {
+            selection.remove( clickedPhoto );
+        } else {
+            selection.add( clickedPhoto );
+        }
+    }
+                 
+
+    private void photoClickedNoModifiers( PhotoInfo clickedPhoto ) {
+        selection.clear();
+        selection.add( clickedPhoto );
+    }
+    
     /**
      * Describe <code>mouseEntered</code> method here.
      *
