@@ -400,5 +400,15 @@ public class Test_PhotoFolder extends TestCase {
 		      folder.getPhotoCount(), 0 );
 	
     }
+
+    /**
+       Tests that getRoot() method returns the root folder and that it returns the same
+       instance all the time.
+    */
+    public void testGetRoot() {
+	PhotoFolder root1 = PhotoFolder.getRoot();
+	PhotoFolder root2 = PhotoFolder.getRoot();
+	assertTrue( "several instances of root created", root1==root2 );
+    }
 }
 

@@ -32,7 +32,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 
     PhotoFolder rootFolder = null;
     
-    /**
+    /**'
        Sets the root folder for the tree
        @param root the new root folder
     */

@@ -20,7 +20,12 @@ public class BrowserWindow extends JFrame {
     */
     public BrowserWindow() {
 	super( "Photovault Browser");
-	createUI();
+	SwingUtilities.invokeLater(new java.lang.Runnable() {
+		public void run() {
+		    createUI();
+		}
+	    });
+	
 	addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e) {
 		    System.exit(0);
@@ -84,7 +89,7 @@ public class BrowserWindow extends JFrame {
 	newWindowItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
 		    BrowserWindow br = new BrowserWindow();
-		    br.setVisible( true );
+		    //		    br.setVisible( true );
 		}
 	    });
 	fileMenu.add( newWindowItem );
@@ -105,6 +110,7 @@ public class BrowserWindow extends JFrame {
 	    });	
 	fileMenu.add( exitItem );
 	pack();
+	setVisible( true );
     }
 
     /**
@@ -174,7 +180,6 @@ public class BrowserWindow extends JFrame {
 	log.info( "Starting application" );
 	
 	BrowserWindow br = new BrowserWindow();
-	br.setVisible( true );
     }
 
     

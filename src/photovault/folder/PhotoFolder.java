@@ -134,8 +134,8 @@ public class PhotoFolder implements PhotoCollection {
 	txw.lock( this, Transaction.WRITE );
 	photo.addedToFolder( this );
 	photos.add( photo );
-	txw.commit();
 	modified();
+	txw.commit();
     }
 
     /**
@@ -149,8 +149,8 @@ public class PhotoFolder implements PhotoCollection {
 	txw.lock( this, Transaction.WRITE );
 	photo.removedFromFolder( this );
 	photos.remove( photo );
-	txw.commit();
 	modified();
+	txw.commit();
     }
     
 
@@ -360,24 +360,13 @@ public class PhotoFolder implements PhotoCollection {
        @param parent Parent folder of the new folder
     */
     public static PhotoFolder create( String name, PhotoFolder parent ) {
-	getODMGImplementation();
-	getODMGDatabase();
 
-	// Get the current transaction of create a new
-	Transaction tx = odmg.currentTransaction();
-	boolean mustCommit = false;
-	if ( tx == null ) {
-	    tx = odmg.newTransaction();
-	    tx.begin();
-	    mustCommit = true;
-	}
+	ODMGXAWrapper txw = new ODMGXAWrapper();
 	PhotoFolder folder = new PhotoFolder();
 	folder.setName( name );
 	folder.setParentFolder( parent );
-	tx.lock( folder, Transaction.WRITE );
-	if ( mustCommit ) {
-	    tx.commit();
-	}
+	txw.lock( folder, Transaction.WRITE );
+	txw.commit();
 	return folder;
     }
 
@@ -385,46 +374,43 @@ public class PhotoFolder implements PhotoCollection {
        Returns the root folder for the PhotoFolder hierarchy, i.e. the folder with id 1.
     */
     public static PhotoFolder getRoot() {
-	getODMGImplementation();
-	getODMGDatabase();
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	Implementation odmg = ODMG.getODMGImplementation();
+	
 	DList folders = null;
-	Transaction tx = odmg.currentTransaction();
 	boolean mustCommit = false;
-	if ( tx == null ) {
-	    tx = odmg.newTransaction();
-	    tx.begin();
-	    mustCommit = true;
-	}
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
 	    folders = (DList) query.execute();
 	} catch ( Exception e ) {
-	    tx.abort();
+	    txw.abort();
 	    return null;
 	}
 	PhotoFolder rootFolder = (PhotoFolder) folders.get( 0 );
-	// If a new transaction was created, commit it
-	if ( mustCommit ) {
-	    tx.commit();
+	if ( PhotoFolder.rootFolder == null ) {
+	    PhotoFolder.rootFolder = rootFolder;
 	}
+	if ( rootFolder == PhotoFolder.rootFolder ) {
+	    log.warn( "root folders match" );
+	} else {
+	    log.error( "root folders do not match" );
+	}
+	// If a new transaction was created, commit it
+	txw.commit();
 	return rootFolder;
     }
+
+    static PhotoFolder rootFolder = null;
 
     /**
        Deletes this object from the persistent repository
     */
     public void delete() {
-	getODMGImplementation();
-	getODMGDatabase();
+	ODMGXAWrapper txw = new ODMGXAWrapper();
 	// Find the current transaction or create a new one
-	Transaction tx = odmg.currentTransaction();
 	boolean mustCommit = false;
-	if ( tx == null ) {
-	    tx = odmg.newTransaction();
-	    tx.begin();
-	    mustCommit = true;
-	}
+
 	// First make sure that this object is deleted from its parent's subfolders list (if it has a parent)
 	setParentFolder( null );
 
@@ -436,45 +422,43 @@ public class PhotoFolder implements PhotoCollection {
 		photo.removedFromFolder( this );
 	    }
 	}
+	Database db = ODMG.getODMGDatabase();
 	db.deletePersistent( this );
-
-	// If a new transaction was created, commit it
-	if ( mustCommit ) {
-	    tx.commit();
-	}
+	
+	txw.commit();
     }
     
     
-    public static void main( String[] args ) {
-	org.apache.log4j.BasicConfigurator.configure();
-	log.setLevel( org.apache.log4j.Level.DEBUG );
-	Implementation odmg = getODMGImplementation();
-	Database db = getODMGDatabase();
-	Transaction tx = odmg.newTransaction();
-	tx.begin();
-	DList folders = null;
-	try {
-	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
-	    folders = (DList) query.execute();
-	    tx.commit();
-	} catch ( Exception e ) {
-	    tx.abort();
-	    log.error( e.getMessage() );
-	}
+//     public static void main( String[] args ) {
+// 	org.apache.log4j.BasicConfigurator.configure();
+// 	log.setLevel( org.apache.log4j.Level.DEBUG );
+// 	Implementation odmg = getODMGImplementation();
+// 	Database db = getODMGDatabase();
+// 	Transaction tx = odmg.newTransaction();
+// 	tx.begin();
+// 	DList folders = null;
+// 	try {
+// 	    OQLQuery query = odmg.newOQLQuery();
+// 	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
+// 	    folders = (DList) query.execute();
+// 	    tx.commit();
+// 	} catch ( Exception e ) {
+// 	    tx.abort();
+// 	    log.error( e.getMessage() );
+// 	}
 
-	Iterator iter = folders.iterator();
-	boolean found = false;
-	log.debug( "Starting to go thourh..." );
-	while ( iter.hasNext() ) {
-	    PhotoFolder folder = (PhotoFolder) iter.next();
-	    log.debug( "Folder " + folder.getName() );
-	    if ( folder.getFolderId() == 0 ) {
-		found = true;
-		log.info( "Found!!!" );
-	    }
-	}
-    }
+// 	Iterator iter = folders.iterator();
+// 	boolean found = false;
+// 	log.debug( "Starting to go thourh..." );
+// 	while ( iter.hasNext() ) {
+// 	    PhotoFolder folder = (PhotoFolder) iter.next();
+// 	    log.debug( "Folder " + folder.getName() );
+// 	    if ( folder.getFolderId() == 0 ) {
+// 		found = true;
+// 		log.info( "Found!!!" );
+// 	    }
+// 	}
+//     }
 
     /**
        Converts the folder object to String.
@@ -484,30 +468,30 @@ public class PhotoFolder implements PhotoCollection {
 	return name;
     }
 
-    // Functions to get the ODMG persistence layer handles. This should really be moved into
-    // its own helper class
+//     // Functions to get the ODMG persistence layer handles. This should really be moved into
+//     // its own helper class
 
-    static Implementation odmg = null;
-    public static Implementation getODMGImplementation() {
-	if ( odmg == null ) {
-	    odmg = ODMG.getODMGImplementation();
-	}
-	return odmg;
-    }
+//     static Implementation odmg = null;
+//     public static Implementation getODMGImplementation() {
+// 	if ( odmg == null ) {
+// 	    odmg = ODMG.getODMGImplementation();
+// 	}
+// 	return odmg;
+//     }
 
-    static Database db = null;
-    public static Database getODMGDatabase() {
-	if ( db == null ) {
-	    db = ODMG.getODMGDatabase();
-	}
-	return db;
-    }
+//     static Database db = null;
+//     public static Database getODMGDatabase() {
+// 	if ( db == null ) {
+// 	    db = ODMG.getODMGDatabase();
+// 	}
+// 	return db;
+//     }
 
-    // Init ODMG fields at creation time
-    {
+//     // Init ODMG fields at creation time
+//     {
 	
-	getODMGImplementation();
-	getODMGDatabase();
-    }
+// 	getODMGImplementation();
+// 	getODMGDatabase();
+//     }
     
 }    

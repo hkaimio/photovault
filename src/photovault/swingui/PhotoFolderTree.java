@@ -28,7 +28,9 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     public PhotoFolderTree() {
 	super();
 	model = new PhotoFolderTreeModel();
-	model.setRoot( PhotoFolder.getRoot() );
+	PhotoFolder root = PhotoFolder.getRoot();
+	log.warn( "Root folder" + root );
+	model.setRoot( root );
 	createUI();
     }
 
