@@ -1,4 +1,4 @@
-// $Id: PhotoFolderTree.java,v 1.5 2003/02/25 21:12:05 kaimio Exp $
+// $Id: PhotoFolderTree.java,v 1.6 2003/03/05 19:57:15 kaimio Exp $
 
 
 package photovault.swingui;
@@ -10,6 +10,7 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 import imginfo.*;
 import photovault.folder.*;
+import java.util.*;
 
 /**
    PhotoFolderTree is a control for displaying a tree structure of a PhotoFolder and its subfolders.
@@ -31,6 +32,37 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	createUI();
     }
 
+    /**
+       Returns the currently selected PhotoFolder or <code>null</code> if none is selected.
+    */
+    public PhotoFolder getSelected() {
+	return selected;
+    }
+
+    /**
+       Adds a listener to listen for selection changes
+    */
+    public void addPhotoFolderTreeListener( PhotoFolderTreeListener l ) {
+	folderTreeListeners.add( l );
+    }
+
+    /**
+       removes a listener for selection changes
+    */
+    public void removePhotoFolderTreeListener( PhotoFolderTreeListener l ) {
+	folderTreeListeners.remove( l );
+    }
+
+    protected void fireSelectionChangeEvent() {
+	Iterator iter = folderTreeListeners.iterator();
+	while ( iter.hasNext() ) {
+	    PhotoFolderTreeListener l = (PhotoFolderTreeListener) iter.next();
+	    l.photoFolderTreeSelectionChanged( new PhotoFolderTreeEvent( this, selected ) );
+	}
+    }
+    
+    Vector folderTreeListeners = new Vector();
+    
     private void createUI() {
 	setLayout( new BorderLayout() );
 	tree = new JTree( model );
@@ -96,6 +128,7 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 
     public void valueChanged( TreeSelectionEvent e ) {
 	selected = (PhotoFolder)tree.getLastSelectedPathComponent();
+	fireSelectionChangeEvent();
 	if ( selected != null ) {
 	    log.debug( "Tree selection changed, new selction = " + selected.toString() );
 	} else {
@@ -147,6 +180,8 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 						JOptionPane.WARNING_MESSAGE, null )
 		 == JOptionPane.YES_OPTION ) {
 		selected.delete();
+		selected = null;
+		fireSelectionChangeEvent();
 	    }
 	}
     }

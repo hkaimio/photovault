@@ -13,6 +13,6 @@ public class PhotoInfoModelChangedEvent extends EventObject {
        Constructor
     */
     public PhotoInfoModelChangedEvent( PhotoInfoController source ) {
-	super (source );
+	super ( source );
     }
 }

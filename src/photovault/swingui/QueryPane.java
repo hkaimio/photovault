@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import imginfo.*;
+import java.util.*;
 
 /**
    QueryPane implements the container inlcudes the UI componets used to edit the queiry parameters
@@ -44,8 +45,29 @@ public class QueryPane extends JPanel implements ActionListener {
 	if ( e.getActionCommand() == SEARCH_CMD ) {
 	    log.debug( "Action performed" );
 	    updateQuery();
+	    fireActionEvent( SEARCH_CMD );
 	}
     }
+
+    public void addActionListener( ActionListener l ) {
+	actionListeners.add( l );
+    }
+
+    public void remoceActionListener( ActionListener l ) {
+	actionListeners.remove( l );
+    }
+
+    Vector actionListeners = new Vector();
+
+    protected void fireActionEvent( String action ) {
+	Iterator iter = actionListeners.iterator();
+	while ( iter.hasNext() ) {
+	    ActionListener l = (ActionListener) iter.next();
+	    l.actionPerformed( new ActionEvent( this, ActionEvent.ACTION_PERFORMED, action ) );
+	}
+    }
+	
+    
 
     static final String SEARCH_CMD = "search";
 

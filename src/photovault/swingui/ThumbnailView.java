@@ -113,8 +113,8 @@ public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
 	    this.photo.removeChangeListener( this );
 	}
 	this.photo = photo;
-	photo.addChangeListener( this );
 	if ( photo != null ) {
+	    photo.addChangeListener( this );
 	    thumbnail = photo.getThumbnail();
 	} else {
 	    thumbnail = null;

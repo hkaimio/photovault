@@ -5,7 +5,7 @@ A SQL script for creating the database tables.
 
 (c) 2002 Harri Kaimio
 
-Version: $Id: create_db.sql,v 1.9 2003/03/04 19:35:43 kaimio Exp $
+Version: $Id: create_db.sql,v 1.10 2003/03/05 19:57:15 kaimio Exp $
 */
 
 /* Create the photos table */
@@ -70,5 +70,5 @@ Create the collection_photos table
 create table collection_photos (
 	collection_id INTEGER NOT NULL,
 	photo_id INTEGER NOT NULL,
-	PRIMARY KRY (collection_id, photo_id)
-};
+	PRIMARY KEY (collection_id, photo_id)
+);

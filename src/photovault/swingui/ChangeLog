@@ -1,3 +1,7 @@
+2003-03-05    <harri.kaimio@nokia.com>
+
+	* ThumbnailView.java (setPhoto): ug fix: even if photo was null tried to add a change listener
+
 2003-02-23    <harri.kaimio@nokia.com>
 
 	* PhotoFolderTreeModel.java (PhotoFolderTreeModel): Implemented PhotoFolderChangeListener
