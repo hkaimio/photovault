@@ -171,7 +171,13 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     */
     void createNewFolder() {
 	if ( selected != null ) {
-	    PhotoFolder newFolder = PhotoFolder.create( "New folder", selected );
+	    String newName = (String) JOptionPane.showInputDialog( this, "Enter name for new folder",
+								   "New folder", JOptionPane.PLAIN_MESSAGE,
+								   null, null, "New folder" );
+	    if ( newName != null ) {
+	    
+		PhotoFolder newFolder = PhotoFolder.create( newName, selected );
+	    }
 	}
     }
     
