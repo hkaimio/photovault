@@ -163,6 +163,12 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	    showSelectionPropsDialog();
 	} else if ( cmd == PHOTO_SHOW_CMD ) {
 	    showSelectedPhoto();
+	} else if ( cmd == PHOTO_ROTATE_CW_CMD ) {
+	    rotateSelectedPhoto( 90 );
+	} else if ( cmd == PHOTO_ROTATE_CCW_CMD ) {
+	    rotateSelectedPhoto( -90 );
+	} else if ( cmd == PHOTO_ROTATE_180_CMD ) {
+	    rotateSelectedPhoto( 180 );
 	}
     }
 
@@ -206,6 +212,19 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	    viewer.setPhoto( photo );
 	    frame.pack();
 	    frame.setVisible( true );
+	}
+    }
+
+    /**
+       Rotate selected photo by specified amount
+       @param rot Rotation in degrees, positive means clockwise
+    */
+    public void rotateSelectedPhoto( double rot ) {
+	PhotoInfo photo = getSelected();
+	if ( photo != null ) {
+	    double curRot = photo.getPrefRotation();
+	    photo.setPrefRotation( curRot + rot );
+	    photo.updateDB();
 	}
     }
     
@@ -268,8 +287,20 @@ public class TableCollectionView extends JPanel implements ActionListener {
 	JMenuItem showItem = new JMenuItem( "Show image" );
 	showItem.addActionListener( this );
 	showItem.setActionCommand( PHOTO_SHOW_CMD );
+	JMenuItem rotateCW = new JMenuItem( "Rotate 90 deg CW" );
+	rotateCW.addActionListener( this );
+	rotateCW.setActionCommand( PHOTO_ROTATE_CW_CMD );
+	JMenuItem rotateCCW = new JMenuItem( "Rotate 90 deg CCW" );
+	rotateCCW.addActionListener( this );
+	rotateCCW.setActionCommand( PHOTO_ROTATE_CCW_CMD );
+	JMenuItem rotate180deg = new JMenuItem( "Rotate 180 degrees" );
+	rotate180deg.addActionListener( this );
+	rotate180deg.setActionCommand( PHOTO_ROTATE_180_CMD );
 	popup.add( showItem );
 	popup.add( propsItem );
+	popup.add( rotateCW );
+	popup.add( rotateCCW );
+	popup.add( rotate180deg );
 	MouseListener popupListener = new PopupListener();
 	table.addMouseListener( popupListener );
 
@@ -282,6 +313,10 @@ public class TableCollectionView extends JPanel implements ActionListener {
     // Popup menu actions
     private static final String PHOTO_PROPS_CMD = "photoProps";
     private static final String PHOTO_SHOW_CMD = "photoShow";
+    private static final String PHOTO_ROTATE_CW_CMD = "rotateCW";
+    private static final String PHOTO_ROTATE_CCW_CMD = "rotateCCW";
+    private static final String PHOTO_ROTATE_180_CMD = "rotate180";
+    
     
     /**
        Simple test program
