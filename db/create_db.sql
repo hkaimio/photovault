@@ -64,6 +64,8 @@ create table photo_collections (
 	FULLTEXT( collection_desc )
 );
 
+insert into photo_collections values (1, 0, "Root", "Root folder", NULL, NULL );
+
 /*
 Create the collection_photos table
 */
