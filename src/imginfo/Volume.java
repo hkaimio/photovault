@@ -12,30 +12,53 @@ import java.util.*;
 public class Volume {
 
     private static Volume defaultVolume = null;
-
+    private static HashMap volumes = null;
+    
     /**
        Returns the current default volume object
     */
     public static Volume getDefaultVolume() {
 	if ( defaultVolume == null ) {
-	    defaultVolume = new Volume( "c:\\java\\photovault\\testdb" );
+	    defaultVolume = new Volume( "defaultVolume", "c:\\java\\photovault\\testdb" );
 	}
 	return defaultVolume;
     }
 
-    public Volume( String volName ) {
-	volumeBaseDir = new File( volName );
+    /**
+       Returns the volume with a given name or null if such volume does not exist
+       @param volName The name to look for
+    */
+    public static Volume getVolume( String volName ) {
+	Volume vol = null;
+	if ( volumes != null ) {
+	    vol = (Volume) volumes.get( volName );
+	}
+	return vol;
+    }
+
+    public Volume( String volName, String volBaseDir ) {
+	volumeName = volName;
+	volumeBaseDir = new File( volBaseDir );
 	if ( !volumeBaseDir.exists() ) {
 	    volumeBaseDir.mkdir();
 	}
+	registerVolume();
     }
-	
+
+       
+    private void registerVolume() {
+	if ( volumes == null ) {
+	    volumes = new HashMap();
+	}
+	volumes.put( volumeName, this );
+    }
+    
     /**
        Sets the specified directory as the root for the default volume
        @param volName Directory that will be assigned as the new volume root
     */
     public static void setDefaultVolume( String volName ) {
-	defaultVolume = new Volume( volName );
+	defaultVolume = new Volume( "defaultVolume", volName );
     }
 	
 
@@ -122,7 +145,16 @@ public class Volume {
 	return volumeBaseDir;
     }
 
+    private String volumeName;
 
+    /**
+       Returns the volume name
+     */
+    public String getName() {
+	return volumeName;
+    }
+
+    
     /** returns true if the vulome is available, flase otherwise (if e.g. the volume is
 	stored on CD-ROM thatis not mounted currently
     */
