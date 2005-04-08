@@ -6,37 +6,16 @@
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+  <property name="lib"  location="lib"/>
   <property file="build.properties"/> 
 
   <path id="project.class.path">
     <fileset dir="${build.lib.dir}">
 	<include name="**/*.jar"/>
     </fileset>
-    <pathelement location="c:\java\lib\metadataExtractor.jar/"/>
-    <pathelement location="C:\java\abbot-0.8.2\lib\abbot.jar/"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\commons-beanutils.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\commons-beanutils.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\commons-collections-2.0.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\commons-dbcp.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\commons-lang-1.0-mod.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\commons-logging.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\commons-pool.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\hsqldb.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\jboss-common.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\jboss-system.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\jca1.0.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\jcs.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\jdbc2_0-stdext.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\jmxri.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\jndi.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\jta-spec1_0_1.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\p6spy.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\proxy.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\xdoclet.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\xercesImpl.jar"/>
-    <pathelement location="c:\java\jakarta-ojb\lib\xml-apis.jar"/>
-    <pathelement location="c:\java\lib\jakarta-ojb-0.9.9.jar"/>
     <pathelement path="${java.class.path}/"/>
+    <pathelement path="build"/>
+    <pathelement path="conf"/>
   </path>
 
   <target name="init">
@@ -62,7 +41,7 @@
     <!-- Create the jar file  -->
     <jar jarfile="${dist}/lib/photovault-latest.jar" basedir="${build}">
       <manifest>
-         <attribute name="Main-Class" value="photovault.swingui.BrowserWindow"/>
+         <attribute name="Main-Class" value="photovault.swingui.Photovault"/>
          <attribute name="Built-By" value="${user.name}"/>
          <attribute name="Implementation-Version" value="build_${DSTAMP}"/>
       </manifest>
@@ -103,7 +82,9 @@
     </target>
 
   <target name="run" depends="dist">
-    <java jar="${dist}/lib/photovault-latest.jar" classpathref="project.class.path" fork="true"/>
+    <java fork="true" classname="photovault.swingui.Photovault">
+        <classpath refid="project.class.path"/>
+    </java> 
   </target>
 
   <target name="doc">

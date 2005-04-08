@@ -31,7 +31,7 @@ create table photos (
 
 	PRIMARY KEY( photo_id ),
 	FULLTEXT( shooting_place, description )
-);
+) ENGINE = MyISAM;
 
 
 create table volumes (
@@ -39,7 +39,7 @@ create table volumes (
 	root_path varchar(255) NOT NULL,
 
 	PRIMARY KEY( volume_id )
-);
+) ENGINE = MyISAM;
 
 create table image_instances (
 	volume_id varchar(30) NOT NULL /* REFERENCES volumes( volume_id ) */,
@@ -50,7 +50,7 @@ create table image_instances (
 	rotated float,
 	instance_type ENUM ( "original", "modified", "thumbnail" ) NOT NULL,
 	PRIMARY KEY( volume_id, fname )
-);
+) ENGINE = MyISAM;
 
 
 /*
@@ -66,7 +66,7 @@ create table photo_collections (
 	last_modified DATETIME,
 	PRIMARY KEY( collection_id ),
 	FULLTEXT( collection_desc )
-);
+) ENGINE = MyISAM;
 
 insert into photo_collections values (1, 0, "Root", "Root folder", NULL, NULL );
 
@@ -77,4 +77,4 @@ create table collection_photos (
 	collection_id INTEGER NOT NULL,
 	photo_id INTEGER NOT NULL,
 	PRIMARY KEY (collection_id, photo_id)
-);
+) ENGINE = MyISAM;
