@@ -20,7 +20,7 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
     public JAIPhotoViewer() {
 	super();
 	createUI();
-	addComponentListener( this );
+	
     }
 
     public void createUI() {
@@ -29,6 +29,9 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	scrollPane = new JScrollPane( imageView );
 	scrollPane.setPreferredSize( new Dimension( 500, 500 ) );
 	add( scrollPane, BorderLayout.CENTER );
+        // Listen fot resize events of the scroll area so that fitted image can 
+        // be resized as well.
+        addComponentListener( this );
 
 	JToolBar toolbar = new JToolBar();
 
@@ -113,6 +116,7 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 
     public void fit() {
 	Dimension displaySize = scrollPane.getSize();
+        log.debug( "fit to " + displaySize.getWidth() + ", " + displaySize.getHeight() );
 	imageView.fitToRect( displaySize.getWidth()-4, displaySize.getHeight()-4 );
 	// 	int origWidth = imageView.getOrigWidth();
 	// 	int origHeight = imageView.getOrigHeight();
@@ -180,7 +184,7 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 
     public void componentResized( ComponentEvent e) {
 	if ( isFit ) {
-	    fit();
+            fit();
 	}
 			 
     }

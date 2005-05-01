@@ -131,7 +131,8 @@ public class JAIPhotoView extends JPanel {
 	maxHeight = height;
 	// Revalidate the geometry & image size
 	xformImage = null;
-	revalidate();
+        revalidate();
+	repaint();
     }
     
     private void buildXformImage() {

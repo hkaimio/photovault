@@ -109,6 +109,10 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener, Comp
 	return imageView.getScale();
     }
 
+    
+    /**
+     * Fit the photo into component size
+     */
     public void fit() {
 	Dimension displaySize = scrollPane.getSize();
 	imageView.fitToRect( displaySize.getWidth(), displaySize.getHeight() );
@@ -185,7 +189,11 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener, Comp
 
     public void componentResized( ComponentEvent e) {
 	if ( isFit ) {
-	    fit();
+            // We cannot call fit() directly since it depends on the size of the scroll pane which is a subcomponent of this
+            // component. 
+	    SwingUtilities.invokeLater( new java.lang.Runnable() {
+                public void run() { fit(); }
+            } );
 	}
 			 
     }
