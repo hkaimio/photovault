@@ -87,7 +87,7 @@ public class PhotoCollectionThumbView
 	photoCollection.removePhotoCollectionChangeListener( this );
       }
         
-      photoCollection = v;
+      photoCollection = new SortedPhotoCollection( v );
       photoCollection.addPhotoCollectionChangeListener( this );
       refreshPhotoChangeListeners();
       
