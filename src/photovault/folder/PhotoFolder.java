@@ -376,30 +376,26 @@ public class PhotoFolder implements PhotoCollection {
        Returns the root folder for the PhotoFolder hierarchy, i.e. the folder with id 1.
     */
     public static PhotoFolder getRoot() {
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	Implementation odmg = ODMG.getODMGImplementation();
+        PhotoFolder rootFolder = PhotoFolder.rootFolder;
+        if ( rootFolder == null ) {
+            ODMGXAWrapper txw = new ODMGXAWrapper();
+            Implementation odmg = ODMG.getODMGImplementation();
 	
-	DList folders = null;
-	boolean mustCommit = false;
-	try {
-	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
-	    folders = (DList) query.execute();
-	} catch ( Exception e ) {
-	    txw.abort();
-	    return null;
-	}
-	PhotoFolder rootFolder = (PhotoFolder) folders.get( 0 );
-	if ( PhotoFolder.rootFolder == null ) {
-	    PhotoFolder.rootFolder = rootFolder;
-	}
-	if ( rootFolder == PhotoFolder.rootFolder ) {
-	    log.warn( "root folders match" );
-	} else {
-	    log.error( "root folders do not match" );
-	}
-	// If a new transaction was created, commit it
-	txw.commit();
+            DList folders = null;
+            boolean mustCommit = false;
+            try {
+                OQLQuery query = odmg.newOQLQuery();
+                query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
+                folders = (DList) query.execute();
+            } catch ( Exception e ) {
+                txw.abort();
+                return null;
+            }
+            rootFolder = (PhotoFolder) folders.get( 0 );
+            PhotoFolder.rootFolder = rootFolder;
+            // If a new transaction was created, commit it
+            txw.commit();
+        }
 	return rootFolder;
     }
 

@@ -4,6 +4,8 @@ import org.odmg.*;
 import javax.swing.JOptionPane;
 import dbhelper.ODMG;
 import photovault.common.PhotovaultSettings;
+import org.apache.log4j.PropertyConfigurator;
+
 
 /**
    Main class for the photovault application
@@ -51,6 +53,7 @@ public class Photovault {
 
     
     public static void main( String [] args ) {
+        PropertyConfigurator.configure( "conf/log4j.properties" );
 	Photovault app = new Photovault();
 	app.run();
     }

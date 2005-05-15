@@ -91,12 +91,12 @@ public class PhotoInfo {
     
 
     /**
-       Add a new image to the database. This method first copies a given image file to the database volume.
-       It then extracts the information it can from the image file and stores a corresponding entry in DB
-       @param imgFile File object that describes the image file that is to be added to the database
-       @return The PhotoInfo object describing the new file.
-       @throws PhotoNotFoundException if the file given as imgFile argument does not exist or is unaccessible.
-    */
+     * Add a new image to the database. This method first copies a given image file to the database volume.
+     * It then extracts the information it can from the image file and stores a corresponding entry in DB
+     * @param imgFile File object that describes the image file that is to be added to the database
+     * @return The PhotoInfo object describing the new file.
+     * @throws PhotoNotFoundException if the file given as imgFile argument does not exist or is unaccessible.
+     */
     public static PhotoInfo addToDB( File imgFile )  throws PhotoNotFoundException {
 	Volume vol = Volume.getDefaultVolume();
 	File f = vol.getFilingFname( imgFile );
