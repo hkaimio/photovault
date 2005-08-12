@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 
-public class BrowserWindow extends JFrame {
+public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
     
@@ -39,7 +39,8 @@ public class BrowserWindow extends JFrame {
 	tabPane.addTab( "Folders", treePane );
 	//	viewPane = new TableCollectionView();
 	viewPane = new PhotoCollectionThumbView();
-
+        viewPane.addSelectionChangeListener( this );
+        previewPane = new PhotoViewer();
 
 	// Set listeners to both query and folder tree panes
 
@@ -70,8 +71,32 @@ public class BrowserWindow extends JFrame {
 	
 	// Create the split pane to display both of these components
 	JScrollPane viewScroll = new JScrollPane( viewPane );
-	viewScroll.setPreferredSize( new Dimension( 650, 400 ) );
-	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, viewScroll );
+        
+        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
+        JPanel collectionPane = new JPanel();
+        GridBagLayout layout = new GridBagLayout();
+        collectionPane.setLayout( layout );
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 1.0;
+        c.weightx = 0.0;
+        c.gridx = 0;
+        
+
+        // Minimum size is the size of one thumbnail
+        viewScroll.setMinimumSize( new Dimension( 150, 150 ));
+        collectionPane.add( viewScroll );
+        layout.setConstraints( viewScroll, c );
+        collectionPane.add( previewPane );
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        // c.gridheight = GridBagConstraints.REMAINDER;
+        c.gridx = 1;
+        c.weightx = 1.0;
+        layout.setConstraints( previewPane, c );
+        
+ //       JSplitPane collectionSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, viewScroll, previewPane );
+	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );
 	Container cp = getContentPane();
 	cp.setLayout( new BorderLayout() );
 	cp.add( split, BorderLayout.CENTER );
@@ -198,13 +223,31 @@ public class BrowserWindow extends JFrame {
 	}
     }
     
+    /**
+     *Selection in Thumb view has changed. Is a single photo is selected, show 
+     * it in preview pane, otherwise set preview empty.
+     */
+    public void selectionChanged( SelectionChangeEvent e ) {
+       Collection selection = viewPane.getSelection();
+       if ( selection.size() == 1 ) {
+           Cursor oldCursor = getCursor();
+           setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
+           PhotoInfo selected = (PhotoInfo) (selection.toArray())[0];
+           previewPane.setPhoto( selected );
+           setCursor( oldCursor );
+       } else {
+           previewPane.setPhoto( null );
+       }
+    }
     protected JTabbedPane tabPane = null;
+    protected JTabbedPane collectionTabPane = null;
     protected QueryPane queryPane = null;
     protected PhotoFolderTree treePane = null;
     
     
     //    protected TableCollectionView viewPane = null;
     protected PhotoCollectionThumbView viewPane = null;
+    protected PhotoViewer previewPane = null;
 
     
     /**

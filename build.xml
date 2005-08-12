@@ -102,7 +102,17 @@
     <classpath refid="project.class.path"/>
   </java>
 </target>   
-   
+
+<target name="profile" depends="dist" description="Profile Project">
+                <fail unless="netbeans.home">This target can only run inside the NetBeans IDE.</fail>
+                <nbprofile classname="photovault.swingui.Photovault" dir="c:/Documents and Settings/harri/My Documents/projects/photovault">
+                <classpath refid="project.class.path"/>
+                <!--
+                <jvmarg value="-agentpath:&quot;c:\program files\netbeans-4.0\profiler1\modules\profiler-ea-libs\deployed\jdk15\windows\profilerinterface.dll&quot;=&quot;\&quot;c:\program files\netbeans-4.0\profiler1\modules\profiler-ea-libs\&quot;&quot;,5140"/>
+                
+                -->
+                </nbprofile>
+</target>   
    
   <target name="doc">
     <javadoc packagenames = "*"

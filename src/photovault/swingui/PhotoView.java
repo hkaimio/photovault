@@ -23,6 +23,7 @@ public class PhotoView extends JPanel {
     }
     
     public void paint( Graphics g ) {
+        super.paint( g );
 	if ( xformImage == null ) {
 	    prepareXformImage();
 	}

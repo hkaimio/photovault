@@ -560,7 +560,7 @@ public class PhotoInfo {
 	int origHeight = origImage.getHeight();
 
 	AffineTransform xform = photovault.image.
-	    ImageXform.getFittingXform( width, height,
+	    ImageXform.getFittingXform( origWidth, origHeight,
 					prefRotation -original.getRotated(),
 					origWidth, origHeight );
 	

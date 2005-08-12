@@ -168,7 +168,7 @@ public class PhotoCollectionThumbView
     
     int columnWidth = 150;
     int rowHeight = 150;
-    int columnCount = 0;
+    int columnCount = 1;
 
 
     JPopupMenu popup = null;
@@ -302,7 +302,7 @@ public class PhotoCollectionThumbView
         Graphics2D g2 = (Graphics2D) g;
         Rectangle clipRect = g.getClipBounds();
         Dimension compSize = getSize();
-        columnCount = (int)(compSize.getWidth()/columnWidth);
+        // columnCount = (int)(compSize.getWidth()/columnWidth);
 
         int photoCount = 0;
         if ( photoCollection != null ) {
@@ -462,10 +462,10 @@ public class PhotoCollectionThumbView
 
 
     public Dimension getPreferredSize() {
-        int prefWidth = 4 * columnWidth;
+        int prefWidth = columnWidth * columnCount;
         int prefHeight = rowHeight;
         if ( photoCollection != null ) {
-            prefHeight += rowHeight * (int)(photoCollection.getPhotoCount()/4);
+            prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columnCount );
         }
         return new Dimension( prefWidth, prefHeight );
 
