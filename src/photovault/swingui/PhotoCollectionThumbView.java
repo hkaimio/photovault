@@ -169,6 +169,8 @@ public class PhotoCollectionThumbView
     int columnWidth = 150;
     int rowHeight = 150;
     int columnCount = 1;
+    int rowCount = -1;
+    int columnsToPaint = 1;
 
 
     JPopupMenu popup = null;
@@ -264,6 +266,37 @@ public class PhotoCollectionThumbView
     }
 
 
+    /**
+     * Sets the shape of the thumbnail grid so that it has specified number of columns.
+     * When this is set then row count is adjusted so that all thumbnails fit.
+     */
+    public void setColumnCount( int c ) {
+        columnCount = c;
+       // If number of columns is fixed number of rows must be dynamic.
+        rowCount = -1;
+        columnsToPaint = c;
+        revalidate();
+        repaint();
+    }
+    
+    /**
+     * Return number of columns or -1 if this is adjusted dynamically based on row cound or component size
+     */
+    public int getColumnCount() {
+        return columnCount;
+    }
+    
+    public void setRowCount( int c ) {
+        rowCount = c;
+        columnCount = -1;
+        revalidate();
+        repaint();
+    }
+    
+    public int getRowCount() {
+        return rowCount;
+    }
+    
     // Popup menu actions
     private static final String PHOTO_ADD_TO_FOLDER_CMD = "addToFolder";
     private AbstractAction exportSelectedAction;
@@ -303,15 +336,30 @@ public class PhotoCollectionThumbView
         Rectangle clipRect = g.getClipBounds();
         Dimension compSize = getSize();
         // columnCount = (int)(compSize.getWidth()/columnWidth);
-
+        
         int photoCount = 0;
         if ( photoCollection != null ) {
             photoCount = photoCollection.getPhotoCount();
         }
 
+        // Determine the grid size based on couln & row count
+        columnsToPaint = columnCount;
+        // if columnCount is not specified determine it based on row count
+        if ( columnCount < 0 ) {
+            if ( rowCount > 0 ) {
+                columnsToPaint = photoCount / rowCount;
+                if ( columnsToPaint * rowCount < photoCount ) {
+                    columnsToPaint++;
+                }
+            } else {
+                columnsToPaint = (int) ( compSize.getWidth()/columnWidth );
+            }
+        }
+        
         int col = 0;
         int row = 0;
         Rectangle thumbRect = new Rectangle();
+        
         for ( int i = 0; i < photoCount; i++ ) {
             thumbRect.setBounds(col*columnWidth, row*rowHeight, columnWidth, rowHeight );
             if ( thumbRect.intersects( clipRect ) ) {
@@ -319,7 +367,7 @@ public class PhotoCollectionThumbView
                 paintThumbnail( g2, photo, col*columnWidth, row*rowHeight, selection.contains( photo ) );
             }
             col++;
-            if ( col >= columnCount ) {
+            if ( col >= columnsToPaint ) {
                 row++;
                 col = 0;
             }
@@ -462,10 +510,27 @@ public class PhotoCollectionThumbView
 
 
     public Dimension getPreferredSize() {
-        int prefWidth = columnWidth * columnCount;
-        int prefHeight = rowHeight;
-        if ( photoCollection != null ) {
-            prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columnCount );
+        int prefWidth = 0;
+        int prefHeight = 0;
+        
+        if ( columnCount > 0 ) {
+            prefWidth = columnWidth * columnCount;
+            prefHeight = rowHeight;
+            if ( photoCollection != null ) {
+                prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columnCount );
+            }
+        } else if ( rowCount > 0 ) {
+            prefHeight = rowHeight * rowCount;
+            prefWidth = columnWidth;
+            if ( photoCollection != null ) {
+                prefWidth += columnWidth * (int)( photoCollection.getPhotoCount() / rowCount );
+            }
+        } else {
+            prefWidth = columnWidth * columnsToPaint;
+            prefHeight = rowHeight;
+            if ( photoCollection != null ) {
+                prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columnsToPaint );
+            }            
         }
         return new Dimension( prefWidth, prefHeight );
 
@@ -509,8 +574,8 @@ public class PhotoCollectionThumbView
     */
     protected void repaintPhoto( int n ) {
 	if ( n >= 0 ) {
-	    int row = (int) (n / columnCount);
-	    int col = n - (row * columnCount);
+	    int row = (int) (n / columnsToPaint);
+	    int col = n - (row * columnsToPaint);
 	    repaint( 0, col * columnWidth, row * rowHeight, columnWidth, rowHeight );
 	}
     }
@@ -537,7 +602,7 @@ public class PhotoCollectionThumbView
         PhotoInfo photo = null;
         int row = (int) y / rowHeight;
         int col = (int) x / columnWidth;
-        int photoNum = row * columnCount + col;
+        int photoNum = row * columnsToPaint + col;
         log.warn( "Located photo # " + photoNum ); 
         
         if ( photoNum < photoCollection.getPhotoCount() ) {
@@ -566,8 +631,8 @@ public class PhotoCollectionThumbView
                 width = img.getWidth();
                 height = img.getHeight();
             }
-	    int row = (int) photoNum / columnCount;
-	    int col = photoNum - row*columnCount;
+	    int row = (int) photoNum / columnsToPaint;
+	    int col = photoNum - row*columnsToPaint;
             int imgX = col * columnWidth + (columnWidth - width)/(int)2;
             int imgY = row * rowHeight + (rowHeight -  height)/(int)2;
             Rectangle imgRect = new Rectangle( imgX, imgY, width, height );
@@ -862,6 +927,36 @@ public class PhotoCollectionThumbView
                 firstMouseEvent = null;
             }
         }   
+    }
+    
+    public void selectNextPhoto() {
+        if ( this.getSelectedCount() == 1 ) {
+            PhotoInfo selectedPhoto = (PhotoInfo) (selection.toArray())[0];
+            int idx = photos.indexOf( selectedPhoto );
+            idx++;
+            if ( idx >= photos.size() ) {
+                idx = photos.size()-1;
+            }
+            selection.clear();
+            selection.add( photos.get( idx ));
+            fireSelectionChangeEvent();
+            repaint();
+        }        
+    }
+    
+    public void selectPreviousPhoto() {
+        if ( this.getSelectedCount() == 1 ) {
+            PhotoInfo selectedPhoto = (PhotoInfo) (selection.toArray())[0];
+            int idx = photos.indexOf( selectedPhoto );
+            idx--;
+            if ( idx < 0 ) {
+                idx = 0;
+            }
+            selection.clear();
+            selection.add( photos.get( idx ));
+            fireSelectionChangeEvent();
+            repaint();
+        }        
     }
     
     /**

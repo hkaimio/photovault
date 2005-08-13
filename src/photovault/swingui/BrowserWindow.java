@@ -70,30 +70,13 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	    } );
 	
 	// Create the split pane to display both of these components
-	JScrollPane viewScroll = new JScrollPane( viewPane );
+	viewScroll = new JScrollPane( viewPane );
         
-        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
-        JPanel collectionPane = new JPanel();
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0;
-        c.weightx = 0.0;
-        c.gridx = 0;
-        
-
-        // Minimum size is the size of one thumbnail
-        viewScroll.setMinimumSize( new Dimension( 150, 150 ));
+        collectionPane = new JPanel();
         collectionPane.add( viewScroll );
-        layout.setConstraints( viewScroll, c );
         collectionPane.add( previewPane );
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        // c.gridheight = GridBagConstraints.REMAINDER;
-        c.gridx = 1;
-        c.weightx = 1.0;
-        layout.setConstraints( previewPane, c );
+        
+        setupLayoutPreviewWithHorizontalIcons();
         
  //       JSplitPane collectionSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, viewScroll, previewPane );
 	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );
@@ -138,6 +121,51 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	    });	
 	fileMenu.add( exitItem );
 
+        JMenu viewMenu = new JMenu( "View" );
+        viewMenu.setMnemonic( KeyEvent.VK_V );
+        menuBar.add( viewMenu );
+        
+	JMenuItem vertIconsItem = new JMenuItem( "Preview on Right", KeyEvent.VK_R );
+	vertIconsItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    setupLayoutPreviewWithVerticalIcons();
+		}
+	    });
+	viewMenu.add( vertIconsItem );
+        
+	JMenuItem horzIconsItem = new JMenuItem( "Preview on Top", KeyEvent.VK_T );
+	horzIconsItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    setupLayoutPreviewWithHorizontalIcons();
+		}
+	    });
+	viewMenu.add( horzIconsItem );
+        
+	JMenuItem noPreviewItem = new JMenuItem( "No preview", KeyEvent.VK_T );
+	noPreviewItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    setupLayoutNoPreview();
+		}
+	    });
+	viewMenu.add( noPreviewItem );
+        
+        JMenuItem nextPhotoItem = new JMenuItem( "Next photo", KeyEvent.VK_N );
+	nextPhotoItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    viewPane.selectNextPhoto();
+		}
+	    });
+	viewMenu.add( nextPhotoItem );
+        
+        JMenuItem prevPhotoItem = new JMenuItem( "Previous photo", KeyEvent.VK_P );
+	prevPhotoItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    viewPane.selectPreviousPhoto();
+		}
+	    });
+	viewMenu.add( prevPhotoItem );
+        
+        
 	JMenu imageMenu = new JMenu( "Image" );
 	imageMenu.setMnemonic(KeyEvent.VK_I);
 	menuBar.add( imageMenu );
@@ -152,6 +180,88 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	setVisible( true );
     }
 
+    /**
+     * Sets up the window layout so that the collection is displayed as one vertical
+     * column with preview image on right
+     */
+    protected void setupLayoutPreviewWithVerticalIcons() {
+        GridBagLayout layout = new GridBagLayout();
+        collectionPane.setLayout( layout );
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 1.0;
+        c.weightx = 0.0;
+        c.gridx = 0;
+
+        // Minimum size is the size of one thumbnail
+        viewScroll.setMinimumSize( new Dimension( 150, 150 ));
+        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
+        viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
+        layout.setConstraints( viewScroll, c );
+        viewPane.setColumnCount( 1 );
+        
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        // c.gridheight = GridBagConstraints.REMAINDER;
+        c.gridx = 1;
+        c.weightx = 1.0;
+        layout.setConstraints( previewPane, c );
+        previewPane.setVisible( true );
+        validate();
+    }
+    
+     /**
+     * Sets up the window layout so that the collection is displayed as one horizontal
+     * row with preview image above it.
+     */
+    protected void setupLayoutPreviewWithHorizontalIcons() {
+        GridBagLayout layout = new GridBagLayout();
+        collectionPane.setLayout( layout );
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 0.0;
+        c.weightx = 1.0;
+        c.gridy = 1;
+
+        // Minimum size is the size of one thumbnail
+        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+        viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
+        viewScroll.setMinimumSize( new Dimension( 150, 200 ));
+        layout.setConstraints( viewScroll, c );
+        viewPane.setRowCount( 1 );
+        
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        // c.gridheight = GridBagConstraints.REMAINDER;
+        c.gridy = 0;
+        c.weighty = 1.0;
+        layout.setConstraints( previewPane, c );
+        previewPane.setVisible( true );
+        validate();
+    }   
+    
+    public void setupLayoutNoPreview() {
+        GridBagLayout layout = new GridBagLayout();
+        collectionPane.setLayout( layout );
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 1.0;
+        c.weightx = 1.0;
+        c.gridy = 0;
+
+        // Minimum size is the size of one thumbnail
+        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
+        viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
+        viewScroll.setMinimumSize( new Dimension( 150, 200 ));
+        layout.setConstraints( viewScroll, c );
+        viewPane.setRowCount( -1 );
+        viewPane.setColumnCount( -1 );
+        
+        previewPane.setVisible( false );
+        validate();        
+    }
+    
     /** 
 	Shows an file selection dialog that allows user to select a
 	file to import. After that shows the PhotoInfo dialog to allow the
@@ -241,8 +351,11 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     }
     protected JTabbedPane tabPane = null;
     protected JTabbedPane collectionTabPane = null;
+    protected JScrollPane viewScroll = null;
+    protected JPanel collectionPane = null;
     protected QueryPane queryPane = null;
     protected PhotoFolderTree treePane = null;
+    
     
     
     //    protected TableCollectionView viewPane = null;
