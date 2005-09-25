@@ -40,7 +40,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	//	viewPane = new TableCollectionView();
 	viewPane = new PhotoCollectionThumbView();
         viewPane.addSelectionChangeListener( this );
-        previewPane = new PhotoViewer();
+        previewPane = new JAIPhotoViewer();
 
 	// Set listeners to both query and folder tree panes
 
@@ -360,7 +360,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     
     //    protected TableCollectionView viewPane = null;
     protected PhotoCollectionThumbView viewPane = null;
-    protected PhotoViewer previewPane = null;
+    protected JAIPhotoViewer previewPane = null;
 
     
     /**

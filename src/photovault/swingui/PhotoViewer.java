@@ -143,6 +143,8 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener, Comp
 	    return;
 	}
 
+        log.debug( "PhotoViewer.setPhoto: " + photo.getUid());
+
 	photo.addChangeListener( this );
 
 	// Find the original file
@@ -160,7 +162,10 @@ public class PhotoViewer extends JPanel implements PhotoInfoChangeListener, Comp
 	} else {
 	    BufferedImage origImage = null;
 	    try {
-		origImage = ImageIO.read( original.getImageFile() );
+		final File imageFileName = original.getImageFile();
+                log.debug( "reading file " + imageFileName.getAbsolutePath() );
+                origImage = ImageIO.read( imageFileName );
+                log.debug( "File read" );
 		setImage( origImage );
 	    } catch ( IOException e ) {
 		log.warn( "Error reading image: " + e.getMessage() );

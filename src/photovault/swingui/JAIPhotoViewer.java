@@ -134,7 +134,6 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
     }
 
     public void setPhoto( PhotoInfo photo ) {
-
 	if ( this.photo != null ) {
 	    this.photo.removeChangeListener( this );
 	}
@@ -143,6 +142,8 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	    setImage( null );
 	    return;
 	}
+
+        log.debug( "JAIPhotoViewer.setPhoto() photo="  + photo.getUid() );
 
 	photo.addChangeListener( this );
 
@@ -159,8 +160,11 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	if ( original == null ) {
 	    log.debug( "Error - no original image was found!!!" );
 	} else {
-	    PlanarImage origImage = JAI.create( "fileload", original.getImageFile().getAbsolutePath() );
-	    setImage( origImage );
+	    final String imageFilePath = original.getImageFile().getAbsolutePath();
+            log.debug( "loading image " + imageFilePath );
+            PlanarImage origImage = JAI.create( "fileload", imageFilePath );
+	    log.debug( "image " + imageFilePath + " loaded");
+            setImage( origImage );
 	    instanceRotation = original.getRotated();
 	    double rot = photo.getPrefRotation() - instanceRotation;
 	    imageView.setRotation( rot );

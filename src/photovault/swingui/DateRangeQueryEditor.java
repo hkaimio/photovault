@@ -98,6 +98,7 @@ public class DateRangeQueryEditor extends JPanel implements ActionListener {
 	
     }
 
+    /** @refactorit.skip str_equal_compare */
     public void actionPerformed( ActionEvent e ) {
 	log.debug( "Entry: DateRangeQueryEditor.actionPerformed" );
 	log.debug( "command: " + e.getActionCommand() );

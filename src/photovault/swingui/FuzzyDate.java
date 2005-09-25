@@ -160,7 +160,7 @@ public class FuzzyDate {
 	if ( obj instanceof FuzzyDate ) {
 	    FuzzyDate fd = (FuzzyDate) obj;
 	    if ( date != null ) {
-		isEqual = date.equals( fd.date ) && (accuracy == fd.accuracy );
+		isEqual = date.equals( fd.date ) && (Math.abs(accuracy - fd.accuracy) < 0.0001);
 	    } else {
 		isEqual = (fd.date == null ) && ( accuracy == fd.accuracy );
 	    }

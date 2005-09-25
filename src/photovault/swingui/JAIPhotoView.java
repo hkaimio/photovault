@@ -33,7 +33,8 @@ public class JAIPhotoView extends JPanel {
     }
     
     public void paint( Graphics g ) {
-	if ( xformImage == null ) {
+        super.paint( g );
+	if ( xformImage == null && origImage != null ) {
 	    buildXformImage();
 	}
 	

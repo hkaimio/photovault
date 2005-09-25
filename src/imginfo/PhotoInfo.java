@@ -362,7 +362,7 @@ public class PhotoInfo {
 	    for ( int n = 0; n < instances.size(); n++ ) {
 		ImageInstance instance = (ImageInstance) instances.get( n );
 		if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-		     && instance.getRotated() == prefRotation ) {
+		      && Math.abs(instance.getRotated() - prefRotation) < 0.0001 ) {
 		    log.debug( "Found thumbnail from database" );
 		    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
 		    break;
