@@ -12,6 +12,7 @@ import org.odmg.Implementation;
 import org.apache.ojb.odmg.*;
 import imginfo.*;
 import dbhelper.*;
+import photovault.common.PhotovaultSettings;
 
 public class Test_PhotoFolder extends TestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolder.class.getName() );
@@ -19,21 +20,24 @@ public class Test_PhotoFolder extends TestCase {
     Implementation odmg = null;
     Database db = null;
     Transaction tx = null;
-  String testImgDir = "/home/harri/projects/photovault/testfiles";
+  String testImgDir = "testfiles";
   
     /**
        Sets up the test environment. retrieves from database the hierarchy with 
        "subfolderTest" as root and creates a TreeModel from it
     */
     public void setUp() {
-	odmg = OJB.getInstance();
-	db = odmg.newDatabase();
-	try {
-	    db.open( "repository.xml", Database.OPEN_READ_WRITE );
-	} catch ( ODMGException e ) {
-	    //	    log.warn( "Could not open database: " + e.getMessage() );
-	    db = null;
-	}
+	PhotovaultSettings.setConfiguration( "pv_test" );
+	String sqldbName = PhotovaultSettings.getConfProperty( "dbname" );
+        ODMG.initODMG("harri", "r1t1rat1", sqldbName);
+	odmg = ODMG.getODMGImplementation();
+	db = ODMG.getODMGDatabase();
+//	try {
+//	    db.open( "repository.xml", Database.OPEN_READ_WRITE );
+//	} catch ( ODMGException e ) {
+//	    //	    log.warn( "Could not open database: " + e.getMessage() );
+//	    db = null;
+//	}
 
 // 	tx = odmg.newTransaction();
 // 	tx.begin();

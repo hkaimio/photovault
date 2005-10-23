@@ -37,11 +37,19 @@
       <foreignkey field-ref="parentId">
       </foreignkey>
     </reference-descriptor>
-    <collection-descriptor name="subfolders" element-class-ref="photovault.folder.PhotoFolder" orderby="name" sort="ASC" proxy="true">
+    <collection-descriptor name="subfolders" 
+        element-class-ref="photovault.folder.PhotoFolder" 
+        orderby="name" 
+        sort="ASC" 
+        proxy="true">
       <inverse-foreignkey field-ref="parentId">
       </inverse-foreignkey>
     </collection-descriptor>
-    <collection-descriptor name="photos" element-class-ref="imginfo.PhotoInfo" indirection-table="collection_photos" proxy="true">
+    <collection-descriptor name="photos" 
+        element-class-ref="imginfo.PhotoInfo" 
+        collection-class="org.apache.ojb.broker.util.collections.ManageableArrayList"
+        indirection-table="collection_photos" 
+        proxy="true">
       <fk-pointing-to-this-class column="collection_id">
       </fk-pointing-to-this-class>
       <fk-pointing-to-element-class column="photo_id">
@@ -107,13 +115,23 @@
     <field-descriptor name="origFname" column="orig_fname" jdbc-type="VARCHAR">
     </field-descriptor>
 
-    <!-- instances collection -->
+    <!-- instances collection 
+    Instances are aggregates of PhotoInfo object so we can use the default 
+    collection implementation which deleted objects that are deleted from the 
+    collection
+    -->
     <collection-descriptor name="instances" element-class-ref="imginfo.ImageInstance">
       <inverse-foreignkey field-ref="photoUid">
       </inverse-foreignkey>
     </collection-descriptor>
-    <!-- folders collection -->
-    <collection-descriptor name="folders" element-class-ref="photovault.folder.PhotoFolder" indirection-table="collection_photos" proxy="true">
+    <!-- folders collection 
+    This is an m:n mappin so we will use manageable collections.
+    -->
+    <collection-descriptor name="folders" 
+        element-class-ref="photovault.folder.PhotoFolder" 
+        indirection-table="collection_photos" 
+        collection-class="org.apache.ojb.broker.util.collections.ManageableArrayList"
+        proxy="true">
       <fk-pointing-to-this-class column="photo_id"/>
       <fk-pointing-to-element-class column="collection_id"/>
     </collection-descriptor>

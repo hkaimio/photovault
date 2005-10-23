@@ -102,14 +102,26 @@ public class FolderController extends FieldController {
 	    (DefaultMutableTreeNode) folderNodes.get( f );
 	DefaultMutableTreeNode parentNode
 	    = (DefaultMutableTreeNode) treeNode.getParent();
-
-	int idx = parentNode.getIndex( treeNode );
-	parentNode.remove( treeNode );
-	int[] idxs = new int[1];
-	idxs[0] = idx;
-	Object[] nodes = new Object[1];
-	nodes[0] = treeNode;
-	treeModel.nodesWereRemoved( parentNode, idxs, nodes );
+        
+        // If this folder has no visible children remove it from the tree
+        /* TODO:
+         * THis is a bugfix to ensure that the folder is not removed from tree if 
+         * it has subfolders with photos. Test this before committing changes
+         */
+        if ( treeNode.getChildCount() == 0 ) {
+            int idx = parentNode.getIndex( treeNode );
+            parentNode.remove( treeNode );
+            int[] idxs = new int[1];
+            idxs[0] = idx;
+            Object[] nodes = new Object[1];
+            nodes[0] = treeNode;
+            treeModel.nodesWereRemoved( parentNode, idxs, nodes );
+        } else {
+            // This folder has children that have photos in the model
+            // Don't remove the flder but notify model that representation
+            // should be changed
+            treeModel.nodeChanged(treeNode);
+        }
     }
 
     /**
@@ -163,6 +175,9 @@ public class FolderController extends FieldController {
 	    DefaultMutableTreeNode node = addFolder( folder );
 	    FolderNode fn = (FolderNode) node.getUserObject();
 	    fn.addPhoto( photo );
+            // Notify the tree model about tis change so that the folder name is
+            // boldened
+            treeModel.nodeChanged(node );
 	}
     }
 
