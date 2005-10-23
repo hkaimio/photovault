@@ -28,9 +28,9 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
     void createUI() {
 	setLayout(new GridBagLayout());
 	folderTree = new JTree(  );
- 	folderTree.setRootVisible( false );
+ 	folderTree.setRootVisible( true );
 	folderTree.setShowsRootHandles( true );
-	folderTree.setEditable( true );
+	folderTree.setEditable( false );
 	JScrollPane scrollPane = new JScrollPane( folderTree );
  	scrollPane.setPreferredSize( new Dimension( 300, 300 ) );
 

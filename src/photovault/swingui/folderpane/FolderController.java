@@ -97,30 +97,36 @@ public class FolderController extends FieldController {
 	addedToFolders.remove( f );
 	removedFromFolders.add( f );
 	
-	// Remove the folder from the tree
 	DefaultMutableTreeNode treeNode =
 	    (DefaultMutableTreeNode) folderNodes.get( f );
         FolderNode fn = (FolderNode) treeNode.getUserObject();
 	fn.removeAllPhotos();
-	DefaultMutableTreeNode parentNode
-	    = (DefaultMutableTreeNode) treeNode.getParent();
         
         // If this folder has no visible children remove it from the tree
-        /* TODO:
-         * THis is a bugfix to ensure that the folder is not removed from tree if 
-         * it has subfolders with photos. Test this before committing changes
-         */
         if ( treeNode.getChildCount() == 0 ) {
-            int idx = parentNode.getIndex( treeNode );
-            parentNode.remove( treeNode );
-            int[] idxs = new int[1];
-            idxs[0] = idx;
-            Object[] nodes = new Object[1];
-            nodes[0] = treeNode;
-            treeModel.nodesWereRemoved( parentNode, idxs, nodes );
+            DefaultMutableTreeNode parentNode
+                = (DefaultMutableTreeNode) treeNode.getParent();
+            FolderNode parentFolderNode = (FolderNode) parentNode.getUserObject();
+
+            // Remove the folder also from controller internal data structures
+            folderNodes.remove( f );
+            treeModel.removeNodeFromParent( treeNode );
+            
+            /* Check whether the parent node (and its parets...) contain any photos
+            * from the model. If not we can remove them as well
+            */
+            while ( !parentFolderNode.containsPhotos() && parentNode != topNode ) {
+                treeNode = parentNode;
+                fn = parentFolderNode;
+                parentNode = (DefaultMutableTreeNode) treeNode.getParent();
+                parentFolderNode = (FolderNode) parentNode.getUserObject();
+
+                folderNodes.remove( fn.getFolder()); 
+                treeModel.removeNodeFromParent( treeNode );
+              }
         } else {
             // This folder has children that have photos in the model
-            // Don't remove the flder but notify model that representation
+            // Don't remove the folder but notify model that representation
             // should be changed
             treeModel.nodeChanged(treeNode);
         }
@@ -147,7 +153,7 @@ public class FolderController extends FieldController {
     }
     
     /**
-       Hash table that maps PhotoFolders into nodes in trees.
+       Hash table that maps PhotoFolders into nodes in the tree.
     */
     HashMap folderNodes = new HashMap();
 
@@ -167,6 +173,9 @@ public class FolderController extends FieldController {
 	for ( int n = 0; n < model.length; n++ ) {
 	    addPhotoToTree( (PhotoInfo) model[n] );
 	}
+//        if ( topNode != null ) {
+            treeModel.nodeStructureChanged(topNode);
+//        }
     }
 
     void addPhotoToTree( PhotoInfo photo ) {
@@ -177,9 +186,9 @@ public class FolderController extends FieldController {
 	    DefaultMutableTreeNode node = addFolder( folder );
 	    FolderNode fn = (FolderNode) node.getUserObject();
 	    fn.addPhoto( photo );
-            // Notify the tree model about tis change so that the folder name is
+            // Notify the tree model about this change so that the folder name is
             // boldened
-            treeModel.nodeChanged(node );
+            // treeModel.nodeChanged(node );
 	}
     }
 
@@ -194,9 +203,11 @@ public class FolderController extends FieldController {
 	
 
     /**
-       Recursively walk through all parents of a folder until such a folder is found
-       that is already part of the model (or we find the root folder. Then add this folder
-       to the tree.
+     *Add a folder into the tree. If folder's parent has not yet been added, 
+       walk recursively through all parents until such a folder is found
+       that is already part of the model (or we find the root folder)
+     *@param folder The folder that will be added to the tree.
+     *@return Parent of the folder
     */
     DefaultMutableTreeNode addFolder( PhotoFolder folder ) {
 	if ( folderNodes.containsKey( folder ) ) {
@@ -217,6 +228,7 @@ public class FolderController extends FieldController {
 	    }
 	    topNode = folderNode;
 	    treeModel.setRoot( topNode );
+           
 	} else {
 	    DefaultMutableTreeNode parentNode = addFolder( parent );
 	    treeModel.insertNodeInto( folderNode, parentNode, parentNode.getChildCount() );
