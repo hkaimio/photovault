@@ -100,6 +100,8 @@ public class FolderController extends FieldController {
 	// Remove the folder from the tree
 	DefaultMutableTreeNode treeNode =
 	    (DefaultMutableTreeNode) folderNodes.get( f );
+        FolderNode fn = (FolderNode) treeNode.getUserObject();
+	fn.removeAllPhotos();
 	DefaultMutableTreeNode parentNode
 	    = (DefaultMutableTreeNode) treeNode.getParent();
         
