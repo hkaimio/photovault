@@ -18,6 +18,9 @@
     <pathelement path="conf"/>
   </path>
 
+<path id="debug.sourcepath" >
+    <pathelement path="src"/>
+</path>
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
@@ -90,9 +93,8 @@
   <target name="debug" depends="compile" if="netbeans.home" description="Debug Project">  
     <nbjpdastart name="Photovault" addressproperty="jpda.address" transport="dt_socket">
      <classpath refid="project.class.path"/>
-     <!-- Optional - If source roots are properly declared in project, should
-	      work without setting source path.
-     <sourcepath refid="debug.sourcepath"/> -->
+
+     <sourcepath refid="debug.sourcepath"/> 
    </nbjpdastart>
    <java fork="true" classname="photovault.swingui.Photovault">
     <jvmarg value="-Xdebug"/>
