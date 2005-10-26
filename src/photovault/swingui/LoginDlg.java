@@ -7,7 +7,12 @@ import imginfo.*;
 import java.io.*;
 import photovault.common.PhotovaultSettings;
 
-
+/**
+ * LoginDlg implementfs a simåple dialog for asking which database will be used 
+ * as well as username & password for database connection. <p>
+ *
+ * LoginDlg works tightly together with the @see Photovault main allpication class.
+ */
 public class LoginDlg extends JFrame {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoDlg.class.getName() );
@@ -28,15 +33,24 @@ public class LoginDlg extends JFrame {
 	    });
     }
 
+    /**
+     * Returns the user name that has been entered to the dialog.
+     */
     public String getUsername() {
 	return idField.getText();
     }
 
+    /**
+     * Returns the password entered to the dialog.
+     */
     public String getPassword() {
 	char[] pass = passField.getPassword();
 	return new String( pass );
     }
 
+    /**
+     * Return the name of selected database.
+     */
     public String getDb() {
 	return dbField.getSelectedItem().toString();
     }
@@ -123,6 +137,15 @@ public class LoginDlg extends JFrame {
 
 	setResizable( false );
 	pack();
+        
+        // Center the ialog on screen
+        int w = getSize().width;
+        int h = getSize().height;
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = (screenSize.width-w)/2;
+        int y = (screenSize.height-h)/2;
+        setLocation( x, y );
+                
     }
 
     
