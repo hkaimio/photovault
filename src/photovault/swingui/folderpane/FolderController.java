@@ -72,7 +72,7 @@ public class FolderController extends FieldController {
 
     HashSet addedToFolders;
     HashSet removedFromFolders;
-
+    
     /**
        Mark all photos in model so that they will be added to specified folder
        when committing the changes.
@@ -86,7 +86,7 @@ public class FolderController extends FieldController {
 	
 	// Notify the tree model that representation of this node may
 	// be changed
-	treeModel.nodeChanged( node );
+        treeModel.nodeChanged( node );
     }
     /**
        Mark all photos in model so that they will be removed from specified folder
@@ -163,8 +163,6 @@ public class FolderController extends FieldController {
     protected void initTree() {
 	folderNodes = new HashMap();
 	topNode = null;
-	// 	topNode = new DefaultMutableTreeNode( PhotoFolder.getRoot() );
-// 	treeModel.setRoot( topNode );
 	if ( model == null ) {
 	    return;
 	}
@@ -173,9 +171,7 @@ public class FolderController extends FieldController {
 	for ( int n = 0; n < model.length; n++ ) {
 	    addPhotoToTree( (PhotoInfo) model[n] );
 	}
-//        if ( topNode != null ) {
-            treeModel.nodeStructureChanged(topNode);
-//        }
+        treeModel.nodeStructureChanged(topNode);
     }
 
     void addPhotoToTree( PhotoInfo photo ) {
@@ -189,15 +185,6 @@ public class FolderController extends FieldController {
             // Notify the tree model about this change so that the folder name is
             // boldened
             // treeModel.nodeChanged(node );
-	}
-    }
-
-    void expandPath( TreePath path ) {
-	TreeModelListener listeners[] = treeModel.getTreeModelListeners();
-	for ( int n = 0; n < listeners.length; n++ ) {
-	    if (listeners[n] instanceof JTree ) {
-		((JTree) listeners[n]).expandPath( path );
-	    }
 	}
     }
 	
@@ -232,7 +219,6 @@ public class FolderController extends FieldController {
 	} else {
 	    DefaultMutableTreeNode parentNode = addFolder( parent );
 	    treeModel.insertNodeInto( folderNode, parentNode, parentNode.getChildCount() );
-// 	    expandPath( new TreePath( folderNode.getPath() ) );
 	}
 
 	return folderNode;

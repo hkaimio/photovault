@@ -29,7 +29,7 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 	setLayout(new GridBagLayout());
 	folderTree = new JTree(  );
  	folderTree.setRootVisible( true );
-	folderTree.setShowsRootHandles( true );
+	folderTree.setShowsRootHandles( false );
 	folderTree.setEditable( false );
 	JScrollPane scrollPane = new JScrollPane( folderTree );
  	scrollPane.setPreferredSize( new Dimension( 300, 300 ) );
@@ -97,8 +97,16 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
     }
 
     public void treeNodesInserted( TreeModelEvent e ) {
-	TreePath parentPath = e.getTreePath();
-	folderTree.expandPath( parentPath );
+	final TreePath parentPath = e.getTreePath();
+        /* Calling expandPath in event handler seems to lead into unpredictable
+         * layout problems, so we will defer the call until the tree has handled 
+         * all events correctly 
+         */
+        SwingUtilities.invokeLater(new java.lang.Runnable() {
+            public void run() {
+                folderTree.expandPath( parentPath );
+            }
+	});
     }
     
     public void treeNodesRemoved( TreeModelEvent e ) {
