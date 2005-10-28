@@ -21,7 +21,7 @@ public class LoginDlg extends JFrame {
     Photovault app;
     /**
        Constructor. 
-       @param owner Owner of the dialog
+       @param app Owner of the dialog
     */
     public LoginDlg( Photovault app ) {
 	super( "Login to Photovault");

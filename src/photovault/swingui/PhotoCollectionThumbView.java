@@ -540,7 +540,7 @@ public class PhotoCollectionThumbView
 
     /**
      * ActionListener implementation, is called when a popup menu item is selected
-     * @param  <description>
+     * @param e The event object
      */
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
@@ -866,7 +866,7 @@ public class PhotoCollectionThumbView
     /**
      * Describe <code>mouseDragged</code> method here.
      *
-     * @param mouseEvent a <code>MouseEvent</code> value
+     * @param e The event object
      */
     public void mouseDragged(MouseEvent e ) {
 	switch ( dragType ) {

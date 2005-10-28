@@ -31,7 +31,7 @@ public class PhotoQuery implements PhotoCollection {
     /**
        Restrict resultfs to photos that have the specified field in
        the reange
-       @param field Code of the field used in the query
+       @param fieldNum Code of the field used in the query
        @param lower Lower bound for the range. If null, the query will
        be regarded as "less than upper"
        @param upper Upper bound for the query. If null, the query will
@@ -66,7 +66,7 @@ public class PhotoQuery implements PhotoCollection {
     /** Set a fuzzy date criteria for finding items (possibly)
 	matching a date range
 	@param field the date field used in search
-	@param accyracyField The field containing accuracy info about
+	@param accuracyField The field containing accuracy info about
 	the date
 	@param date FuzzyTime describing the date range
 	@param strictness Strictness used when selecting objects into
@@ -213,7 +213,7 @@ public class PhotoQuery implements PhotoCollection {
     /**
      * Describe <code>addPhotoCollectionChangeListener</code> method here.
      *
-     * @param photoCollectionChangeListener a <code>PhotoCollectionChangeListener</code> value
+     * @param l a <code>PhotoCollectionChangeListener</code> value
      */
     public void addPhotoCollectionChangeListener(PhotoCollectionChangeListener l) {
 	listeners.add( l );
@@ -222,7 +222,7 @@ public class PhotoQuery implements PhotoCollection {
     /**
      * Describe <code>removePhotoCollectionChangeListener</code> method here.
      *
-     * @param photoCollectionChangeListener a <code>PhotoCollectionChangeListener</code> value
+     * @param l a <code>PhotoCollectionChangeListener</code> value
      */
     public void removePhotoCollectionChangeListener(PhotoCollectionChangeListener l) {
 	listeners.remove( l );

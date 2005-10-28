@@ -12,7 +12,7 @@ public interface PhotoCollection {
     public int getPhotoCount();
     /**
        Get a single hpto from the collection
-       @param photoNum Number of the photo to retrieve. This must be >= 0 and < than
+       @param numPhoto Number of the photo to retrieve. This must be >= 0 and < than
        the number of photos in collection.
     */
     public PhotoInfo getPhoto( int numPhoto );

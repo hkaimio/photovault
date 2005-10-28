@@ -108,8 +108,8 @@ public class PhotoFolder implements PhotoCollection {
 
     /**
      * Returns a photo from the folder with given order number. Valid values [0..getPhotoCount[
-     * @param param1 <description>
-     * @return <description>
+     * @param num order number of the photo
+     * @return The photo with the given number
      */
     public PhotoInfo getPhoto(int num)
     {

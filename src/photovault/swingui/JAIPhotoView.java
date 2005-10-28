@@ -122,8 +122,8 @@ public class JAIPhotoView extends JPanel {
 
     /**
        Set the scaling so that the image fits inside given dimensions
-       @param maxWidth The maximum width of the scaled image
-       @param maxHeight The maximum height of the scaped image
+       @param width The maximum width of the scaled image
+       @param height The maximum height of the scaped image
     */
     public void fitToRect( double width, double height ) {
 	//	System.err.println( "Fitting to " + width + ", " + height );

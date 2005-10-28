@@ -144,7 +144,7 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     
     /**
      * ActionListener implementation, is called when a popup menu item is selected
-     * @param  <description>
+     * @param  e The event object
      */
     public void actionPerformed(ActionEvent e)
     {

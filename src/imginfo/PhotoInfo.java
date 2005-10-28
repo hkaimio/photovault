@@ -303,8 +303,8 @@ public class PhotoInfo {
     /**
        Adds a new instance of the photo into the database.
        @param volume Volume in which the instance is stored
-       @param instanceName File name of the instance
-       @instanceType Type of the instance - original, modified or thumbnail.
+       @param instanceFile File name of the instance
+       @param instanceType Type of the instance - original, modified or thumbnail.
        @return The new instance
        @see ImageInstance class documentation for details.
     */

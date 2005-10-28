@@ -156,7 +156,7 @@ public class TableCollectionView extends JPanel implements ActionListener {
 
     /**
      * ActionListener implementation, is called when a popup menu item is selected
-     * @param  <description>
+     * @param e The event object
      */
     public void actionPerformed(ActionEvent e)
     {

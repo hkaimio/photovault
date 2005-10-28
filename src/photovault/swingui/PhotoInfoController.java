@@ -462,7 +462,7 @@ public class PhotoInfoController {
 
     /**
        Sets up the controller to create a new PhotoInfo
-       @imageFile the original image that is to be added to database
+       @param imageFile the original image that is to be added to database
     */
     public void createNewPhoto( File imageFile ) {
 	setPhoto( null );

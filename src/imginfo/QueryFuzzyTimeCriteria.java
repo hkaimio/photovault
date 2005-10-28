@@ -46,7 +46,7 @@ public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {
     /**
      * Describe <code>setupQuery</code> method here.
      *
-     * @param criteria a <code>Criteria</code> value
+     * @param crit a <code>Criteria</code> value
      */
     public final void setupQuery(final Criteria crit) {
 	log.debug( "Entry: SetupQuery" );
