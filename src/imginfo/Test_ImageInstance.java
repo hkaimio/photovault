@@ -6,11 +6,12 @@ import junit.framework.*;
 import java.sql.*;
 import dbhelper.*;
 import java.io.*;
+import photovault.test.PhotovaultTestCase;
 
-public class Test_ImageInstance extends TestCase {
+public class Test_ImageInstance extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_ImageInstance.class.getName() );
   
-  String testImgDir = "/home/harri/projects/photovault/testfiles";
+  String testImgDir = "testfiles";
   String volumeRoot =  "/tmp/photoVaultImageInstanceTest";
 
     PhotoInfo photo = null;
@@ -26,6 +27,10 @@ public class Test_ImageInstance extends TestCase {
 	} catch ( Exception e ) {
 	    fail( "Unable to retrieve PhotoInfo object" );
 	}
+        File volumeDir = new File( volumeRoot );
+        if ( !volumeDir.exists() ) {
+            volumeDir.mkdirs();
+        } 
 	volume = new Volume( "imageInstanceTest", volumeRoot );
     }
     

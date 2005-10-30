@@ -38,6 +38,12 @@ public class ODMG {
 
     public static boolean initODMG( String user, String passwd, String dbName ) {
 
+        // TESTING!!!!!
+//        if (db != null ) {
+//            try {
+//                db.close();
+//            } catch ( org.odmg.ODMGException e ) {}
+//        }
 	getODMGImplementation();
 	db = odmg.newDatabase();
 	boolean success = false;
@@ -64,7 +70,9 @@ public class ODMG {
 	    }
 	} catch ( Throwable t ) {
 	    log.error( "Could not open database connection" );
-	    try {
+	    log.error( t.getMessage() );
+            t.printStackTrace();
+            try {
 		db.close();
 	    } catch (ODMGException e ) {
 		log.error( "Error closing database" );

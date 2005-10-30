@@ -19,8 +19,10 @@ public class PhotovaultSettings {
     static final String defaultPropFname = "conf/photovault.properties";
     static public void init() {
 	// Determine the property file name
+        log.debug( "photovault.propFname = " + System.getProperty("photovault.propFname"));
 	String propFname = System.getProperty( "photovault.propFname", defaultPropFname );
-	File propFile = new File( propFname );
+	log.debug( "Using property file " + propFname );
+        File propFile = new File( propFname );
 	props = new Properties();
 	try {
 	    InputStream is = new FileInputStream( propFile );

@@ -169,7 +169,12 @@ public class FolderController extends FieldController {
 	
 	// Add all photos in the model to folder tree
 	for ( int n = 0; n < model.length; n++ ) {
-	    addPhotoToTree( (PhotoInfo) model[n] );
+            // if the model is empty it can contain a null
+            // TODO: this is IMHO a hack - passing null up to this point is certainly
+            // not elegant and there might be even more error opportunities
+            if ( model[n] != null ) {
+                addPhotoToTree( (PhotoInfo) model[n] );
+            }
 	}
         treeModel.nodeStructureChanged(topNode);
     }

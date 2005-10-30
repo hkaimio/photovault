@@ -13,8 +13,9 @@ import org.apache.ojb.odmg.*;
 import imginfo.*;
 import dbhelper.*;
 import photovault.common.PhotovaultSettings;
+import photovault.test.PhotovaultTestCase;
 
-public class Test_PhotoFolder extends TestCase {
+public class Test_PhotoFolder extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolder.class.getName() );
 
     Implementation odmg = null;
@@ -27,9 +28,9 @@ public class Test_PhotoFolder extends TestCase {
        "subfolderTest" as root and creates a TreeModel from it
     */
     public void setUp() {
-	PhotovaultSettings.setConfiguration( "pv_test" );
-	String sqldbName = PhotovaultSettings.getConfProperty( "dbname" );
-        ODMG.initODMG("harri", "r1t1rat1", sqldbName);
+//	PhotovaultSettings.setConfiguration( "pv_test" );
+//	String sqldbName = PhotovaultSettings.getConfProperty( "dbname" );
+//        ODMG.initODMG("harri", "r1t1rat1", sqldbName);
 	odmg = ODMG.getODMGImplementation();
 	db = ODMG.getODMGDatabase();
 //	try {

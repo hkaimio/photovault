@@ -6,9 +6,11 @@ import photovault.folder.*;
 import junit.framework.*;
 import javax.swing.event.*;
 import org.apache.ojb.odmg.*;
-import org.odmg.*;	
+import org.odmg.*;
+import photovault.test.PhotovaultTestCase;
+import dbhelper.ODMG;
 
-public class Test_PhotoFolderTreeModel extends TestCase {
+public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolderTreeModel.class.getName() );
 
     Implementation odmg = null;
@@ -17,17 +19,15 @@ public class Test_PhotoFolderTreeModel extends TestCase {
     Transaction tx = null;
     PhotoFolderTreeModel model = null;
     
+    /**
+     Sets upt the model for thes casesso that "subfolderTest" folder is set up 
+     as the root folder.
+     */
     public void setUp() {
-	odmg = OJB.getInstance();
-	db = odmg.newDatabase();
-	try {
-	    db.open( "repository.xml", Database.OPEN_READ_WRITE );
-	} catch ( ODMGException e ) {
-	    //	    log.warn( "Could not open database: " + e.getMessage() );
-	    db = null;
-	}
+	odmg = ODMG.getODMGImplementation();
+	db = ODMG.getODMGDatabase();
 
-	tx = odmg.newTransaction();
+        tx = odmg.newTransaction();
 	tx.begin();
 	DList folders = null;
 	try {

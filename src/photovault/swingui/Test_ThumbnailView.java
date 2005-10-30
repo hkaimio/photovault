@@ -13,17 +13,19 @@ import javax.imageio.*;
 import javax.imageio.stream.*;
 import abbot.tester.*;
 import imginfo.*;
+import photovault.test.PhotovaultTestCase;
 
 /**
    Implements unit tests for ThumbnailView class
 */
 
-public class Test_ThumbnailView extends TestCase {
+public class Test_ThumbnailView extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_ThumbnailView.class.getName() );
-  String testImgDir = "/home/harri/projects/photovault/testfiles";
+  String testImgDir = "testfiles";
 
     public Test_ThumbnailView() {
-	testRefImageDir = new File( "/home/harri/projects/photovault/tests/images/photovault/swingui/TestThumbnailView/" );
+	super();
+        testRefImageDir = new File( "tests/images/photovault/swingui/TestThumbnailView/" );
 	testRefImageDir.mkdirs();
     }
     
@@ -34,7 +36,8 @@ public class Test_ThumbnailView extends TestCase {
     
     File testRefImageDir = null; 
 
-    protected void setUp() {
+    public void setUp() {
+        super.setUp();
         // Create a frame with the test instance name as the title
         frame = new JFrame(getName());        
         pane = (JPanel)frame.getContentPane();

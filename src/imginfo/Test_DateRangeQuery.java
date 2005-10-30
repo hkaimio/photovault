@@ -4,8 +4,9 @@ package imginfo;
 
 import junit.framework.*;
 import java.util.*;
+import photovault.test.PhotovaultTestCase;
 
-public class Test_DateRangeQuery extends TestCase {
+public class Test_DateRangeQuery extends PhotovaultTestCase {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_DateRangeQuery.class.getName() );
 
@@ -14,7 +15,7 @@ public class Test_DateRangeQuery extends TestCase {
     Vector uids = null;
     
     public void setUp() {
-
+        super.setUp();
 	// Create several photos with different shooting dates
 	// Add them to a collection so that they are easy to delete afterwards
 	Calendar cal = Calendar.getInstance();

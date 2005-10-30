@@ -6,12 +6,15 @@ import java.io.*;
 import junit.framework.*;
 import java.util.*;
 import imginfo.*;
+import photovault.test.PhotovaultTestCase;
 
-public class Test_PhotoInfoController extends TestCase {
+public class Test_PhotoInfoController extends PhotovaultTestCase {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoInfoController.class.getName() );
 
     PhotoInfo photo = null;
     PhotoInfoController ctrl = null;
-  String testImgDir = "/home/harri/projects/photovault/testfiles";
+    String testImgDir = "testfiles";
+  
     public void setUp() {
 	photo = PhotoInfo.create();
 
@@ -24,6 +27,20 @@ public class Test_PhotoInfoController extends TestCase {
     public void tearDown() {
 	photo.delete();
     }
+    
+    
+    public static Test suite() {
+	return new TestSuite( Test_PhotoInfoController.class );
+    }
+    
+    public static void main( String[] args ) {
+	//	org.apache.log4j.BasicConfigurator.configure();
+	log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger folderLog = org.apache.log4j.Logger.getLogger( Test_PhotoInfoController.class.getName() );
+	folderLog.setLevel( org.apache.log4j.Level.DEBUG );
+	junit.textui.TestRunner.run( suite() );
+    }
+
 
     public void testPhotoModification() {
 	ctrl.setPhoto( photo );

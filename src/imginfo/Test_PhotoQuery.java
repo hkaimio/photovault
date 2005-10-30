@@ -6,8 +6,9 @@ import junit.framework.*;
 import java.util.*;
 import photovault.folder.*;
 import photovault.swingui.FuzzyDate;
+import photovault.test.PhotovaultTestCase;
 
-public class Test_PhotoQuery extends TestCase {
+public class Test_PhotoQuery extends PhotovaultTestCase {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoQuery.class.getName() );
 

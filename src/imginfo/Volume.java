@@ -12,6 +12,8 @@ import photovault.common.PhotovaultSettings;
 
 public class Volume {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Volume.class.getName() );
+
     private static Volume defaultVolume = null;
     private static HashMap volumes = null;
     
@@ -103,7 +105,8 @@ public class Volume {
     }
     
     private File getNewFname( java.util.Date date, String strExtension ) {
-	SimpleDateFormat fmt = new SimpleDateFormat( "yyyy" );
+	System.err.println( "getNewFname " + date + " " + strExtension );
+        SimpleDateFormat fmt = new SimpleDateFormat( "yyyy" );
 	String strYear = fmt.format( date );
 	fmt.applyPattern( "yyyyMM" );
 	String strMonth = fmt.format( date );
@@ -111,14 +114,22 @@ public class Volume {
 	String strDate = fmt.format( date );
 
 	File yearDir = new File( volumeBaseDir, strYear );
+        System.err.println( "YearDir: " + yearDir );
 	if ( !yearDir.exists() ) {
-	    yearDir.mkdir();
+	    System.err.println( "making yeardir" );
+            if ( !yearDir.mkdir() ) {
+                log.error( "Failed to create directory " + yearDir.getAbsoluteFile() );
+            }
 	}
 
 	// Create the month directeory if it does not exist yet
 	File monthDir = new File ( yearDir, strMonth );
+        System.err.println( "MontDir: " + monthDir );
 	if ( !monthDir.exists() ) {
-	    monthDir.mkdir();
+	    System.err.println( "making yeardir" );
+	    if ( !monthDir.mkdir() ) {
+                log.error( "Failed to create " + monthDir.getAbsolutePath() );
+            }
 	}
 
 	// Find a free order num for this file

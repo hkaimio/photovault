@@ -9,21 +9,22 @@ import java.awt.image.*;
 import dbhelper.*;
 import javax.imageio.*;
 import javax.imageio.stream.*;
+import photovault.common.PhotovaultSettings;
+import photovault.common.JUnitOJBManager;
+import photovault.test.PhotovaultTestCase;
 
-
-
-public class Test_PhotoInfo extends TestCase {
+public class Test_PhotoInfo extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoInfo.class.getName() );
 
-  String testImgDir = "/home/harri/projects/photovault/testfiles";
+  String testImgDir = "testfiles";
   String nonExistingDir = "/tmp/_dirThatDoNotExist";
-    /**
-       Sets ut the test environment
-    */
-    public void setUp() {
-
-	// TODO implement test suite
-    }
+  
+  /**
+   * Default constructor to set up OJB environment
+   */
+  public Test_PhotoInfo() {
+      super();   
+  }
 
     /**
        Tears down the testing environment
@@ -32,7 +33,7 @@ public class Test_PhotoInfo extends TestCase {
 
     }
   //    File testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\imginfo" );
-  File testRefImageDir = new File( "/home/harri/projects/photovault/tests/images/photovault/imginfo" );
+  File testRefImageDir = new File( "tests/images/photovault/imginfo" );
     /**
        Test case that verifies that an existing photo infor record 
        can be loaded successfully
@@ -476,6 +477,9 @@ public class Test_PhotoInfo extends TestCase {
 
 	// Create a new instance and check that a valid thumbnail is returned after this
 	File testFile = new File( testImgDir, "test1.jpg" );
+        if ( !testFile.exists() ) {
+            fail( "could not find test file " + testFile );
+        }
 	File instanceFile = Volume.getDefaultVolume().getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );

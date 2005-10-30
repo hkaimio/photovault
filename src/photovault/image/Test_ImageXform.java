@@ -13,8 +13,8 @@ public class Test_ImageXform extends TestCase {
     
     BufferedImage source = null;
     File testDir = null;
-  String testImgDir = "/home/harri/projects/photovault/testfiles";
-  String refImgDir = "/home/harri/projects/photovault/tests/images";
+  String testImgDir = "testfiles";
+  String refImgDir = "tests/images";
   
     /**
        Sets ut the test environment
