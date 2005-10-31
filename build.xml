@@ -11,6 +11,11 @@
   <property name="junittest.properties" location="conf/junittest.properties"/>
   <property file="build.properties"/> 
 
+   	
+  <!-- Checkstyle ant task definition -->
+  <taskdef resource="checkstyletask.properties"
+            classpath="lib/checkstyle-all-4.0-beta6.jar"/>
+            
   <path id="project.class.path">
     <fileset dir="${build.lib.dir}">
 	<include name="**/*.jar"/>
@@ -88,6 +93,73 @@
 
     </target>
 
+    <!-- Checkstyle target -->
+    <target name="checkstyle">
+        <checkstyle config="conf/sun_checks.xml">
+           <fileset dir="src" includes="**/*.java"/>
+            <formatter type="plain"/>
+            <formatter type="xml" toFile="build/checkstyle_errors.xml"/>
+        </checkstyle>
+    </target>
+    
+    
+    <path id="emma.lib" >
+        <pathelement location="lib/emma.jar" />
+        <pathelement location="lib/emma_ant.jar" />
+    </path>
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+    <target name="junit-coverage" depends="dist"
+            description="Measures unit test coverage using Emma">
+        <path id="instrpath">
+            <pathelement path="build"/>
+        </path>
+        <delete dir="${build.instr.dir}"/>
+        <mkdir dir="${build.instr.dir}"/>
+        <delete file="${coverage.dir}/metadata.emma"/>
+        <emma enabled="true" >
+            <instr instrpathref="instrpath" destdir="${build.instr.dir}"	
+                    metadatafile="${coverage.dir}/metadata.emma"
+                    merge="true">
+                  <filter excludes="*.Test_*"/>
+            </instr>
+        </emma>        
+        <delete dir="./${reports.test}/testresults"/>
+        <mkdir dir="./${reports.test}/testresults"/>
+        <junit fork="yes" dir="${basedir}" printsummary="yes">
+            <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />
+            <jvmarg value="-Demma.coverage.out.merge=false" />     
+            <jvmarg value="-Xmx256M"/>
+            <sysproperty key="photovault.propFname" value="${junittest.properties}"/>
+            <sysproperty key="basedir" value="${basedir}"/>
+            <formatter type="xml"/>
+            <classpath>
+                <pathelement location="${build.instr.dir}"/>
+                <path refid="project.class.path"/>
+                <pathelement location="${build.dir}"/>
+                <pathelement location="${conf.dir}"/>
+            </classpath>
+            <!--<test name="imginfo.PhotoInfoTest" outfile="${reports.test}/imginfo"/>-->
+            <batchtest todir="${reports.test}/testresults">
+                <fileset dir="build"> 
+                    <include name="**/Test_*.class"/>
+                    <!-- Exlude inner classes sinc ethese do not contain any test cases --> 
+                    <exclude name="**/*$$*.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+        <emma enabled="true">
+            <report sourcepath="${src}">
+                <fileset dir="${basedir}/${coverage.dir}" >
+                    <include name="*.emma" />
+                </fileset>
+
+                <txt outfile="${basedir}/${coverage.dir}/coverage.txt" />
+                <html outfile="${basedir}/${coverage.dir}/coverage.html" />
+            </report>
+        </emma>
+    </target>
+    
+    
   <target name="run" depends="dist">
     <java fork="true" classname="photovault.swingui.Photovault">
         <!-- Use large enough heap to fit also big images -->
