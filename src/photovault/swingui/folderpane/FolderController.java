@@ -115,7 +115,8 @@ public class FolderController extends FieldController {
             /* Check whether the parent node (and its parets...) contain any photos
             * from the model. If not we can remove them as well
             */
-            while ( !parentFolderNode.containsPhotos() && parentNode != topNode ) {
+            while ( !parentFolderNode.containsPhotos()
+                    && parentNode.getChildCount() == 0  && parentNode != topNode ) {
                 treeNode = parentNode;
                 fn = parentFolderNode;
                 parentNode = (DefaultMutableTreeNode) treeNode.getParent();
