@@ -108,6 +108,7 @@
         <pathelement location="lib/emma_ant.jar" />
     </path>
     <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+    
     <target name="junit-coverage" depends="dist"
             description="Measures unit test coverage using Emma">
         <path id="instrpath">
@@ -159,15 +160,58 @@
         </emma>
     </target>
     
+  
     
   <target name="run" depends="dist">
-    <java fork="true" classname="photovault.swingui.Photovault">
-        <!-- Use large enough heap to fit also big images -->
-        <jvmarg value="-Xmx256M"/>
-        <classpath refid="project.class.path"/>
-    </java> 
+        <java fork="true" classname="photovault.swingui.Photovault">
+            <!-- Use large enough heap to fit also big images -->
+            <jvmarg value="-Xmx256M"/>
+            <classpath>
+                <path refid="project.class.path"/>
+            </classpath>
+        </java> 
   </target>
 
+  <target name="run-coverage" depends="dist">
+        <path id="instrpath">
+            <pathelement path="build"/>
+        </path>
+        <delete dir="${build.instr.dir}"/>
+        <mkdir dir="${build.instr.dir}"/>
+        <delete file="${coverage.dir}/metadata.emma"/>
+        <emma enabled="true" >
+            <instr instrpathref="instrpath" destdir="${build.instr.dir}"	
+                    metadatafile="${coverage.dir}/metadata.emma"
+                    merge="true">
+                  <filter excludes="*.Test_*"/>
+            </instr>
+        </emma>        
+        <delete dir="./${reports.test}/testresults"/>
+        <mkdir dir="./${reports.test}/testresults"/>
+        <java fork="true" classname="photovault.swingui.Photovault">
+            <!-- Use large enough heap to fit also big images -->
+            <jvmarg value="-Xmx256M"/>
+            <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />
+            <jvmarg value="-Demma.coverage.out.merge=true" />     
+            <classpath>
+                <pathelement location="${build.instr.dir}"/>
+                <path refid="project.class.path"/>
+                <pathelement location="${build.dir}"/>
+                <pathelement location="${conf.dir}"/>
+            </classpath>
+        </java> 
+        <emma enabled="true">
+            <report sourcepath="${src}">
+                <fileset dir="${basedir}/${coverage.dir}" >
+                    <include name="*.emma" />
+                </fileset>
+
+                <txt outfile="${basedir}/${coverage.dir}/coverage.txt" />
+                <html outfile="${basedir}/${coverage.dir}/coverage.html" />
+            </report>
+        </emma>      
+  </target>
+  
   <target name="debug" depends="compile" if="netbeans.home" description="Debug Project">  
     <nbjpdastart name="Photovault" addressproperty="jpda.address" transport="dt_socket">
      <classpath refid="project.class.path"/>
