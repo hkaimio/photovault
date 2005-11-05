@@ -80,6 +80,9 @@ public class JAIPhotoView extends JPanel {
 	xformImage = null;
 	fitSize = false;
 	revalidate();
+        // Revalidate issues a paint request if the component's size changes. 
+        // Hovewer if this does not happen we need to explicitly repaint thi component
+        repaint();
     }
     
     public float getScale() {
@@ -90,6 +93,7 @@ public class JAIPhotoView extends JPanel {
 	imgRot = newRot;
 	xformImage = null;
 	revalidate();
+        repaint();
     }
 
     public double getRotation() {
