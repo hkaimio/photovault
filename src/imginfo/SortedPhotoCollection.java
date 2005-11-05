@@ -38,6 +38,7 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
      * Original collection that is sorted
      */
     protected PhotoCollection origCollection;
+    
     /**
      * This Vector contains the photos in sorted order.
      */
@@ -92,9 +93,9 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
     }
 
     /**
-     *       Get a single hpto from the collection
+     * Get a single photo from the collection
      * @param numPhoto Number of the photo to retrieve. This must be >= 0 and < than
-     *       the number of photos in collection.
+     * the number of photos in collection.
      * @return The photo with the given index.
      * @throws ArrayIndexOutOfBoundsException if numPhoto is out of bounds.
      */
@@ -149,5 +150,12 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
 	    PhotoCollectionChangeListener l = (PhotoCollectionChangeListener) iter.next();
 	    l.photoCollectionChanged( ev );
 	}
+    }
+
+    /** 
+     Returns the original collection object unsorted 
+     */
+    public PhotoCollection getOrigCollection() {
+        return origCollection;
     }
 }

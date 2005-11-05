@@ -68,15 +68,26 @@ public class PhotoCollectionThumbView
     ThumbCreatorThread thumbCreatorThread;
     
     /**
-     * Returns the currently displayed photo collection or <code>null</code> if none specified
+     * Returns the currently displayed photo collection or <code>null</code> if none specified 
+     <p>
+     Note that PhotoCollectionThumbView can internally sort the collection, so the order
+     of photos in returned collection may be different than the display order.
+     If you need the collection in same sorting order as displayed use 
+     @see getSortedCollection() instead.
      */
     public PhotoCollection getCollection() {
-        return photoCollection;
+        if ( photoCollection != null ) {
+            return photoCollection.getOrigCollection();
+        }
+        return null;
     }
 
+    public SortedPhotoCollection getSortedCollection() {
+        return photoCollection;
+    }
     
 
-    PhotoCollection photoCollection = null;
+    SortedPhotoCollection photoCollection = null;
     
     /**
      * Set the collection that should be viewed
@@ -879,6 +890,8 @@ public class PhotoCollectionThumbView
 	default:
 	    log.error( "Invalid drag type" );
 	}
+        
+        // Make sure tht current drag location is visible
         Rectangle r = new Rectangle(e.getX(), e.getY(), 1, 1);
         scrollRectToVisible(r);	
     }

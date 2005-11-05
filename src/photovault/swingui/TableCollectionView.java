@@ -14,7 +14,7 @@ import javax.swing.table.*;
 import photovault.folder.*;
 
 /**
-   TableColelctionView implements a simple table based interface for viewing PhotoCollections.
+   TableCollectionView implements a simple table based interface for viewing PhotoCollections.
    It is primarily intended for testing purposes.
 */
 public class TableCollectionView extends JPanel implements ActionListener {
