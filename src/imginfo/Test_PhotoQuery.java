@@ -249,6 +249,19 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	assertTrue( "setstartDate should notify listeners", l2.notified );
 	assertFalse( "Removed listener notified", l1.notified );
     }
+
+
+    public static void main( String[] args ) {
+	//	org.apache.log4j.BasicConfigurator.configure();
+	log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger photoLog = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
+	photoLog.setLevel( org.apache.log4j.Level.DEBUG );
+	junit.textui.TestRunner.run( suite() );
+    }
     
+    public static Test suite() {
+	return new TestSuite( Test_PhotoQuery.class );
+    }
+        
 
 }

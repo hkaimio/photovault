@@ -1,6 +1,7 @@
 package photovault.swingui;
 
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -18,7 +19,63 @@ public class FuzzyDate {
     double accuracy;
     static final double MILLIS_IN_DAY = 24 * 3600 * 1000;
 
+    static class FuzzyDateParser {
+        
+        public FuzzyDateParser( String formatStr, long fuzzyPeriodLength ) {
+            dateFormatStr = formatStr;
+            this.fuzzyPeriodLength = fuzzyPeriodLength;
+        }
+        
+        String dateFormatStr;
+        long fuzzyPeriodLength;
+        
+        protected long getFuzzyPeriodLength( Date startDate ) {
+            return fuzzyPeriodLength;
+        }
+                
+        public FuzzyDate parse(String strDate) {
+            DateFormat df = new SimpleDateFormat( dateFormatStr );
+            FuzzyDate fd = null;
+            try {
+                Date d = df.parse( strDate );
+                if ( d != null ) {
+                    Date midpoint = new Date( d.getTime() + getFuzzyPeriodLength(d) / 2 );
+                    fd = new FuzzyDate( midpoint, ((float)(getFuzzyPeriodLength(d))) / (2*FuzzyDate.MILLIS_IN_DAY) );
+                }
+            } catch ( ParseException e ) {
+                log.warn( "ParseException: " + e.getMessage() );
+
+            }
+            return fd;
+        }
+    }
     
+    static class FuzzyDateMonthParser extends FuzzyDateParser {
+        public FuzzyDateMonthParser( String formatStr ) {
+            super( formatStr, 0 );
+        }
+        
+        protected long getFuzzyPeriodLength( Date startDate ) {
+            GregorianCalendar c = new GregorianCalendar();
+            c.setTime( startDate );
+            c.add( GregorianCalendar.MONTH, 1 );
+            return c.getTimeInMillis() - startDate.getTime();
+        }        
+    }
+
+    static class FuzzyDateYearParser extends FuzzyDateParser {
+
+        public FuzzyDateYearParser( String formatStr ) {
+            super( formatStr, 0 );
+        }
+        
+        protected long getFuzzyPeriodLength( Date startDate ) {
+            GregorianCalendar c = new GregorianCalendar();
+            c.setTime( startDate );
+            c.add( GregorianCalendar.YEAR, 1 );
+            return c.getTimeInMillis() - startDate.getTime();
+        }        
+    }
     static double accuracyFormatLimits[] = {0, 0, 3, 14, 180};
     static String accuracyFormatStrings[] = {
 	"dd.MM.yyyy k:mm",
@@ -28,6 +85,7 @@ public class FuzzyDate {
 	"yyyy"
     };
 
+    static FuzzyDateParser fdParsers[] = null;
     
     public Date getDate() {
 	return date;
@@ -60,8 +118,19 @@ public class FuzzyDate {
 	return d;
     }
     
+    static private void createParsers() {
+        fdParsers = new FuzzyDateParser[5];
+        fdParsers[0] = new FuzzyDateParser( "dd.MM.yyyy k:mm", (long) 60000 );
+        fdParsers[1] = new FuzzyDateParser( "dd.MM.yyyy", (long)24 * 3600 * 1000 );
+        fdParsers[2] = new FuzzyDateParser( "'wk' w yyyy", (long)7 * 24 * 3600 * 1000 );
+        fdParsers[3] = new FuzzyDateMonthParser( "MMMM yyyy" );
+        fdParsers[4] = new FuzzyDateYearParser( "yyyy" );
+    }
     
     static public FuzzyDate parse( String str ) {
+        if ( fdParsers == null ) {
+            createParsers();
+        }
 	log.warn( "Parsing " + str );
 	FuzzyDate fd = null;
 
@@ -100,21 +169,11 @@ public class FuzzyDate {
 	
 	    // attempt to parse the date using all format strings
 
-	    for ( int i = 0; i < accuracyFormatLimits.length; i++ ) {
-		log.warn( "Trying format " + accuracyFormatStrings[i] );
-		DateFormat df = new SimpleDateFormat( accuracyFormatStrings[i] );
-		try {
-		    Date d = df.parse( str );
-		    if ( d != null ) {
-			// Succeeded!!!
-			log.warn( "Success with " + accuracyFormatStrings[i] );
-			d = new Date( d.getTime() + (long)(accuracyFormatLimits[i] *24*3600*1000) );
-			fd = new FuzzyDate( d, accuracyFormatLimits[i] );
-			break;
-		    }
-		} catch ( ParseException e ) {
-		    log.warn( "ParseException: " + e.getMessage() );
-		}
+	    for ( int i = 0; i < fdParsers.length; i++ ) {
+                fd = fdParsers[i].parse( str );
+		if ( fd != null ) {
+                    break;
+                }
 	    }
 	}
 	return fd;
