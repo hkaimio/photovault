@@ -52,7 +52,8 @@ public class ODMG {
 	    db.open( dbName + "#" + user + "#" + passwd, Database.OPEN_READ_WRITE );
 	    log.debug( "Success!!!" );
 	} catch ( Exception e ) {
-	    log.error( "Failed to get connection" );
+	    log.error( "Failed to get connection: " + e.getMessage() );
+            e.printStackTrace();
 	}
 
 	// Test the connection by fetching something

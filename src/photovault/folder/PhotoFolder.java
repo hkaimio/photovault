@@ -133,6 +133,7 @@ public class PhotoFolder implements PhotoCollection {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	if ( !photos.contains( photo ) ) {
+            txw.lock( photo, Transaction.WRITE );
 	    photo.addedToFolder( this );
 	    photos.add( photo );
 	    modified();
@@ -149,6 +150,7 @@ public class PhotoFolder implements PhotoCollection {
 	}
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
+        txw.lock( photo, Transaction.WRITE );
 	photo.removedFromFolder( this );
 	photos.remove( photo );
 	modified();
@@ -189,6 +191,7 @@ public class PhotoFolder implements PhotoCollection {
 	if ( subfolders == null ) {
 	    subfolders = new Vector();
 	}
+        // TODO: lock subfolder???
 	subfolders.add( subfolder );
 	modified();
 	// Inform all parents & their that the structure has changed
@@ -205,6 +208,7 @@ public class PhotoFolder implements PhotoCollection {
 	}
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
+        txw.lock( subfolder, Transaction.WRITE );
 	subfolders.remove( subfolder );
 	modified();
 	// Inform all parents & their that the structure has changed

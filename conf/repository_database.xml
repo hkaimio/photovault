@@ -17,7 +17,7 @@ using the MetadataManager.
     <!-- this connection was used as the default one within OJB -->
     <jdbc-connection-descriptor
    		jcd-alias="pv_test"
-   		platform="mysql"
+   		platform="MySQL"
    		jdbc-level="2.0"
    		driver="com.mysql.jdbc.Driver"
    		protocol="jdbc"
@@ -47,7 +47,7 @@ using the MetadataManager.
 
     <jdbc-connection-descriptor
    		jcd-alias="photovault"
-   		platform="mysql"
+   		platform="MySQL"
    		jdbc-level="2.0"
    		driver="com.mysql.jdbc.Driver"
    		protocol="jdbc"
@@ -76,7 +76,7 @@ using the MetadataManager.
     <!-- JUnit test database -->
     <jdbc-connection-descriptor
    		jcd-alias="pv_junit"
-   		platform="mysql"
+   		platform="MySQL"
    		jdbc-level="2.0"
    		driver="com.mysql.jdbc.Driver"
    		protocol="jdbc"

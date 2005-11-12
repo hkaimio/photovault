@@ -41,6 +41,9 @@
         element-class-ref="photovault.folder.PhotoFolder" 
         orderby="name" 
         sort="ASC" 
+        auto-retrieve="true"
+        auto-update="none"
+        auto-delete="none"
         proxy="true">
       <inverse-foreignkey field-ref="parentId">
       </inverse-foreignkey>
@@ -49,6 +52,9 @@
         element-class-ref="imginfo.PhotoInfo" 
         collection-class="org.apache.ojb.broker.util.collections.ManageableArrayList"
         indirection-table="collection_photos" 
+        auto-retrieve="true"
+        auto-update="none"
+        auto-delete="none"        
         proxy="true">
       <fk-pointing-to-this-class column="collection_id">
       </fk-pointing-to-this-class>
@@ -120,7 +126,11 @@
     collection implementation which deleted objects that are deleted from the 
     collection
     -->
-    <collection-descriptor name="instances" element-class-ref="imginfo.ImageInstance">
+    <collection-descriptor name="instances" 
+        element-class-ref="imginfo.ImageInstance"         
+        auto-retrieve="true"
+        auto-update="none"
+        auto-delete="none">
       <inverse-foreignkey field-ref="photoUid">
       </inverse-foreignkey>
     </collection-descriptor>
@@ -131,6 +141,9 @@
         element-class-ref="photovault.folder.PhotoFolder" 
         indirection-table="collection_photos" 
         collection-class="org.apache.ojb.broker.util.collections.ManageableArrayList"
+        auto-retrieve="true"
+        auto-update="none"
+        auto-delete="none"        
         proxy="true">
       <fk-pointing-to-this-class column="photo_id"/>
       <fk-pointing-to-element-class column="collection_id"/>

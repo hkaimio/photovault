@@ -81,6 +81,8 @@ public class PhotoInfo {
         PhotoInfo photo = new PhotoInfo();
         
         ODMGXAWrapper txw = new ODMGXAWrapper();
+        Database db = ODMG.getODMGDatabase();
+        // db.makePersistent( photo );
         txw.lock( photo, Transaction.WRITE );
         txw.commit();
         return photo;

@@ -115,6 +115,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	    }
 	}
 	assertTrue( "Top folder not found", found );
+        
     }
 
     
