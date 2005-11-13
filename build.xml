@@ -26,7 +26,7 @@
   </path>
 
   <path id="runtime.path">
-      <fileset dir="${build.lib.dir}">
+      <fileset id="runtime.fileset" dir="${build.lib.dir}">
           <include name="db-ojb-1.0.3.jar"/>
           <include name="exif_extract.jar"/>
           <include name="jai_codec.jar"/>
@@ -57,21 +57,19 @@
 
   <target name="dist" depends="compile"
         description="generate the distribution" >
+    
     <!-- Create the distribution directory -->
     <delete>
         <fileset dir="${dist}/photovault-latest" includes="**/*"/>
     </delete>
     <mkdir dir="${dist}/photovault-latest"/>
 
-    <path id="abslibpath" location="${lib}"/>
-    <property name="abs-lib-path" refid="abslibpath"/>
+    <!-- Convert the CLASSPATH from Ant path structure to a form that can be 
+    passed to MANIFEST Class-Path property -->
     <pathconvert property="runtime-path" pathsep=" ">
           <path refid="runtime.path"></path>
           <flattenmapper/>
-          <!--map from="${abs-lib-path}\" to=""/-->		
     </pathconvert>    
-    <echo message="${abs-lib-path}"/>
-    <echo message="${runtime-path}"/>
 
     <!-- Create the jar file  -->
     <jar jarfile="${dist}/photovault-latest/photovault.jar">
@@ -87,20 +85,9 @@
       <fileset dir="conf" includes="*"/>
     </jar>
     
+    <!-- Copy needed JAR files to distribution directory -->
     <copy todir="${dist}/photovault-latest">
-        <fileset dir="${build.lib.dir}">
-            <include name="**/*.jar"/>
-            <exclude name="jdo*.jar"/>
-            <exclude name="ant-*.jar"/>
-            <exclude name="xerces*.jar"/>
-            <exclude name="xml-*.jar"/>
-            <exclude name="xalan*.jar"/>
-            <exclude name="jakarta-regexp*.jar"/>
-            <exclude name="torque*.jar"/>
-            <exclude name="velocity*.jar"/>
-            <exclude name="xdoclet*.jar"/>
-            <exclude name="xjava*.jar"/>
-        </fileset>        
+        <fileset refid="runtime.fileset"/>   
     </copy>
   </target>
 
