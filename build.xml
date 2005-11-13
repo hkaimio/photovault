@@ -25,6 +25,18 @@
     <pathelement path="conf"/>
   </path>
 
+  <path id="runtime.path">
+      <fileset dir="${build.lib.dir}">
+          <include name="db-ojb-1.0.3.jar"/>
+          <include name="exif_extract.jar"/>
+          <include name="jai_codec.jar"/>
+          <include name="jai_core.jar"/>
+          <include name="mysql-connector-java.jar"/>
+          <include name="log4j-1.2.12.jar"/>
+          <include name="commons-*.jar"/>
+          <include name="antlr.jar"/>
+      </fileset>
+  </path>
 <path id="debug.sourcepath" >
     <pathelement path="src"/>
 </path>
@@ -46,19 +58,50 @@
   <target name="dist" depends="compile"
         description="generate the distribution" >
     <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/lib"/>
+    <delete>
+        <fileset dir="${dist}/photovault-latest" includes="**/*"/>
+    </delete>
+    <mkdir dir="${dist}/photovault-latest"/>
+
+    <path id="abslibpath" location="${lib}"/>
+    <property name="abs-lib-path" refid="abslibpath"/>
+    <pathconvert property="runtime-path" pathsep=" ">
+          <path refid="runtime.path"></path>
+          <flattenmapper/>
+          <!--map from="${abs-lib-path}\" to=""/-->		
+    </pathconvert>    
+    <echo message="${abs-lib-path}"/>
+    <echo message="${runtime-path}"/>
 
     <!-- Create the jar file  -->
-    <jar jarfile="${dist}/lib/photovault-latest.jar" basedir="${build}">
+    <jar jarfile="${dist}/photovault-latest/photovault.jar">
       <manifest>
          <attribute name="Main-Class" value="photovault.swingui.Photovault"/>
          <attribute name="Built-By" value="${user.name}"/>
          <attribute name="Implementation-Version" value="build_${DSTAMP}"/>
+         <attribute name="Class-Path" value="${runtime-path}"/>
       </manifest>
+      <fileset dir="${build}">
+          <exclude name="**/Test*.class"/>
+      </fileset>
+      <fileset dir="conf" includes="*"/>
     </jar>
-    <!-- COpy the resulting jar file to a location to indicate the current build -->
-    <copy file="${dist}/lib/photovault-latest.jar" tofile="${dist}/lib/photovault-${DSTAMP}.jar"/>
-
+    
+    <copy todir="${dist}/photovault-latest">
+        <fileset dir="${build.lib.dir}">
+            <include name="**/*.jar"/>
+            <exclude name="jdo*.jar"/>
+            <exclude name="ant-*.jar"/>
+            <exclude name="xerces*.jar"/>
+            <exclude name="xml-*.jar"/>
+            <exclude name="xalan*.jar"/>
+            <exclude name="jakarta-regexp*.jar"/>
+            <exclude name="torque*.jar"/>
+            <exclude name="velocity*.jar"/>
+            <exclude name="xdoclet*.jar"/>
+            <exclude name="xjava*.jar"/>
+        </fileset>        
+    </copy>
   </target>
 
     <target name="test" depends="dist">

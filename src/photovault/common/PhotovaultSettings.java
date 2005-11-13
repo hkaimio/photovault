@@ -3,6 +3,7 @@ package photovault.common;
 import java.util.Properties;
 import java.io.InputStream;
 import java.io.FileInputStream;
+import java.net.URL;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,23 +17,24 @@ public class PhotovaultSettings {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultSettings.class.getName() );
     
-    static final String defaultPropFname = "conf/photovault.properties";
+    static final String defaultPropFname = "photovault.properties";
     static public void init() {
 	// Determine the property file name
         log.debug( "photovault.propFname = " + System.getProperty("photovault.propFname"));
 	String propFname = System.getProperty( "photovault.propFname", defaultPropFname );
 	log.debug( "Using property file " + propFname );
-        File propFile = new File( propFname );
-	props = new Properties();
+        // File propFile = new File( propFname );
+        props = new Properties();
 	try {
-	    InputStream is = new FileInputStream( propFile );
-	    props.load( is );
-	} catch ( FileNotFoundException e ) {
-	    log.error( "Could not find the property file " + propFname );
+	    InputStream is = PhotovaultSettings.class.getClassLoader().getResourceAsStream( propFname );
+	    if ( is != null ) {
+                props.load( is );
+            } else {
+                log.error( "Could not find the property file " + propFname );
+            }
 	} catch ( IOException e ) {
 	    log.error( "Could not load property file " + propFname + ": " + e );
 	}
-
     }
 
     /**

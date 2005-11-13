@@ -15,6 +15,7 @@ public class ODMG {
     static Implementation odmg = null;
     public static Implementation getODMGImplementation() {
 	if ( odmg == null ) {
+            // System.setProperty("OJB.properties","conf/OJB.properties");
 	    odmg = OJB.getInstance();
 	}
 	return odmg;
