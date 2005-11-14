@@ -430,37 +430,7 @@ public class PhotoFolder implements PhotoCollection {
 	txw.commit();
     }
     
-    
-//     public static void main( String[] args ) {
-// 	org.apache.log4j.BasicConfigurator.configure();
-// 	log.setLevel( org.apache.log4j.Level.DEBUG );
-// 	Implementation odmg = getODMGImplementation();
-// 	Database db = getODMGDatabase();
-// 	Transaction tx = odmg.newTransaction();
-// 	tx.begin();
-// 	DList folders = null;
-// 	try {
-// 	    OQLQuery query = odmg.newOQLQuery();
-// 	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
-// 	    folders = (DList) query.execute();
-// 	    tx.commit();
-// 	} catch ( Exception e ) {
-// 	    tx.abort();
-// 	    log.error( e.getMessage() );
-// 	}
 
-// 	Iterator iter = folders.iterator();
-// 	boolean found = false;
-// 	log.debug( "Starting to go thourh..." );
-// 	while ( iter.hasNext() ) {
-// 	    PhotoFolder folder = (PhotoFolder) iter.next();
-// 	    log.debug( "Folder " + folder.getName() );
-// 	    if ( folder.getFolderId() == 0 ) {
-// 		found = true;
-// 		log.info( "Found!!!" );
-// 	    }
-// 	}
-//     }
 
     /**
        Converts the folder object to String.

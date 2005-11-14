@@ -28,20 +28,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
        "subfolderTest" as root and creates a TreeModel from it
     */
     public void setUp() {
-//	PhotovaultSettings.setConfiguration( "pv_test" );
-//	String sqldbName = PhotovaultSettings.getConfProperty( "dbname" );
-//        ODMG.initODMG("harri", "r1t1rat1", sqldbName);
 	odmg = ODMG.getODMGImplementation();
-	db = ODMG.getODMGDatabase();
-//	try {
-//	    db.open( "repository.xml", Database.OPEN_READ_WRITE );
-//	} catch ( ODMGException e ) {
-//	    //	    log.warn( "Could not open database: " + e.getMessage() );
-//	    db = null;
-//	}
-
-// 	tx = odmg.newTransaction();
-// 	tx.begin();
     }
 
     public void tearDown() {

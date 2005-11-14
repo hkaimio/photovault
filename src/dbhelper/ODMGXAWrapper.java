@@ -17,7 +17,6 @@ public class ODMGXAWrapper {
     Transaction tx = null;
     boolean ownsTx = false;
     static Implementation odmg = ODMG.getODMGImplementation();
-    static Database db = ODMG.getODMGDatabase();
 
     public ODMGXAWrapper() {
 	tx = odmg.currentTransaction();

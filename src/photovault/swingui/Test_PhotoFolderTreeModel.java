@@ -14,7 +14,7 @@ public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolderTreeModel.class.getName() );
 
     Implementation odmg = null;
-    Database db = null;
+    //Database db = null;
     PhotoFolder rootFolder = null;
     Transaction tx = null;
     PhotoFolderTreeModel model = null;
@@ -25,7 +25,6 @@ public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {
      */
     public void setUp() {
 	odmg = ODMG.getODMGImplementation();
-	db = ODMG.getODMGDatabase();
 
         tx = odmg.newTransaction();
 	tx.begin();

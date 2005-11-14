@@ -1,9 +1,15 @@
 // $Id: ODMG.java,v 1.1 2003/02/25 20:57:11 kaimio Exp $
 package dbhelper;
 
+import photovault.common.PhotovaultSettings;
 import org.odmg.*;
 import org.apache.ojb.odmg.*;
 import photovault.folder.PhotoFolder;
+import org.apache.ojb.broker.metadata.ConnectionRepository;
+import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
+import org.apache.ojb.broker.metadata.MetadataManager;
+import org.apache.ojb.broker.PBKey;
+
 
 public class ODMG {
 
@@ -23,34 +29,29 @@ public class ODMG {
 
     static Database db = null;
     public static Database getODMGDatabase() {
-	String user = "harri";
-	String passwd = "r1t1rat1";
-	if ( db == null ) {
-	    db = odmg.newDatabase();
-	    try {
-		db.open( "pv_test#" + user + "#" + passwd, Database.OPEN_READ_WRITE );
-	    } catch ( ODMGException e ) {
- 		log.error( "Could not open database: " + e.getMessage() );
-		db = null;
-	    }
-	}
 	return db;
     }
 
     public static boolean initODMG( String user, String passwd, String dbName ) {
 
-        // TESTING!!!!!
-//        if (db != null ) {
-//            try {
-//                db.close();
-//            } catch ( org.odmg.ODMGException e ) {}
-//        }
 	getODMGImplementation();
-	db = odmg.newDatabase();
+
+        // Find the connection repository info
+        ConnectionRepository cr = MetadataManager.getInstance().connectionRepository();
+        PBKey connKey = cr.getStandardPBKeyForJcdAlias( "pv" );
+        JdbcConnectionDescriptor connDesc = cr.getDescriptor( connKey );
+        
+        // Set up the OJB connection with parameters from photovault.properties
+        String dbhost = PhotovaultSettings.getConfProperty( "dbhost" );
+        String dbname = PhotovaultSettings.getConfProperty( "dbname" );
+        connDesc.setDbAlias( "//" + dbhost + "/" + dbname );
+	
+        // Open the database connection
+        db = odmg.newDatabase();        
 	boolean success = false;
 	try {
 	    log.debug( "Opening database" );
-	    db.open( dbName + "#" + user + "#" + passwd, Database.OPEN_READ_WRITE );
+	    db.open( "pv#" + user + "#" + passwd, Database.OPEN_READ_WRITE );
 	    log.debug( "Success!!!" );
 	} catch ( Exception e ) {
 	    log.error( "Failed to get connection: " + e.getMessage() );
