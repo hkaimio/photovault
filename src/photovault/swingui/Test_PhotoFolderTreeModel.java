@@ -20,7 +20,7 @@ public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {
     PhotoFolderTreeModel model = null;
     
     /**
-     Sets upt the model for thes casesso that "subfolderTest" folder is set up 
+     Sets upt the model for the cases so that "subfolderTest" folder is set up 
      as the root folder.
      */
     public void setUp() {

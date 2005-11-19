@@ -4,6 +4,7 @@ package imginfo;
 import java.io.*;
 import java.text.*;
 import java.util.*;
+import photovault.common.PVDatabase;
 import photovault.common.PhotovaultSettings;
 
 /**
@@ -22,9 +23,8 @@ public class Volume {
     */
     public static Volume getDefaultVolume() {
 	if ( defaultVolume == null ) {
-	    String defVolumeName = PhotovaultSettings.getConfProperty( "defaultVolume" );
-	    String defVolumePath = PhotovaultSettings.getConfProperty( "volumes." + defVolumeName + ".rootPath" );
-	    defaultVolume = new Volume( defVolumeName, defVolumePath );
+            PVDatabase db = PhotovaultSettings.getCurrentDatabase();
+            defaultVolume = db.getDefaultVolume();
 	}
 	return defaultVolume;
     }
@@ -44,6 +44,10 @@ public class Volume {
 	return vol;
     }
 
+    public Volume() {
+        
+    }
+    
     public Volume( String volName, String volBaseDir ) {
 	volumeName = volName;
 	volumeBaseDir = new File( volBaseDir );
@@ -61,6 +65,12 @@ public class Volume {
 	volumes.put( volumeName, this );
     }
     
+    private void unregisterVolume() {
+        if ( volumes != null ) {
+            volumes.remove( volumeName );
+        }
+    }
+
     /**
        Sets the specified directory as the root for the default volume
        @param volName Directory that will be assigned as the new volume root
@@ -184,6 +194,26 @@ public class Volume {
 	return volumeBaseDir;
     }
 
+    /**
+     * Sets the base dir for the volume. If the directory does no exist it is 
+     * created.
+     */
+    public void setBaseDir( File baseDir ) {
+	volumeBaseDir = baseDir;
+        if ( !volumeBaseDir.exists() ) {
+	    volumeBaseDir.mkdir();
+	}        
+    }
+    
+    /**
+     * Sets the base dir for the volume. If the directory does no exist it is 
+     * created.
+     */
+    public void setBaseDir( String baseDirName ) {
+        File baseDir = new File( baseDirName );
+        setBaseDir( baseDir );
+    }
+    
     private String volumeName = "";
 
     /**
@@ -193,7 +223,14 @@ public class Volume {
 	return volumeName;
     }
 
-    
+    /**
+     * Sets the voume name
+     */
+    public void setName( String volName ) {
+        unregisterVolume();
+        volumeName = volName;
+        registerVolume();
+    }
     
     /** returns true if the vulome is available, flase otherwise (if e.g. the volume is
 	stored on CD-ROM thatis not mounted currently

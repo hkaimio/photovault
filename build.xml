@@ -8,7 +8,9 @@
   <property name="dist"  location="dist"/>
   <property name="lib"  location="lib"/>
   <property name="basedir" location="."/>
-  <property name="junittest.properties" location="conf/junittest.properties"/>
+  <property name="junittest.properties" value="junittest.properties"/>
+  <property name="junittest.configfile" value="conf/junittest_config.xml"/>
+  
   <property file="build.properties"/> 
 
    	
@@ -53,6 +55,11 @@
 
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" debug="on" classpathref="project.class.path"/>
+    <copy todir="${build}">
+        <fileset dir="${src}">
+             <include name="**/*.betwixt"/>
+        </fileset>      
+    </copy>
   </target>
 
   <target name="dist" depends="compile"
@@ -61,6 +68,7 @@
     <!-- Create the distribution directory -->
     <delete>
         <fileset dir="${dist}/photovault-latest" includes="**/*"/>
+
     </delete>
     <mkdir dir="${dist}/photovault-latest"/>
 
@@ -82,6 +90,7 @@
       <fileset dir="${build}">
           <exclude name="**/Test*.class"/>
       </fileset>
+
       <fileset dir="conf" includes="*"/>
     </jar>
     
@@ -95,7 +104,8 @@
       <delete dir="./${reports.test}/testresults"/>
       <mkdir dir="./${reports.test}/testresults"/>
       <junit fork="yes" dir="${basedir}" printsummary="yes">
-        <sysproperty key="photovault.propFname" value="${junittest.properties}"/>
+	<sysproperty key="photovault.propFname" value="${junittest.properties}"/>
+	<sysproperty key="photovault.configfile" value="${junittest.configfile}"/>      
         <sysproperty key="basedir" value="${basedir}"/>
         <formatter type="xml"/>
         <classpath>

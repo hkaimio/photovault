@@ -4,6 +4,7 @@ import org.odmg.*;
 import javax.swing.JOptionPane;
 import dbhelper.ODMG;
 import java.net.URL;
+import photovault.common.PVDatabase;
 import photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -24,10 +25,11 @@ public class Photovault {
     void login( LoginDlg ld ) {
 	String user = ld.getUsername();
 	String passwd = ld.getPassword();
-	String db = ld.getDb();
-	log.debug( "Using configuration " + db );
-	PhotovaultSettings.setConfiguration( db );
-	String sqldbName = PhotovaultSettings.getConfProperty( "dbname" );
+	String dbName = ld.getDb();
+	log.debug( "Using configuration " + dbName );
+	PhotovaultSettings.setConfiguration( dbName );
+        PVDatabase db = PhotovaultSettings.getDatabase( dbName );
+        String sqldbName = db.getDbName();
 	log.debug( "Mysql DB name: " + sqldbName );
 	if ( sqldbName == null ) {
 	    JOptionPane.showMessageDialog( ld, "Could not find dbname for configuration " + db, "Configuration error", JOptionPane.ERROR_MESSAGE );
@@ -35,7 +37,7 @@ public class Photovault {
 	}
 	    
 
-	if ( ODMG.initODMG( user, passwd, sqldbName ) ) {
+	if ( ODMG.initODMG( user, passwd, db ) ) {
 	    log.debug( "Connection succesful!!!" );
 	    // Login is succesfull
 	    ld.setVisible( false );

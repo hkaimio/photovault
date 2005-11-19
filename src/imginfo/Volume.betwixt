@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<info primitiveTypes="attribute">
+    <element name="volume">
+        <attribute name="name" property="name"/>
+        <attribute name="basedir" property="baseDir"/>
+    </element>
+</info>

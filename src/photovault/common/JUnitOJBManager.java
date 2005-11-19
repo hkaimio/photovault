@@ -27,16 +27,16 @@ public class JUnitOJBManager {
     private JUnitOJBManager() {
         log.error( "Initializing OB for JUnit tests" );
         PhotovaultSettings.init();
-	PhotovaultSettings.setConfiguration( "pv_junit" );
-	String sqldbName = PhotovaultSettings.getConfProperty( "dbname" );
-	log.debug( "Mysql DB name: " + sqldbName );
-	if ( sqldbName == null ) {
+        PhotovaultSettings.setConfiguration( "pv_junit" );
+	PVDatabase db = PhotovaultSettings.getDatabase( "pv_junit" );
+
+	if ( db == null ) {
 	    log.error( "Could not find dbname for configuration " );
 	    return;
 	}
 	    
 
-	if ( ODMG.initODMG( "", "", sqldbName ) ) {
+	if ( ODMG.initODMG( "", "", db ) ) {
 	    log.debug( "Connection succesful!!!" );
 	} else {
 	    log.error( "Error logging into Photovault" );

@@ -1,6 +1,7 @@
 package photovault.common;
 
 import java.util.Properties;
+import java.util.Collection;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.net.URL;
@@ -16,42 +17,60 @@ import java.io.IOException;
 public class PhotovaultSettings {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultSettings.class.getName() );
+    static File configFile;
+    static PhotovaultDatabases databases;
     
     static final String defaultPropFname = "photovault.properties";
     static public void init() {
-	// Determine the property file name
-        log.debug( "photovault.propFname = " + System.getProperty("photovault.propFname"));
-	String propFname = System.getProperty( "photovault.propFname", defaultPropFname );
-	log.debug( "Using property file " + propFname );
-        // File propFile = new File( propFname );
-        props = new Properties();
-	try {
-	    InputStream is = PhotovaultSettings.class.getClassLoader().getResourceAsStream( propFname );
-	    if ( is != null ) {
-                props.load( is );
-            } else {
-                log.error( "Could not find the property file " + propFname );
+        // Load XML configuration file
+        String confFileName = System.getProperty( "photovault.configfile" );
+        if ( confFileName != null ) {
+            System.out.println( "photovault.configfile " + confFileName );
+            configFile = new File( confFileName );
+            System.out.println( configFile );
+        } else {
+            // If the photovault.configfile property is not set, use file photovault.xml 
+            // in directory .photovault in user's home directory
+            File homeDir = new File( System.getProperty( "user.home", "" ) );
+            File photovaultDir = new File( homeDir, ".photovault" );
+            if ( !photovaultDir.exists() ) {
+                photovaultDir.mkdir();
             }
-	} catch ( IOException e ) {
-	    log.error( "Could not load property file " + propFname + ": " + e );
-	}
+            configFile = new File( photovaultDir, "photovault.xml" );
+        }
+        if ( configFile.exists() ) {
+            databases = PhotovaultDatabases.loadDatabases( configFile );
+        } else {
+            try {
+                configFile.createNewFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        if ( databases == null ) {
+            databases = new PhotovaultDatabases();
+        }
+            
     }
 
     /**
-       Return the value of a given property
-       @param name Name of the property to fetch
-    */
-    static public String getProperty( String name ) {
-	return props.getProperty( name );
+     * Return all known databases
+     *@return Collection of PVDatabase objects
+     */
+    public static Collection getDatabases() {
+        return databases.getDatabases();
     }
-
+    
     /**
-       Return the value of a given property
-       @param name Name of the property to fetch
-       @param def Default value if the property is not defined
-    */
-    static public String getProperty( String name, String def ) {
-	return props.getProperty( name, def );
+     * Returns the photovault database descriptor for given database
+     * @return the PVDatabase object or null if the named database was not found
+     */
+    public static PVDatabase getDatabase( String dbName ) {
+        return databases.getDatabase( dbName );
+    }
+    
+    public void saveConfig() {
+        databases.save( configFile );
     }
 
 
@@ -64,28 +83,11 @@ public class PhotovaultSettings {
 	PhotovaultSettings.confName = confName;
     }
 
-    /**
-       Returns a value of a property in current configuration
-       @param name Name of the property. This is translated into actual property name
-       photovault.conf.confName.name.
-    */
-    static public String getConfProperty( String name ) {
-	String propName = "photovault.conf." + confName + "." + name;
-	String propValue = props.getProperty( "photovault.conf." + confName + "." + name );
-	log.debug( "Getting property " + propName + ", value " + propValue );
 
-	return propValue;
-    }
-
-    /**
-       Returns names of know configurations
-    */
-    static public String[] getConfigurationNames() {
-	String confNames = props.getProperty( "photovault.configNames" );
-	return confNames.split( "\\s" );
+    public static PVDatabase getCurrentDatabase() {
+        return databases.getDatabase( confName );
     }
 	
     static String confName;
-    static Properties props;
 
 }

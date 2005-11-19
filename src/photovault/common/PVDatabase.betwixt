@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<info primitiveTypes="attribute">
+    <element name="database">
+        <attribute name="name" property="name"/>
+        <attribute name="dbName" property="dbName"/>
+        <attribute name="host" property="dbHost"/>
+        <addDefaults/>
+    </element>
+</info>

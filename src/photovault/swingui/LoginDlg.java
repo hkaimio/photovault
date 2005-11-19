@@ -1,10 +1,14 @@
 package photovault.swingui;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Vector;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import imginfo.*;
 import java.io.*;
+import photovault.common.PVDatabase;
 import photovault.common.PhotovaultSettings;
 
 /**
@@ -97,7 +101,14 @@ public class LoginDlg extends JFrame {
 	gb.setConstraints( passField, fieldConstraints );
 	loginPane.add( passField );
 
-	String [] dbs = PhotovaultSettings.getConfigurationNames();
+        Collection databases = PhotovaultSettings.getDatabases();
+        Vector dbNames = new Vector();
+        Iterator iter = databases.iterator();
+        while ( iter.hasNext() ) {
+            PVDatabase db = (PVDatabase) iter.next();
+            dbNames.add( db.getName() );
+        }
+        Object[] dbs = dbNames.toArray();
 	JLabel dbLabel = new JLabel( "Database" );
 	gb.setConstraints( dbLabel, labelConstraints );
 	loginPane.add( dbLabel );

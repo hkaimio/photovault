@@ -1,6 +1,7 @@
 // $Id: ODMG.java,v 1.1 2003/02/25 20:57:11 kaimio Exp $
 package dbhelper;
 
+import photovault.common.PVDatabase;
 import photovault.common.PhotovaultSettings;
 import org.odmg.*;
 import org.apache.ojb.odmg.*;
@@ -32,7 +33,7 @@ public class ODMG {
 	return db;
     }
 
-    public static boolean initODMG( String user, String passwd, String dbName ) {
+    public static boolean initODMG( String user, String passwd, PVDatabase dbDesc ) {
 
 	getODMGImplementation();
 
@@ -42,8 +43,8 @@ public class ODMG {
         JdbcConnectionDescriptor connDesc = cr.getDescriptor( connKey );
         
         // Set up the OJB connection with parameters from photovault.properties
-        String dbhost = PhotovaultSettings.getConfProperty( "dbhost" );
-        String dbname = PhotovaultSettings.getConfProperty( "dbname" );
+        String dbhost = dbDesc.getDbHost();
+        String dbname = dbDesc.getDbName();
         connDesc.setDbAlias( "//" + dbhost + "/" + dbname );
 	
         // Open the database connection
