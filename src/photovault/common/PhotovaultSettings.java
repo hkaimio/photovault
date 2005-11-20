@@ -10,18 +10,33 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
-   This class contains useful UI independent routines
+   PhotovaultSettings provides access to the installation specific settings - most 
+ * importantly to available photovault databases. <p>
+ *
+ * This class is singleton, only 1 instance is allowed.
 */
 
 
 public class PhotovaultSettings {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultSettings.class.getName() );
-    static File configFile;
-    static PhotovaultDatabases databases;
+    protected static PhotovaultSettings settings = null;
+    
+    /**
+     * Get the singleton settings object.
+     */
+    public static PhotovaultSettings getSettings( ) {
+        if ( settings == null ) {
+            settings = new PhotovaultSettings();
+        }
+        return settings;
+    }
+    
+    File configFile;
+    PhotovaultDatabases databases;
     
     static final String defaultPropFname = "photovault.properties";
-    static public void init() {
+    protected PhotovaultSettings() {
         // Load XML configuration file
         String confFileName = System.getProperty( "photovault.configfile" );
         if ( confFileName != null ) {
@@ -57,7 +72,7 @@ public class PhotovaultSettings {
      * Return all known databases
      *@return Collection of PVDatabase objects
      */
-    public static Collection getDatabases() {
+    public Collection getDatabases() {
         return databases.getDatabases();
     }
     
@@ -65,7 +80,7 @@ public class PhotovaultSettings {
      * Returns the photovault database descriptor for given database
      * @return the PVDatabase object or null if the named database was not found
      */
-    public static PVDatabase getDatabase( String dbName ) {
+    public PVDatabase getDatabase( String dbName ) {
         return databases.getDatabase( dbName );
     }
     
@@ -79,15 +94,23 @@ public class PhotovaultSettings {
        @param confName Name of the configuration. This must be defined in
        photovault.configNames property - results are undefined otherwise.
     */
-    static public void setConfiguration( String confName ) {
-	PhotovaultSettings.confName = confName;
+    public void setConfiguration( String confName ) {
+	this.confName = confName;
     }
 
 
-    public static PVDatabase getCurrentDatabase() {
+    public PVDatabase getCurrentDatabase() {
         return databases.getDatabase( confName );
     }
+
+    /**
+     * Add a new database to the configuration.Note that the configuration is not 
+     * saved before calling saveConfiguration().
+     */
+    void addDatabase(PVDatabase db) {
+        databases.addDatabase( db );
+    }
 	
-    static String confName;
+    String confName;
 
 }

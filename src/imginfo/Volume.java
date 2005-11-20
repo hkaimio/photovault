@@ -23,7 +23,8 @@ public class Volume {
     */
     public static Volume getDefaultVolume() {
 	if ( defaultVolume == null ) {
-            PVDatabase db = PhotovaultSettings.getCurrentDatabase();
+            PhotovaultSettings settings = PhotovaultSettings.getSettings();
+            PVDatabase db = settings.getCurrentDatabase();
             defaultVolume = db.getDefaultVolume();
 	}
 	return defaultVolume;

@@ -101,7 +101,8 @@ public class LoginDlg extends JFrame {
 	gb.setConstraints( passField, fieldConstraints );
 	loginPane.add( passField );
 
-        Collection databases = PhotovaultSettings.getDatabases();
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        Collection databases = settings.getDatabases();
         Vector dbNames = new Vector();
         Iterator iter = databases.iterator();
         while ( iter.hasNext() ) {

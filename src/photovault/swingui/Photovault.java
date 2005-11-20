@@ -17,9 +17,10 @@ import org.apache.log4j.PropertyConfigurator;
 public class Photovault {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Photovault.class.getName() );
 
+    PhotovaultSettings settings = null;
 
     Photovault() {
-	PhotovaultSettings.init();
+	settings = PhotovaultSettings.getSettings();
     }
 
     void login( LoginDlg ld ) {
@@ -27,8 +28,8 @@ public class Photovault {
 	String passwd = ld.getPassword();
 	String dbName = ld.getDb();
 	log.debug( "Using configuration " + dbName );
-	PhotovaultSettings.setConfiguration( dbName );
-        PVDatabase db = PhotovaultSettings.getDatabase( dbName );
+	settings.setConfiguration( dbName );
+        PVDatabase db = settings.getDatabase( dbName );
         String sqldbName = db.getDbName();
 	log.debug( "Mysql DB name: " + sqldbName );
 	if ( sqldbName == null ) {

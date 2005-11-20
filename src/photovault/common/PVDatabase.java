@@ -65,7 +65,11 @@ public class PVDatabase {
     }
 
     public Volume getDefaultVolume() {
-        return (Volume) volumes.get(0);
+        Volume vol = null;
+        if ( volumes.size() > 0 ) {
+            vol = (Volume) volumes.get(0);
+        }
+        return vol;
     }
             
 }

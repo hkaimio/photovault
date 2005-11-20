@@ -26,9 +26,9 @@ public class JUnitOJBManager {
     /** Creates a new instance of JUnitOJBManager */
     private JUnitOJBManager() {
         log.error( "Initializing OB for JUnit tests" );
-        PhotovaultSettings.init();
-        PhotovaultSettings.setConfiguration( "pv_junit" );
-	PVDatabase db = PhotovaultSettings.getDatabase( "pv_junit" );
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        settings.setConfiguration( "pv_junit" );
+	PVDatabase db = settings.getDatabase( "pv_junit" );
 
 	if ( db == null ) {
 	    log.error( "Could not find dbname for configuration " );
