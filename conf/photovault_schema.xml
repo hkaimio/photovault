@@ -1,0 +1,158 @@
+  <database name="pv_test">
+    <table name="collection_photos">
+      <column name="collection_id" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="photo_id" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="collection_id"/>
+        <unique-column name="photo_id"/>
+      </unique-->
+    </table>
+    <table name="image_instances">
+      <column name="volume_id" primaryKey="true" required="true" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="fname" primaryKey="true" required="true" type="VARCHAR" size="255" autoIncrement="false"/>
+      <column name="photo_id" primaryKey="false" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="width" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="height" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="rotated" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="instance_type" primaryKey="false" required="true" type="CHAR" size="9" default="original" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="volume_id"/>
+        <unique-column name="fname"/>
+      </unique-->
+    </table>
+    <table name="ojb_dlist">
+      <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="SIZE_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="ID"/>
+      </unique-->
+    </table>
+    <table name="ojb_dlist_entries">
+      <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="DLIST_ID" primaryKey="false" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="POSITION_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="OID_" primaryKey="false" required="false" type="LONGVARBINARY" size="2147483647" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="ID"/>
+      </unique-->
+    </table>
+    <table name="ojb_dmap">
+      <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="SIZE_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="ID"/>
+      </unique-->
+    </table>
+    <table name="ojb_dmap_entries">
+      <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="DMAP_ID" primaryKey="false" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="KEY_OID" primaryKey="false" required="false" type="LONGVARBINARY" size="2147483647" autoIncrement="false"/>
+      <column name="VALUE_OID" primaryKey="false" required="false" type="LONGVARBINARY" size="2147483647" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="ID"/>
+      </unique-->
+    </table>
+    <table name="ojb_dset">
+      <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="SIZE_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="ID"/>
+      </unique-->
+    </table>
+    <table name="ojb_dset_entries">
+      <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="DLIST_ID" primaryKey="false" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="POSITION_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="OID_" primaryKey="false" required="false" type="LONGVARBINARY" size="2147483647" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="ID"/>
+      </unique-->
+    </table>
+    <table name="ojb_hl_seq">
+      <column name="TABLENAME" primaryKey="true" required="true" type="VARCHAR" size="175" autoIncrement="false"/>
+      <column name="FIELDNAME" primaryKey="true" required="true" type="VARCHAR" size="70" autoIncrement="false"/>
+      <column name="MAX_KEY" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="GRAB_SIZE" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="VERSION" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="TABLENAME"/>
+        <unique-column name="FIELDNAME"/>
+      </unique-->
+    </table>
+    <table name="ojb_lockentry">
+      <column name="OID_" primaryKey="true" required="true" type="VARCHAR" size="250" autoIncrement="false"/>
+      <column name="TX_ID" primaryKey="true" required="true" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="TIMESTAMP_" primaryKey="false" required="false" type="TIMESTAMP" size="19" default="CURRENT_TIMESTAMP" autoIncrement="false"/>
+      <column name="ISOLATIONLEVEL" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="LOCKTYPE" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="OID_"/>
+        <unique-column name="TX_ID"/>
+      </unique-->
+    </table>
+    <table name="ojb_nrm">
+      <column name="NAME" primaryKey="true" required="true" type="VARCHAR" size="250" autoIncrement="false"/>
+      <column name="OID_" primaryKey="false" required="false" type="LONGVARBINARY" size="2147483647" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="NAME"/>
+      </unique-->
+    </table>
+    <table name="photo_collections">
+      <column name="collection_id" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="parent" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="collection_name" primaryKey="false" required="true" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="collection_desc" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
+      <column name="create_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
+      <column name="last_modified" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="collection_id"/>
+      </unique-->
+      <!--index name="collection_desc">
+        <index-column name="collection_desc"/>
+      </index-->
+    </table>
+    <table name="photos">
+      <column name="photo_id" primaryKey="true" required="true" type="INTEGER" size="11" default="0" autoIncrement="false"/>
+      <column name="shoot_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
+      <column name="time_accuracy" primaryKey="false" required="false" type="FLOAT" size="12" default="0" autoIncrement="false"/>
+      <column name="shooting_place" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="photographer" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="f_stop" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="focal_length" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="shutter_speed" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="camera" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="lens" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="film" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="film_speed" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="pref_rotation" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="orig_fname" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="description" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
+      <column name="photo_quality" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="last_modified" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
+      <column name="tech_notes" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="photo_id"/>
+      </unique-->
+      <!--index name="shooting_place">
+        <index-column name="shooting_place"/>
+        <index-column name="description"/>
+      </index-->
+    </table>
+    <table name="volumes">
+      <column name="volume_id" primaryKey="true" required="true" type="VARCHAR" size="30" autoIncrement="false"/>
+      <column name="root_path" primaryKey="false" required="true" type="VARCHAR" size="255" autoIncrement="false"/>
+      <!--unique name="PRIMARY">
+        <unique-column name="volume_id"/>
+      </unique-->
+    </table>
+    <!--
+    Information about the database instance. This table is assumed to contain only 1 row
+    that describes this database
+    -->
+    <table name="database_info">
+        <!-- Random 128 bit identifier for this instance. Stored as a hexadecimal string -->
+        <column name="database_id" primaryKey="true" required="true" type="VARCHAR" size="32"/>
+        <column name="schema_version" type="INTEGER"/>
+        <column name="create_time" type="TIMESTAMP"/>
+    </table>
+  </database>

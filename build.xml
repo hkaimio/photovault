@@ -198,6 +198,13 @@
                 <html outfile="${basedir}/${coverage.dir}/coverage.html" />
             </report>
         </emma>
+      <!-- Create a summary report -->
+      <junitreport todir="${reports.test}">
+        <fileset dir="${reports.test}/testresults">
+           <include name="TEST-*.xml"/>
+        </fileset>
+        <report format="frames" todir="./${reports.test}/html"/>
+      </junitreport>
     </target>
     
   

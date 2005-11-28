@@ -7,7 +7,13 @@
 
 package photovault.common;
 
+import dbhelper.ODMG;
+import imginfo.PhotoInfo;
+import imginfo.PhotoNotFoundException;
+import imginfo.Thumbnail;
+import imginfo.Volume;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
 import junit.framework.*;
@@ -75,7 +81,55 @@ public class Test_PhotovaultSettings extends TestCase {
         assertNotNull( db );
     }
     
-    
+    /**
+     * Test creation of a new database
+     */ 
+    public void testCreateDB() {
+        File confFile = null;
+        File dbDir = null;
+        // Create an empty configuration file & volume directory
+        try {
+            confFile = File.createTempFile( "photovault_settings_", ".xml" );
+            confFile.delete();
+            dbDir = File.createTempFile( "photovault_test_volume", "" );
+            dbDir.delete();
+            dbDir.mkdir();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            fail( ex.getMessage() );
+        }
+        
+        System.setProperty( "photovault.configfile", confFile.getAbsolutePath() );
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        PVDatabase db = new PVDatabase();
+        db.setDbName( "pc_testest");
+        Volume vol = new Volume( "testvolume", dbDir.getAbsolutePath() );
+        db.addVolume( vol );
+        settings.addDatabase( db );
+        settings.saveConfig();
+        
+        db.createDatabase( "harri", "" );
+        
+        // Verify that the database can be used by importing a file
+        ODMG.initODMG( "harri", "", db );
+        File photoFile = new File( "testfiles/test1.jpg" );
+        PhotoInfo photo = null;
+        try {
+            photo = PhotoInfo.addToDB(photoFile);
+        } catch (PhotoNotFoundException ex) {
+            ex.printStackTrace();
+            fail( ex.getMessage() );
+        }
+        photo.setPhotographer( "test" );
+        try {
+            
+            PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
+            Thumbnail thumb = photo2.getThumbnail();
+            this.assertFalse( "Default thumbnail returned", thumb == Thumbnail.getDefaultThumbnail() );
+        } catch (PhotoNotFoundException ex) {
+            fail( "Photo not found in database" );
+        }
+    }
     public static void main( String[] args ) {
 	junit.textui.TestRunner.run( suite() );
     }
