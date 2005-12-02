@@ -101,7 +101,6 @@ public class PVDatabase {
      * @param passwd Password for the user
      */
     public void createDatabase( String user, String passwd ) {
-        //throw new UnsupportedOperationException("Not yet implemented");
         
         // Get the database schema XML file
         InputStream schemaIS = getClass().getClassLoader().getResourceAsStream( "photovault_schema.xml" );
@@ -117,22 +116,7 @@ public class PVDatabase {
         ds.setUser( user );
         ds.setPassword( passwd );
         
-//        Connection conn = null;
-//	try {
-//	    Class.forName( driverName ).newInstance();
-//	} catch ( Exception e ) {
-//	    System.err.println( "DB driver not found" );
-//	}
-//
-//	try {
-//	    conn = DriverManager.getConnection( dbUrl, user, passwd );
-//	} catch ( SQLException e ) {
-//	    System.err.println( "ERROR: Could not create DB connection: "
-//				+ e.getMessage() );
-//	}
-        
         Platform platform = PlatformFactory.createNewPlatformInstance( ds );
-        // Platform platform = PlatformFactory.createNewPlatformInstance( driverName, dbUrl );
         platform.setUsername( user );
         platform.setPassword( passwd );
         platform.createTables( dbModel, true, false );

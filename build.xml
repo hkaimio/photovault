@@ -37,6 +37,8 @@
           <include name="log4j-1.2.12.jar"/>
           <include name="commons-*.jar"/>
           <include name="antlr.jar"/>
+          <include name="swing-layout-*.jar"/>
+          <include name="DdlUtils-*"/>
       </fileset>
   </path>
 <path id="debug.sourcepath" >

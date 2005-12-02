@@ -84,6 +84,9 @@ public class PhotovaultSettings {
         return databases.getDatabase( dbName );
     }
     
+    /**
+     * Saves the configuration to the current configuration file.
+     */
     public void saveConfig() {
         databases.save( configFile );
     }
@@ -106,8 +109,9 @@ public class PhotovaultSettings {
     /**
      * Add a new database to the configuration.Note that the configuration is not 
      * saved before calling saveConfiguration().
+     * @pram db The database that is added to the configuration
      */
-    void addDatabase(PVDatabase db) {
+    public void addDatabase(PVDatabase db) {
         databases.addDatabase( db );
     }
 	
