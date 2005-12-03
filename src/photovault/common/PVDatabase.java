@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.io.InputStream;
 import  imginfo.Volume;
@@ -90,7 +91,29 @@ public class PVDatabase {
         }
         return vol;
     }
-            
+        
+    /**
+     * Returns a volume with the given name or <code>null</code> if it does not exist
+     *
+     */
+    public Volume getVolume( String volumeName ) {
+        Volume vol = null;
+        
+        /* TODO: Should we use HashMap for volumes instead of iterating a list?
+         * This method is urgenty needed for a WAR for bug 44 so I am doing it 
+         * in the least disruptive way - and since the number of volumes per database 
+         * is currently low this may be enough.
+         */
+        Iterator iter = volumes.iterator();
+        while ( iter.hasNext() ) {
+            Volume candidate = (Volume) iter.next();
+            if ( candidate.getName().equals( volumeName ) ) {
+                vol = candidate;
+            }
+        }
+        return vol;
+    }
+    
     /**
      * Creates a new database with the parameters specified in this object.
      * <P>

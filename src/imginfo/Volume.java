@@ -36,12 +36,9 @@ public class Volume {
     */
     public static Volume getVolume( String volName ) {
 	Volume vol = null;
-	// Initialize the volumes array and create default volume if it has not been done yet
-	if ( volumes == null ) {
-	    getDefaultVolume();
-	}
-	    
-	vol = (Volume) volumes.get( volName );
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        PVDatabase db = settings.getCurrentDatabase();
+	vol = db.getVolume( volName );
 	return vol;
     }
 

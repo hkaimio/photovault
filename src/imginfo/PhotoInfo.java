@@ -630,7 +630,7 @@ public class PhotoInfo {
             return;
         }
         
-        
+        txw.commit();
     }
     
     
