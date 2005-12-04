@@ -196,6 +196,7 @@ public class DbSettingsDlg extends javax.swing.JDialog {
 
     private void CancelBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelBtnActionPerformed
         retval = CANCEL_OPTION;
+        setVisible( false );
     }//GEN-LAST:event_CancelBtnActionPerformed
 
     /**
