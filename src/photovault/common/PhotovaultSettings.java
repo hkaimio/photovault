@@ -54,6 +54,7 @@ public class PhotovaultSettings {
             configFile = new File( photovaultDir, "photovault.xml" );
         }
         if ( configFile.exists() ) {
+            log.debug( "Using config file " + configFile.getAbsolutePath() );
             databases = PhotovaultDatabases.loadDatabases( configFile );
         } else {
             try {

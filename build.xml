@@ -18,15 +18,6 @@
   <taskdef resource="checkstyletask.properties"
             classpath="lib/checkstyle-all-4.0-beta6.jar"/>
             
-  <path id="project.class.path">
-    <fileset dir="${build.lib.dir}">
-	<include name="**/*.jar"/>
-    </fileset>
-    <pathelement path="${java.class.path}/"/>
-    <pathelement path="build"/>
-    <pathelement path="conf"/>
-  </path>
-
   <path id="runtime.path">
       <fileset id="runtime.fileset" dir="${build.lib.dir}">
           <include name="db-ojb-1.0.3.jar"/>
@@ -41,6 +32,16 @@
           <include name="DdlUtils-*"/>
       </fileset>
   </path>
+  <path id="project.class.path">
+    <fileset dir="${build.lib.dir}">
+	<include name="**/*.jar"/>
+        <exclude name="**/checkstyle*.jar"/>
+    </fileset>
+    <pathelement path="${java.class.path}/"/>
+    <pathelement path="build"/>
+    <pathelement path="conf"/>
+  </path>
+
 <path id="debug.sourcepath" >
     <pathelement path="src"/>
 </path>

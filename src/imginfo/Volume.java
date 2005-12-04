@@ -57,6 +57,7 @@ public class Volume {
 
        
     private void registerVolume() {
+        log.debug( "registering volume " + volumeName + ", basedir " + volumeBaseDir );
 	if ( volumes == null ) {
 	    volumes = new HashMap();
 	}
@@ -178,6 +179,7 @@ public class Volume {
 	File yearDir = new File( volumeBaseDir, fname.substring( 0, 4 ) );
 	File monthDir = new File ( yearDir, fname.substring( 0, 6 ) );
 	File archiveFile = new File( monthDir, fname );
+        log.debug( "Mapped " + fname + " to " + archiveFile );
 	if ( !archiveFile.exists() ) {
 	    throw new FileNotFoundException( archiveFile.getPath() + " does not exist in volume" );
 	}
@@ -197,6 +199,7 @@ public class Volume {
      * created.
      */
     public void setBaseDir( File baseDir ) {
+        log.debug( "New basedir for " + volumeName + ": " + baseDir );        
 	volumeBaseDir = baseDir;
         if ( !volumeBaseDir.exists() ) {
 	    volumeBaseDir.mkdir();
@@ -208,6 +211,7 @@ public class Volume {
      * created.
      */
     public void setBaseDir( String baseDirName ) {
+        log.debug( "New basedir for " + volumeName + ": " + baseDirName );
         File baseDir = new File( baseDirName );
         setBaseDir( baseDir );
     }
