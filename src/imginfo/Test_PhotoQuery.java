@@ -5,7 +5,7 @@ package imginfo;
 import junit.framework.*;
 import java.util.*;
 import photovault.folder.*;
-import photovault.swingui.FuzzyDate;
+import imginfo.FuzzyDate;
 import photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoQuery extends PhotovaultTestCase {

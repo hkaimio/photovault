@@ -1,4 +1,4 @@
-package photovault.swingui;
+package imginfo;
 
 import java.util.Date;
 import java.util.GregorianCalendar;

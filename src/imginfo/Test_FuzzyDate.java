@@ -1,11 +1,10 @@
 // Test_PhotoInfoController.java
 
-package photovault.swingui;
+package imginfo;
 
 import java.io.*;
 import junit.framework.*;
 import java.util.*;
-import imginfo.*;
 
 public class Test_FuzzyDate extends TestCase {
     

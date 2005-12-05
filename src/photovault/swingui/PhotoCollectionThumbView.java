@@ -3,6 +3,7 @@
 package photovault.swingui;
 
 import imginfo.*;
+import imginfo.FuzzyDate;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
