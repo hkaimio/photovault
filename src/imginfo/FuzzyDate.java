@@ -17,7 +17,9 @@ public class FuzzyDate {
     
     Date date;
     double accuracy;
-    static final double MILLIS_IN_DAY = 24 * 3600 * 1000;
+    static final double MILLIS_IN_MINUTE = 60000;
+    static final double MILLIS_IN_HOUR = 3600 * 1000;
+    static final double MILLIS_IN_DAY = 24 * MILLIS_IN_HOUR;
 
     static class FuzzyDateParser {
         
@@ -28,25 +30,48 @@ public class FuzzyDate {
         
         String dateFormatStr;
         long fuzzyPeriodLength;
+        DateFormat df = null;
         
         protected long getFuzzyPeriodLength( Date startDate ) {
             return fuzzyPeriodLength;
         }
-                
+
+        /**
+         * Returns the number of days in the fuzziness period.
+         */ 
+        protected double getFloatFuzzyPeriodLength( Date startDate ) {
+            return ((double)(getFuzzyPeriodLength( startDate ) ) ) / FuzzyDate.MILLIS_IN_DAY; 
+        }
+        
+        protected DateFormat getDateFormat() {
+            if ( df == null ) {
+                df = new SimpleDateFormat( dateFormatStr );
+            }
+            return df;
+        }
+        
         public FuzzyDate parse(String strDate) {
-            DateFormat df = new SimpleDateFormat( dateFormatStr );
+            DateFormat df = getDateFormat();
             FuzzyDate fd = null;
             try {
                 Date d = df.parse( strDate );
                 if ( d != null ) {
                     Date midpoint = new Date( d.getTime() + getFuzzyPeriodLength(d) / 2 );
-                    fd = new FuzzyDate( midpoint, ((float)(getFuzzyPeriodLength(d))) / (2*FuzzyDate.MILLIS_IN_DAY) );
+                    fd = new FuzzyDate( midpoint, 0.5 * getFloatFuzzyPeriodLength( d ) );
                 }
             } catch ( ParseException e ) {
                 log.warn( "ParseException: " + e.getMessage() );
 
             }
             return fd;
+        }
+        
+        /**
+         * Formats a date using this formatter
+         */
+        public String format( Date date ) {
+            DateFormat df = getDateFormat();
+            return df.format( date );
         }
     }
     
@@ -64,7 +89,6 @@ public class FuzzyDate {
     }
 
     static class FuzzyDateYearParser extends FuzzyDateParser {
-
         public FuzzyDateYearParser( String formatStr ) {
             super( formatStr, 0 );
         }
@@ -75,8 +99,15 @@ public class FuzzyDate {
             c.add( GregorianCalendar.YEAR, 1 );
             return c.getTimeInMillis() - startDate.getTime();
         }        
+        
+//        protected double getFloatFuzzyPeriodLength( Date startDate ) {
+//            double fuzzyPeriodLength = ((double)(getFuzzyPeriodLength( startDate ) ) ) / FuzzyDate.MILLIS_IN_DAY; 
+//            fuzzyPeriodLength = ((double)Math.round(  fuzzyPeriodLength*100 )) * 0.01;
+//            return fuzzyPeriodLength;
+//        }
     }
-    static double accuracyFormatLimits[] = {0, 0, 3, 14, 180};
+    
+    static double accuracyFormatLimits[] = {0.5/(24.0*60), .5, 3, 14, 180};
     static String accuracyFormatStrings[] = {
 	"dd.MM.yyyy k:mm",
 	"dd.MM.yyyy",
@@ -181,28 +212,31 @@ public class FuzzyDate {
 
     public String format() {
 	long lAccuracy = (long) (accuracy  * 24 * 3600 * 1000);
-	String dateStr = "";
+
+        String dateStr = "";
 	if ( date == null ) {
 	    return "";
 	}
-	
+        
+        Date lower = new Date( date.getTime() - lAccuracy );
+        Date upper = new Date( date.getTime() + (lAccuracy-1) );
+
+	if ( fdParsers == null ) {
+            createParsers();
+        }
 	if ( accuracy > 0 ) {
-	    
 	    // Find the correct format to use
-	    String formatStr =accuracyFormatStrings[0];
-	    for ( int i = 1; i < accuracyFormatLimits.length; i++ ) {
-		if ( accuracy < accuracyFormatLimits[i] ) {
+            FuzzyDateParser parser = fdParsers[0];
+            for ( int i = 0; i < fdParsers.length; i++ ) {
+		if ( (2 * lAccuracy) < fdParsers[i].getFuzzyPeriodLength( lower ) ) {
 		    break;
 		}
-		formatStr =accuracyFormatStrings[i];
+		parser = fdParsers[i];
 	    }
 	    
 	    // Show the limits of the accuracy range
-	    DateFormat df = new SimpleDateFormat( formatStr );
-	    Date lower = new Date( date.getTime() - lAccuracy );
-	    Date upper = new Date( date.getTime() + lAccuracy );
-	    String lowerStr = df.format( lower );
-	    String upperStr = df.format( upper );
+	    String lowerStr = parser.format( lower );
+	    String upperStr = parser.format( upper );
 	    dateStr = lowerStr;
 	    if ( !lowerStr.equals( upperStr ) ) {
 		dateStr += " - " + upperStr;

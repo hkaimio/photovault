@@ -30,6 +30,10 @@ public class Test_FuzzyDate extends TestCase {
 	assertEquals( asStr, "" );
     }
     
+    /**
+     * Check that fuzzy date created from fuzzyDateStr spans range from min to max
+     */
+    
     private void checkParsingBoundaries( String fuzzyDateStr, Date min, Date max ) {
         FuzzyDate fd = FuzzyDate.parse( fuzzyDateStr );
         long min1 = min.getTime();
@@ -89,6 +93,29 @@ public class Test_FuzzyDate extends TestCase {
         checkParsingBoundaries( "2000", createDate( 2000, 0, 1, 0, 0, 0), createDate( 2000, 11, 31, 23, 59, 59 ) );
     }
 
+    private void testConversionInvariance( String strFuzzyDate ) {
+        FuzzyDate fd = FuzzyDate.parse( strFuzzyDate );
+        String converted = fd.format();
+        this.assertEquals( "formatted FuzzyDate does mot match original", 
+                strFuzzyDate, converted );
+    }
+    
+    /**
+     * Test that fuzzy dates created from strings return the same string 
+     */ 
+    
+    public void testConversionInvariances() {
+        testConversionInvariance( "01.01.2005 12:34" );
+        testConversionInvariance( "01.01.2005" );
+        testConversionInvariance( "30.06.2005" );
+        testConversionInvariance( "wk 8 2000" );
+        testConversionInvariance( "wk 52 2000" );
+        testConversionInvariance( "tammikuu 2005" );
+        testConversionInvariance( "helmikuu 2000" );
+        testConversionInvariance( "2000" );
+        testConversionInvariance( "2005" );
+    }
+    
     public void testEquals() {
 	Calendar cal = Calendar.getInstance();
 	cal.set( 2002, 11, 23 );
