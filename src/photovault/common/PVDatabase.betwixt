@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <info primitiveTypes="attribute">
+    <!-- hide the properties of type java.io.File since these cause infinite loop -->
+    <hide property="defaultVolume"/>
+    <hide property="embeddedDirectory"/>
     <element name="database">
         <attribute name="name" property="name"/>
         <attribute name="dbName" property="dbName"/>
         <attribute name="host" property="dbHost"/>
+        <attribute name="instanceType" property="instanceType"/>
+        <attribute name="instanceDir" property="instancePath"/>
+        <!--element name="volumes"/-->
         <addDefaults/>
     </element>
 </info>

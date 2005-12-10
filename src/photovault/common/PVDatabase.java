@@ -6,9 +6,11 @@
  
 package photovault.common;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.io.InputStream;
 import  imginfo.Volume;
 import java.util.Random;
+import javax.sql.DataSource;
 import org.apache.commons.beanutils.DynaBean;
 import org.apache.ddlutils.io.DatabaseIO;
 import org.apache.ddlutils.model.Database;
@@ -26,6 +29,7 @@ import org.apache.ddlutils.io.DataReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
+import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.xml.sax.SAXException;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSourceFactory;
@@ -37,6 +41,17 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSourceFactory;
  * @author Harri Kaimio
  */
 public class PVDatabase {
+    
+    /**
+     * Database type for a Photovault instance which uses an embedded Derby database
+     */
+    public static final String TYPE_EMBEDDED = "TYPE_EMBEDDED";
+    
+    /**
+     * Database type for a Photovault instance which uses database server for 
+     * storing meta data
+     */
+    public static final String TYPE_SERVER = "TYPE_SERVER";
     
     /** Creates a new instance of PVDatabase */
     public PVDatabase() {
@@ -92,6 +107,49 @@ public class PVDatabase {
         return vol;
     }
         
+    
+    private String instanceType;
+
+    /**
+     * Get the instacne type of the database This can be either 
+     * TYPE_EMBEDDED or TYPE_SERVER
+     */
+    public String getInstanceType() {
+        return instanceType;
+    }
+
+    
+    public void setInstanceType(String instanceType) {
+        if ( instanceType.equals( TYPE_EMBEDDED ) ) {
+            this.instanceType = TYPE_EMBEDDED;
+        } else if ( instanceType.equals( TYPE_SERVER ) ) {
+            this.instanceType = TYPE_SERVER;
+        } 
+    }    
+
+
+    private File embeddedDirectory = null;
+    
+    public File getEmbeddedDirectory() {
+        return embeddedDirectory;
+    }
+
+    public void setEmbeddedDirectory(File embeddedDirectory) {
+        this.embeddedDirectory = embeddedDirectory;
+    }
+    
+    public String getInstancePath() {
+        String res = "";
+        if ( embeddedDirectory != null ) {
+            res = embeddedDirectory.getAbsolutePath();
+        }
+        return res;
+    }
+
+    public void setInstancePath( String path ) {
+        embeddedDirectory = new File( path );
+    }
+    
     /**
      * Returns a volume with the given name or <code>null</code> if it does not exist
      *
@@ -133,16 +191,47 @@ public class PVDatabase {
         
         String driverName = "com.mysql.jdbc.Driver";
         String dbUrl = "jdbc:mysql://" + getDbHost() + "/" + getDbName();
-       
-        MysqlDataSource ds = new MysqlDataSource();
-        ds.setURL( dbUrl );
-        ds.setUser( user );
-        ds.setPassword( passwd );
+        
+        DataSource ds = null;
+        if ( instanceType == TYPE_EMBEDDED ) {
+            if ( !embeddedDirectory.exists() ) {
+                embeddedDirectory.mkdirs();
+            }
+            File derbyDir = new File( embeddedDirectory, "derby" );
+            File photoDir = new File( embeddedDirectory, "photos");
+            Volume vol = new Volume( "photos", photoDir.getAbsolutePath() );
+            addVolume( vol );
+            System.setProperty( "derby.system.home", derbyDir.getAbsolutePath() );
+            driverName = "org.apache.derby.jdbc.EmbeddedDriver";
+            dbUrl = "jdbc:derby:photovault;create=true";
+            EmbeddedDataSource derbyDs = new EmbeddedDataSource();
+            derbyDs.setDatabaseName( "photovault" );
+            derbyDs.setCreateDatabase( "create" );
+            ds = derbyDs;
+        } else {
+        
+            MysqlDataSource mysqlDs = new MysqlDataSource();
+            mysqlDs.setURL( dbUrl );
+            mysqlDs.setUser( user );
+            mysqlDs.setPassword( passwd );
+            ds = mysqlDs;
+        }
         
         Platform platform = PlatformFactory.createNewPlatformInstance( ds );
+        
+        /*
+         * Do not use delimiters for the database object names in SQWL statements.
+         * This is to avoid case sensitivity problems with SQL92 compliant 
+         * databases like Derby - non-delimited identifiers are interpreted as case 
+         *  insensitive.
+         *
+         * I am not sure if this is the correct way to solve the issue, however,
+         * I am not willing to make a big change of schema definitions either.
+         */
+        platform.getPlatformInfo().setDelimiterToken( "" );
         platform.setUsername( user );
         platform.setPassword( passwd );
-        platform.createTables( dbModel, true, false );
+        platform.createTables( dbModel, true, true );
         
         // Insert the seed data to database
         DataToDatabaseSink sink = new DataToDatabaseSink( platform, dbModel );
@@ -175,7 +264,9 @@ public class PVDatabase {
         DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
         dbInfo.set( "database_id", idStr );
         dbInfo.set( "schema_version", new Integer(1) );
-        dbInfo.set( "create_time", new Date() );
+        dbInfo.set( "create_time", new Timestamp( System.currentTimeMillis() ) );
         platform.insert( dbModel, dbInfo );
     }        
+
+
 }

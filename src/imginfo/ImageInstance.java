@@ -92,7 +92,7 @@ public class ImageInstance {
     }
 
     /**
-       Inits the complex attributes vulome and imageFile. Since these
+       Inits the complex attributes volume and imageFile. Since these
        are not mapped directly to database columns, this function will
        be called by OJB Rowreader to initialize these correctly after
        the object has been read from database.

@@ -119,6 +119,20 @@ public class Test_PVDatabase extends TestCase {
         
     }
     
+    public void testEmbeddedDatabaseCreation() {
+        File dbDir = null;
+        try {
+            dbDir = File.createTempFile("pv_derby_instance", "");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        dbDir.delete();
+        PVDatabase pvd = new PVDatabase();
+        pvd.setInstanceType( PVDatabase.TYPE_EMBEDDED );
+        pvd.setEmbeddedDirectory( dbDir );
+        pvd.createDatabase( "", "" );
+    }
+    
     public static void main( String[] args ) {
 	junit.textui.TestRunner.run( suite() );
     }

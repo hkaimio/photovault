@@ -1,6 +1,7 @@
 // $Id: ODMG.java,v 1.1 2003/02/25 20:57:11 kaimio Exp $
 package dbhelper;
 
+import java.io.File;
 import photovault.common.PVDatabase;
 import photovault.common.PhotovaultSettings;
 import org.odmg.*;
@@ -43,9 +44,18 @@ public class ODMG {
         JdbcConnectionDescriptor connDesc = cr.getDescriptor( connKey );
         
         // Set up the OJB connection with parameters from photovault.properties
-        String dbhost = dbDesc.getDbHost();
-        String dbname = dbDesc.getDbName();
-        connDesc.setDbAlias( "//" + dbhost + "/" + dbname );
+        if ( dbDesc.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
+            connDesc.setDriver( "org.apache.derby.jdbc.EmbeddedDriver" );
+            connDesc.setDbms( "derby" );
+            connDesc.setSubProtocol( "derby" );
+            connDesc.setDbAlias( "photovault" );
+            File derbyDir = new File( dbDesc.getEmbeddedDirectory(), "derby" );
+            System.setProperty( "derby.system.home", derbyDir.getAbsolutePath()  );
+        } else {
+            String dbhost = dbDesc.getDbHost();
+            String dbname = dbDesc.getDbName();
+            connDesc.setDbAlias( "//" + dbhost + "/" + dbname );
+        }        
 	
         // Open the database connection
         db = odmg.newDatabase();        

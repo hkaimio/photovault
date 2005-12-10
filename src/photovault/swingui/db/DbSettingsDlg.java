@@ -36,6 +36,7 @@ public class DbSettingsDlg extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
     private void initComponents() {
         dirChooser = new javax.swing.JFileChooser();
+        instanceTypeBtnGroup = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         volumeDirFld = new javax.swing.JTextField();
         okBtn = new javax.swing.JButton();
@@ -50,6 +51,8 @@ public class DbSettingsDlg extends javax.swing.JDialog {
         dbNameFld = new javax.swing.JTextField();
         testDbBtn = new javax.swing.JButton();
         createDbBtn = new javax.swing.JButton();
+        derbyBtn = new javax.swing.JRadioButton();
+        dbServerBtn = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setName("Database settings");
@@ -132,6 +135,16 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                 .addContainerGap())
         );
 
+        instanceTypeBtnGroup.add(derbyBtn);
+        derbyBtn.setText("Embedded database");
+        derbyBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        derbyBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
+
+        instanceTypeBtnGroup.add(dbServerBtn);
+        dbServerBtn.setText("Separate database server");
+        dbServerBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        dbServerBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -142,23 +155,24 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(CancelBtn)
                 .add(13, 13, 13))
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(sqlDbPane))
+            .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
+                .addContainerGap()
+                .add(sqlDbPane)
+                .addContainerGap())
+            .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
+                .add(31, 31, 31)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabel4)
+                    .add(jLabel1))
+                .add(23, 23, 23)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(dbServerBtn)
+                    .add(derbyBtn)
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                        .add(31, 31, 31)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jLabel4)
-                            .add(jLabel1))
-                        .add(23, 23, 23)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                                .add(volumeDirFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 215, Short.MAX_VALUE)
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(dirSelectBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 26, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                            .add(nameFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE))))
+                        .add(volumeDirFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 215, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(dirSelectBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 26, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(nameFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -174,8 +188,12 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                     .add(dirSelectBtn)
                     .add(volumeDirFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 19, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(derbyBtn)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(dbServerBtn)
+                .add(16, 16, 16)
                 .add(sqlDbPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .add(79, 79, 79)
+                .add(27, 27, 27)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(okBtn)
                     .add(CancelBtn))
@@ -292,11 +310,18 @@ public class DbSettingsDlg extends javax.swing.JDialog {
             PVDatabase db = new PVDatabase();
             String user = loginDlg.getUsername();
             String passwd = loginDlg.getPasswd();
-            db.setDbName( dbNameFld.getText() );
-            db.setDbHost( dbHostFld.getText() );
-            db.setName( nameFld.getText() );
-            Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
-            db.addVolume( vol );
+            if ( dbServerBtn.isSelected() ) {
+                db.setDbName( dbNameFld.getText() );
+                db.setDbHost( dbHostFld.getText() );
+                db.setName( nameFld.getText() );
+                Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
+                db.addVolume( vol );
+            } else {
+                // Creating an embedded database
+                db.setName( nameFld.getText() );
+                db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
+                db.setEmbeddedDirectory( new File( volumeDirFld.getText() ) );
+            }
             db.createDatabase( user, passwd );
             
             PhotovaultSettings settings = PhotovaultSettings.getSettings();
@@ -313,8 +338,11 @@ public class DbSettingsDlg extends javax.swing.JDialog {
     private javax.swing.JButton createDbBtn;
     private javax.swing.JTextField dbHostFld;
     private javax.swing.JTextField dbNameFld;
+    private javax.swing.JRadioButton dbServerBtn;
+    private javax.swing.JRadioButton derbyBtn;
     private javax.swing.JFileChooser dirChooser;
     private javax.swing.JButton dirSelectBtn;
+    private javax.swing.ButtonGroup instanceTypeBtnGroup;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

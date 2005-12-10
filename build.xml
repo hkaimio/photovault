@@ -30,6 +30,7 @@
           <include name="antlr.jar"/>
           <include name="swing-layout-*.jar"/>
           <include name="DdlUtils-*"/>
+          <include name="derby.jar"/>
       </fileset>
   </path>
   <path id="project.class.path">
