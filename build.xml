@@ -70,11 +70,12 @@
         description="generate the distribution" >
     
     <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/photovault-latest"/>
     <delete>
         <fileset dir="${dist}/photovault-latest" includes="**/*"/>
 
     </delete>
-    <mkdir dir="${dist}/photovault-latest"/>
+
 
     <!-- Convert the CLASSPATH from Ant path structure to a form that can be 
     passed to MANIFEST Class-Path property -->
