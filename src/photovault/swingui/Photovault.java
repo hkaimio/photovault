@@ -21,12 +21,13 @@ public class Photovault {
 
     PhotovaultSettings settings = null;
 
-    Photovault() {
+    public Photovault() {
 	settings = PhotovaultSettings.getSettings();
     }
 
-    void login( LoginDlg ld ) {
-	String user = ld.getUsername();
+    private boolean login( LoginDlg ld ) {
+	boolean success = false;
+        String user = ld.getUsername();
 	String passwd = ld.getPassword();
 	String dbName = ld.getDb();
 	log.debug( "Using configuration " + dbName );
@@ -36,18 +37,16 @@ public class Photovault {
 	log.debug( "Mysql DB name: " + sqldbName );
 	if ( sqldbName == null ) {
 	    JOptionPane.showMessageDialog( ld, "Could not find dbname for configuration " + db, "Configuration error", JOptionPane.ERROR_MESSAGE );
-	    return;
-	}
-	    
+	    return false;
+        }
 
 	if ( ODMG.initODMG( user, passwd, db ) ) {
 	    log.debug( "Connection succesful!!!" );
 	    // Login is succesfull
-	    ld.setVisible( false );
-	    BrowserWindow br = new BrowserWindow();
-	} else {
-	    JOptionPane.showMessageDialog( ld, "Error logging into Photovault", "Login error", JOptionPane.ERROR_MESSAGE );
-	}
+	    // ld.setVisible( false );
+            success = true;
+        }
+        return success;
 
     }
     
@@ -70,7 +69,33 @@ public class Photovault {
         }
         
 	LoginDlg login = new LoginDlg( this );
-	login.setVisible( true );
+        boolean loginOK = false;
+        while ( !loginOK ) {
+	int retval = login.showDialog();
+            switch( retval ) {
+                case LoginDlg.RETURN_REASON_CANCEL:
+                    System.exit( 0 );
+                    break;
+                case LoginDlg.RETURN_REASON_NEWDB:
+                    DbSettingsDlg dlg = new DbSettingsDlg( null, true );
+                    if ( dlg.showDialog() == dlg.APPROVE_OPTION ) {
+                        login = new LoginDlg( this );
+                    }
+                    break;
+                case LoginDlg.RETURN_REASON_APPROVE:
+                    if ( login( login ) ) {
+                        loginOK = true;
+                        BrowserWindow wnd = new BrowserWindow();
+                    } else {
+                        JOptionPane.showMessageDialog( null, "Error logging into Photovault", 
+                                "Login error", JOptionPane.ERROR_MESSAGE );
+                    }
+                    break;
+                default:
+                    log.error( "Unknown return code form LoginDlg.showDialog(): " + retval );
+                    break;
+            }
+        }
     }
 
 

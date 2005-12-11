@@ -111,8 +111,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
 	JMenuItem exportItem = new JMenuItem( viewPane.getExportSelectedAction() );
 	fileMenu.add( exportItem );
-
-	
+        
 	JMenuItem exitItem = new JMenuItem( "Exit", KeyEvent.VK_X );
 	exitItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {

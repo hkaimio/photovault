@@ -17,7 +17,7 @@ import photovault.common.PhotovaultSettings;
  *
  * LoginDlg works tightly together with the @see Photovault main allpication class.
  */
-public class LoginDlg extends JFrame {
+public class LoginDlg extends JDialog {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoDlg.class.getName() );
 
@@ -28,13 +28,34 @@ public class LoginDlg extends JFrame {
        @param app Owner of the dialog
     */
     public LoginDlg( Photovault app ) {
-	super( "Login to Photovault");
+	super( (JFrame) null, "Login to Photovault", true );
 	this.app = app;
 	SwingUtilities.invokeLater(new java.lang.Runnable() {
 		public void run() {
 		    createUI();
 		}
 	    });
+    }
+    
+    int returnReason;
+    
+    public static final int RETURN_REASON_INVALID = 0;    
+    public static final int RETURN_REASON_APPROVE = 1;
+    public static final int RETURN_REASON_CANCEL = 2;
+    public static final int RETURN_REASON_NEWDB = 3;
+    
+    /**
+     * Shows the dialog and returns after the dialog is dismissed
+     * @return Reason for dismissal, either
+     * <ul>
+     * <li> @see RETURN_REASON_APPROVE - user pressed OK button
+     * <li> @see RETURN_REASON_CANCEL - user pressed Cancel button
+     * <li> @see RETURN_REASON_NEWDB - user requested a new database to be created
+     */
+    public int showDialog() {
+        returnReason = RETURN_REASON_INVALID;
+        setVisible( true );
+        return returnReason;
     }
 
     /**
@@ -119,20 +140,28 @@ public class LoginDlg extends JFrame {
 
  	getContentPane().add( loginPane, BorderLayout.NORTH );
 
-	// Create a pane for the buttols
+        JButton newDbBtn = new JButton( "New database..." );
+        newDbBtn.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent e ) {
+                returnReason = RETURN_REASON_NEWDB;
+                setVisible( false );
+            }
+        });
+        
 	JButton okBtn = new JButton( "OK" );
 	final LoginDlg dlg = this; 
 	okBtn.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
-// 		    setVisible( false );
-		    app.login( dlg );
+                    returnReason = RETURN_REASON_APPROVE;
+                    setVisible( false );
 		}
 	    } );
 		    
 	JButton cancelBtn = new JButton( "Cancel" );
 	cancelBtn.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
-		    System.exit( 0 );
+		    returnReason = RETURN_REASON_CANCEL;
+                    setVisible( false );
 		}
 	    } );
 	    
@@ -140,6 +169,8 @@ public class LoginDlg extends JFrame {
 	buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
 	buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 	buttonPane.add(Box.createHorizontalGlue());
+	buttonPane.add( newDbBtn );
+        buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 	buttonPane.add(okBtn);
 	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 	buttonPane.add(cancelBtn);
