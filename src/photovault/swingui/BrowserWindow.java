@@ -174,7 +174,13 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	imageMenu.add( new JMenuItem( viewPane.getRotateCWActionAction() ) );
 	imageMenu.add( new JMenuItem( viewPane.getRotateCCWActionAction() ) );
 	imageMenu.add( new JMenuItem( viewPane.getRotate180degActionAction() ) );
-
+        
+        JMenu aboutMenu = new JMenu( "About" );
+        aboutMenu.setMnemonic( KeyEvent.VK_A );
+        aboutMenu.add( new JMenuItem( new ShowAboutDlgAction( "About Photovault...", null, "", null ) ) );
+        
+        menuBar.add( Box.createHorizontalGlue() );
+        menuBar.add( aboutMenu );
 	pack();
 	setVisible( true );
     }

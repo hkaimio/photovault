@@ -17,7 +17,11 @@
   <!-- Checkstyle ant task definition -->
   <taskdef resource="checkstyletask.properties"
             classpath="lib/checkstyle-all-4.0-beta6.jar"/>
-            
+    
+    <!-- SVN info task definition -->
+  <taskdef name="svninfoproperties" classname="com.jwhitlock.ant.taskdefs.SvnInfoProperties" classpath="lib/svninfo_task.jar" />
+
+      
   <path id="runtime.path">
       <fileset id="runtime.fileset" dir="${build.lib.dir}">
           <include name="db-ojb-1.0.3.jar"/>
@@ -51,6 +55,23 @@
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
+
+    <!-- Get SCM information & store it into buildinfo.properties -->
+    <exec executable="svnversion" outputproperty="svnrevision"> 
+        <arg line="."/>
+    </exec>
+    <svninfoproperties dir="." verbose="true"/> 
+    <echo>SVN revision: ${svnrevision}</echo>
+    <copy file="conf/buildinfo.template.properties" 
+	    tofile="conf/buildinfo.properties"
+	    overwrite="true">
+        <filterset>
+            <filter token="svnrevision" value="${svnrevision}"/>
+	    <filter token="svn.info.url" value="${svn.info.url}"/>
+	    <filter token="build.time" value="${DSTAMP}_${TSTAMP}"/>
+	    <filter token="build.user" value="${user.name}"/>
+	</filterset>
+     </copy>
   </target>
 
   <target name="compile" depends="init"
@@ -91,6 +112,8 @@
          <attribute name="Built-By" value="${user.name}"/>
          <attribute name="Implementation-Version" value="build_${DSTAMP}"/>
          <attribute name="Class-Path" value="${runtime-path}"/>
+         <attribute name="SVN-revision" value="${svnrevision}"/>
+         <attribute name="Build-time" value="${DSTAMP}_${TSTAMP}"/>
       </manifest>
       <fileset dir="${build}">
           <exclude name="**/Test*.class"/>

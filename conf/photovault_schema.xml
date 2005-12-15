@@ -126,12 +126,12 @@
       <column name="film_speed" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
       <column name="pref_rotation" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
       <!-- Clip rectangle specification. Reserved for future use -->
-      <!--
-      <column name="clip_xmin" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" default="0.0"/>
-      <column name="clip_ymin" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" default="0.0"/>
-      <column name="clip_xmax" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" default="1.0"/>
-      <column name="clip_ymax" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" default="1.0"/>
-      -->
+      
+      <column name="clip_xmin" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" defaultValue="0.0"/>
+      <column name="clip_ymin" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" defaultValue="0.0"/>
+      <column name="clip_xmax" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" defaultValue="1.0"/>
+      <column name="clip_ymax" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" defaultValue="1.0"/>
+      
       <column name="orig_fname" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>
       <column name="description" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
       <column name="photo_quality" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
