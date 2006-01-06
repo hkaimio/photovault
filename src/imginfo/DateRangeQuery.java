@@ -101,7 +101,7 @@ public class DateRangeQuery implements PhotoCollection {
 	    while ( paramsIter.hasNext() ) {
 		query.bind( paramsIter.next() );
 	    }
-	    DList result = (DList) query.execute();
+	    List result = (List) query.execute();
 	    photos.addAll( result );
 	    txw.commit();
 	} catch (Exception e ) {

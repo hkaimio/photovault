@@ -57,11 +57,11 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	log.debug( "Folder name changed" );
 	
 	// Try to find the object from DB
-	DList folders = null;
+	List folders = null;
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = " + folder.getFolderId() );
-	    folders = (DList) query.execute();
+	    folders = (List) query.execute();
 	} catch ( Exception e ) {
 	    fail( e.getMessage() );
 	}
@@ -78,13 +78,13 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     
     // Tests the retrieval of existing folder from database
     public void testRetrieve() {
-	DList folders = null;
+	List folders = null;
 	Transaction tx = odmg.newTransaction();
 	tx.begin();
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
-	    folders = (DList) query.execute();
+	    folders = (List) query.execute();
 	    tx.commit();
 	} catch ( Exception e ) {
 	    tx.abort();
@@ -138,13 +138,13 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 
     public void testPhotoRetrieval() {
 	// Find the corrent test case
-	DList folders = null;
+	List folders = null;
 	Transaction tx = odmg.newTransaction();
 	tx.begin();
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName() + " where name = \"testPhotoRetrieval\"" );
-	    folders = (DList) query.execute();
+	    folders = (List) query.execute();
 	    tx.commit();
 	} catch ( Exception e ) {
 	    tx.abort();
@@ -236,13 +236,13 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
        Test that subfolders are created correctly
     */
     public void testSubfolders() {
-	DList folders = null;
+	List folders = null;
 	Transaction tx = odmg.newTransaction();
 	tx.begin();
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName()  + " where name = \"subfolderTest\"" );
-	    folders = (DList) query.execute();
+	    folders = (List) query.execute();
 	    tx.commit();
 	} catch ( Exception e ) {
 	    tx.abort();

@@ -2,6 +2,7 @@
 
 package photovault.swingui;
 
+import java.util.List;
 import photovault.folder.*;
 import junit.framework.*;
 import javax.swing.event.*;
@@ -28,11 +29,11 @@ public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {
 
         tx = odmg.newTransaction();
 	tx.begin();
-	DList folders = null;
+	List folders = null;
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( "select folders from " + PhotoFolder.class.getName()  + " where name = \"subfolderTest\"" );
-	    folders = (DList) query.execute();
+	    folders = (List) query.execute();
 	    tx.commit();
 	} catch ( Exception e ) {
 	    tx.abort();

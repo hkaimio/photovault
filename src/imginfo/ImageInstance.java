@@ -72,7 +72,7 @@ public class ImageInstance {
 	String oql = "select instance from " + ImageInstance.class.getName()
 	    + " where volumeId = \"" + volume.getName() + "\" and fname = \"" + fname + "\"";
 
-	DList instances = null;
+	List instances = null;
 
 	// Get transaction context
 	ODMGXAWrapper txw = new ODMGXAWrapper();
@@ -80,7 +80,7 @@ public class ImageInstance {
 	try {
 	    OQLQuery query = odmg.newOQLQuery();
 	    query.create( oql );
-	    instances = (DList) query.execute();
+	    instances = (List) query.execute();
 	    txw.commit();
 	} catch ( Exception e ) {
 	    txw.abort();

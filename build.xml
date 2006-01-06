@@ -24,14 +24,14 @@
       
   <path id="runtime.path">
       <fileset id="runtime.fileset" dir="${build.lib.dir}">
-          <include name="db-ojb-1.0.3.jar"/>
+          <include name="db-ojb-1.0.4.jar"/>
           <include name="exif_extract.jar"/>
           <include name="jai_codec.jar"/>
           <include name="jai_core.jar"/>
           <include name="mysql-connector-java.jar"/>
           <include name="log4j-1.2.12.jar"/>
           <include name="commons-*.jar"/>
-          <include name="antlr.jar"/>
+          <include name="antlr-2.7.5.jar"/>
           <include name="swing-layout-*.jar"/>
           <include name="DdlUtils-*"/>
           <include name="derby.jar"/>

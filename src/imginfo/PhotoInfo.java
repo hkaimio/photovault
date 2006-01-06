@@ -41,7 +41,7 @@ public class PhotoInfo {
     public static PhotoInfo retrievePhotoInfo( int photoId ) throws PhotoNotFoundException {
         log.debug( "Fetching PhotoInfo with ID " + photoId );
         String oql = "select photos from " + PhotoInfo.class.getName() + " where uid=" + photoId;
-        DList photos = null;
+        List photos = null;
         
         // Get transaction context
         ODMGXAWrapper txw = new ODMGXAWrapper();
@@ -50,7 +50,7 @@ public class PhotoInfo {
         try {
             OQLQuery query = odmg.newOQLQuery();
             query.create( oql );
-            photos = (DList) query.execute();
+            photos = (List) query.execute();
             txw.commit();
         } catch (Exception e ) {
             log.warn( "Error fetching record: " + e.getMessage() );

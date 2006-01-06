@@ -24,15 +24,10 @@
        <object-cache class="org.apache.ojb.broker.cache.ObjectCacheEmptyImpl">
        </object-cache>
 
-       <field-descriptor
-         name="tableName"
-         column="TABLENAME"
-         jdbc-type="VARCHAR"
-         primarykey="true"
-      />
+       <!-- TODO: Rename column TABLENAME to NAME or SEQ_NAME -->
       <field-descriptor
-         name="fieldName"
-         column="FIELDNAME"
+         name="name"
+         column="TABLENAME"
          jdbc-type="VARCHAR"
          primarykey="true"
       />

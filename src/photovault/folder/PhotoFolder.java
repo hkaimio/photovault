@@ -385,12 +385,12 @@ public class PhotoFolder implements PhotoCollection {
             ODMGXAWrapper txw = new ODMGXAWrapper();
             Implementation odmg = ODMG.getODMGImplementation();
 	
-            DList folders = null;
+            List folders = null;
             boolean mustCommit = false;
             try {
                 OQLQuery query = odmg.newOQLQuery();
-                query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
-                folders = (DList) query.execute();
+                query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );                
+                folders = (List) query.execute();
             } catch ( Exception e ) {
                 txw.abort();
                 return null;
