@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 
 public class Timestamp2DateConversion implements FieldConversion {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Timestamp2DateConversion.class.getName() );
-
+    
     public Object javaToSql( Object src ) {
 
 	log.debug( "javaToSql: " + src );

@@ -29,6 +29,10 @@ public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
 
     public void paint( Graphics g ) {
 	super.paint( g );
+        log.debug( "start paintinh thumbnail" );
+        long startTime = System.currentTimeMillis();
+        long startDrawingTime = 0;
+        long attrDrawingStartTime = 0;
 	Graphics2D g2 = (Graphics2D) g;
 	// Current position in which attributes can be drawn
 	Dimension compSize = getSize();
@@ -39,13 +43,15 @@ public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
 	    BufferedImage img = thumbnail.getImage();
 	    int x = ((int)(compSize.getWidth() - img.getWidth()))/(int)2;
 	    int y = ((int)(compSize.getHeight() - img.getHeight()))/(int)2;
-		
+            
+            startDrawingTime = System.currentTimeMillis();
 	    g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
 	    // Increase ypos so that attributes are drawn under the image
 	    ypos += ((int)img.getHeight())/2 + 4;
 	}
 
 	// Draw the attributes
+        attrDrawingStartTime = System.currentTimeMillis();
 	if ( photo != null ) {
 	    Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
 	    FontRenderContext frc = g2.getFontRenderContext();
@@ -83,6 +89,11 @@ public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
 		ypos += bounds.getHeight() + 4;
 	    }
 	}
+        long endTime = System.currentTimeMillis();
+        log.debug( "Drawn thumbnail, thumb fetch " + (startDrawingTime - startTime) + 
+                ", thumb draw " + (attrDrawingStartTime - startDrawingTime) 
+                + ", attribute draw " + (endTime - attrDrawingStartTime) 
+                + ", total " + (endTime - startTime) );
     }
 
 

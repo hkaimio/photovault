@@ -2,6 +2,7 @@
 
 package photovault.swingui;
 
+import dbhelper.ODMGXAWrapper;
 import imginfo.*;
 import imginfo.FuzzyDate;
 import javax.swing.*;
@@ -403,9 +404,17 @@ public class PhotoCollectionThumbView
     
     private void paintThumbnail( Graphics2D g2, PhotoInfo photo, int startx, int starty, boolean isSelected ) {
 	log.debug( "paintThumbnail entry " + photo.getUid() );
+        long startTime = System.currentTimeMillis();
+        long thumbReadyTime = 0;
+        long thumbDrawnTime = 0;
+        long endTime = 0;
         // Current position in which attributes can be drawn
         int ypos = starty + rowHeight/2;
 
+        // Create a transaction which will be used for persisten object operations
+        // during painting (to avoid creating several short-livin transactions)
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        
         if ( photo != null ) {
 	    Thumbnail thumbnail = null;
 	    log.debug( "finding thumb" );
@@ -423,7 +432,8 @@ public class PhotoCollectionThumbView
 		    log.debug( "Thumbnail request submitted" );
 		}
 	    }
-
+            thumbReadyTime = System.currentTimeMillis();
+            
 	    log.debug( "starting to draw" );
 	    // Find the position for the thumbnail
 	    BufferedImage img = thumbnail.getImage();
@@ -442,6 +452,8 @@ public class PhotoCollectionThumbView
 		g2.setColor( prevColor );
 		g2.setStroke( prevStroke );
 	    }
+            
+            thumbDrawnTime = System.currentTimeMillis();
 	    // Increase ypos so that attributes are drawn under the image
 	    ypos += ((int)img.getHeight())/2 + 4;
 	    
@@ -456,43 +468,6 @@ public class PhotoCollectionThumbView
 	    if ( showDate && photo.getShootTime() != null ) {
 		FuzzyDate fd = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
 		
-// 		long accuracy = ((long) photo.getTimeAccuracy() ) * 24 * 3600 * 1000;
-// 		log.warn( "Accuracy = " + accuracy );
-// 		String dateStr = "";
-// 		if ( accuracy > 0 ) {
-// 		    double accuracyFormatLimits[] = {0, 3, 14, 180};
-// 		    String accuracyFormatStrings[] = {
-// 			"dd.MM.yyyy",
-// 			"'wk' w yyyy",
-// 			"MMMM yyyy",
-// 			"yyyy"
-// 		    };
-
-// 		    // Find the correct format to use
-// 		    double dblAccuracy = photo.getTimeAccuracy();
-// 		    String formatStr =accuracyFormatStrings[0];
-// 		    for ( int i = 1; i < accuracyFormatLimits.length; i++ ) {
-// 			if ( dblAccuracy < accuracyFormatLimits[i] ) {
-// 			    break;
-// 			}
-// 			formatStr =accuracyFormatStrings[i];
-// 		    }
-			
-// 		    // Show the limits of the accuracy range
-// 		    DateFormat df = new SimpleDateFormat( formatStr );
-// 		    Date lower = new Date( photo.getShootTime().getTime() - accuracy );
-// 		    Date upper = new Date( photo.getShootTime().getTime() + accuracy );
-// 		    String lowerStr = df.format( lower );
-// 		    String upperStr = df.format( upper );
-// 		    dateStr = lowerStr;
-// 		    if ( !lowerStr.equals( upperStr ) ) {
-// 			dateStr += " - " + upperStr;
-// 		    }
-// 		} else {
-// 		    DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
-// 		    dateStr = df.format( photo.getShootTime() );
-// 		}
-
 		String dateStr = fd.format();
 		TextLayout txt = new TextLayout( dateStr, attrFont, frc );
 		// Calculate the position for the text
@@ -517,7 +492,15 @@ public class PhotoCollectionThumbView
 	    }
 	    g2.setBackground( prevBkg );
 	}
+        txw.commit();
+        
+        endTime = System.currentTimeMillis();
 	log.debug( "paintThumbnail: exit " + photo.getUid() );
+        log.debug( "Thumb fetch " + (thumbReadyTime - startTime ) + " ms" );
+        log.debug( "Thumb draw " + ( thumbDrawnTime - thumbReadyTime ) + " ms" );
+        log.debug( "Deacoration draw " + (endTime - thumbDrawnTime ) + " ms" );
+        log.debug( "Total " + (endTime - startTime ) + " ms" );
+        
     }
 
 

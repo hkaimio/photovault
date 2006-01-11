@@ -101,7 +101,7 @@ public class Photovault {
 
     
     public static void main( String [] args ) {
-        URL log4jPropertyURL = Photovault.class.getClassLoader().getResource( "log4j.properties");
+        URL log4jPropertyURL = Photovault.class.getClassLoader().getResource( "photovault_log4j.properties");
         PropertyConfigurator.configure( log4jPropertyURL );
 	Photovault app = new Photovault();
 	app.run();
