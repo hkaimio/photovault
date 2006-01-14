@@ -70,7 +70,6 @@
     </table>
     <table name="ojb_hl_seq">
       <column name="TABLENAME" primaryKey="true" required="true" type="VARCHAR" size="175" autoIncrement="false"/>
-      <column name="FIELDNAME" primaryKey="true" required="true" type="VARCHAR" size="70" autoIncrement="false"/>
       <column name="MAX_KEY" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="GRAB_SIZE" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="VERSION" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
