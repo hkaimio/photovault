@@ -310,10 +310,22 @@ public class PhotoInfo {
     public ImageInstance addInstance( Volume volume, File instanceFile, int instanceType ) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
-        Vector origInstances = getInstances();
+        // Vector origInstances = getInstances();
         ImageInstance instance = ImageInstance.create( volume, instanceFile, this );
         instance.setInstanceType( instanceType );
-        origInstances.add( instance );
+        instances.add( instance );
+        
+        // If this is the first instance or we are adding original image we need to invalidate
+        // thumbnail
+        if ( instances.size() == 1 || instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+            thumbnail = null;
+        }
+        
+        if ( instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+            // If an original instance is added notify listeners since some of
+            // them may be displaying the default thumbnail
+            modified();
+        }
         txw.commit();
         return instance;
     }
@@ -390,21 +402,10 @@ public class PhotoInfo {
     public boolean hasThumbnail() {
         log.debug( "hasThumbnail: entry, Finding thumbnail for " + uid );
         if ( thumbnail == null ) {
-            log.debug( "Checking thumbnail from database" );
-            // First try to find an instance from existing instances
-            ImageInstance original = null;
-            for ( int n = 0; n < instances.size(); n++ ) {
-                ImageInstance instance = (ImageInstance) instances.get( n );
-                if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-                        && instance.getRotated() == prefRotation ) {
-                    log.debug( "hasThumbnail: Found thumbnail from database" );
-                    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
-                    break;
-                }
-            }
+            thumbnail = getThumbnail();
         }
         log.debug( "hasThumbnail: exit" );
-        return ( thumbnail != null );
+        return ( thumbnail != Thumbnail.getDefaultThumbnail() );
     }
     
     Thumbnail thumbnail = null;

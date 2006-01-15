@@ -15,6 +15,7 @@ import imginfo.Volume;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Properties;
 import junit.framework.*;
 /**
@@ -44,6 +45,12 @@ public class Test_PhotovaultSettings extends TestCase {
      */
     public void testSettingsFileInHomeDir() {
         System.setProperty( "user.home", "testfiles/testHomeDir" );
+        
+        /* Unset the photovault.configfile property so that the config file is
+         * loaded from specified home directory (this property is set by unit test
+         * Ant target)
+         */
+        System.getProperties().remove( "photovault.configfile" );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase db = settings.getDatabase( "testdb" );
         assertNotNull( db );

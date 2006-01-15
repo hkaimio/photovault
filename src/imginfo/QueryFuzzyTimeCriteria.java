@@ -73,6 +73,9 @@ public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {
 	    break;
 
 	case INCLUDE_POSSIBLE:
+            /*
+             * Include photos whose time range intersects with the query range
+             */
 	    log.debug( "INCLUDE_POSSIBLE" );
 	    String gtclause = "adddate("+dateField.getName()
 		+", " + accuracyField.getName() + ")";

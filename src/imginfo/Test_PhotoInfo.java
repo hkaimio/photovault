@@ -469,6 +469,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
        Test getThumbnail in situation where there is no image instances for the PhotoInfo
     */
     public void testThumbWithNoInstances() {
+	log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger photoLog = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
+	photoLog.setLevel( org.apache.log4j.Level.DEBUG );
+        
 	PhotoInfo photo = PhotoInfo.create();
 	Thumbnail thumb = photo.getThumbnail();
 	assertTrue( "getThumbnail should return default thumbnail",
@@ -488,7 +492,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	}
 	photo.addInstance( Volume.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	Thumbnail thumb2 = photo.getThumbnail();
-	assertFalse( "After instance addition, getThumbnail should not return default thumbnail",
+	log.setLevel( org.apache.log4j.Level.WARN );
+	photoLog.setLevel( org.apache.log4j.Level.WARN );
+   
+        assertFalse( "After instance addition, getThumbnail should not return default thumbnail",
 			thumb == thumb2 );
 	assertEquals( "There should be 2 instances: original & thumbnail", 2, photo.getNumInstances() );
 

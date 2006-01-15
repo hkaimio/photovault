@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databases>
     <databases>
-        <database name="testdb" dbName="pv_junit" host="">
+        <database name="testdb" dbName="habadabaduu" host="">
             <volumes>
                 <volume name="junitVolume" basedir="test_volume/junitVolume"/>
             </volumes>

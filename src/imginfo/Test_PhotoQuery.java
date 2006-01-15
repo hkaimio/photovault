@@ -22,6 +22,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	// Create several photos with different shooting dates
 	// Add them to a collection so that they are easy to delete afterwards
 	Calendar cal = Calendar.getInstance();
+        cal.clear();
 	photos = new Vector();
 	uids = new Vector();
 	cal.set( 2002, 11, 23 );
@@ -30,7 +31,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	makePhoto( cal, 1, "Lassille kuuluu hyvaa" );
 	makePhoto( cal, 2, "" );
 	cal.set( 2002, 11, 25 );
-	makePhoto( cal, 2, "" );
+	makePhoto( cal, 1, "" );
 
         folder = PhotoFolder.create( "QueryTest", PhotoFolder.getRoot() );
 	subfolder = PhotoFolder.create( "QueryTest subfolder", folder );
@@ -67,6 +68,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     public void testUpperUnboundedRange() {
 	PhotoQuery q = new PhotoQuery();
 	Calendar cal = Calendar.getInstance();
+        cal.clear();
 	cal.set( 2002, 11, 24 );
 	// First the case in which there is only lower bound
 	q.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME, cal.getTime(), null );
@@ -78,6 +80,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     public void testBoundedRange() {
 	PhotoQuery q = new PhotoQuery();
 	Calendar cal = Calendar.getInstance();
+        cal.clear();
 	cal.set( 2002, 11, 24 );
 	// First the case in which there is only lower bound
 	q.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME, cal.getTime(), cal.getTime() );
@@ -90,6 +93,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 
 	// First, check cases where the midpoint belongs to the fuzziness range
  	Calendar cal = Calendar.getInstance();
+        cal.clear();
 	cal.set( 2002, 11, 24 );
 	FuzzyDate fd1 = new FuzzyDate( cal.getTime(), 1.0 );
 	// First the case in which there is only lower bound
@@ -107,6 +111,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 
 	// First, check cases where the midpoint belongs to the fuzziness range
  	Calendar cal = Calendar.getInstance();
+        cal.clear();
 	cal.set( 2002, 11, 24 );
 	FuzzyDate fd1 = new FuzzyDate( cal.getTime(), 1.0 );
  	q.setFuzzyDateCriteria( PhotoQuery.FIELD_SHOOTING_TIME,
@@ -122,13 +127,14 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 
 	// First, check cases where the midpoint belongs to the fuzziness range
  	Calendar cal = Calendar.getInstance();
+        cal.clear();
 	cal.set( 2002, 11, 24 );
 	FuzzyDate fd1 = new FuzzyDate( cal.getTime(), 1.0 );
 	q.setFuzzyDateCriteria( PhotoQuery.FIELD_SHOOTING_TIME,
 				PhotoQuery.FIELD_SHOOTING_TIME_ACCURACY,
 				fd1, QueryFuzzyTimeCriteria.INCLUDE_CERTAIN );
 	// All expected to be included with INCLUDE_POSSIBLE
-	boolean[] expected3 = { false, true, true, false };
+	boolean[] expected3 = { false, true, false, false };
 	checkResults( q, expected3 );
 	
 
@@ -137,6 +143,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     public void testLowerUnboundedRange() {
 	PhotoQuery q = new PhotoQuery();
 	Calendar cal = Calendar.getInstance();
+        cal.clear();
 	cal.set( 2002, 11, 24 );
 	// First the case in which there is only lower bound
 	q.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME, null, cal.getTime() );
@@ -182,6 +189,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     public void testQueryModification() {
 	PhotoQuery q = new PhotoQuery();
 	Calendar cal = Calendar.getInstance();
+        cal.clear();
 	cal.set( 2002, 11, 24 );
 	// First the case in which there is only lower bound
 	q.setFieldCriteriaRange( PhotoQuery.FIELD_SHOOTING_TIME, null, cal.getTime() );
@@ -212,7 +220,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	log.debug( "Checking that all are found" );
 	for ( int n = 0; n < expected.length; n++ ) {
 	    if ( expected[n] ) {
-		fail( "Photo "+ n + " (id" + ((PhotoInfo)photos.elementAt( n )).getUid() + ") not included in result set" );
+                PhotoInfo photo = (PhotoInfo)photos.elementAt( n );
+                FuzzyDate d = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
+		fail( "Photo "+ n + " (id" + photo.getUid() + ", dated " + d.format() + ") not included in result set" );
 	    }
 	}
     }
