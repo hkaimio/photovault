@@ -2,6 +2,18 @@
     <table name="collection_photos">
       <column name="collection_id" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
       <column name="photo_id" primaryKey="true" required="true" type="INTEGER" size="11" autoIncrement="false"/>
+
+      <!-- For future use -->
+      <column name="cp_desc" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
+      <column name="cp_string1" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="cp_string2" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="cp_string3" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="cp_string4" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="cp_float1" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="cp_float2" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="cp_float3" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="cp_float4" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      
       <!--unique name="PRIMARY">
         <unique-column name="collection_id"/>
         <unique-column name="photo_id"/>
@@ -15,6 +27,18 @@
       <column name="height" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="rotated" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
       <column name="instance_type" primaryKey="false" required="true" type="VARCHAR" size="9" default="original" autoIncrement="false"/>
+
+      <!-- Columns for reserved for future use -->
+      <column name="instance_string1" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="instance_string2" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="instance_string3" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="instance_string4" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="instance_float1" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="instance_float2" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="instance_float3" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="instance_float4" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      
+      
       <!--unique name="PRIMARY">
         <unique-column name="volume_id"/>
         <unique-column name="fname"/>
@@ -103,7 +127,18 @@
       <column name="collection_desc" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
       <column name="create_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
       <column name="last_modified" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
-      <!--unique name="PRIMARY">
+      
+      <!-- Columns for reserved for future use -->
+      <column name="collection_string1" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="collection_string2" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="collection_string3" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="collection_string4" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="collection_float1" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="collection_float2" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="collection_float3" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="collection_float4" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      
+<!--unique name="PRIMARY">
         <unique-column name="collection_id"/>
       </unique-->
       <!--index name="collection_desc">
@@ -136,6 +171,16 @@
       <column name="photo_quality" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="last_modified" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
       <column name="tech_notes" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
+
+      <!-- Columns reserved for future use, to avoid disrupting schema changes -->
+      <column name="photo_string1" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="photo_string2" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="photo_string3" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="photo_string4" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+      <column name="photo_float1" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="photo_float2" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="photo_float3" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+      <column name="photo_float4" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
       <!--unique name="PRIMARY">
         <unique-column name="photo_id"/>
       </unique-->

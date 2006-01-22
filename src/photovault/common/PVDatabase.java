@@ -263,7 +263,7 @@ public class PVDatabase {
         idStr = idBuf.toString();
         DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
         dbInfo.set( "database_id", idStr );
-        dbInfo.set( "schema_version", new Integer(2) );
+        dbInfo.set( "schema_version", new Integer(3) );
         dbInfo.set( "create_time", new Timestamp( System.currentTimeMillis() ) );
         platform.insert( dbModel, dbInfo );
     }        

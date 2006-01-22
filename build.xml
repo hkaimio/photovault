@@ -15,8 +15,8 @@
 
    	
   <!-- Checkstyle ant task definition -->
-  <taskdef resource="checkstyletask.properties"
-            classpath="lib/checkstyle-all-4.0-beta6.jar"/>
+  <!--taskdef resource="checkstyletask.properties"
+            classpath="lib/checkstyle-all-4.0-beta6.jar"/-->
     
     <!-- SVN info task definition -->
   <taskdef name="svninfoproperties" classname="com.jwhitlock.ant.taskdefs.SvnInfoProperties" classpath="lib/svninfo_task.jar" />

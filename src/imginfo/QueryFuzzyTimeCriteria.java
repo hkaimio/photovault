@@ -56,13 +56,19 @@ public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {
 	    /* Only certain results must be included, so the whole
 	    possible time period of object must be inside the accuracy
 	    limits.  */
+            /*
 	    crit.addGreaterOrEqualThan( "subdate("+dateField.getName()
 					+ ", " + accuracyField.getName() + ")",
 					date.getMinDate() );
 	    crit.addLessOrEqualThan( "adddate("+dateField.getName()
 				     +", " + accuracyField.getName() + ")",
 				     date.getMaxDate() );
-	    break;
+	    */
+            crit.addSql( "subdate("+dateField.getName()
+                        + ", " + accuracyField.getName() + ") >= \"" + date.getMinDate() + "\"" );
+            crit.addSql( "subdate("+dateField.getName()
+                        + ", " + accuracyField.getName() + ") <= \"" + date.getMaxDate() + "\"" );
+            break;
 	case INCLUDE_PROBABLE:
 	    log.debug( "INCLUDE_PROBABLE" );
 	    crit.addBetween( dateField.getName(),

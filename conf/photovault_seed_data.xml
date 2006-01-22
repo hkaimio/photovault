@@ -3,9 +3,9 @@
 <!--
     Document   : photovault_seed_data.xml
     Created on : 26. marraskuuta 2005, 10:27
-    Author     : HArri Kaimio
+    Author     : Harri Kaimio
     Description:
-    This file contains the seed data that is must be loaded to a newly 
+    This file contains the seed data that is loaded to a newly 
     created database.
     
     Contents of this file is loaded using Apache DDLUtils.
