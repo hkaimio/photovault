@@ -476,7 +476,9 @@ public class PhotoCollectionThumbView
 	    Color prevBkg = g2.getBackground();
 	    if ( isSelected ) {
 		g2.setBackground( Color.BLUE );
-	    }
+	    } else {
+                g2.setBackground( this.getBackground() );
+            }
 	    Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
 	    FontRenderContext frc = g2.getFontRenderContext();
 	    if ( showDate && photo.getShootTime() != null ) {
