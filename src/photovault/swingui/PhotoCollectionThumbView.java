@@ -101,6 +101,9 @@ public class PhotoCollectionThumbView
       }
         
       photoCollection = new SortedPhotoCollection( v );
+      if ( photoOrderComparator != null ) {
+          photoCollection.setComparator( photoOrderComparator );
+      }
       photoCollection.addPhotoCollectionChangeListener( this );
       refreshPhotoChangeListeners();
       
@@ -108,6 +111,17 @@ public class PhotoCollectionThumbView
       repaint();
     }
 
+    Comparator photoOrderComparator;
+    
+    public void setPhotoOrderComparator( Comparator c ) {
+        photoOrderComparator = c;
+        photoCollection.setComparator( c );
+    }
+    
+    public Comparator getPhotoOrderComparator() {
+        return photoOrderComparator;
+    }
+    
     /**
        Removes all change listeners this photo has added, repopulates the photos array
        from current photoCollection and adds change listeners to all photos in it.

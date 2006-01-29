@@ -164,6 +164,16 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	    });
 	viewMenu.add( prevPhotoItem );
         
+        JMenu sortMenu = new JMenu( "Sort by" );
+        JMenuItem byDateItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
+                new ShootingDateComparator(), "Date", null, 
+                "Order photos by date", null ));
+        sortMenu.add( byDateItem );
+        JMenuItem byPlaceItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
+                new ShootingPlaceComparator(), "Place", null, 
+                "Order photos by shooting place", null ));
+        sortMenu.add( byPlaceItem );
+        viewMenu.add( sortMenu );
         
 	JMenu imageMenu = new JMenu( "Image" );
 	imageMenu.setMnemonic(KeyEvent.VK_I);

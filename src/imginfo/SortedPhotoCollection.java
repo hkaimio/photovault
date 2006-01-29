@@ -5,6 +5,8 @@
  */
 
 package imginfo;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.SortedSet;
 import java.util.Comparator;
 import java.util.TreeSet;
@@ -42,11 +44,11 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
     /**
      * This Vector contains the photos in sorted order.
      */
-    protected Vector sortedPhotos = null;
+    protected ArrayList sortedPhotos = null;
     /**
      * Comparator used in sorting the photosd.
      */
-    protected Comparator comparator = null;
+    private Comparator comparator = null;
     /**
      * List of PhotoCollectionChangeLIsteners interested in changes to this collection
      */
@@ -130,13 +132,13 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
      * Actual sorting of the collection is done by this method. 
      */
     protected void sortCollection() {
-        TreeSet sortedTree = new TreeSet( comparator );
+ 
+        sortedPhotos = new ArrayList( origCollection.getPhotoCount() );
         for ( int n = 0; n < origCollection.getPhotoCount(); n++ ) {
             PhotoInfo p = origCollection.getPhoto( n );
-            sortedTree.add( p );
+            sortedPhotos.add( p );
         }
-        sortedPhotos = new Vector( sortedTree );
-        
+        Collections.sort( sortedPhotos, comparator );
         notifyListeners();
     }
     
@@ -157,5 +159,21 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
      */
     public PhotoCollection getOrigCollection() {
         return origCollection;
+    }
+    /**
+     * Return the comparator used when sorting photos.
+     */
+    public Comparator getComparator() {
+        return comparator;
+    }
+
+    /**
+     * Set the comparator used when sorting photos
+     * @param comparator Comparator object that will be used
+     */
+    public void setComparator(Comparator comparator) {
+        this.comparator = comparator;
+        sortCollection();
+        notifyListeners();
     }
 }
