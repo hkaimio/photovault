@@ -317,16 +317,23 @@
        </java>
      </target>
 
-<target name="profile" depends="dist" description="Profile Project">
-                <fail unless="netbeans.home">This target can only run inside the NetBeans IDE.</fail>
-                <nbprofile classname="photovault.swingui.Photovault" dir="c:/Documents and Settings/harri/My Documents/projects/photovault">
-                <classpath refid="project.class.path"/>
-                <!--
-                <jvmarg value="-agentpath:&quot;c:\program files\netbeans-4.0\profiler1\modules\profiler-ea-libs\deployed\jdk15\windows\profilerinterface.dll&quot;=&quot;\&quot;c:\program files\netbeans-4.0\profiler1\modules\profiler-ea-libs\&quot;&quot;,5140"/>
-                
-                -->
-                </nbprofile>
-</target>   
+     <!-- Profile Photovault in Netbeans 5 -->
+    <target name="profile" depends="dist" description="Profile Project">
+        <fail unless="netbeans.home">This target can only run inside the NetBeans IDE.</fail>
+        <!-- Start the profiler & waint for Java VM -->
+        <nbprofiledirect>
+            <classpath refid="project.class.path"/>
+        </nbprofiledirect>
+        <!-- Start application. Use basically the same command as for running the application -->
+        <java fork="true" classname="photovault.swingui.Photovault" jvm="${profiler.info.jvm}">
+            <!-- Use large enough heap to fit also big images -->
+            <jvmarg value="-Xmx256M"/>
+            <jvmarg value="${profiler.info.jvmargs.agent}"/>
+            <classpath>
+                <path refid="project.class.path"/>
+            </classpath>
+        </java> 
+    </target>   
    
   <target name="doc">
     <javadoc packagenames = "*"
