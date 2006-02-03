@@ -111,13 +111,25 @@ public class PhotoCollectionThumbView
       repaint();
     }
 
+    /**
+     * Comparator object that is used for sorting thumbnails
+     */
     Comparator photoOrderComparator;
     
+    /**
+     * Sets the comparator that is used for ordering the thumbnails in this view. After
+     * calling this method the whole window is repainted.
+     * @param c The comparator object to be used
+     */
     public void setPhotoOrderComparator( Comparator c ) {
         photoOrderComparator = c;
         photoCollection.setComparator( c );
     }
     
+    /**
+     * Returns the comparator object tjat is currently used for ordering thumbnails
+     * in this view
+     */
     public Comparator getPhotoOrderComparator() {
         return photoOrderComparator;
     }
@@ -581,7 +593,7 @@ public class PhotoCollectionThumbView
 
     /**
        Issues a repaint request for a certain photo.
-       @param n index of the photo in curren PhotoCollection
+       @param n index of the photo in current PhotoCollection
     */
     protected void repaintPhoto( int n ) {
 	if ( n >= 0 ) {
@@ -625,12 +637,19 @@ public class PhotoCollectionThumbView
         return photo;
     }
 
+    /**
+     * Get bounding rectangle for the area in which the thumbnail for a given photo
+     * is displayed
+     * @param photoNum order number of the photo
+     * @return Rectangle bounding the photo or null if photoNum is larger than
+     * # of photos.
+     */
     protected Rectangle getPhotoBounds( int photoNum ) {
         if ( photoNum < photoCollection.getPhotoCount() ) {
             PhotoInfo photoCandidate = photoCollection.getPhoto( photoNum );
             log.debug( "Checking bounds" );
 
-            // Check whether the click was inside the thumbnail or not
+            // Get thumbnail dimensions or use defaults if no thumbnail available
             int width = 100;
             int height = 75;
             Thumbnail thumb = null;
@@ -672,7 +691,8 @@ public class PhotoCollectionThumbView
 	PhotoInfo nextPhoto = null;
 	
 	// Walk through all photos until we find a photo that is visible
-	// and does not have a thumbnail
+	// and does not have a thumbnail. If all visible photos have a thumbnail
+        // but some non-visible ones do not, create a thumbnail for one of those.
 	log.debug( "Finding photo without thumbnail" );
 	for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
             PhotoInfo photoCandidate = photoCollection.getPhoto( n );

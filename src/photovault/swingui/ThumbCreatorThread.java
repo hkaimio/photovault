@@ -10,6 +10,7 @@ class ThumbCreatorThread extends Thread {
 	= org.apache.log4j.Logger.getLogger( ThumbCreatorThread.class.getName() );
 
     public ThumbCreatorThread( PhotoCollectionThumbView view ) {
+        super( "ThumbCreator" );
 	this.view = view;
     }
 
@@ -59,8 +60,8 @@ class ThumbCreatorThread extends Thread {
 				public void run() {
 				    log.debug( "drawing new thumbnail for " + lastPhoto.getUid() );
 				    view.thumbnailCreated( lastPhoto );
-			    }
-			    });
+                                }
+                        });
 		    }
 		} catch ( InterruptedException e ) {
 		    // Interrupt while waiting for mutex, just continute...

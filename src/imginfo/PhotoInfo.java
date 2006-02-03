@@ -339,7 +339,7 @@ public class PhotoInfo {
     
     
     /**
-     Returns the arrayList that cotnains all instances of this file.
+     Returns the arrayList that contains all instances of this file.
      */
     public Vector getInstances() {
         return instances;
@@ -363,9 +363,35 @@ public class PhotoInfo {
      
      If thumbnail creation fails of if there is no image instances available at all, returns
      a default thumbnail image.
+     @return Thumbnail of this photo or default thumbnail if no photo instances available
      */
     public Thumbnail getThumbnail() {
         log.debug( "getThumbnail: entry, Finding thumbnail for " + uid );
+        if ( thumbnail == null ) {
+            thumbnail = getExistingThumbnail();
+            if ( thumbnail == null ) {
+                // Next try to create a new thumbnail instance
+                log.debug( "No thumbnail found, creating" );
+                createThumbnail();
+            }
+        }
+        if ( thumbnail == null ) {
+            // Thumbnail was not successful created, most probably because there 
+            // is no available instance
+            thumbnail = Thumbnail.getDefaultThumbnail();
+        }
+        
+        log.debug( "getThumbnail: exit" );
+        return thumbnail;
+    }
+    
+    /**
+     Returns an existing thumbnail for this photo but do not try to contruct a new 
+     one if there is no thumbnail already created
+     @return Thumbnail for this photo or null if none created
+     */
+    
+    public Thumbnail getExistingThumbnail() {
         if ( thumbnail == null ) {
             log.debug( "Finding thumbnail from database" );
             // First try to find an instance from existing instances
@@ -379,19 +405,7 @@ public class PhotoInfo {
                     break;
                 }
             }
-            if ( thumbnail == null ) {
-                // Next try to create a new thumbnail instance
-                log.debug( "No thumbnail found, creating" );
-                createThumbnail();
-            }
         }
-        if ( thumbnail == null ) {
-            // Thumbnail creating was not successful, most probably because there is no available instance
-// 	    return Thumbnail.getDefaultThumbnail();
-            thumbnail = Thumbnail.getDefaultThumbnail();
-        }
-        
-        log.debug( "getThumbnail: exit" );
         return thumbnail;
     }
     
@@ -402,10 +416,10 @@ public class PhotoInfo {
     public boolean hasThumbnail() {
         log.debug( "hasThumbnail: entry, Finding thumbnail for " + uid );
         if ( thumbnail == null ) {
-            thumbnail = getThumbnail();
+            thumbnail = getExistingThumbnail();
         }
         log.debug( "hasThumbnail: exit" );
-        return ( thumbnail != Thumbnail.getDefaultThumbnail() );
+        return ( thumbnail != null && thumbnail != Thumbnail.getDefaultThumbnail() );
     }
     
     Thumbnail thumbnail = null;
