@@ -671,6 +671,27 @@ public class PhotoCollectionThumbView
 	return null;
     }
 
+    /**
+      Get bounding rectangle for the table cell in which a given photo is displayed
+     <p>
+     This method is faster than @see getPhotoBounds since it does not need to 
+     query PhotoInfo and its thumbnail (which may in worst case require loading 
+     the thumbnail from disk) </p>
+     * @param photoNum order number of the photo
+     * @return Rectangle bounding the table cell or null if photoNum is larger than
+     * # of photos.
+     */
+    protected Rectangle getPhotoCellBounds( int photoNum ) {
+        Rectangle boundsRect = null;
+        if ( photoNum >= 0 && photoNum < photoCollection.getPhotoCount() ) {
+	    int row = (int) photoNum / columnsToPaint;
+	    int col = photoNum - row*columnsToPaint;
+            int imgX = col * columnWidth;
+            int imgY = row * rowHeight;
+            boundsRect = new Rectangle( imgX, imgY, columnWidth, rowHeight );
+	}
+	return boundsRect;
+    }
 
     /**
        This method is called by @see ThumbnailCreatorThread after it has
@@ -864,18 +885,38 @@ public class PhotoCollectionThumbView
     public void mouseReleased(MouseEvent mouseEvent) {
         firstMouseEvent = null;
 	if ( dragType == DRAG_TYPE_SELECT ) {
-
+            
+            // Find out thumbails inside the selection rectangle
+            
+            // First lets restrict search to those rows that intersect with selection
+            int topRow = (int) dragSelectionRect.getMinY()/rowHeight;
+            int bottomRow = ((int) dragSelectionRect.getMaxY()/rowHeight)+1;
+            int startPhoto = topRow * columnsToPaint;
+            int endPhoto = bottomRow * columnsToPaint;
+            if ( endPhoto > photoCollection.getPhotoCount() ) {
+                endPhoto = photoCollection.getPhotoCount();
+            }
+            
+            
+            ODMGXAWrapper xa = new ODMGXAWrapper();
 	    // Find out which photos are selected
-	    for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
-		Rectangle photoRect = getPhotoBounds( n );
-		if ( dragSelectionRect.intersects( photoRect ) ) {
-		    selection.add( photoCollection.getPhoto( n ) );
-		    repaintPhoto( photoCollection.getPhoto( n ) );
-		}
-		fireSelectionChangeEvent();
+	    for ( int n = startPhoto; n < endPhoto; n++ ) {
+                /*
+                 Performance optimization: Since getPhotoBounds() needs access 
+                 to photo thumbnail which may not yet be loaded we will do first 
+                 a rough check of if the table cell is in the selection area.
+                 */
+                Rectangle cellRect = getPhotoCellBounds( n );
+                if ( dragSelectionRect.intersects( cellRect ) ) {
+                    Rectangle photoRect = getPhotoBounds( n );
+                    if ( dragSelectionRect.intersects( photoRect ) ) {
+                        selection.add( photoCollection.getPhoto( n ) );
+                        repaintPhoto( photoCollection.getPhoto( n ) );
+                    }
+                }
 	    }
-	    
-	    
+            fireSelectionChangeEvent();
+	    xa.commit();
 	    // Redrw the selection area so that the selection rectangle is not shown anymore
 	    Rectangle repaintRect = dragSelectionRect;
 	    if ( lastDragSelectionRect != null ) {
