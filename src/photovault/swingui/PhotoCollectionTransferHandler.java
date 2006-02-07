@@ -77,7 +77,21 @@ public class PhotoCollectionTransferHandler extends TransferHandler {
 	}
 	return false;
     }
+    
+    /**
+     The collection into which the last import was done. This is used as a workaround
+     to SWING design bug - we must know the import target in exportDone in order to 
+     decide whether we need to remove the photos from folder or not
+     */
+    static private PhotoCollection lastImportTarget = null;
   
+    /**
+     Set the lastImportTarget global variable
+     */
+    static protected void setLastImportTarget( PhotoCollection c ) {
+        lastImportTarget = c;
+    }
+    
     /**
        Causes a transfer to a component from a clipboard or a DND drop operation.
        The Transferable represents the data to be imported into the component.
@@ -87,16 +101,12 @@ public class PhotoCollectionTransferHandler extends TransferHandler {
 	log.warn( "importData" );
         if (canImport(c, t.getTransferDataFlavors())) {
 
-            //Don't drop on myself.
-//             if (source == c) {
-//                 shouldRemove = false;
-//                 return true;
-//             }
 	    PhotoCollection collection = view.getCollection();
 	    if ( collection instanceof PhotoFolder ) {
 		log.warn( "importing" );
 		// Photos were dropped to a folder so we can insert them
 		PhotoFolder folder = (PhotoFolder) collection;
+                lastImportTarget = folder;
 		try {
 		    PhotoInfo[] photos = (PhotoInfo[])t.getTransferData(photoInfoFlavor);
 		    for ( int n = 0; n < photos.length; n++ ) {
@@ -131,8 +141,8 @@ public class PhotoCollectionTransferHandler extends TransferHandler {
 	    i++;
 	}
 	log.warn( "" + i + " photos selected" );
-//         shouldRemove = true;
-        return new PhotoCollectionTransferable(sourcePhotos);
+        PhotoCollection sourceCollection = view.getCollection();
+        return new PhotoCollectionTransferable( sourcePhotos );
     }
     
     public int getSourceActions(JComponent c) {
@@ -141,25 +151,51 @@ public class PhotoCollectionTransferHandler extends TransferHandler {
 
     /**
        This method is called after the data has been exported. If the action was MOVE
-       it removes all transferred photos from the folder.
+       it removes all transferred photos from the folder unless the destination was the same
+     @param c The source component of the tranfer
+     @param data The data that was transferred of null if transfer action was NONE
+     @param action The actual action that was performed
     */
     protected void exportDone(JComponent c, Transferable data, int action) {
-	PhotoCollection coll = view.getCollection();
-        if (/*shouldRemove && */ (action == MOVE) && coll instanceof PhotoFolder ) {
-	    PhotoFolder folder = (PhotoFolder) coll;
+
+        PhotoCollection collection = view.getCollection();
+        
+        // Find out into which collection this transfer was done
+        
+        if ( (collection != lastImportTarget) && (action == MOVE) && collection instanceof PhotoFolder ) {
+	    PhotoFolder folder = (PhotoFolder) collection;
 	    for ( int i = 0; i < sourcePhotos.length; i++ ) {
 		folder.removePhoto( sourcePhotos[i] );
 	    }
         }
+        lastImportTarget = null;
     }
 
+    /**
+     Representation of transfed data for PhotoInfo objects.
+     
+     This class includes a workaround to a design bug in SWING TransferHandler: we must
+     know the destination collection in order to do DnD MOVE operation. DnD framework
+     calls first importData() of the target location (which adds the photos to
+     a collection) and then calls exportDone() of source TransferHandler <b>
+     which deletes the photos just added if the source & destination components show
+     the same component</b>. This bug seems to be fixed in Mustang but breaks API 
+     compatibility.
+     */
     class PhotoCollectionTransferable implements Transferable {
         private PhotoInfo[] photos = null;
 
+        /**
+         Constructor
+         @param sourcePhotos Array og PhotoInfo objects that are transferred
+         */
         PhotoCollectionTransferable( PhotoInfo[] sourcePhotos ) {
             photos = sourcePhotos;
         }
 
+        /**
+         @return The PhotoInfo array that was transferred
+         */
         public Object getTransferData(DataFlavor flavor)
 	    throws UnsupportedFlavorException {
             if (!isDataFlavorSupported(flavor)) {
@@ -168,15 +204,21 @@ public class PhotoCollectionTransferHandler extends TransferHandler {
             return photos;
         }
 
+        /**
+         Get the data flavours this transfer supports. Currently only PhotoInfoFlavour 
+         is supported.
+         */
         public DataFlavor[] getTransferDataFlavors() {
             return new DataFlavor[] { photoInfoFlavor };
         }
 
+        /**
+         @return True if a specific data flavour is supproted, false otherwise
+         */
         public boolean isDataFlavorSupported(DataFlavor flavor) {
             return photoInfoFlavor.equals(flavor);
         }
-    }    
-
+    }
 }
 
    

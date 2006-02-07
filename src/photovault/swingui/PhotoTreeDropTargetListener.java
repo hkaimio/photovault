@@ -193,6 +193,7 @@ class PhotoTreeDropTargetListener implements DropTargetListener
 		    Point pt = e.getLocation();
 		    TreePath pathTarget = tree.getClosestPathForLocation(pt.x, pt.y);
 		    PhotoFolder folder = (PhotoFolder) pathTarget.getLastPathComponent();
+                    PhotoCollectionTransferHandler.setLastImportTarget( folder );
 		    PhotoInfo[] photos = (PhotoInfo[])transferable.getTransferData(photoInfoFlavor);
 		    for ( int n = 0; n < photos.length; n++ ) {
 			folder.addPhoto( photos[n] );
