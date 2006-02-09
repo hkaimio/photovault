@@ -128,6 +128,33 @@
     </copy>
   </target>
 
+  <target name="win32-installer" depends="dist"
+    description="Creates a WIN32 installer ron this build using NSIS">
+      <fail message="The 'nsiscompiler' property must contain absolute path of NSIS compiler">
+          <condition>
+            <not>
+                  <isset property="nsiscompiler"/>
+            </not>
+          </condition>
+      </fail>
+    <mkdir dir="${dist}/win32/installer"/>
+    <copy file="win32/installer/photovault_installer.template.nsi" 
+        tofile="win32/installer/photovault_installer.nsi"
+        overwrite="true">
+        <filterset> 
+            <!-- TODO: This should not be hard coded -->
+            <filter token="version" value="0.1"/>
+            <filter token="svnrevision" value="${svnrevision}"/>
+        </filterset>
+    </copy>
+    <exec executable="${nsiscompiler}">
+        <arg line="win32/installer/photovault_launcher.nsi"/>        
+    </exec>
+    <exec executable="${nsiscompiler}">
+        <arg line="win32/installer/photovault_installer.nsi"/>
+    </exec>
+  </target>
+  
     <target name="test" depends="dist">
       <delete dir="./${reports.test}/testresults"/>
       <mkdir dir="./${reports.test}/testresults"/>
