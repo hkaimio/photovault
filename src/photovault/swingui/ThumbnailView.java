@@ -11,7 +11,7 @@ import java.awt.font.*;
 import javax.imageio.ImageIO;
 import java.io.*;
 import java.awt.geom.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import java.text.*;
 import java.util.Date;
 import org.photovault.imginfo.PhotoInfo;

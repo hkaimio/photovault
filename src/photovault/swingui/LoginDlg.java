@@ -6,7 +6,7 @@ import java.util.Vector;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import java.io.*;
 import photovault.common.PVDatabase;
 import photovault.common.PhotovaultSettings;

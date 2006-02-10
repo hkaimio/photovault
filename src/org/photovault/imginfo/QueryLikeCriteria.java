@@ -1,6 +1,6 @@
 // QueryRangeCriteria.java
   
-package imginfo;
+package org.photovault.imginfo;
 import org.apache.ojb.broker.query.Criteria;
 
 public class QueryLikeCriteria implements QueryFieldCriteria {

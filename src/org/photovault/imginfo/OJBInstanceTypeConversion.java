@@ -1,6 +1,6 @@
 // $Id: OJBInstanceTypeConversion.java,v 1.1 2003/03/01 19:43:17 kaimio Exp $
 
-package imginfo;
+package org.photovault.imginfo;
 
 import org.apache.ojb.broker.accesslayer.conversions.*;
 

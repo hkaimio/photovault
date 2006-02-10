@@ -1,6 +1,6 @@
 // ImageInstance.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 import dbhelper.*;
 import org.odmg.*;

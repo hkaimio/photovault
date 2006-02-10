@@ -49,7 +49,7 @@
       </inverse-foreignkey>
     </collection-descriptor>
     <collection-descriptor name="photos" 
-        element-class-ref="imginfo.PhotoInfo" 
+        element-class-ref="org.photovault.imginfo.PhotoInfo" 
         collection-class="org.apache.ojb.broker.util.collections.ManageableArrayList"
         indirection-table="collection_photos" 
         auto-retrieve="true"
@@ -64,7 +64,7 @@
   </class-descriptor>
 
   <!-- ImageInstance mappings -->
-  <class-descriptor class="imginfo.ImageInstance" table="image_instances" row-reader="imginfo.ImageInstanceRowReader">
+  <class-descriptor class="org.photovault.imginfo.ImageInstance" table="image_instances" row-reader="org.photovault.imginfo.ImageInstanceRowReader">
     <field-descriptor name="volumeId" column="volume_id" jdbc-type="VARCHAR" primarykey="true" nullable="false">
       <documentation></documentation>
     </field-descriptor>
@@ -72,7 +72,7 @@
     </field-descriptor>
     <field-descriptor name="photoUid" column="photo_id" jdbc-type="INTEGER">
     </field-descriptor>
-    <field-descriptor name="instanceType" column="instance_type" jdbc-type="VARCHAR" conversion="imginfo.OJBInstanceTypeConversion">
+    <field-descriptor name="instanceType" column="instance_type" jdbc-type="VARCHAR" conversion="org.photovault.imginfo.OJBInstanceTypeConversion">
     </field-descriptor>
     <field-descriptor name="width" column="width" jdbc-type="INTEGER">
     </field-descriptor>
@@ -83,7 +83,7 @@
   </class-descriptor>
 
   <!-- PhotoInfo mappings -->
-  <class-descriptor class="imginfo.PhotoInfo" table="photos">
+  <class-descriptor class="org.photovault.imginfo.PhotoInfo" table="photos">
     <field-descriptor name="uid" column="photo_id" jdbc-type="INTEGER" primarykey="true" autoincrement="true">
     </field-descriptor>
     <field-descriptor name="shootingPlace" column="shooting_place" jdbc-type="VARCHAR">
@@ -94,7 +94,7 @@
     </field-descriptor>
     <field-descriptor name="focalLength" column="focal_length" jdbc-type="FLOAT">
     </field-descriptor>
-    <field-descriptor name="shootTime" column="shoot_time" jdbc-type="TIMESTAMP" conversion="imginfo.Timestamp2DateConversion">
+    <field-descriptor name="shootTime" column="shoot_time" jdbc-type="TIMESTAMP" conversion="org.photovault.imginfo.Timestamp2DateConversion">
     </field-descriptor>
     <field-descriptor name="timeAccuracy" column="time_accuracy" jdbc-type="DOUBLE">
     </field-descriptor>
@@ -116,7 +116,7 @@
     </field-descriptor>
     <field-descriptor name="quality" column="photo_quality" jdbc-type="INTEGER">
     </field-descriptor>
-    <field-descriptor name="lastModified" column="last_modified" jdbc-type="TIMESTAMP"  conversion="imginfo.Timestamp2DateConversion">
+    <field-descriptor name="lastModified" column="last_modified" jdbc-type="TIMESTAMP"  conversion="org.photovault.imginfo.Timestamp2DateConversion">
     </field-descriptor>
     <field-descriptor name="origFname" column="orig_fname" jdbc-type="VARCHAR">
     </field-descriptor>
@@ -127,7 +127,7 @@
     collection
     -->
     <collection-descriptor name="instances" 
-        element-class-ref="imginfo.ImageInstance"         
+        element-class-ref="org.photovault.imginfo.ImageInstance"         
         auto-retrieve="true"
         auto-update="none"
         auto-delete="none">

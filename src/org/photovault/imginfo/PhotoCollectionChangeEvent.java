@@ -1,6 +1,6 @@
 // PhotoCollectionChangeEvent.java
 
-package imginfo;
+package org.photovault.imginfo;
 import java.util.*;
 
 /**

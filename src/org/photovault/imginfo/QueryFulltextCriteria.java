@@ -1,6 +1,6 @@
 // QueryFulltextCriteria.java
   
-package imginfo;
+package org.photovault.imginfo;
 import org.apache.ojb.broker.query.Criteria;
 
 public class QueryFulltextCriteria implements QueryFieldCriteria {

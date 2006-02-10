@@ -1,5 +1,5 @@
 // TestImgInfoPkg.java
-package imginfo;
+package org.photovault.imginfo;
 
 import junit.framework.*;
 

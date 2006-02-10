@@ -11,7 +11,7 @@ import java.awt.image.*;
 import javax.imageio.ImageIO;
 import java.io.*;
 import java.awt.geom.AffineTransform;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 
 

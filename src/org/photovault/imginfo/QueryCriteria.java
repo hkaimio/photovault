@@ -1,6 +1,6 @@
 // QueryCriteria.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 public class QueryCriteria {
 

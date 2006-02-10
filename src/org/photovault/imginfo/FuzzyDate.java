@@ -1,4 +1,4 @@
-package imginfo;
+package org.photovault.imginfo;
 
 import java.util.Date;
 import java.util.GregorianCalendar;

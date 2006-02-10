@@ -6,7 +6,7 @@ import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import photovault.folder.*;
 import javax.swing.tree.*;
 import javax.swing.event.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import java.util.*;
 
 

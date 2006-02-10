@@ -4,7 +4,7 @@
  * Created on 7. toukokuuta 2005, 6:58
  */
 
-package imginfo;
+package org.photovault.imginfo;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.SortedSet;

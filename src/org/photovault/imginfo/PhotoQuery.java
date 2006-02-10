@@ -1,6 +1,6 @@
 // PhotoQuery.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 import java.util.*;
 import java.sql.*;
@@ -10,7 +10,7 @@ import org.apache.ojb.broker.query.*;
 import org.apache.ojb.broker.*;
 import org.apache.ojb.odmg.*;
 import photovault.folder.PhotoFolder;
-import imginfo.FuzzyDate;
+import org.photovault.imginfo.FuzzyDate;
 
 /**
    PhotoQuery class can be used to search for photos using wide variety of criterias.

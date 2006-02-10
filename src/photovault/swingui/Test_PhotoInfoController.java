@@ -5,7 +5,7 @@ package photovault.swingui;
 import java.io.*;
 import junit.framework.*;
 import java.util.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import photovault.test.PhotovaultTestCase;

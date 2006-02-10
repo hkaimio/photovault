@@ -2,7 +2,7 @@
 
 package photovault.swingui;
 
-import imginfo.*;
+import org.photovault.imginfo.*;
 
 /** Interface for classes that want to receive events from modifications to PhotoInfoController state
  */

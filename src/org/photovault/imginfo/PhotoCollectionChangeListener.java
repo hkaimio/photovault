@@ -1,6 +1,6 @@
 // PhotoCollectionChangeListener.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 
 public interface PhotoCollectionChangeListener {

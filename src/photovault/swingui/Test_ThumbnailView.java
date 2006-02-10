@@ -12,7 +12,7 @@ import javax.swing.border.*;
 import javax.imageio.*;
 import javax.imageio.stream.*;
 import abbot.tester.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import photovault.test.PhotovaultTestCase;

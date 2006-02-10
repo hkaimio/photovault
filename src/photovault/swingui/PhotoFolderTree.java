@@ -9,7 +9,7 @@ import java.awt.dnd.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import photovault.folder.*;
 import java.util.*;
 

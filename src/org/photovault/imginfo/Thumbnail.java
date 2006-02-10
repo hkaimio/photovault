@@ -1,6 +1,6 @@
 // Thumbnail.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 
 import javax.imageio.*;

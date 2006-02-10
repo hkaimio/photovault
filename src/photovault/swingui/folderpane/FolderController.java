@@ -5,7 +5,7 @@ import javax.swing.*;
 import javax.swing.event.TreeModelListener;
 import org.photovault.imginfo.PhotoInfo;
 import photovault.swingui.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Collection;

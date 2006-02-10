@@ -1,6 +1,6 @@
 // PhotoInfo.java
 
-package imginfo;
+package org.photovault.imginfo;
 import java.util.*;
 import java.sql.*;
 import java.io.*;

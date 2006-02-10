@@ -1,4 +1,4 @@
-package imginfo;
+package org.photovault.imginfo;
 
 import org.apache.ojb.broker.accesslayer.conversions.FieldConversion;
 import java.util.Date;

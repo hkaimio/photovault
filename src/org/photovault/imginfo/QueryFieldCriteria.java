@@ -1,6 +1,6 @@
 // QueryFieldCriteria.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 import org.apache.ojb.broker.query.Criteria;
 

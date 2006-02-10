@@ -1,6 +1,6 @@
 // PhotoCollection.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 /**
    Interface to access a collection of photos, like folder or query result set

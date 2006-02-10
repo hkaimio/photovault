@@ -5,7 +5,7 @@
  * Created on 7. toukokuuta 2005, 18:34
  */
 
-package imginfo;
+package org.photovault.imginfo;
 
 import junit.framework.*;
 import java.util.SortedSet;

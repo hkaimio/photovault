@@ -2,7 +2,7 @@
 
 package photovault.swingui;
 
-import imginfo.*;
+import org.photovault.imginfo.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;

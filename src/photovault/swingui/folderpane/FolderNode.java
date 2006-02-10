@@ -3,7 +3,7 @@ package photovault.swingui.folderpane;
 
 import org.photovault.imginfo.PhotoInfo;
 import photovault.folder.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import java.util.*;
 
 /**

@@ -1,6 +1,6 @@
 // $Id: PhotoInfoChangeListener.java,v 1.1 2003/02/08 21:19:34 kaimio Exp $
 
-package imginfo;
+package org.photovault.imginfo;
 
 
 /** Interface for classes that want to receive events from modifications to the PhotoInfo. Note that 

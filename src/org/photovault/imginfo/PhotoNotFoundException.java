@@ -1,5 +1,5 @@
 // PhotoNotFoundException
-package imginfo;
+package org.photovault.imginfo;
 
 /**
    Exception to indicate that a photo was not found

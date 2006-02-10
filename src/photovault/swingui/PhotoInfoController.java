@@ -5,7 +5,7 @@ package photovault.swingui;
 import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import java.io.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import dbhelper.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;

@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package imginfo;
+package org.photovault.imginfo;
 
 import java.util.Date;
 import junit.framework.Test;

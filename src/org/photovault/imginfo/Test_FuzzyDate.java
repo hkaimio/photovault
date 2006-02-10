@@ -1,6 +1,6 @@
 // Test_PhotoInfoController.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 import java.io.*;
 import junit.framework.*;

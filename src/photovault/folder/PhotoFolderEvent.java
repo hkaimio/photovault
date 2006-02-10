@@ -2,7 +2,7 @@
 
 package photovault.folder;
 
-import imginfo.*;
+import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 
 /**

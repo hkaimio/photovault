@@ -1,6 +1,6 @@
 // QueryField.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 /**
    QueryField method represents the needed information about a class field for generic query mechanism.

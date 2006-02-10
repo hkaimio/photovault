@@ -9,7 +9,7 @@ import javax.swing.*;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import photovault.folder.PhotoFolder;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import java.util.Collection;
 import java.util.Iterator;
 

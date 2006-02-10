@@ -3,7 +3,7 @@
 package photovault.folder;
 
 
-import imginfo.*;
+import org.photovault.imginfo.*;
 import org.odmg.*;
 import org.apache.ojb.odmg.*;
 import java.util.*;

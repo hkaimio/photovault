@@ -7,7 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.ShootingDateComparator;
 import org.photovault.imginfo.ShootingPlaceComparator;

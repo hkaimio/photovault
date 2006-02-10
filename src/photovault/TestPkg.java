@@ -2,7 +2,7 @@
 package photovault;
 
 import junit.framework.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 
 public class TestPkg extends TestCase {
 

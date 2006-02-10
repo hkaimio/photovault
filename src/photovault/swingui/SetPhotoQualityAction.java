@@ -9,7 +9,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 
 /**

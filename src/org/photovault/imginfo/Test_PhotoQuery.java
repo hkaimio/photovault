@@ -1,11 +1,11 @@
 // Test_PhtoQuery.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 import junit.framework.*;
 import java.util.*;
 import photovault.folder.*;
-import imginfo.FuzzyDate;
+import org.photovault.imginfo.FuzzyDate;
 import photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoQuery extends PhotovaultTestCase {

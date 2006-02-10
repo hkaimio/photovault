@@ -10,7 +10,7 @@ import java.io.*;
 import org.odmg.Database;
 import org.odmg.Implementation;
 import org.apache.ojb.odmg.*;
-import imginfo.*;
+import org.photovault.imginfo.*;
 import dbhelper.*;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;

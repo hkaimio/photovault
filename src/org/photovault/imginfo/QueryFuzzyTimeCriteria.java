@@ -1,7 +1,7 @@
-package imginfo;
+package org.photovault.imginfo;
 
 import org.apache.ojb.broker.query.Criteria;
-import imginfo.FuzzyDate;
+import org.photovault.imginfo.FuzzyDate;
 import org.apache.ojb.broker.query.Criteria;
 
 public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {

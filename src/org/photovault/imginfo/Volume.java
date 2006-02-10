@@ -1,5 +1,5 @@
 // Volume.java
-package imginfo;
+package org.photovault.imginfo;
 
 import java.io.*;
 import java.text.*;

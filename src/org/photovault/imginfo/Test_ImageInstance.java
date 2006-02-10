@@ -1,6 +1,6 @@
 // TestImageFile.java
 
-package imginfo;
+package org.photovault.imginfo;
 
 import junit.framework.*;
 import java.sql.*;

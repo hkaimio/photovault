@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package imginfo;
+package org.photovault.imginfo;
 
 import java.util.Comparator;
 import java.util.Date;
