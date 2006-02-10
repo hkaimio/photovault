@@ -145,6 +145,7 @@
             <!-- TODO: This should not be hard coded -->
             <filter token="version" value="0.1"/>
             <filter token="svnrevision" value="${svnrevision}"/>
+            <filter token="basedir" value="${basedir}"/>
         </filterset>
     </copy>
     <exec executable="${nsiscompiler}">

@@ -49,7 +49,7 @@ var ICONS_GROUP
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
-!cd "..\.."
+!cd "@basedir@"
 OutFile "dist\win32\installer\PhotovaultSetup.exe"
 InstallDir "$PROGRAMFILES\Photovault_${PRODUCT_VERSION}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
