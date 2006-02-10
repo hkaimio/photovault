@@ -3,12 +3,13 @@
 package photovault.swingui;
 
 import imginfo.*;
-import imginfo.FuzzyDate;
+import org.photovault.imginfo.FuzzyDate;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.*;
 import java.util.*;
+import org.photovault.imginfo.QueryFuzzyTimeCriteria;
 
 public class DateRangeQueryEditor extends JPanel implements ActionListener {
 

@@ -2,11 +2,13 @@
 
 package photovault.swingui;
 
-import imginfo.FuzzyDate;
+import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import java.io.*;
 import imginfo.*;
 import dbhelper.*;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoNotFoundException;
 import photovault.swingui.folderpane.FolderController;
 import org.apache.log4j.Logger;
 

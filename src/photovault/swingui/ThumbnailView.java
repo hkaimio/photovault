@@ -14,6 +14,10 @@ import java.awt.geom.*;
 import imginfo.*;
 import java.text.*;
 import java.util.Date;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoChangeEvent;
+import org.photovault.imginfo.PhotoInfoChangeListener;
+import org.photovault.imginfo.Thumbnail;
 
 /**
    ThumbnailView is a very simple component for displaying Thumbnails.

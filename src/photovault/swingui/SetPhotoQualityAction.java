@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 import imginfo.*;
+import org.photovault.imginfo.PhotoInfo;
 
 /**
    This action sets the "quality" attribut of all selected photos to a specific value

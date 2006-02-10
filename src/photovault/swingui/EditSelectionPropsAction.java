@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.util.Collection;
 import java.util.Iterator;
 import imginfo.*;
+import org.photovault.imginfo.PhotoInfo;
 
 class EditSelectionPropsAction extends AbstractAction implements SelectionChangeListener {
 

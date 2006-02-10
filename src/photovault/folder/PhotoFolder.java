@@ -8,6 +8,10 @@ import org.odmg.*;
 import org.apache.ojb.odmg.*;
 import java.util.*;
 import dbhelper.*;
+import org.photovault.imginfo.PhotoCollection;
+import org.photovault.imginfo.PhotoCollectionChangeEvent;
+import org.photovault.imginfo.PhotoCollectionChangeListener;
+import org.photovault.imginfo.PhotoInfo;
 
 /**
    Implements a folder that can contain both PhotoInfos and other folders

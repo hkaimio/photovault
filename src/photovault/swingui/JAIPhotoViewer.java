@@ -13,6 +13,10 @@ import java.text.*;
 import java.util.*;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.JAI;
+import org.photovault.imginfo.ImageInstance;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoChangeEvent;
+import org.photovault.imginfo.PhotoInfoChangeListener;
 
 public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, ComponentListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JAIPhotoViewer.class.getName() );

@@ -3,6 +3,7 @@ package photovault.swingui.folderpane;
 import javax.swing.tree.*;
 import javax.swing.*;
 import javax.swing.event.TreeModelListener;
+import org.photovault.imginfo.PhotoInfo;
 import photovault.swingui.*;
 import imginfo.*;
 import java.util.HashMap;

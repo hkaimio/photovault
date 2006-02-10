@@ -6,6 +6,8 @@ import java.io.*;
 import junit.framework.*;
 import java.util.*;
 import imginfo.*;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoNotFoundException;
 import photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoInfoController extends PhotovaultTestCase {

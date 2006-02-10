@@ -8,10 +8,10 @@
 package photovault.common;
 
 import dbhelper.ODMG;
-import imginfo.PhotoInfo;
-import imginfo.PhotoNotFoundException;
-import imginfo.Thumbnail;
-import imginfo.Volume;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoNotFoundException;
+import org.photovault.imginfo.Thumbnail;
+import org.photovault.imginfo.Volume;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;

@@ -13,7 +13,7 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 import org.apache.commons.betwixt.io.BeanWriter;
 import org.apache.commons.betwixt.io.BeanReader;
-import imginfo.Volume;
+import org.photovault.imginfo.Volume;
 
 /**
  * This is a collection of available photovault databases.

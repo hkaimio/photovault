@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 import imginfo.*;
 import java.io.*;
+import org.photovault.imginfo.PhotoInfo;
 
 
 /**

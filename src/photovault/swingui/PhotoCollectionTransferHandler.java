@@ -6,6 +6,8 @@ import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
 import javax.swing.*;
+import org.photovault.imginfo.PhotoCollection;
+import org.photovault.imginfo.PhotoInfo;
 import photovault.folder.PhotoFolder;
 import imginfo.*;
 import java.util.Collection;

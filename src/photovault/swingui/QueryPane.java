@@ -7,6 +7,8 @@ import java.awt.*;
 import java.awt.event.*;
 import imginfo.*;
 import java.util.*;
+import org.photovault.imginfo.PhotoCollection;
+import org.photovault.imginfo.PhotoQuery;
 
 /**
    QueryPane implements the container inlcudes the UI componets used to edit the queiry parameters

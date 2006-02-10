@@ -3,6 +3,8 @@ package photovault.swingui;
 import java.lang.*;
 import javax.swing.*;
 import imginfo.*;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.Thumbnail;
 
 /**
  ThumbCreatorThread is used for deferred creation of thumbnails by PhotoCollectionThumbView.

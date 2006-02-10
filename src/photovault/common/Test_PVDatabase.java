@@ -21,7 +21,7 @@ import java.io.File;
 import org.apache.commons.betwixt.io.BeanWriter;
 import org.apache.commons.betwixt.io.BeanReader;
 
-import imginfo.Volume;
+import org.photovault.imginfo.Volume;
 
 /**
  *

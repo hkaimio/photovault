@@ -3,6 +3,7 @@
 package photovault.folder;
 
 import imginfo.*;
+import org.photovault.imginfo.PhotoCollectionChangeEvent;
 
 /**
    PhotoFolderEvent describes an event that has changed a PhotoFolder. It extends @see PhotoCollectionChangeEvent

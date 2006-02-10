@@ -4,6 +4,7 @@ package photovault.folder;
 
 
 import imginfo.*;
+import org.photovault.imginfo.PhotoCollectionChangeListener;
 
 
 /**

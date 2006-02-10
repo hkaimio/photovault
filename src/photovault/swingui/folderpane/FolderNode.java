@@ -1,6 +1,7 @@
 package photovault.swingui.folderpane;
 
 
+import org.photovault.imginfo.PhotoInfo;
 import photovault.folder.*;
 import imginfo.*;
 import java.util.*;

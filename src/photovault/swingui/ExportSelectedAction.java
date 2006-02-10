@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 import imginfo.*;
+import org.photovault.imginfo.PhotoInfo;
 
 /**
    This action class implements exporting of all the selected images from a certain thumbnail

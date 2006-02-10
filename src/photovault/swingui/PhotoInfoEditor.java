@@ -4,7 +4,7 @@
 package photovault.swingui;
 
 
-import imginfo.FuzzyDate;
+import org.photovault.imginfo.FuzzyDate;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.text.*;
@@ -20,6 +20,7 @@ import imginfo.*;
 import dbhelper.*;
 import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
+import org.photovault.imginfo.PhotoInfo;
 import photovault.swingui.folderpane.FolderTreePane;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.

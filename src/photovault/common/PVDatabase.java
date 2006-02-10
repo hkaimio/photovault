@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.io.InputStream;
-import  imginfo.Volume;
+import  org.photovault.imginfo.Volume;
 import java.util.Random;
 import javax.sql.DataSource;
 import org.apache.commons.beanutils.DynaBean;

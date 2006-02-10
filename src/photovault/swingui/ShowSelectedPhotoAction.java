@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 import imginfo.*;
+import org.photovault.imginfo.PhotoInfo;
 
 /**
    This action class implements displays the selected images

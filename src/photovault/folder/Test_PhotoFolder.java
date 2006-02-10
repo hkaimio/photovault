@@ -12,6 +12,10 @@ import org.odmg.Implementation;
 import org.apache.ojb.odmg.*;
 import imginfo.*;
 import dbhelper.*;
+import org.photovault.imginfo.PhotoCollectionChangeEvent;
+import org.photovault.imginfo.PhotoCollectionChangeListener;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoNotFoundException;
 import photovault.common.PhotovaultSettings;
 import photovault.test.PhotovaultTestCase;
 

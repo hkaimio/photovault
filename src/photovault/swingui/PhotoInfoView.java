@@ -2,7 +2,7 @@
 
 package photovault.swingui;
 
-import imginfo.FuzzyDate;
+import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import javax.swing.tree.TreeModel;
 

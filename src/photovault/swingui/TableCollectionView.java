@@ -11,6 +11,11 @@ import java.io.*;
 import java.text.*;
 import java.util.*;
 import javax.swing.table.*;
+import org.photovault.imginfo.DateRangeQuery;
+import org.photovault.imginfo.PhotoCollection;
+import org.photovault.imginfo.PhotoCollectionChangeEvent;
+import org.photovault.imginfo.PhotoCollectionChangeListener;
+import org.photovault.imginfo.PhotoInfo;
 import photovault.folder.*;
 
 /**
