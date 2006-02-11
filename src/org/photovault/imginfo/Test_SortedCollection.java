@@ -12,7 +12,7 @@ package org.photovault.imginfo;
 import java.util.Date;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolder;
 import org.photovault.test.PhotovaultTestCase;
 
 /**

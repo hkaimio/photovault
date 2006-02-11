@@ -6,7 +6,7 @@ import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.odmg.*;
 import org.apache.ojb.odmg.*;
-import photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolder;
 import org.apache.ojb.broker.metadata.ConnectionRepository;
 import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
 import org.apache.ojb.broker.metadata.MetadataManager;

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Collection;
 import java.util.Iterator;
-import photovault.folder.*;
+import org.photovault.folder.*;
 
 public class FolderController extends FieldController {
 

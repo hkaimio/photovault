@@ -1,6 +1,6 @@
 // $Id: PhotoFolderChangeListener.java,v 1.1 2003/02/23 21:43:41 kaimio Exp $
 
-package photovault.folder;
+package org.photovault.folder;
 
 
 import org.photovault.imginfo.*;

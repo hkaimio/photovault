@@ -1,6 +1,6 @@
 // $Id: TestPhotoFolder.java,v 1.6 2003/03/04 19:35:44 kaimio Exp $
 
-package photovault.folder;
+package org.photovault.folder;
 
 import junit.framework.*;
 import org.odmg.*;

@@ -1,6 +1,6 @@
 // $Id: PhotoFolder.java,v 1.5 2003/03/04 19:35:43 kaimio Exp $
 
-package photovault.folder;
+package org.photovault.folder;
 
 
 import org.photovault.dbhelper.ODMG;

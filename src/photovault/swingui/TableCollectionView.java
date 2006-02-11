@@ -16,7 +16,7 @@ import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoInfo;
-import photovault.folder.*;
+import org.photovault.folder.*;
 
 /**
    TableCollectionView implements a simple table based interface for viewing PhotoCollections.

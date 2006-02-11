@@ -8,7 +8,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
-import photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.*;
 import java.util.Collection;
 import java.util.Iterator;

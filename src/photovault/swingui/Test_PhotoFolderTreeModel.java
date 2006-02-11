@@ -3,7 +3,7 @@
 package photovault.swingui;
 
 import java.util.List;
-import photovault.folder.*;
+import org.photovault.folder.*;
 import junit.framework.*;
 import javax.swing.event.*;
 import org.apache.ojb.odmg.*;

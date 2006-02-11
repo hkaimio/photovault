@@ -21,7 +21,7 @@ import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
 import org.photovault.imginfo.SortedPhotoCollection;
 import org.photovault.imginfo.Thumbnail;
-import photovault.folder.*;
+import org.photovault.folder.*;
 import java.awt.geom.*;
 import java.text.*;
 import java.awt.font.*;

@@ -10,7 +10,7 @@ import org.apache.ojb.broker.*;
 import org.apache.ojb.odmg.*;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
-import photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.FuzzyDate;
 
 /**

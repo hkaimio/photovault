@@ -21,7 +21,7 @@
 
   <!-- PhotoFolder mappings -->
 
-  <class-descriptor class="photovault.folder.PhotoFolder" table="photo_collections">
+  <class-descriptor class="org.photovault.folder.PhotoFolder" table="photo_collections">
 
     <!-- one of (field-descriptor extent-class) -->
     <field-descriptor name="folderId" column="collection_id" jdbc-type="INTEGER" primarykey="true" autoincrement="true">
@@ -32,13 +32,13 @@
     </field-descriptor>
     <field-descriptor name="parentId" column="parent" jdbc-type="INTEGER">
     </field-descriptor>
-    <reference-descriptor name="parent" class-ref="photovault.folder.PhotoFolder">
+    <reference-descriptor name="parent" class-ref="org.photovault.folder.PhotoFolder">
       <documentation>Parent of this folder</documentation>
       <foreignkey field-ref="parentId">
       </foreignkey>
     </reference-descriptor>
     <collection-descriptor name="subfolders" 
-        element-class-ref="photovault.folder.PhotoFolder" 
+        element-class-ref="org.photovault.folder.PhotoFolder" 
         orderby="name" 
         sort="ASC" 
         auto-retrieve="true"
@@ -138,7 +138,7 @@
     This is an m:n mappin so we will use manageable collections.
     -->
     <collection-descriptor name="folders" 
-        element-class-ref="photovault.folder.PhotoFolder" 
+        element-class-ref="org.photovault.folder.PhotoFolder" 
         indirection-table="collection_photos" 
         collection-class="org.apache.ojb.broker.util.collections.ManageableArrayList"
         auto-retrieve="true"

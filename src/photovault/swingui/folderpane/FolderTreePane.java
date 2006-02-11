@@ -14,7 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.*;
 import photovault.swingui.PhotoFolderSelectionDlg;
-import photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolder;
 
 public class FolderTreePane extends JPanel implements TreeModelListener, ActionListener  {
 

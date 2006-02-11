@@ -3,7 +3,7 @@
 package photovault.swingui;
 
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
-import photovault.folder.*;
+import org.photovault.folder.*;
 import javax.swing.tree.*;
 import javax.swing.event.*;
 import org.photovault.imginfo.*;

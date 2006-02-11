@@ -13,7 +13,7 @@ import java.io.*;
 
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
-import photovault.folder.*;    
+import org.photovault.folder.*;    
 
 /**
    Implements the dropping logic for PhotoInfoTree. Modified from JavaWorld tip,

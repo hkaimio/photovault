@@ -10,7 +10,7 @@ import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import org.photovault.imginfo.*;
-import photovault.folder.*;
+import org.photovault.folder.*;
 import java.util.*;
 
 /**

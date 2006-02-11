@@ -20,7 +20,7 @@ import org.apache.ojb.odmg.*;
 import org.odmg.*;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
-import photovault.folder.*;
+import org.photovault.folder.*;
 
 /**
  PhotoInfo represents information about a single photograph

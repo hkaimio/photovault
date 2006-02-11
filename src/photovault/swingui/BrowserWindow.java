@@ -11,7 +11,7 @@ import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.ShootingDateComparator;
 import org.photovault.imginfo.ShootingPlaceComparator;
-import photovault.folder.*;
+import org.photovault.folder.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;

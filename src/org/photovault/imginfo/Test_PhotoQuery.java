@@ -4,7 +4,7 @@ package org.photovault.imginfo;
 
 import junit.framework.*;
 import java.util.*;
-import photovault.folder.*;
+import org.photovault.folder.*;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.test.PhotovaultTestCase;
 

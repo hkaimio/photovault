@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 import org.photovault.imginfo.*;
 import java.io.*;
-import photovault.folder.*;
+import org.photovault.folder.*;
 
 /**
    This is a simple dialog for selecting a folder.

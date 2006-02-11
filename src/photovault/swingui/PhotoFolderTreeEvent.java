@@ -3,7 +3,7 @@ package photovault.swingui;
 // $Id
 
 import java.util.*;
-import photovault.folder.*;
+import org.photovault.folder.*;
 
 public class PhotoFolderTreeEvent extends EventObject {
 
