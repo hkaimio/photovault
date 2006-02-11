@@ -5,7 +5,6 @@ import java.util.*;
 import java.sql.*;
 import java.io.*;
 import java.text.*;
-import dbhelper.*;
 import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.ImageInputStream;
@@ -19,6 +18,8 @@ import com.drew.metadata.exif.*;
 import com.drew.imaging.jpeg.*;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;
+import org.photovault.dbhelper.ODMG;
+import org.photovault.dbhelper.ODMGXAWrapper;
 import photovault.folder.*;
 
 /**

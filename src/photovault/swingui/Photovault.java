@@ -3,7 +3,7 @@ package photovault.swingui;
 import java.util.Collection;
 import org.odmg.*;
 import javax.swing.JOptionPane;
-import dbhelper.ODMG;
+import org.photovault.dbhelper.ODMG;
 import java.net.URL;
 import photovault.common.PVDatabase;
 import photovault.common.PhotovaultSettings;

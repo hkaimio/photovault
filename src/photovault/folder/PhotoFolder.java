@@ -3,11 +3,12 @@
 package photovault.folder;
 
 
+import org.photovault.dbhelper.ODMG;
+import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.imginfo.*;
 import org.odmg.*;
 import org.apache.ojb.odmg.*;
 import java.util.*;
-import dbhelper.*;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;

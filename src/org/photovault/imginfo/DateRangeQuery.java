@@ -5,8 +5,9 @@ package org.photovault.imginfo;
 
 import java.util.*;
 import java.sql.*;
-import dbhelper.*;
 import org.odmg.*;
+import org.photovault.dbhelper.ODMG;
+import org.photovault.dbhelper.ODMGXAWrapper;
 
 /**
    DateRangeQuery is a simple query that retrieves all photos that have 

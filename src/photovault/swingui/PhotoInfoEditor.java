@@ -17,7 +17,6 @@ import java.beans.*;
 import java.io.File;
 
 import org.photovault.imginfo.*;
-import dbhelper.*;
 import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import org.photovault.imginfo.PhotoInfo;

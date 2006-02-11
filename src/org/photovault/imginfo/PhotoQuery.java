@@ -4,11 +4,12 @@ package org.photovault.imginfo;
 
 import java.util.*;
 import java.sql.*;
-import dbhelper.*;
 import org.odmg.*;
 import org.apache.ojb.broker.query.*;
 import org.apache.ojb.broker.*;
 import org.apache.ojb.odmg.*;
+import org.photovault.dbhelper.ODMG;
+import org.photovault.dbhelper.ODMGXAWrapper;
 import photovault.folder.PhotoFolder;
 import org.photovault.imginfo.FuzzyDate;
 

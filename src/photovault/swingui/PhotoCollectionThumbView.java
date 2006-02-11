@@ -2,7 +2,7 @@
 
 package photovault.swingui;
 
-import dbhelper.ODMGXAWrapper;
+import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.FuzzyDate;
 import javax.swing.*;

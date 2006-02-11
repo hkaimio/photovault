@@ -7,7 +7,7 @@
 
 package photovault.common;
 
-import dbhelper.ODMG;
+import org.photovault.dbhelper.ODMG;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.imginfo.Thumbnail;

@@ -5,7 +5,7 @@
  */
 
 package photovault.common;
-import dbhelper.ODMG;
+import org.photovault.dbhelper.ODMG;
 
 /**
  * This class handles proper OJB initialization for unti tests. This class is 

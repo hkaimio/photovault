@@ -2,13 +2,14 @@
 
 package org.photovault.imginfo;
 
-import dbhelper.*;
 import org.odmg.*;
 import java.sql.*;
 import java.util.*;
 import javax.imageio.*;
 import javax.imageio.stream.*;
 import java.io.*;
+import org.photovault.dbhelper.ODMG;
+import org.photovault.dbhelper.ODMGXAWrapper;
 
 /**
    This class abstracts a single instance of a image that is stored in a file.

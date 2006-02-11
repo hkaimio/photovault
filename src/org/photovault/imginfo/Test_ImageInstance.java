@@ -4,8 +4,8 @@ package org.photovault.imginfo;
 
 import junit.framework.*;
 import java.sql.*;
-import dbhelper.*;
 import java.io.*;
+import org.photovault.dbhelper.ImageDb;
 import photovault.test.PhotovaultTestCase;
 
 public class Test_ImageInstance extends PhotovaultTestCase {

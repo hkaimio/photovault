@@ -9,7 +9,7 @@ import javax.swing.event.*;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;
 import photovault.test.PhotovaultTestCase;
-import dbhelper.ODMG;
+import org.photovault.dbhelper.ODMG;
 
 public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolderTreeModel.class.getName() );
