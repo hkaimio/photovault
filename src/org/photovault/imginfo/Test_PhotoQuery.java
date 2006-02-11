@@ -6,7 +6,7 @@ import junit.framework.*;
 import java.util.*;
 import photovault.folder.*;
 import org.photovault.imginfo.FuzzyDate;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoQuery extends PhotovaultTestCase {
 

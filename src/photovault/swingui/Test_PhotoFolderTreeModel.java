@@ -8,7 +8,7 @@ import junit.framework.*;
 import javax.swing.event.*;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 import org.photovault.dbhelper.ODMG;
 
 public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {

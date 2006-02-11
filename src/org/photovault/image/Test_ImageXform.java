@@ -36,14 +36,14 @@ public class Test_ImageXform extends TestCase {
 	BufferedImage dst = atop.filter( source, null );
 	File testFile = new File( testDir, "scaling1.png" );
 	assertTrue( "50% scaling not correct",
-		    photovault.test.ImgTestUtils.compareImgToFile( dst, testFile ) );
+		    org.photovault.test.ImgTestUtils.compareImgToFile( dst, testFile ) );
 	
 	at = ImageXform.getScaleXform( 0.5, 45, source.getWidth(), source.getHeight() );
 	atop = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
 	dst = atop.filter( source, null );
 	testFile = new File( testDir, "scaling2.png" );
 	assertTrue( "50% scaling & rotation not correct",
-		    photovault.test.ImgTestUtils.compareImgToFile( dst, testFile ) );
+		    org.photovault.test.ImgTestUtils.compareImgToFile( dst, testFile ) );
     }
 	
     public void testFitting() {
@@ -52,14 +52,14 @@ public class Test_ImageXform extends TestCase {
 	BufferedImage dst = atop.filter( source, null );
 	File testFile = new File( testDir, "fitting1.png" );
 	assertTrue( "fitting not correct",
-		    photovault.test.ImgTestUtils.compareImgToFile( dst, testFile ) );
+		    org.photovault.test.ImgTestUtils.compareImgToFile( dst, testFile ) );
 	
 	at = ImageXform.getFittingXform( 100, 100, 45, source.getWidth(), source.getHeight() );
 	atop = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );
 	dst = atop.filter( source, null );
 	testFile = new File( testDir, "fitting2.png" );
 	assertTrue( "fitting & rotation not correct",
-		    photovault.test.ImgTestUtils.compareImgToFile( dst, testFile ) );
+		    org.photovault.test.ImgTestUtils.compareImgToFile( dst, testFile ) );
     }
 
 

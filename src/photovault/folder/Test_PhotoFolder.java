@@ -18,7 +18,7 @@ import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import photovault.common.PhotovaultSettings;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoFolder extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolder.class.getName() );

@@ -13,7 +13,7 @@ import java.util.Date;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import photovault.folder.PhotoFolder;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 
 /**
  * Test cases for testing @see SortedPhotoCollection

@@ -11,7 +11,7 @@ import javax.imageio.stream.*;
 import org.photovault.dbhelper.ImageDb;
 import photovault.common.PhotovaultSettings;
 import photovault.common.JUnitOJBManager;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoInfo extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoInfo.class.getName() );
@@ -523,13 +523,13 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	// Compare thumbnail to the one saved
 	File testFile = new File ( testRefImageDir, "thumbnailRotation1.png" );
 	assertTrue( "Thumbnail with 45 deg rotation does not match",
-		    photovault.test.ImgTestUtils.compareImgToFile( thumb.getImage(), testFile ) );
+		    org.photovault.test.ImgTestUtils.compareImgToFile( thumb.getImage(), testFile ) );
 
 	photo.setPrefRotation( -90 );
 	thumb = photo.getThumbnail();
 	testFile = new File ( testRefImageDir, "thumbnailRotation2.png" );
 	assertTrue( "Thumbnail with 90 deg rotation does not match",
-		    photovault.test.ImgTestUtils.compareImgToFile( thumb.getImage(), testFile ) );
+		    org.photovault.test.ImgTestUtils.compareImgToFile( thumb.getImage(), testFile ) );
 
 	photo.delete();
     }
@@ -640,7 +640,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    
 	// Verify that the exported image matches the reference
 	assertTrue( "Exported image " + exportFile + " does not match reference " + exportRef,
-		    photovault.test.ImgTestUtils.compareImgToFile( exportedImage, exportRef ) );
+		    org.photovault.test.ImgTestUtils.compareImgToFile( exportedImage, exportRef ) );
 
 	photo.delete();
     }

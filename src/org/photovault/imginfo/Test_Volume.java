@@ -5,7 +5,7 @@ package org.photovault.imginfo;
 import java.io.*;
 import junit.framework.*;
 import java.util.*;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 
 public class Test_Volume extends PhotovaultTestCase {
 

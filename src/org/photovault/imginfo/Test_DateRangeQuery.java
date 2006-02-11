@@ -4,7 +4,7 @@ package org.photovault.imginfo;
 
 import junit.framework.*;
 import java.util.*;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 
 public class Test_DateRangeQuery extends PhotovaultTestCase {
 

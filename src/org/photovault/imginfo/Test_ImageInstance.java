@@ -6,7 +6,7 @@ import junit.framework.*;
 import java.sql.*;
 import java.io.*;
 import org.photovault.dbhelper.ImageDb;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 
 public class Test_ImageInstance extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_ImageInstance.class.getName() );

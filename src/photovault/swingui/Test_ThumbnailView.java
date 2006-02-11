@@ -15,7 +15,7 @@ import abbot.tester.*;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
-import photovault.test.PhotovaultTestCase;
+import org.photovault.test.PhotovaultTestCase;
 
 /**
    Implements unit tests for ThumbnailView class
@@ -79,19 +79,19 @@ public class Test_ThumbnailView extends PhotovaultTestCase {
 
 	BufferedImage bi = tester.capture( view );
 	File f = new File( testRefImageDir, "thumbnailShow1.png" );
-	assertTrue( photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
+	assertTrue( org.photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
 	
 	view.setShowShootingTime( false );
 	tester.waitForIdle();
  	bi = tester.capture( view );
 	f = new File( testRefImageDir, "thumbnailShow2.png" );
-	assertTrue( photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
+	assertTrue( org.photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
 	
 	view.setShowShootingPlace( false );
 	tester.waitForIdle();
 	bi = tester.capture( view );
 	f = new File( testRefImageDir, "thumbnailShow3.png"  );
-	assertTrue( photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
+	assertTrue( org.photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
     }
 
   public void testRotationChange() {
@@ -106,14 +106,14 @@ public class Test_ThumbnailView extends PhotovaultTestCase {
 
 	BufferedImage bi = tester.capture( view );
 	File f = new File( testRefImageDir, "thumbnailRotation1.png" );
-	assertTrue( "thumbnailRotationn not correct", photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
+	assertTrue( "thumbnailRotationn not correct", org.photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
 	
 	photo.setPrefRotation( 107 );
 	tester.waitForIdle();
 
 	bi = tester.capture( view );
 	f = new File( testRefImageDir, "thumbnailRotation2.png" );
- 	assertTrue( "107 deg rotation not correct", photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
+ 	assertTrue( "107 deg rotation not correct", org.photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
     }
 
   private boolean compareImgToFile( BufferedImage img, File file, File errorFile ) {
