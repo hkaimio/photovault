@@ -10,7 +10,7 @@
 package org.photovault.test;
 
 import junit.framework.TestCase;
-import photovault.common.JUnitOJBManager;
+import org.photovault.common.JUnitOJBManager;
 
 /**
  * This class extends junit TestCase class so that it sets up the OJB environment

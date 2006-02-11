@@ -5,8 +5,8 @@ import org.odmg.*;
 import javax.swing.JOptionPane;
 import org.photovault.dbhelper.ODMG;
 import java.net.URL;
-import photovault.common.PVDatabase;
-import photovault.common.PhotovaultSettings;
+import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
 import photovault.swingui.db.DbSettingsDlg;
 

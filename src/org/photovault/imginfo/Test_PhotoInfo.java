@@ -9,8 +9,8 @@ import java.awt.image.*;
 import javax.imageio.*;
 import javax.imageio.stream.*;
 import org.photovault.dbhelper.ImageDb;
-import photovault.common.PhotovaultSettings;
-import photovault.common.JUnitOJBManager;
+import org.photovault.common.PhotovaultSettings;
+import org.photovault.common.JUnitOJBManager;
 import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoInfo extends PhotovaultTestCase {

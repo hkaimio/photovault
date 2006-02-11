@@ -8,8 +8,8 @@ import java.awt.*;
 import java.awt.event.*;
 import org.photovault.imginfo.*;
 import java.io.*;
-import photovault.common.PVDatabase;
-import photovault.common.PhotovaultSettings;
+import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultSettings;
 
 /**
  * LoginDlg implementfs a simåple dialog for asking which database will be used 

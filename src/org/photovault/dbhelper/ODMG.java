@@ -2,8 +2,8 @@
 package org.photovault.dbhelper;
 
 import java.io.File;
-import photovault.common.PVDatabase;
-import photovault.common.PhotovaultSettings;
+import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultSettings;
 import org.odmg.*;
 import org.apache.ojb.odmg.*;
 import photovault.folder.PhotoFolder;

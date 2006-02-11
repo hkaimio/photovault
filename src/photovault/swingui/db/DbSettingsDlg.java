@@ -12,8 +12,8 @@ import java.awt.Toolkit;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import photovault.common.PVDatabase;
-import photovault.common.PhotovaultSettings;
+import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultSettings;
 
 /**
  * This dialog is used to enter setup for a new Photovault database and to 

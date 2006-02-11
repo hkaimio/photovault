@@ -4,8 +4,8 @@ package org.photovault.imginfo;
 import java.io.*;
 import java.text.*;
 import java.util.*;
-import photovault.common.PVDatabase;
-import photovault.common.PhotovaultSettings;
+import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultSettings;
 
 /**
    The class Volume presents a single volume. e.g. storage area for image files

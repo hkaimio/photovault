@@ -17,7 +17,7 @@ import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
-import photovault.common.PhotovaultSettings;
+import org.photovault.common.PhotovaultSettings;
 import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoFolder extends PhotovaultTestCase {

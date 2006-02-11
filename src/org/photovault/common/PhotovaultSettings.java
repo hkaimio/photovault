@@ -1,4 +1,4 @@
-package photovault.common;
+package org.photovault.common;
 
 import java.util.Properties;
 import java.util.Collection;
