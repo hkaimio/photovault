@@ -108,7 +108,7 @@
     <!-- Create the jar file  -->
     <jar jarfile="${dist}/photovault-latest/photovault.jar">
       <manifest>
-         <attribute name="Main-Class" value="photovault.swingui.Photovault"/>
+         <attribute name="Main-Class" value="org.photovault.swingui.Photovault"/>
          <attribute name="Built-By" value="${user.name}"/>
          <attribute name="Implementation-Version" value="build_${DSTAMP}"/>
          <attribute name="Class-Path" value="${runtime-path}"/>
@@ -266,7 +266,7 @@
   
     
   <target name="run" depends="dist">
-        <java fork="true" classname="photovault.swingui.Photovault">
+        <java fork="true" classname="org.photovault.swingui.Photovault">
             <!-- Use large enough heap to fit also big images -->
             <jvmarg value="-Xmx256M"/>
             <classpath>
@@ -291,7 +291,7 @@
         </emma>        
         <delete dir="./${reports.test}/testresults"/>
         <mkdir dir="./${reports.test}/testresults"/>
-        <java fork="true" classname="photovault.swingui.Photovault">
+        <java fork="true" classname="org.photovault.swingui.Photovault">
             <!-- Use large enough heap to fit also big images -->
             <jvmarg value="-Xmx256M"/>
             <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />
@@ -321,7 +321,7 @@
 
      <sourcepath refid="debug.sourcepath"/> 
    </nbjpdastart>
-   <java fork="true" classname="photovault.swingui.Photovault">
+   <java fork="true" classname="org.photovault.swingui.Photovault">
     <jvmarg value="-Xdebug"/>
     <jvmarg value="-Xnoagent"/>
     <jvmarg value="-Djava.compiler=none"/>
@@ -353,7 +353,7 @@
             <classpath refid="project.class.path"/>
         </nbprofiledirect>
         <!-- Start application. Use basically the same command as for running the application -->
-        <java fork="true" classname="photovault.swingui.Photovault" jvm="${profiler.info.jvm}">
+        <java fork="true" classname="org.photovault.swingui.Photovault" jvm="${profiler.info.jvm}">
             <!-- Use large enough heap to fit also big images -->
             <jvmarg value="-Xmx256M"/>
             <jvmarg value="${profiler.info.jvmargs.agent}"/>

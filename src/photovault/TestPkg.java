@@ -23,7 +23,7 @@ public class TestPkg extends TestCase {
 
     public static TestSuite suite() {
 	TestSuite s = new TestSuite( "photovault unit tests" );
-	s.addTest( photovault.swingui.TestPkg.suite() );
+	s.addTest( org.photovault.swingui.TestPkg.suite() );
 	s.addTest( org.photovault.image.TestPkg.suite() );
 	s.addTest( org.photovault.imginfo.TestPkg.suite() );
 	return s;
