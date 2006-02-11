@@ -1,6 +1,6 @@
 // $Id: ImgTestUtils.java,v 1.2 2003/02/15 08:00:02 kaimio Exp $
 
-package photovault.test;
+package org.photovault.test;
 
 import javax.imageio.*;
 import javax.imageio.stream.*;

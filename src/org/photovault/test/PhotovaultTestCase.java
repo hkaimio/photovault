@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package photovault.test;
+package org.photovault.test;
 
 import junit.framework.TestCase;
 import photovault.common.JUnitOJBManager;
