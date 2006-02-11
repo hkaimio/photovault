@@ -474,7 +474,7 @@ public class PhotoInfo {
         int maxThumbWidth = 100;
         int maxThumbHeight = 100;
         
-        AffineTransform xform = photovault.image.ImageXform.getFittingXform( maxThumbWidth, maxThumbHeight,
+        AffineTransform xform = org.photovault.image.ImageXform.getFittingXform( maxThumbWidth, maxThumbHeight,
                 prefRotation -original.getRotated(),
                 origWidth, origHeight );
         
@@ -574,7 +574,7 @@ public class PhotoInfo {
         
         int origHeight = origImage.getHeight();
         
-        AffineTransform xform = photovault.image.
+        AffineTransform xform = org.photovault.image.
                 ImageXform.getFittingXform( origWidth, origHeight,
                 prefRotation -original.getRotated(),
                 origWidth, origHeight );
