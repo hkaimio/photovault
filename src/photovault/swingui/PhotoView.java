@@ -136,10 +136,10 @@ public class PhotoView extends JPanel {
 	// Create the zoom xform
 	AffineTransform at = null;
 	if ( fitSize ) {
-	    at = photovault.image.ImageXform.getFittingXform( (int)maxWidth, (int)maxHeight, imgRot,
+	    at = org.photovault.image.ImageXform.getFittingXform( (int)maxWidth, (int)maxHeight, imgRot,
 						       origImage.getWidth(), origImage.getHeight() );
 	} else {
-	    at = photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
+	    at = org.photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
 						       origImage.getWidth(), origImage.getHeight() );
 	}
 	AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BILINEAR );

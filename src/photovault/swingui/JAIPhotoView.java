@@ -164,10 +164,10 @@ public class JAIPhotoView extends JPanel {
 	// Create the zoom xform
 	AffineTransform at = null;
 	if ( fitSize ) {
-	    at = photovault.image.ImageXform.getFittingXform( (int)maxWidth, (int)maxHeight, imgRot,
+	    at = org.photovault.image.ImageXform.getFittingXform( (int)maxWidth, (int)maxHeight, imgRot,
 						       origImage.getWidth(), origImage.getHeight() );
 	} else {
-	    at = photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
+	    at = org.photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
 						       origImage.getWidth(), origImage.getHeight() );
 	}
 
