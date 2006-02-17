@@ -1,3 +1,24 @@
+<!--
+  Copyright (c) 2006 Harri Kaimio
+  
+  This file is part of Photovault.
+
+  Photovault is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  Photovault is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Foobar; if not, write to the Free Software Foundation,
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+-->
+
+
 <project name="PhotoVault" default="dist" basedir=".">
     <description>
         Photo archiving system
@@ -45,6 +66,7 @@
     <pathelement path="${java.class.path}/"/>
     <pathelement path="build"/>
     <pathelement path="conf"/>
+    <pathelement path="src/main/resources"/>
   </path>
 
 <path id="debug.sourcepath" >
@@ -118,8 +140,10 @@
       <fileset dir="${build}">
           <exclude name="**/Test*.class"/>
       </fileset>
-
+      
+      <!-- Include resources into the JAR -->
       <fileset dir="conf" includes="*"/>
+      <fileset dir="src/main/resources" includes="*"/>
     </jar>
     
     <!-- Copy needed JAR files to distribution directory -->
@@ -381,7 +405,7 @@
     </javadoc>
   </target>
   <target name="clean"
-        description="clean up" >
+        description="clean up" >    
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
