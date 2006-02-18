@@ -1,0 +1,19 @@
+Photovault 0.1
+Release notes
+
+0.1 is the initial public release of Photovault, a Java based image
+archiving and organization tool.
+
+REQUIRED SOFTWARE
+Photovault needs Sub Java JRE 1.5 and Java Advanced Imaging libraries
+to work. You can download both from Sun web site.
+
+Photovault can use eithe Apache Derby of MySQL as metadata
+store. Derby is included in this release; if you want to use MySQL
+instead you need to download it from www.mysql.com.
+
+KNOWN ISSUES
+-Unit test suite require manual setup of MySQL database for data
+storage. Derby is currently not supported.
+- Some unit test cases do not pass due to unimplemented features and
+errors in Apache OJB version used in Photovault.
