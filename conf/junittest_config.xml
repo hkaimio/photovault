@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   Copyright (c) 2006 Harri Kaimio
   
@@ -18,13 +19,12 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 -->
 
-<?xml version="1.0" encoding="UTF-8"?>
 <databases>
-    <databases>
-        <database name="pv_junit" dbName="pv_junit" host="">
-            <volumes>
-                <volume name="junitVolume" basedir="test_volume/junitVolume"/>
-            </volumes>
-        </database>
-    </databases>	
+  <databases>
+    <database name="pv_junit" dbName="pv_junit" host="">
+      <volumes>
+	<volume name="junitVolume" basedir="build/test_volume/junitVolume"/>
+      </volumes>
+    </database>
+  </databases>	
 </databases>

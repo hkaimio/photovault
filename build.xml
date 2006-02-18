@@ -25,6 +25,7 @@
     </description>
   <!-- set global properties for this build -->
   <property name="src" location="src/main/java"/>
+  <property name="nsis-src" value="src/main/win32/installer"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
   <property name="lib"  location="lib"/>
@@ -162,8 +163,8 @@
           </condition>
       </fail>
     <mkdir dir="${dist}/win32/installer"/>
-    <copy file="win32/installer/photovault_installer.template.nsi" 
-        tofile="win32/installer/photovault_installer.nsi"
+    <copy file="${nsis-src}/photovault_installer.template.nsi" 
+        tofile="${nsis-src}/photovault_installer.nsi"
         overwrite="true">
         <filterset> 
             <!-- TODO: This should not be hard coded -->
@@ -173,16 +174,17 @@
         </filterset>
     </copy>
     <exec executable="${nsiscompiler}">
-        <arg line="win32/installer/photovault_launcher.nsi"/>        
+        <arg line="${nsis-src}/photovault_launcher.nsi"/>        
     </exec>
     <exec executable="${nsiscompiler}">
-        <arg line="win32/installer/photovault_installer.nsi"/>
+        <arg line="${nsis-src}/photovault_installer.nsi"/>
     </exec>
   </target>
   
     <target name="test" depends="dist">
       <delete dir="./${reports.test}/testresults"/>
       <mkdir dir="./${reports.test}/testresults"/>
+      <mkdir dir="./build/test_volume"/>
       <junit fork="yes" dir="${basedir}" printsummary="yes">
 	<sysproperty key="photovault.propFname" value="${junittest.properties}"/>
 	<sysproperty key="photovault.configfile" value="${junittest.configfile}"/>      
@@ -197,7 +199,7 @@
         <batchtest todir="${reports.test}/testresults">
            <fileset dir="build"> 
               <include name="**/Test_*.class"/>
-              <!-- Exlude inner classes sinc ethese do not contain any test cases --> 
+              <!-- Exlude inner classes since these do not contain any test cases --> 
               <exclude name="**/*$$*.class"/>
            </fileset>
         </batchtest>
