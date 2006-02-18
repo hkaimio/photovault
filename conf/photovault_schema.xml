@@ -18,6 +18,7 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 -->
 
+<!-- This is the definition of database schma used bu Photovault. -->
   <database name="pv_test">
     <table name="collection_photos">
       <column name="collection_id" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
