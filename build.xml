@@ -71,7 +71,8 @@
   </path>
 
 <path id="debug.sourcepath" >
-    <pathelement path="src"/>
+    <pathelement path="src/main/java"/>
+    <pathelement path="src/test/java"/>
 </path>
   <target name="init">
     <!-- Create the time stamp -->
