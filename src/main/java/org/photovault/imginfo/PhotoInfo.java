@@ -156,7 +156,7 @@ public class PhotoInfo {
      @param f The file to read
      */
     void updateFromFileMetadata( File f ) {
-        ExifDirectory exif = null;
+        ExifDirectory exif = null; 
         try {
             Metadata metadata = JpegMetadataReader.readMetadata(f);
             if ( metadata.containsDirectory( ExifDirectory.class ) ) {
@@ -175,7 +175,7 @@ public class PhotoInfo {
         }
         // Shooting date
         try {
-            java.util.Date origDate = exif.getDate( exif.TAG_DATETIME_ORIGINAL );
+            java.util.Date origDate = exif.getDate( exif.TAG_DATETIME_ORIGINAL );   
             setShootTime( origDate );
             log.debug( "TAG_DATETIME_ORIGINAL: " + origDate.toString() );
         } catch ( MetadataException e ) {
@@ -470,16 +470,60 @@ public class PhotoInfo {
         }
         log.debug( "Found original, reading it..." );
         
-        // Read the image
-        PlanarImage origImage = null;
-        origImage = JAI.create( "fileload", original.getImageFile().getAbsolutePath() );
+        // First, check if there is a thumbnail in image header
+        BufferedImage origImage = readExifThumbnail( original.getImageFile() );
+        
         if ( origImage == null ) {
-            log.warn( "Error reading image " );
-            txw.abort();
-            return;
+            // Read the image
+            try {
+                Iterator readers = ImageIO.getImageReadersByFormatName( "jpg" );
+                if ( readers.hasNext() ) {
+                    ImageReader reader = (ImageReader)readers.next();
+                    log.debug( "Creating stream" );
+                    ImageInputStream iis = ImageIO.createImageInputStream( original.getImageFile() );
+                    reader.setInput( iis, false, false );
+                    int numThumbs = 0;
+                    try {
+                        int numImages = reader.getNumImages( true );
+                        numThumbs = reader.getNumThumbnails(0);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    if ( numThumbs > 0 ) {
+                        log.debug( "Original has thumbnail, size "
+                                + reader.getThumbnailWidth( 0, 0 ) + " x "
+                                + reader.getThumbnailHeight( 0, 0 ) );
+                        origImage = reader.readThumbnail( 0, 0 );
+                        log.debug( "Read thumbnail" );
+
+                    } else {
+                        log.debug( "No thumbnail in original" );
+                        ImageReadParam param = reader.getDefaultReadParam();
+
+                        // Find the maximum subsampling rate we can still use for creating
+                        // a quality thumbnail
+                        int subsampling = 1;
+                        int minDim = reader.getWidth( 0 );
+                        if ( reader.getHeight( 0 ) < minDim ) {
+                            minDim = reader.getHeight( 0 );
+                        }
+                        while ( 200 * subsampling < minDim ) {
+                            subsampling *= 2;
+                        }
+                        param.setSourceSubsampling( subsampling, subsampling, 0, 0 );
+
+                        origImage = reader.read( 0, param );
+                        log.debug( "Read original" );
+                    }
+                }
+            } catch ( IOException e ) {
+                log.warn( "Error reading image: " + e.getMessage() );
+                txw.abort();
+                return;
+            }
         }
         log.debug( "Done, finding name" );
-        
+
         // Find where to store the file in the target volume
         File thumbnailFile = volume.getInstanceName( this, "jpg" );
         log.debug( "name = " + thumbnailFile.getName() );
@@ -520,7 +564,7 @@ public class PhotoInfo {
         try {
             encoder.encode( thumbImage );
             out.close();
-            origImage.dispose();
+            // origImage.dispose();
             thumbImage.dispose();
         } catch (IOException e) {
             log.error( "Error writing thumbnail: " + e.getMessage() );
@@ -538,6 +582,37 @@ public class PhotoInfo {
         
         log.debug( "Thumbnail loaded" );
         txw.commit();
+    }
+    
+    /**
+     Attemps to read a thumbnail from EXIF headers
+     @return The thumbnail image or null if none available
+     */
+    private BufferedImage readExifThumbnail( File f ) {
+        BufferedImage bi = null;
+        Metadata metadata = null;
+        try {
+            metadata = JpegMetadataReader.readMetadata( f );
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
+        ExifDirectory exif = null;
+        if ( metadata != null && metadata.containsDirectory( ExifDirectory.class ) ) {
+            try {
+                exif = (ExifDirectory) metadata.getDirectory( ExifDirectory.class );
+                byte[] thumbData = exif.getThumbnailData();
+                if ( thumbData != null ) {
+                    ByteArrayInputStream bis = new ByteArrayInputStream( thumbData );
+                    try {
+                        bi = ImageIO.read( bis );
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            } catch ( MetadataException e ) {
+            }
+        }
+        return bi;
     }
     
     /** Creates a new thumbnail on the default volume
