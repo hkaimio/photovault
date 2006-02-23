@@ -60,6 +60,8 @@ public class AboutDlg extends javax.swing.JDialog {
         svnbranchLabel.setText( prop.getProperty( "svn.info.url", "unknown" ) );
         buildTimeLabel.setText( prop.getProperty( "build.time", "unknown" ) );
         builderLabel.setText( prop.getProperty( "build.user", "unknown" ) );
+        versionLabel.setText( prop.getProperty( "build.version", "unknown" ) );
+        builderLabel.setText( prop.getProperty( "build.user", "unknown" ) );
         
         // Set up the splash screen image
         URL splashImageURL = AboutDlg.class.getClassLoader().getResource( "splash.jpg" );

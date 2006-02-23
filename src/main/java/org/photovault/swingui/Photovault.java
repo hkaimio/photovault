@@ -125,7 +125,7 @@ public class Photovault {
         }
     }
     
-    /**
+    /** 
      Checks that the system is in OK state.
      */
     protected void checkSystem() {
