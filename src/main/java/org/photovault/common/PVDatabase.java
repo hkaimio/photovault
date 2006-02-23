@@ -234,7 +234,7 @@ public class PVDatabase {
         Platform platform = PlatformFactory.createNewPlatformInstance( ds );
         
         /*
-         * Do not use delimiters for the database object names in SQWL statements.
+         * Do not use delimiters for the database object names in SQL statements.
          * This is to avoid case sensitivity problems with SQL92 compliant 
          * databases like Derby - non-delimited identifiers are interpreted as case 
          *  insensitive.
