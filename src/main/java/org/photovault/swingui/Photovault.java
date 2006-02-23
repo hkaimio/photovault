@@ -21,6 +21,7 @@
 package org.photovault.swingui;
 
 import java.util.Collection;
+import javax.media.jai.JAI;
 import org.odmg.*;
 import javax.swing.JOptionPane;
 import org.photovault.dbhelper.ODMG;
@@ -71,6 +72,7 @@ public class Photovault {
     }
     
     void run() {
+        checkSystem();
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         Collection databases = settings.getDatabases();
         if ( databases.size() == 0 ) {
@@ -111,11 +113,41 @@ public class Photovault {
     }
 
 
+    protected void checkJAI() throws PhotovaultException {
+        try {
+            String jaiVersion = JAI.getBuildVersion();
+        } catch ( Throwable t ) {
+            throw new PhotovaultException( 
+                      "Java Advanced Imaging not installed\n"
+                    + "properly. This is needed by Photovault,"
+                    + "please download and install it from\n"
+                    + "http://java.sun.com/products/java-media/jai/");
+        }
+    }
+    
+    /**
+     Checks that the system is in OK state.
+     */
+    protected void checkSystem() {
+        try {
+            checkJAI();
+        } catch ( PhotovaultException e ) {
+            JOptionPane.showMessageDialog( null, e.getMessage(),
+                    "Photovault error", JOptionPane.ERROR_MESSAGE );
+            System.exit( 1 );
+        }
+    }
+   
+    class PhotovaultException extends Exception {
+        PhotovaultException( String msg ) {
+            super( msg );
+        }
+    }
     
     public static void main( String [] args ) {
         URL log4jPropertyURL = Photovault.class.getClassLoader().getResource( "photovault_log4j.properties");
-        PropertyConfigurator.configure( log4jPropertyURL );
-	Photovault app = new Photovault();
+        PropertyConfigurator.configure( log4jPropertyURL );	
+        Photovault app = new Photovault();
 	app.run();
     }
 
