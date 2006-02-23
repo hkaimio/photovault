@@ -20,6 +20,9 @@
 
 package org.photovault.swingui.db;
 
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
+import javax.swing.event.DocumentEvent;
 import org.photovault.imginfo.Volume;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -63,8 +66,6 @@ public class DbSettingsDlg extends javax.swing.JDialog {
         dbHostFld = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         dbNameFld = new javax.swing.JTextField();
-        testDbBtn = new javax.swing.JButton();
-        createDbBtn = new javax.swing.JButton();
         derbyBtn = new javax.swing.JRadioButton();
         dbServerBtn = new javax.swing.JRadioButton();
 
@@ -95,24 +96,25 @@ public class DbSettingsDlg extends javax.swing.JDialog {
 
         jLabel4.setText("Database name");
 
-        sqlDbPane.setBorder(javax.swing.BorderFactory.createTitledBorder("SQL database settings"));
-        jLabel2.setText("SQL database host");
-
-        jLabel3.setText("SQL database name");
-
-        testDbBtn.setText("Test");
-        testDbBtn.addActionListener(new java.awt.event.ActionListener() {
+        nameFld.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                testDbBtnActionPerformed(evt);
+                nameFldActionPerformed(evt);
+            }
+        });
+        nameFld.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                nameFldFocusLost(evt);
             }
         });
 
-        createDbBtn.setText("Create");
-        createDbBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                createDbBtnActionPerformed(evt);
-            }
-        });
+        sqlDbPane.setBorder(javax.swing.BorderFactory.createTitledBorder("MySQL settings"));
+        jLabel2.setText("MySQL host");
+
+        dbHostFld.setEnabled(false);
+
+        jLabel3.setText("Database name");
+
+        dbNameFld.setEnabled(false);
 
         org.jdesktop.layout.GroupLayout sqlDbPaneLayout = new org.jdesktop.layout.GroupLayout(sqlDbPane);
         sqlDbPane.setLayout(sqlDbPaneLayout);
@@ -122,19 +124,14 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                 .add(sqlDbPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(jLabel2)
                     .add(jLabel3))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 16, Short.MAX_VALUE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 37, Short.MAX_VALUE)
                 .add(sqlDbPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
                     .add(dbNameFld)
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, dbHostFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 238, Short.MAX_VALUE)))
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, sqlDbPaneLayout.createSequentialGroup()
-                .add(226, 226, 226)
-                .add(createDbBtn)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(testDbBtn))
         );
         sqlDbPaneLayout.setVerticalGroup(
             sqlDbPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.LEADING, sqlDbPaneLayout.createSequentialGroup()
+            .add(sqlDbPaneLayout.createSequentialGroup()
                 .add(sqlDbPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(jLabel2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .add(dbHostFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 19, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
@@ -142,51 +139,61 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                 .add(sqlDbPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(jLabel3)
                     .add(dbNameFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(17, 17, 17)
-                .add(sqlDbPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(testDbBtn)
-                    .add(createDbBtn))
                 .addContainerGap())
         );
+        sqlDbPane.getAccessibleContext().setAccessibleName("Database server");
 
         instanceTypeBtnGroup.add(derbyBtn);
-        derbyBtn.setText("Embedded database");
+        derbyBtn.setSelected(true);
+        derbyBtn.setText("Internal database engine");
+        derbyBtn.setActionCommand("useDerby");
         derbyBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         derbyBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        derbyBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                derbyBtnActionPerformed(evt);
+            }
+        });
 
         instanceTypeBtnGroup.add(dbServerBtn);
-        dbServerBtn.setText("Separate database server");
+        dbServerBtn.setText("MySQL server");
+        dbServerBtn.setActionCommand("useMySQL");
         dbServerBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         dbServerBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        dbServerBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbServerBtnActionPerformed(evt);
+            }
+        });
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(243, Short.MAX_VALUE)
-                .add(okBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 59, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(CancelBtn)
-                .add(13, 13, 13))
-            .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-                .addContainerGap()
-                .add(sqlDbPane)
-                .addContainerGap())
-            .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-                .add(31, 31, 31)
+            .add(layout.createSequentialGroup()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jLabel4)
-                    .add(jLabel1))
-                .add(23, 23, 23)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(dbServerBtn)
-                    .add(derbyBtn)
+                    .add(layout.createSequentialGroup()
+                        .add(31, 31, 31)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jLabel4)
+                            .add(jLabel1))
+                        .add(23, 23, 23)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(dbServerBtn)
+                            .add(derbyBtn)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                                .add(volumeDirFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 215, Short.MAX_VALUE)
+                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                                .add(dirSelectBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 26, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                            .add(nameFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE)))
+                    .add(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(sqlDbPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                        .add(volumeDirFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 215, Short.MAX_VALUE)
+                        .addContainerGap(246, Short.MAX_VALUE)
+                        .add(okBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 59, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(dirSelectBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 26, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                    .add(nameFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE))
+                        .add(CancelBtn)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -207,24 +214,61 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                 .add(dbServerBtn)
                 .add(16, 16, 16)
                 .add(sqlDbPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .add(27, 27, 27)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(okBtn)
-                    .add(CancelBtn))
-                .addContainerGap())
+                    .add(CancelBtn)
+                    .add(okBtn))
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void createDbBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createDbBtnActionPerformed
-        JOptionPane.showMessageDialog( this, "Database connection testing\nnot yet implemented", 
-                "Create database", JOptionPane.ERROR_MESSAGE );
-    }//GEN-LAST:event_createDbBtnActionPerformed
+    private void nameFldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_nameFldFocusLost
+        dbNameChanged();
+    }//GEN-LAST:event_nameFldFocusLost
 
-    private void testDbBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testDbBtnActionPerformed
-        JOptionPane.showMessageDialog( this, "Database connection testing\nnot yet implemented", 
-                "Create database", JOptionPane.ERROR_MESSAGE );
-    }//GEN-LAST:event_testDbBtnActionPerformed
+    /**
+     When Photovault database name is changed set the volume directory to point 
+     to ${user.home}/dbName if 
+     <ul>
+     <li>User has not entered a volume directory and</li>
+     <li>The directory name that would be generated automatically does not exist
+     (to avoid overwriting existing data</li>
+     </ul>
+     */
+    private void nameFldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameFldActionPerformed
+        dbNameChanged();
+    }//GEN-LAST:event_nameFldActionPerformed
+
+    private void dbNameChanged() {
+        String dbName = nameFld.getText();
+        String volumeDirPath = volumeDirFld.getText();
+        if ( volumeDirPath == null || volumeDirPath.length() == 0 ) {
+            File homeDir = new File( System.getProperty( "user.home" ) );
+            File pvDir = new File( homeDir, dbName );
+            if ( !pvDir.exists() ) {
+                volumeDirPath = pvDir.getAbsolutePath();
+                volumeDirFld.setText( volumeDirPath );
+            }
+        }
+        
+    }
+    
+    /**
+        Called when the user selects that he wants to create a MySql database
+     */
+    private void dbServerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbServerBtnActionPerformed
+        dbHostFld.setEnabled( true );
+        dbNameFld.setEnabled( true );
+    }//GEN-LAST:event_dbServerBtnActionPerformed
+
+    /**
+        Called when user selects that he wants do create a Derby database
+     */
+    private void derbyBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_derbyBtnActionPerformed
+        dbHostFld.setEnabled( false );
+        dbNameFld.setEnabled( false );        
+    }//GEN-LAST:event_derbyBtnActionPerformed
 
     private void CancelBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelBtnActionPerformed
         retval = CANCEL_OPTION;
@@ -316,40 +360,42 @@ public class DbSettingsDlg extends javax.swing.JDialog {
             }
         });
     }
-
+    
     private void createDatabase() {
         // Ask for the admin password
-        AdminLoginDlg loginDlg = new AdminLoginDlg( this, true );
-        if ( loginDlg.showDialog() == AdminLoginDlg.LOGIN_DLG_OK ) {
-            PVDatabase db = new PVDatabase();
-            String user = loginDlg.getUsername();
-            String passwd = loginDlg.getPasswd();
-            if ( dbServerBtn.isSelected() ) {
-                db.setDbName( dbNameFld.getText() );
-                db.setDbHost( dbHostFld.getText() );
-                db.setName( nameFld.getText() );
-                Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
-                db.addVolume( vol );
-            } else {
-                // Creating an embedded database
-                db.setName( nameFld.getText() );
-                db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-                db.setEmbeddedDirectory( new File( volumeDirFld.getText() ) );
+        PVDatabase db = new PVDatabase();
+        String user = "";
+        String passwd = "";
+        if ( dbServerBtn.isSelected() ) {
+            AdminLoginDlg loginDlg = new AdminLoginDlg( this, true );
+            if ( loginDlg.showDialog() == AdminLoginDlg.LOGIN_DLG_OK ) {
+                user = loginDlg.getUsername();
+                passwd = loginDlg.getPasswd();
             }
-            db.createDatabase( user, passwd );
-            
-            PhotovaultSettings settings = PhotovaultSettings.getSettings();
-            settings.addDatabase( db );
-            settings.saveConfig();
-            
-            JOptionPane.showMessageDialog( this, "Database " + nameFld.getText() + " created succesfully",
-                    "Database created", JOptionPane.INFORMATION_MESSAGE );
+            db.setDbName( dbNameFld.getText() );
+            db.setDbHost( dbHostFld.getText() );
+            db.setName( nameFld.getText() );
+            Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
+            db.addVolume( vol );
+        } else {
+            // Creating an embedded database
+            db.setName( nameFld.getText() );
+            db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
+            db.setEmbeddedDirectory( new File( volumeDirFld.getText() ) );
         }
+        db.createDatabase( user, passwd );
+        
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        settings.addDatabase( db );
+        settings.saveConfig();
+        
+        JOptionPane.showMessageDialog( this, "Database " + nameFld.getText() + " created succesfully",
+                "Database created", JOptionPane.INFORMATION_MESSAGE );
+        
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton CancelBtn;
-    private javax.swing.JButton createDbBtn;
     private javax.swing.JTextField dbHostFld;
     private javax.swing.JTextField dbNameFld;
     private javax.swing.JRadioButton dbServerBtn;
@@ -364,7 +410,6 @@ public class DbSettingsDlg extends javax.swing.JDialog {
     private javax.swing.JTextField nameFld;
     private javax.swing.JButton okBtn;
     private javax.swing.JPanel sqlDbPane;
-    private javax.swing.JButton testDbBtn;
     private javax.swing.JTextField volumeDirFld;
     // End of variables declaration//GEN-END:variables
     
