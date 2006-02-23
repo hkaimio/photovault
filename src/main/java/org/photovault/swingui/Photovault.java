@@ -74,20 +74,12 @@ public class Photovault {
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         Collection databases = settings.getDatabases();
         if ( databases.size() == 0 ) {
-            // No known database exists, so create new
-            Object options[] = { "Create", "Exit" };
-            int retval = JOptionPane.showOptionDialog( null, "No known database exist.\nDo you want to create a new one?",
-                    "Photovault", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0] );
-            if ( retval == JOptionPane.YES_OPTION ) {
-                DbSettingsDlg dlg = new DbSettingsDlg( null, true );
-                if ( dlg.showDialog() != dlg.APPROVE_OPTION ) {
-                    System.exit( 0 );
-                }
-            } else {
+            DbSettingsDlg dlg = new DbSettingsDlg( null, true );
+            if ( dlg.showDialog() != dlg.APPROVE_OPTION ) {
                 System.exit( 0 );
             }
         }
-        
+     
 	LoginDlg login = new LoginDlg( this );
         boolean loginOK = false;
         while ( !loginOK ) {

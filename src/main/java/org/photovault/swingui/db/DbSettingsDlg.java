@@ -70,6 +70,7 @@ public class DbSettingsDlg extends javax.swing.JDialog {
         dbServerBtn = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Create Photovault database");
         setName("Database settings");
         jLabel1.setText("Photo directory");
 
@@ -389,7 +390,7 @@ public class DbSettingsDlg extends javax.swing.JDialog {
         settings.addDatabase( db );
         settings.saveConfig();
         
-        JOptionPane.showMessageDialog( this, "Database " + nameFld.getText() + " created succesfully",
+        JOptionPane.showMessageDialog( this, "Database " + nameFld.getText() + " created successfully",
                 "Database created", JOptionPane.INFORMATION_MESSAGE );
         
     }
