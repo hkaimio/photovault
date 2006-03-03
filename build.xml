@@ -393,7 +393,7 @@
   <target name="doc">
     <javadoc packagenames = "*"
              destdir="docs/api"
-	     sourcepath="src"
+	     sourcepath="${src}"
              author="true"
              version="true"
              use="true"
