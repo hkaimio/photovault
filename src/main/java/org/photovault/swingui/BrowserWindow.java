@@ -169,20 +169,18 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	    });
 	viewMenu.add( noPreviewItem );
         
-        JMenuItem nextPhotoItem = new JMenuItem( "Next photo", KeyEvent.VK_N );
-	nextPhotoItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    viewPane.selectNextPhoto();
-		}
-	    });
+        ChangeSelectionAction nextPhotoAction = new ChangeSelectionAction( viewPane,
+                ChangeSelectionAction.MOVE_FWD, "Next photo", null,
+                "Move to next photo", KeyEvent.VK_N,
+                KeyStroke.getKeyStroke( KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK ) );
+        JMenuItem nextPhotoItem = new JMenuItem( nextPhotoAction );
 	viewMenu.add( nextPhotoItem );
         
-        JMenuItem prevPhotoItem = new JMenuItem( "Previous photo", KeyEvent.VK_P );
-	prevPhotoItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    viewPane.selectPreviousPhoto();
-		}
-	    });
+        ChangeSelectionAction prevPhotoAction = new ChangeSelectionAction( viewPane,
+                ChangeSelectionAction.MOVE_BACK, "Previous photo", null,
+                "Move to next photo", KeyEvent.VK_P,
+                KeyStroke.getKeyStroke( KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK ) );
+        JMenuItem prevPhotoItem = new JMenuItem( prevPhotoAction );
 	viewMenu.add( prevPhotoItem );
         
         JMenu sortMenu = new JMenu( "Sort by" );
