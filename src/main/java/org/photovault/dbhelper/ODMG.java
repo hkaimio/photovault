@@ -74,8 +74,11 @@ public class ODMG {
             String dbhost = dbDesc.getDbHost();
             String dbname = dbDesc.getDbName();
             connDesc.setDbAlias( "//" + dbhost + "/" + dbname );
+            connDesc.setUserName( user );
+            connDesc.setPassWord( passwd );
         }        
 	
+        
         // Open the database connection
         db = odmg.newDatabase();        
 	boolean success = false;

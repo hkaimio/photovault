@@ -20,6 +20,8 @@
 
 package org.photovault.imginfo;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import org.odmg.*;
 import java.sql.*;
 import java.util.*;
@@ -37,7 +39,48 @@ public class ImageInstance {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ImageInstance.class.getName() );
 
+    /**
+     ImageInstance constructor is private and they must be created by ImageInstance.create().
+     Reason for this is that creation can fail if e.g. the given file is not a
+     proper image file.
+     */
+    private ImageInstance() {
+        // Empty
+    }
 
+    
+    /**
+     Creates a new ImageInstance for a certain file in a volume. The instance is not
+     yet assigned to any PhotoInfo, this must be done later by PhotoInfo.addInstance().
+     @param vol The volume
+     @param imgFile The file
+     @return The ImageInstance created or <code>null</code> if creation was unsuccesfull
+     (e.g. if imgFile does not exist or is not of a recognized file type). In this case 
+     the method also aborts ongoing ODMG transaction.
+     */
+    public static ImageInstance create ( VolumeBase vol, File imgFile ) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+        ImageInstance i = new ImageInstance();
+	i.volume = vol;
+	i.volumeId = vol.getName();
+	i.imageFile = imgFile;
+        i.fname = vol.mapFileToVolumeRelativeName( imgFile );
+        txw.lock( i, Transaction.WRITE );
+        i.calcHash();
+	// Read the rest of fields from the image file
+	try {
+	    i.readImageFile();
+	} catch (IOException e ) {
+	    txw.abort();
+	    log.warn( "Error opening image file: " + e.getMessage() );
+	    // The image does not exist, so it cannot be read!!!
+	    return null;
+	}
+        txw.commit();
+        return i;
+    }
+    
+    
     /**
        Creates a new image file object. The object is persistent,
        i.e. it is stored in database
@@ -49,7 +92,7 @@ public class ImageInstance {
        @return A ImageInstance object
 
     */
-    public static ImageInstance create( Volume volume, File imageFile, PhotoInfo photo ) {
+    public static ImageInstance create( VolumeBase volume, File imageFile, PhotoInfo photo ) {
 
 	log.debug( "Creating instance, volume = " + volume.getName() + " photo = " + photo.getUid()
 		   + " image file = " + imageFile.getName() );
@@ -61,7 +104,7 @@ public class ImageInstance {
 	f.volume = volume;
 	f.volumeId = volume.getName();
 	f.imageFile = imageFile;
-	f.fname = imageFile.getName();
+        f.fname = volume.mapFileToVolumeRelativeName( imageFile );
 	txw.lock( f, Transaction.WRITE );
 	log.debug( "locked instance" );
 	
@@ -75,6 +118,7 @@ public class ImageInstance {
 	    // The image does not exist, so it cannot be read!!!
 	    return null;
 	}
+        f.calcHash();
 	txw.commit();
 	return f;
     }
@@ -87,7 +131,7 @@ public class ImageInstance {
        @throws PhotoNotFoundException exception if the object can not be retrieved.
     */
     
-    public static ImageInstance retrieve( Volume volume, String fname ) throws PhotoNotFoundException {
+    public static ImageInstance retrieve( VolumeBase volume, String fname ) throws PhotoNotFoundException {
 	String oql = "select instance from " + ImageInstance.class.getName()
 	    + " where volumeId = \"" + volume.getName() + "\" and fname = \"" + fname + "\"";
 
@@ -117,115 +161,13 @@ public class ImageInstance {
        the object has been read from database.
     */
     protected void initFileAttrs() {
-	volume = Volume.getVolume( volumeId );
+	volume = VolumeBase.getVolume( volumeId );
 	try {
 	    imageFile = volume.mapFileName( fname );
 	} catch ( Exception e ) {
 	    log.warn( "Error while initializing imageFile: " + e.getMessage() );
 	}
     }
-    
-    
-    // Unnecessary when using OJB
-//     /**
-//        Retrieve all instances of a specified photo from DB
-//        @param photo The PhotoInfo whose instances to retrieve
-//        @return ArrayList containing the photoInfo objects
-//     */
-
-//     public static ArrayList retrieveInstances( PhotoInfo photo ) {
-// 	ArrayList instances = new ArrayList();
-// 	String sql = "select * FROM image_instances WHERE photo_id = " + photo.getUid();
-// 	try {
-// 	    Connection conn = ImageDb.getConnection();
-// 	    Statement stmt = conn.createStatement( );
-// 	    ResultSet rs = stmt.executeQuery( sql );
-// 	    ImageInstance f = createFromResultSet( rs );
-// 	    while ( f != null ) {
-// 		instances.add( f );
-// 		f = createFromResultSet( rs );
-// 	    }
-// 	    rs.close();
-// 	    stmt.close();
-// 	} catch ( SQLException e ) {
-// 	    log.warn( "Error fetching image file from db: " + e.getMessage() );
-// 	}
-// 	return instances;
-//     }
-
-	
-	
-    // TODO: remove this
-    private static ImageInstance createFromResultSet( ResultSet rs ) {
-	ImageInstance instance = null;
-	try {
-	    if ( rs.next() ) {
-		instance = new ImageInstance();
-		String volName =  rs.getString( "volume_id" );
-		instance.volume = Volume.getVolume( volName );
-		String fname =  rs.getString( "fname" );
-		try {
-		    instance.imageFile = instance.volume.mapFileName( fname );
-		} catch ( FileNotFoundException e ) {
-		    System.err.println( "File not found: " + e.getMessage() );
-		}
-		instance.photoUid = rs.getInt( "photo_id" );
-		instance.width = rs.getInt( "width" );
-		instance.height = rs.getInt( "height" );
-		instance.rotated = rs.getDouble( "rotated" );
-		String strInstanceType = rs.getString( "instance_type" );
-		if ( strInstanceType.equals( "original" ) ) {
-		    instance.instanceType = INSTANCE_TYPE_ORIGINAL;
-		} else if ( strInstanceType.equals( "modified" ) ) {
-		    instance.instanceType = INSTANCE_TYPE_MODIFIED;
-		} else {
-		    instance.instanceType = INSTANCE_TYPE_THUMBNAIL;
-		}
-		// TODO: Add other parameters
-	    }
-	} catch ( SQLException e ) {
-	    // Something went wrong, so let's not return the created object
-	    instance =  null;
-	    System.err.println( "Error reading ImageInstance from DB: " + e.getMessage() );
-	}
-	return instance;
-    }
-	
-//     /**
-//        Updates the corresponding record in database to match any modifications to the object
-//     */
-//     public void updateDB() {
-// 	String sql = "UPDATE image_instances SET photo_id = ?, width = ?, height = ?, rotated = ?, instance_type = ? WHERE volume_id = ? AND fname = ?";
-// 	try {
-// 	    Connection conn = ImageDb.getConnection();
-// 	    PreparedStatement stmt = conn.prepareStatement( sql );
-// 	    stmt.setInt( 1, photoUid );
-// 	    stmt.setInt( 2, width );
-// 	    stmt.setInt( 3, height );
-// 	    stmt.setDouble( 4, rotated );
-// 	    String strInstanceType = null;
-// 	    switch ( instanceType ) {
-// 	    case INSTANCE_TYPE_ORIGINAL :
-// 		strInstanceType = "original";
-// 		break;
-// 	    case INSTANCE_TYPE_MODIFIED:
-// 		strInstanceType = "modified";
-// 		break;
-// 	    case INSTANCE_TYPE_THUMBNAIL:
-// 		strInstanceType = "thumbnail";
-// 		break;
-// 	    default:
-// 		log.warn( "This is not an allowed value" );
-// 	    }
-// 	    stmt.setString( 5, strInstanceType );
-// 	    stmt.setString( 6, volume.getName() );
-// 	    stmt.setString( 7, imageFile.getName() );
-// 	    stmt.executeUpdate();
-// 	    stmt.close();
-// 	} catch ( SQLException e ) {
-// 	    log.warn( "Error updating image instance in DB: " + e.getMessage() );
-// 	}
-//     }
 
     /**
        Deletes the ImageInstance object from database.
@@ -236,7 +178,9 @@ public class ImageInstance {
 	
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	db.deletePersistent( this );
-	imageFile.delete();
+	if ( imageFile != null && !imageFile.delete() ) {
+            log.error( "File " + imageFile.getAbsolutePath() + " could not be deleted" );
+        }
 	txw.commit();
     }
 
@@ -251,7 +195,6 @@ public class ImageInstance {
 	Iterator readers = ImageIO.getImageReadersByFormatName("jpg");
 	ImageReader reader = (ImageReader)readers.next();
 	ImageInputStream iis = ImageIO.createImageInputStream( imageFile );
-	
 	reader.setInput( iis, true );
 	
 	width = reader.getWidth( 0 );
@@ -262,19 +205,81 @@ public class ImageInstance {
     }
 
     /**
+        Calculates MD5 hash of the image file
+     */
+    protected void calcHash() {
+        hash = calcHash( imageFile );
+        if ( instanceType == INSTANCE_TYPE_ORIGINAL && photoUid > 0 ) {
+            try {
+                PhotoInfo p = PhotoInfo.retrievePhotoInfo( photoUid );
+                if ( p != null ) {
+                    p.setOrigInstanceHash( hash );
+                }
+            } catch (PhotoNotFoundException ex) {
+                // No action taken
+            }
+        }
+    }
+
+    /**
+     Utility function to calculate the hash of a specific file
+     @param f The file
+     @return Hash of f
+     */
+    public static byte[] calcHash( File f ) {
+        FileInputStream is = null;
+        byte hash[] = null;
+        try {
+            is = new FileInputStream( f );
+            byte readBuffer[] = new byte[4096];
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            int bytesRead = -1;
+            while( ( bytesRead = is.read( readBuffer ) ) > 0 ) {
+                md.update( readBuffer, 0, bytesRead );
+            }
+            hash = md.digest();   
+        } catch (NoSuchAlgorithmException ex) {
+            log.error( "MD5 algorithm not found" );
+        } catch (FileNotFoundException ex) {
+            log.error( f.getAbsolutePath() + "not found" );
+        } catch (IOException ex) {
+            log.error( "IOException while calculating hash: " + ex.getMessage() );
+        }  finally {
+            try {
+                is.close();
+            } catch (IOException ex) {
+                log.error( "Cannot close stream after calculating hash" );
+            }
+        }
+        return hash;
+    }
+
+    byte[] hash = null;
+    
+    /**
+        Returns the MD5 hash
+     */
+    public byte[] getHash() {
+        if ( hash == null && imageFile != null ) {
+            calcHash();
+        }
+        return (byte[]) hash.clone();
+    }
+    
+    /**
        Id of the volume (for OJB)
     */
     String volumeId;
     /**
        reference to the volume where the image file is located
     */
-    Volume volume;
+    VolumeBase volume;
     
     /**
      * Get the value of volume.
      * @return value of volume.
      */
-    public Volume getVolume() {
+    public VolumeBase getVolume() {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.READ );
 	txw.commit();
@@ -285,7 +290,7 @@ public class ImageInstance {
      * Set the value of volume.
      * @param v  Value to assign to volume.
      */
-    public void setVolume(Volume  v) {
+    public void setVolume(VolumeBase  v) {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	this.volume = v;
@@ -325,7 +330,7 @@ public class ImageInstance {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	this.imageFile = v;
-	fname = imageFile.getName();
+	fname = volume.mapFileToVolumeRelativeName( v );
 	txw.commit();
     }
 
@@ -464,7 +469,19 @@ public class ImageInstance {
 	this.rotated = v;
 	txw.commit();
     }
+
+    /**
+     Sets the photo UID of this instance. THis should only be called by 
+     PhotoInfo.addInstance()
+     @param uid UID of the photo
+     */
+    protected void setPhotoUid(int uid) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	photoUid = uid;
+	txw.commit();
+        
+    }
     
     int photoUid;
-    
 }

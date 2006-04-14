@@ -21,6 +21,12 @@
 package org.photovault.dbhelper;
 
 import java.sql.*;
+import org.apache.ojb.broker.PBKey;
+import org.apache.ojb.broker.PersistenceBroker;
+import org.apache.ojb.broker.PersistenceBrokerFactory;
+import org.apache.ojb.broker.accesslayer.LookupException;
+import org.apache.ojb.broker.metadata.ConnectionRepository;
+import org.apache.ojb.broker.metadata.MetadataManager;
 /**
    This class contains static methods that ain in database usage etc.
 */
@@ -42,18 +48,28 @@ public class ImageDb {
     }
     
     private static void initDB() {
-	try {
-	    Class.forName( "com.mysql.jdbc.Driver" ).newInstance();
-	} catch ( Exception e ) {
-	    System.err.println( "DB driver not found" );
-	}
-
-	try {
-	    conn = DriverManager.getConnection( "jdbc:mysql:///pv_junit", "", "" );
-	} catch ( SQLException e ) {
-	    System.err.println( "ERROR: Could not create DB connection: "
-				+ e.getMessage() );
-	}
+        
+        ConnectionRepository cr = MetadataManager.getInstance().connectionRepository();
+        PBKey connKey = cr.getStandardPBKeyForJcdAlias( "pv" );
+        PersistenceBroker broker = PersistenceBrokerFactory.createPersistenceBroker( connKey );
+        broker.beginTransaction();
+        try {
+            conn = broker.serviceConnectionManager().getConnection();
+        } catch (LookupException ex) {
+            ex.printStackTrace();
+        }
+//	try {
+//	    Class.forName( "com.mysql.jdbc.Driver" ).newInstance();
+//	} catch ( Exception e ) {
+//	    System.err.println( "DB driver not found" );
+//	}
+//
+//	try {
+//	    conn = DriverManager.getConnection( "jdbc:mysql:///pv_junit", "", "" );
+//	} catch ( SQLException e ) {
+//	    System.err.println( "ERROR: Could not create DB connection: "
+//				+ e.getMessage() );
+//	}
     }
 
     /**

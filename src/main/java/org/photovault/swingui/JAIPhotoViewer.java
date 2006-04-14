@@ -141,22 +141,20 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	Dimension displaySize = scrollPane.getSize();
         log.debug( "fit to " + displaySize.getWidth() + ", " + displaySize.getHeight() );
 	imageView.fitToRect( displaySize.getWidth()-4, displaySize.getHeight()-4 );
-	// 	int origWidth = imageView.getOrigWidth();
-	// 	int origHeight = imageView.getOrigHeight();
-
-	// 	if ( origWidth > 0 && origHeight > 0 ) {
-	// 	    float widthScale = ((float)displaySize.getWidth())/(float)origWidth;
-	// 	    float heightScale = ((float)displaySize.getHeight())/(float)origHeight;
-
-	// 	    float scale = heightScale;
-	// 	    if ( widthScale < heightScale ) {
-	// 		scale = widthScale;
-	// 	    }
-	// 	    setScale( scale );
-	// 	}
     }
 
-    public void setPhoto( PhotoInfo photo ) {
+    /**
+     Set the photo displayed in the component.
+     
+     The function tries to search for a suitable instance of the photo to display.
+     If none  are found the Photo is set to <code>null</code> and an exception 
+     is reported to application.
+     @param photo The photo to be displayed.
+     @throws FileNotFoundException if the instance file cannot be found. This can
+     happen if e.g. user has deleted an image file from directory indexed as an 
+     external volume.
+     */
+    public void setPhoto( PhotoInfo photo ) throws FileNotFoundException {
 	if ( this.photo != null ) {
 	    this.photo.removeChangeListener( this );
 	}
@@ -183,6 +181,10 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	if ( original == null ) {
 	    log.debug( "Error - no original image was found!!!" );
 	} else {
+            File imageFile = original.getImageFile();
+            if ( imageFile == null ) {
+                throw new FileNotFoundException( );
+            }
 	    final String imageFilePath = original.getImageFile().getAbsolutePath();
             log.debug( "loading image " + imageFilePath );
             PlanarImage origImage = JAI.create( "fileload", imageFilePath );

@@ -59,6 +59,17 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     public PhotoFolder getSelected() {
 	return selected;
     }
+    
+    public void setSelected( PhotoFolder folder ) {
+        Vector parents = new Vector();
+        parents.add( folder );
+        while ( (folder = folder.getParentFolder() ) != null ) {
+            parents.add( 0, folder );
+        }
+        TreePath path = new TreePath( parents.toArray() );
+        selected = folder;
+        tree.setSelectionPath( path );
+    }
 
     /**
        Adds a listener to listen for selection changes

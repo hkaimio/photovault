@@ -201,7 +201,7 @@ public class LoginDlg extends JDialog {
 	setResizable( false );
 	pack();
         
-        // Center the ialog on screen
+        // Center the dialog on screen
         int w = getSize().width;
         int h = getSize().height;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();

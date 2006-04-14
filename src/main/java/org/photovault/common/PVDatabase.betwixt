@@ -29,7 +29,11 @@
         <attribute name="host" property="dbHost"/>
         <attribute name="instanceType" property="instanceType"/>
         <attribute name="instanceDir" property="instancePath"/>
-        <!--element name="volumes"/-->
-        <addDefaults/>
+        <element name="volumes">
+            <element property="volumes" updater="addVolume">
+            </element>
+            <!--element name="volume" property="volumes" class="org.photovault.imginfo.Volume"/-->
+        </element>
+        <!--addDefaults/-->
     </element>
 </info>

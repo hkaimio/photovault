@@ -30,6 +30,20 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.io.InputStream;
+import org.apache.ddlutils.DynaSqlException;
+import org.apache.ojb.broker.PBKey;
+import org.apache.ojb.broker.PersistenceBroker;
+import org.apache.ojb.broker.PersistenceBrokerFactory;
+import org.apache.ojb.broker.accesslayer.LookupException;
+import org.apache.ojb.broker.metadata.ConnectionRepository;
+import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
+import org.apache.ojb.broker.metadata.MetadataManager;
+import org.odmg.Implementation;
+import org.odmg.OQLQuery;
+import org.photovault.dbhelper.ODMG;
+import org.photovault.dbhelper.ODMGXAWrapper;
+import org.photovault.imginfo.ImageInstance;
+import org.photovault.imginfo.PhotoInfo;
 import  org.photovault.imginfo.Volume;
 import java.util.Random;
 import javax.sql.DataSource;
@@ -44,6 +58,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import org.apache.derby.jdbc.EmbeddedDataSource;
+import org.photovault.imginfo.VolumeBase;
 import org.xml.sax.SAXException;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSourceFactory;
@@ -105,7 +120,7 @@ public class PVDatabase {
         this.dbName = dbName;
     }
     
-    public void addVolume( Volume volume ) {
+    public void addVolume( VolumeBase volume ) {
         volumes.add( volume );
     }
     
@@ -113,10 +128,10 @@ public class PVDatabase {
         return  volumes;
     }
 
-    public Volume getDefaultVolume() {
-        Volume vol = null;
+    public VolumeBase getDefaultVolume() {
+        VolumeBase vol = null;
         if ( volumes.size() > 0 ) {
-            vol = (Volume) volumes.get(0);
+            vol = (VolumeBase) volumes.get(0);
         }
         return vol;
     }
@@ -168,8 +183,8 @@ public class PVDatabase {
      * Returns a volume with the given name or <code>null</code> if it does not exist
      *
      */
-    public Volume getVolume( String volumeName ) {
-        Volume vol = null;
+    public VolumeBase getVolume( String volumeName ) {
+        VolumeBase vol = null;
         
         /* TODO: Should we use HashMap for volumes instead of iterating a list?
          * This method is urgenty needed for a WAR for bug 44 so I am doing it 
@@ -178,12 +193,34 @@ public class PVDatabase {
          */
         Iterator iter = volumes.iterator();
         while ( iter.hasNext() ) {
-            Volume candidate = (Volume) iter.next();
+            VolumeBase candidate = (VolumeBase) iter.next();
             if ( candidate.getName().equals( volumeName ) ) {
                 vol = candidate;
             }
         }
         return vol;
+    }
+
+
+    /**
+     Tries to find the volume into which a fiel belongs, i.e. whether it is under 
+     the base directory of some volume.
+     @param f The file whose volume is of interest
+     @return The volume the file belongs to or <code>null</code> if it does not 
+     belong to any volume of this database
+     @throws IOException if there is an error constructing canonical form of the file
+     */
+    public VolumeBase getVolumeOfFile( File f ) throws IOException {
+        Iterator iter = volumes.iterator();
+        VolumeBase v = null;
+        while ( iter.hasNext() ) {
+            VolumeBase candidate = (VolumeBase) iter.next();
+            if ( candidate.isFileInVolume( f ) ) {
+                v = candidate;
+                break;
+            }
+        }
+        return v;
     }
     
     /**
@@ -277,10 +314,22 @@ public class PVDatabase {
         idStr = idBuf.toString();
         DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
         dbInfo.set( "database_id", idStr );
-        dbInfo.set( "schema_version", new Integer(3) );
+        dbInfo.set( "schema_version", new Integer( CURRENT_SCHEMA_VERSION ) );
         dbInfo.set( "create_time", new Timestamp( System.currentTimeMillis() ) );
         platform.insert( dbModel, dbInfo );
     }        
 
+    /**
+     Returns the schema version of the Photovault database
+     */ 
+    public int getSchemaVersion() {
+        DbInfo info = DbInfo.getDbInfo();
+        return info.getVersion();
+    }
 
+    /**
+     The latest schema version which should be used with this version of 
+     Photovault
+     */
+    static public final int CURRENT_SCHEMA_VERSION = 4;
 }

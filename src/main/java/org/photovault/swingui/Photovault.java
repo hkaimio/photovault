@@ -24,6 +24,9 @@ import java.util.Collection;
 import javax.media.jai.JAI;
 import org.odmg.*;
 import javax.swing.JOptionPane;
+import org.photovault.common.SchemaUpdateAction;
+import org.photovault.common.SchemaUpdateEvent;
+import org.photovault.common.SchemaUpdateListener;
 import org.photovault.dbhelper.ODMG;
 import java.net.URL;
 import org.photovault.common.PVDatabase;
@@ -37,7 +40,7 @@ import org.photovault.swingui.db.DbSettingsDlg;
 */
 
 
-public class Photovault {
+public class Photovault implements SchemaUpdateListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Photovault.class.getName() );
 
     PhotovaultSettings settings = null;
@@ -67,8 +70,32 @@ public class Photovault {
 	    // ld.setVisible( false );
             success = true;
         }
+        
+        if ( db.getSchemaVersion() < db.CURRENT_SCHEMA_VERSION ) {
+            String options[] = {"Proceed", "Exit Photovault"};
+            if ( JOptionPane.YES_OPTION == JOptionPane.showOptionDialog( ld,
+                    "The database was created with an older version of Photovault\n" +
+                    "Photovault will upgrade the database format before starting.",
+                    "Upgrade database",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    null,
+                    options,
+                    null ) ) {
+                final SchemaUpdateAction updater = new SchemaUpdateAction( db );
+                SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg( null, true );
+                updater.addSchemaUpdateListener( statusDlg );
+                Thread upgradeThread = new Thread() {
+                    public void run() {
+                        updater.upgradeDatabase();
+                    }
+                };
+                upgradeThread.start();
+                statusDlg.setVisible( true );
+                success = true;
+            }
+        }
         return success;
-
     }
     
     void run() {
@@ -149,6 +176,10 @@ public class Photovault {
         PropertyConfigurator.configure( log4jPropertyURL );	
         Photovault app = new Photovault();
 	app.run();
+    }
+
+    public void schemaUpdateStatusChanged(SchemaUpdateEvent e) {
+        System.out.println( "Phase " + e.getPhase()+ ", " + e.getPercentComplete() + "%" );
     }
 
 }

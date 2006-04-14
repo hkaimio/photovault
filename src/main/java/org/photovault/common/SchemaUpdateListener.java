@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+/*
   Copyright (c) 2006 Harri Kaimio
   
   This file is part of Photovault.
@@ -17,14 +16,18 @@
   You should have received a copy of the GNU General Public License
   along with Foobar; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
--->
+*/
 
-<databases>
-  <databases>
-    <database name="pv_junit" dbName="hashtest" instanceType="TYPE_EMBEDDED" instanceDir="c:\temp\hashtest">
-      <volumes>
-	<volume name="junitVolume" basedir="c:\temp\hashtest\photos"/>
-      </volumes>
-    </database>
-  </databases>	
-</databases>
+package org.photovault.common;
+
+/**
+ An interface for receiving status events during Photovault schema update
+ from @see SchemaUpdateAction.
+ */
+public interface SchemaUpdateListener {
+    /**
+     This method will be called when the schema update status has changed
+     @param e The status change event
+     */
+    public void schemaUpdateStatusChanged( SchemaUpdateEvent e );
+}

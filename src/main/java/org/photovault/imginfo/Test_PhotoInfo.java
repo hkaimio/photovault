@@ -14,7 +14,7 @@
   General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with Foobar; if not, write to the Free Software Foundation,
+  along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 
@@ -253,33 +253,55 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     
     public void testInstanceAddition() {
       File testFile = new File( testImgDir, "test1.jpg" );
-	File instanceFile = Volume.getDefaultVolume().getFilingFname( testFile );
+	File instanceFile = VolumeBase.getDefaultVolume().getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );
 	} catch ( IOException e ) {
 	    fail( e.getMessage() );
-	}
+	}  
+        
 	PhotoInfo photo = PhotoInfo.create();
 	assertNotNull( photo );
 
 	int numInstances = photo.getNumInstances();
-	photo.addInstance( Volume.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
+	photo.addInstance( VolumeBase.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	// Check that number of instances is consistent with addition
 	assertEquals( numInstances+1, photo.getNumInstances() );
 	Vector instances = photo.getInstances();
 	assertEquals( instances.size(), numInstances+1 );
 
+        // Add another instance using different method
+      File testFile2 = new File( testImgDir, "test2.jpg" );
+	File instanceFile2 = VolumeBase.getDefaultVolume().getFilingFname( testFile2 );
+	try {
+	    FileUtils.copyFile( testFile2, instanceFile2 );
+	} catch ( IOException e ) {
+	    fail( e.getMessage() );
+	}  
+        
+	numInstances = photo.getNumInstances();
+        ImageInstance inst = ImageInstance.create( VolumeBase.getDefaultVolume(), instanceFile2 );
+	photo.addInstance( inst );
+	// Check that number of instances is consistent with addition
+	assertEquals( numInstances+1, photo.getNumInstances() );
+	instances = photo.getInstances();
+	assertEquals( instances.size(), numInstances+1 );
+        
 	// Try to find the instance
-	boolean found = false;
+	boolean found1 = false;
+        boolean found2 = false;
 	for ( int i = 0 ; i < photo.getNumInstances(); i++ ) {
 	    ImageInstance ifile = photo.getInstance( i );
 	    if ( ifile.getImageFile().equals( instanceFile ) ) {
-		found = true;
+		found1 = true;
 	    }
+	    if ( ifile.getImageFile().equals( instanceFile2 ) ) {
+		found2 = true;
+	    }
+            
 	}
-	if ( found == false ) {
-	    fail( "Created instance not found" );
-	}
+        assertTrue( "Image instance 1 not found", found1 );
+        assertTrue( "Image instance 2 not found", found2 );
 	// Clean the DB
 	photo.delete();
     }
@@ -503,13 +525,13 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         if ( !testFile.exists() ) {
             fail( "could not find test file " + testFile );
         }
-	File instanceFile = Volume.getDefaultVolume().getFilingFname( testFile );
+	File instanceFile = VolumeBase.getDefaultVolume().getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );
 	} catch ( IOException e ) {
 	    fail( e.getMessage() );
 	}
-	photo.addInstance( Volume.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
+	photo.addInstance( VolumeBase.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	Thumbnail thumb2 = photo.getThumbnail();
 	log.setLevel( org.apache.log4j.Level.WARN );
 	photoLog.setLevel( org.apache.log4j.Level.WARN );
@@ -670,7 +692,80 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     public void testExportWriteNotAllowed() {
 	fail ("Test case not implemented" );
     }
+    
+    /**
+     
+     */
+        
+    public void testOriginalHash() {
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+        
+        byte hash[] = photo.getOrigInstanceHash();
+        byte instanceHash[] = null;
+        assertNotNull( "No hash for original photo", hash );
 
+        // If the original instance is deleted the hash value should still remain
+        while ( photo.getNumInstances() > 0 ) {
+            ImageInstance i = photo.getInstance( 0 );
+            photo.removeInstance( 0 );
+            if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+                instanceHash = i.getHash();
+            }
+            i.delete();
+        }
+        assertEquals( "PhotoInfo & origInstance hashes differ", hash, instanceHash );
+        
+        byte hash2[] = photo.getOrigInstanceHash();
+        assertEquals( "Hash after deleting instances is changed", hash, hash2 );
+        
+        photo.delete();
+    }
+    
+    /**
+      Test that it is possible to find a PhotoInfo based on original's hash code
+     */
+    
+    public void testRetrievalByHash() {
+	String fname = "test1.jpg";
+	File f = new File( testImgDir, fname );
+	PhotoInfo photo = null;
+	try {
+	    photo = PhotoInfo.addToDB( f );
+	} catch ( PhotoNotFoundException e ) {
+	    fail( "Could not find photo: " + e.getMessage() );
+	}
+        
+        byte[] hash = photo.getOrigInstanceHash();
+        
+        PhotoInfo[] photos = PhotoInfo.retrieveByOrigHash( hash );
+        assertNotNull( "No Photos with matching hash found!!", photos );
+        boolean found = false;
+        for ( int n = 0; n < photos.length; n++ ) {
+            if ( photos[n] == photo ) {
+                found = true;
+            }
+        }
+        assertTrue( "Photo not found by original hash", found );
+    }
+
+    public void testRetrievalByHashNoPhoto() {
+
+        byte[] hash = new byte[16];
+        for ( int n = 0; n < 16; n++ ) {
+            hash[n] = 0;
+        }
+        
+        PhotoInfo[] photos = PhotoInfo.retrieveByOrigHash( hash );
+        assertNull( "retrieveByOrigHash should result null", photos );
+    }
+        
     public static void main( String[] args ) {
 	//	org.apache.log4j.BasicConfigurator.configure();
 	log.setLevel( org.apache.log4j.Level.DEBUG );

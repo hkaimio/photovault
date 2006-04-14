@@ -426,5 +426,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	PhotoFolder root2 = PhotoFolder.getRoot();
 	assertTrue( "several instances of root created", root1==root2 );
     }
+    
+
 }
 

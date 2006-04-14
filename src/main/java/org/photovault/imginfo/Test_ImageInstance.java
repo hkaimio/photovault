@@ -128,7 +128,7 @@ public class Test_ImageInstance extends PhotovaultTestCase {
 	Connection conn = ImageDb.getConnection();
 	try {
 	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery( "SELECT * FROM image_instances WHERE volume_id = \"" + volume.getName() + "\" AND fname = \"test1.jpg\"" );
+	    ResultSet rs = stmt.executeQuery( "SELECT * FROM image_instances WHERE volume_id = '" + volume.getName() + "' AND fname = 'test1.jpg'" );
 	    if ( rs.next() ) {
 		fail( "Found matching DB record after delete" );
 	    }
@@ -147,8 +147,8 @@ public class Test_ImageInstance extends PhotovaultTestCase {
     void assertMatchesDb( ImageInstance i ) {
 	String volumeName = i.getVolume().getName();
 	String fname = i.getImageFile().getName();
-	String sql = "select * from image_instances where volume_id = \"" + volumeName + "\" and fname = \""
-	    + fname + "\"";
+	String sql = "select * from image_instances where volume_id = '" + volumeName + "' and fname = '"
+	    + fname + "'";
 	Statement stmt = null;
 	ResultSet rs = null;
 	try {

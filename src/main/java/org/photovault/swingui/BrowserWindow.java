@@ -25,6 +25,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultSettings;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.ShootingDateComparator;
@@ -33,6 +35,10 @@ import org.photovault.folder.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
+import org.photovault.imginfo.indexer.ExtVolIndexer;
+import org.photovault.swingui.indexer.IndexerFileChooser;
+import org.photovault.swingui.indexer.IndexerSetupDlg;
+import org.photovault.swingui.indexer.IndexerStatusDlg;
 
 public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
@@ -129,6 +135,14 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 		}
 	    });
 	fileMenu.add( importItem );
+
+	JMenuItem indexDirItem = new JMenuItem( "Index directory...", KeyEvent.VK_D );
+	indexDirItem.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    indexDir();
+		}
+	    });
+	fileMenu.add( indexDirItem );
 
 	JMenuItem exportItem = new JMenuItem( viewPane.getExportSelectedAction() );
 	fileMenu.add( exportItem );
@@ -343,7 +357,69 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	}
     }
 
-
+    /**
+     Asks user to select a directory, creates an external volume from it and 
+     indexes all images in it. The actual indexing is done asynchronously in a 
+     separate thread.
+     */ 
+    protected void indexDir() {
+	IndexerFileChooser fc = new IndexerFileChooser();
+        fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
+        int retval = fc.showDialog( this, "Select directory to index" );
+        if ( retval == JFileChooser.APPROVE_OPTION ) {
+            File dir = fc.getSelectedFile();
+            
+            // First check that this directory has not been indexed previously
+            VolumeBase prevVolume = null;
+            try {
+                prevVolume = VolumeBase.getVolumeOfFile( dir );
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog( this, "Problem reading directory: " 
+                        + ex.getMessage(), "Photovault error", 
+                        JOptionPane.ERROR_MESSAGE );
+                return;                
+            }
+            if ( prevVolume != null ) {
+                JOptionPane.showMessageDialog( this, "Directory " + dir.getAbsolutePath() +
+                        "\n has already been indexed to Photovault.", "Already indexed", 
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
+            
+            // Generate a unique name for the new volume
+            String extVolName = "extvol_" + dir.getName();
+            if ( VolumeBase.getVolume( extVolName ) != null ) {
+                int n = 2;
+                while ( VolumeBase.getVolume( extVolName + n ) != null ) {
+                    n++;
+                }
+                extVolName += n;
+            }
+            ExternalVolume v = new ExternalVolume( extVolName, 
+                    dir.getAbsolutePath() );
+            PhotovaultSettings settings = PhotovaultSettings.getSettings();
+            PVDatabase db = settings.getCurrentDatabase();
+            db.addVolume( v );
+            settings.saveConfig();
+            
+            // Set up the indexer
+            ExtVolIndexer indexer = new ExtVolIndexer( v );
+            PhotoFolder parentFolder = fc.getExtvolParentFolder();
+            if ( parentFolder == null ) {
+                parentFolder = PhotoFolder.getRoot();
+            }
+            PhotoFolder topFolder = PhotoFolder.create( "extvol_" + dir.getName(), 
+                    parentFolder );
+            topFolder.setDescription( "Indexed from " + dir.getAbsolutePath() );
+            indexer.setTopFolder( topFolder );
+            
+            // Show status dialog & index the directory
+            IndexerStatusDlg statusDlg = new IndexerStatusDlg( this, false );
+            statusDlg.setVisible( true );
+            statusDlg.runIndexer( indexer );
+        }
+    }
+    
     /**
        Exports the selected images to folder outside the database.
     */
@@ -377,10 +453,20 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
            Cursor oldCursor = getCursor();
            setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
            PhotoInfo selected = (PhotoInfo) (selection.toArray())[0];
-           previewPane.setPhoto( selected );
+            try {
+                previewPane.setPhoto( selected );
+            } catch (FileNotFoundException ex) {
+                JOptionPane.showMessageDialog( this, 
+                        "Image file for this photo was not found", "File not found",
+                        JOptionPane.ERROR_MESSAGE );
+            }
            setCursor( oldCursor );
        } else {
-           previewPane.setPhoto( null );
+            try {
+                previewPane.setPhoto( null );
+            } catch (FileNotFoundException ex) {
+                // No exception expected when calling with null
+            }
        }
     }
     protected JTabbedPane tabPane = null;

@@ -39,6 +39,7 @@ public class JUnitOJBManager {
 
     /** Creates a new instance of JUnitOJBManager */
     private JUnitOJBManager() {
+        System.setProperty( "photovault.configfile", "conf/junittest_config.xml" );
         log.error( "Initializing OB for JUnit tests" );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         settings.setConfiguration( "pv_junit" );

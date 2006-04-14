@@ -14,7 +14,7 @@
   General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with Foobar; if not, write to the Free Software Foundation,
+  along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 
@@ -30,71 +30,25 @@ import org.photovault.common.PhotovaultSettings;
    The class Volume presents a single volume. e.g. storage area for image files
 */
 
-public class Volume {
+public class Volume extends VolumeBase {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Volume.class.getName() );
 
-    private static Volume defaultVolume = null;
-    private static HashMap volumes = null;
-    
-    /**
-       Returns the current default volume object
-    */
-    public static Volume getDefaultVolume() {
-	if ( defaultVolume == null ) {
-            PhotovaultSettings settings = PhotovaultSettings.getSettings();
-            PVDatabase db = settings.getCurrentDatabase();
-            defaultVolume = db.getDefaultVolume();
-	}
-	return defaultVolume;
-    }
-
-    /**
-       Returns the volume with a given name or null if such volume does not exist
-       @param volName The name to look for
-    */
-    public static Volume getVolume( String volName ) {
-	Volume vol = null;
-        PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        PVDatabase db = settings.getCurrentDatabase();
-	vol = db.getVolume( volName );
-	return vol;
-    }
 
     public Volume() {
         
     }
     
     public Volume( String volName, String volBaseDir ) {
-	volumeName = volName;
-	volumeBaseDir = new File( volBaseDir );
-	if ( !volumeBaseDir.exists() ) {
-	    volumeBaseDir.mkdir();
-	}
-	registerVolume();
-    }
-
-       
-    private void registerVolume() {
-        log.debug( "registering volume " + volumeName + ", basedir " + volumeBaseDir );
-	if ( volumes == null ) {
-	    volumes = new HashMap();
-	}
-	volumes.put( volumeName, this );
-    }
-    
-    private void unregisterVolume() {
-        if ( volumes != null ) {
-            volumes.remove( volumeName );
-        }
+        super( volName, volBaseDir );
     }
 
     /**
        Sets the specified directory as the root for the default volume
-       @param volName Directory that will be assigned as the new volume root
+       @param volBaseDir Directory that will be assigned as the new volume root
     */
-    public static void setDefaultVolume( String volName ) {
-	defaultVolume = new Volume( "defaultVolume", volName );
+    public static void setDefaultVolume( String volBaseDir ) {
+	defaultVolume = new Volume( "defaultVolume", volBaseDir );
     }
 	
 
@@ -204,64 +158,14 @@ public class Volume {
 	}
 	return archiveFile;
     }
-
-    /**
-       Returns the base directory for the volume.
-    */
     
-    public File getBaseDir() {
-	return volumeBaseDir;
-    }
-
     /**
-     * Sets the base dir for the volume. If the directory does no exist it is 
-     * created.
+     Normal volume is conceptually flat - all file names are unique so we will 
+     just strip the path from file name.
      */
-    public void setBaseDir( File baseDir ) {
-        log.debug( "New basedir for " + volumeName + ": " + baseDir );        
-	volumeBaseDir = baseDir;
-        if ( !volumeBaseDir.exists() ) {
-	    volumeBaseDir.mkdir();
-	}        
-    }
-    
-    /**
-     * Sets the base dir for the volume. If the directory does no exist it is 
-     * created.
-     */
-    public void setBaseDir( String baseDirName ) {
-        log.debug( "New basedir for " + volumeName + ": " + baseDirName );
-        File baseDir = new File( baseDirName );
-        setBaseDir( baseDir );
-    }
-    
-    private String volumeName = "";
-
-    /**
-       Returns the volume name
-     */
-    public String getName() {
-	return volumeName;
+    public String mapFileToVolumeRelativeName( File f ) {
+       return f.getName(); 
     }
 
-    /**
-     * Sets the voume name
-     */
-    public void setName( String volName ) {
-        unregisterVolume();
-        volumeName = volName;
-        registerVolume();
-    }
-    
-    /** returns true if the vulome is available, flase otherwise (if e.g. the volume is
-	stored on CD-ROM thatis not mounted currently
-    */
-    
-    public boolean isAvailable() {
-	return true;
-    }
-    
 
-    
-    private File volumeBaseDir;
 }

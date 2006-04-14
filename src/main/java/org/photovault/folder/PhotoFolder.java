@@ -462,31 +462,4 @@ public class PhotoFolder implements PhotoCollection {
     public String toString() {
 	return name;
     }
-
-//     // Functions to get the ODMG persistence layer handles. This should really be moved into
-//     // its own helper class
-
-//     static Implementation odmg = null;
-//     public static Implementation getODMGImplementation() {
-// 	if ( odmg == null ) {
-// 	    odmg = ODMG.getODMGImplementation();
-// 	}
-// 	return odmg;
-//     }
-
-//     static Database db = null;
-//     public static Database getODMGDatabase() {
-// 	if ( db == null ) {
-// 	    db = ODMG.getODMGDatabase();
-// 	}
-// 	return db;
-//     }
-
-//     // Init ODMG fields at creation time
-//     {
-	
-// 	getODMGImplementation();
-// 	getODMGDatabase();
-//     }
-    
 }    

@@ -14,7 +14,7 @@
   General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with Foobar; if not, write to the Free Software Foundation,
+  along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 
@@ -34,6 +34,9 @@ import java.awt.geom.*;
 import com.drew.metadata.*;
 import com.drew.metadata.exif.*;
 import com.drew.imaging.jpeg.*;
+import org.apache.ojb.broker.PersistenceBroker;
+import org.apache.ojb.broker.query.Criteria;
+import org.apache.ojb.broker.query.QueryByCriteria;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;
 import org.photovault.dbhelper.ODMG;
@@ -89,7 +92,39 @@ public class PhotoInfo {
         }
         return photo;
     }
-    
+
+    /**
+     Retrieves the PhotoInfo objects whose original instance has a specific hash code
+     @param hash The hash code we are looking for
+     @return An array of matching PhotoInfo objects or <code>null</code>
+     if none found.
+     */
+    static public PhotoInfo[] retrieveByOrigHash(byte[] hash) {
+ 	ODMGXAWrapper txw = new ODMGXAWrapper();
+	Implementation odmg = ODMG.getODMGImplementation();
+
+	Transaction tx = odmg.currentTransaction();
+
+       PhotoInfo photos[] = null;
+	try {
+	    PersistenceBroker broker = ((HasBroker) tx).getBroker();
+	    
+	    Criteria crit = new Criteria();
+            crit.addEqualTo( "hash", hash );
+	    
+	    QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
+	    Collection result = broker.getCollectionByQuery( q );
+            if ( result.size() > 0 ) {
+                photos = (PhotoInfo[]) result.toArray( new PhotoInfo[0] );
+            }
+            txw.commit();
+	} catch ( Exception e ) {
+	    log.warn( "Error executing query: " + e.getMessage() );
+	    e.printStackTrace( System.out );
+	    txw.abort();
+	}
+       return photos;
+    }
     
     /**
      Createas a new persistent PhotoInfo object and stores it in database
@@ -109,46 +144,99 @@ public class PhotoInfo {
     
     
     /**
-     * Add a new image to the database. This method first copies a given image file to the database volume.
-     * It then extracts the information it can from the image file and stores a corresponding entry in DB
-     * @param imgFile File object that describes the image file that is to be added to the database
-     * @return The PhotoInfo object describing the new file.
-     * @throws PhotoNotFoundException if the file given as imgFile argument does not exist or is unaccessible.
+     Add a new image to the database. Unless the image resides in an external 
+     volume this method first copies a given image file to the default database 
+     volume. It then extracts the information it can from the image file and 
+     stores a corresponding entry in DB.
+     
+     @param imgFile File object that describes the image file that is to be added 
+     to the database
+     @return The PhotoInfo object describing the new file.
+     @throws PhotoNotFoundException if the file given as imgFile argument does
+     not exist or is unaccessible. This includes a case in which imgFile is part
+     if normal Volume.
      */
     public static PhotoInfo addToDB( File imgFile )  throws PhotoNotFoundException {
-        Volume vol = Volume.getDefaultVolume();
-        File f = vol.getFilingFname( imgFile );
-        
-        // Copy the file to the archive
+        VolumeBase vol = null;
         try {
-            FileInputStream in = new FileInputStream( imgFile );
-            FileOutputStream out = new FileOutputStream( f );
-            byte buf[] = new byte[1024];
-            int nRead = 0;
-            int offset = 0;
-            while ( (nRead = in.read( buf )) > 0 ) {
-                out.write( buf, 0, nRead );
-                offset += nRead;
-            }
-            out.close();
-            in.close();
-        } catch ( Exception e ) {
-            log.warn( "Error copying file: " + e.getMessage() );
+            vol = VolumeBase.getVolumeOfFile( imgFile );
+        } catch (IOException ex) {
             throw new PhotoNotFoundException();
         }
         
+        // Determine the fle that will be added as an instance
+        File instanceFile = null;
+        if ( vol == null ) {
+            /* 
+             The "normal" case: we are adding a photo that is not part of any 
+             volume. Copy the file to the archive.
+             */
+            vol = VolumeBase.getDefaultVolume();
+            instanceFile = vol.getFilingFname( imgFile );
+
+            // 
+            try {
+                FileInputStream in = new FileInputStream( imgFile );
+                FileOutputStream out = new FileOutputStream( instanceFile );
+                byte buf[] = new byte[1024];
+                int nRead = 0;
+                int offset = 0;
+                while ( (nRead = in.read( buf )) > 0 ) {
+                    out.write( buf, 0, nRead );
+                    offset += nRead;
+                }
+                out.close();
+                in.close();
+            } catch ( Exception e ) {
+                log.warn( "Error copying file: " + e.getMessage() );
+                throw new PhotoNotFoundException();
+            }
+        } else if ( vol instanceof ExternalVolume ) {
+            // Thisfile is in an external volume so we do not need a copy
+            instanceFile = imgFile;
+        } else if ( vol instanceof Volume ) {
+            // Adding file from normal volume is not permitted
+            throw new PhotoNotFoundException();
+        } else {
+            throw new java.lang.Error( "Unknown subclass of VolumeBase: " 
+                    + vol.getClass().getName() );
+        }
         
         // Create the image
         ODMGXAWrapper txw = new ODMGXAWrapper();
         PhotoInfo photo = PhotoInfo.create();
         txw.lock( photo, Transaction.WRITE );
-        photo.addInstance( vol, f, ImageInstance.INSTANCE_TYPE_ORIGINAL );
+        photo.addInstance( vol, instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
         photo.setOrigFname( imgFile.getName() );
         java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
         photo.setShootTime( shootTime );
-        photo.updateFromFileMetadata( f );
+        photo.updateFromFileMetadata( instanceFile );
         txw.commit();
         return photo;
+    }
+    
+    /**
+     Reads field values from original file EXIF values
+     @return true if successfull, false otherwise
+     */
+     
+    public boolean updateFromOriginalFile() {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        ImageInstance instance = null;
+        for ( int n = 0; n < instances.size(); n++ ) {
+            ImageInstance candidate = (ImageInstance) instances.get( n );
+            if ( candidate.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+                instance = candidate;
+                File f = instance.getImageFile();
+                if ( f != null ) {
+                    updateFromFileMetadata( f );
+                    txw.commit();                    
+                    return true;
+                }
+            }
+        }
+        txw.commit();
+        return false;
     }
     
     /**
@@ -319,6 +407,23 @@ public class PhotoInfo {
     }
     
     /**
+     Adds a new image instance for this photo
+     @param i The new instance
+     */
+    public void addInstance( ImageInstance i ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        txw.lock( i, Transaction.WRITE );
+        instances.add( i );
+        i.setPhotoUid(  uid );
+        if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+            origInstanceHash = i.getHash();
+        }
+        txw.commit();
+        
+    }
+    
+    /**
      Adds a new instance of the photo into the database.
      @param volume Volume in which the instance is stored
      @param instanceFile File name of the instance
@@ -326,7 +431,7 @@ public class PhotoInfo {
      @return The new instance
      @see ImageInstance class documentation for details.
      */
-    public ImageInstance addInstance( Volume volume, File instanceFile, int instanceType ) {
+    public ImageInstance addInstance( VolumeBase volume, File instanceFile, int instanceType ) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         // Vector origInstances = getInstances();
@@ -341,12 +446,28 @@ public class PhotoInfo {
         }
         
         if ( instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+            // Store the hash code of original (even if this original instance is later deleted
+            // we can identify later that another file is an instance of this photo)
+            origInstanceHash = instance.getHash();
             // If an original instance is added notify listeners since some of
             // them may be displaying the default thumbnail
             modified();
         }
         txw.commit();
         return instance;
+    }
+    
+    public void removeInstance( int instanceNum )  throws IndexOutOfBoundsException {
+        ODMGXAWrapper txw = new ODMGXAWrapper();        
+        ImageInstance instance = null;
+        try {
+            instance = (ImageInstance) getInstances().get(instanceNum );
+        } catch ( IndexOutOfBoundsException e ) {
+            txw.abort();
+            throw e;
+        }
+        instances.remove( instance );
+        txw.commit();
     }
     
     /**
@@ -446,7 +567,7 @@ public class PhotoInfo {
     /** Creates a new thumbnail for this image on specific volume
      @param volume The volume in which the instance is to be created
      */
-    protected void createThumbnail( Volume volume ) {
+    protected void createThumbnail( VolumeBase volume ) {
         
         log.debug( "Creating thumbnail for " + uid );
         ODMGXAWrapper txw = new ODMGXAWrapper();
@@ -607,6 +728,12 @@ public class PhotoInfo {
                         bi = ImageIO.read( bis );
                     } catch (IOException ex) {
                         ex.printStackTrace();
+                    } finally {
+                        try {
+                            bis.close();
+                        } catch (IOException ex) {
+                            log.error( "Cannot close image instanr after creating thumbnail." );
+                        }
                     }
                 }
             } catch ( MetadataException e ) {
@@ -618,7 +745,7 @@ public class PhotoInfo {
     /** Creates a new thumbnail on the default volume
      */
     protected void createThumbnail() {
-        Volume vol = Volume.getDefaultVolume();
+        VolumeBase vol = VolumeBase.getDefaultVolume();
         createThumbnail( vol );
     }
     
@@ -743,6 +870,29 @@ public class PhotoInfo {
     }
     
     
+    /**
+     MD5 hash code of the original instance of this PhotoInfo. It must is stored also
+     as part of PhotoInfo object since the original instance might be deleted from the 
+     database (or we might synchronize just metadata without originals into other database!).
+     With the hash code we are still able to detect that an image file is actually the 
+     original.
+     */
+    byte origInstanceHash[] = null;
+    
+    public byte[] getOrigInstanceHash() {
+        return (byte[]) origInstanceHash.clone();
+    }
+    
+    /**
+     Sets the original instance hash. This is intended for only internal use
+     @param hash MD5 hash value for original instance
+     */
+    protected void setOrigInstanceHash( byte[] hash ) {
+       ODMGXAWrapper txw = new ODMGXAWrapper();
+       txw.lock( this, Transaction.WRITE );
+       origInstanceHash = hash.clone();
+       txw.commit();
+    }
     
     java.util.Date shootTime;
     
@@ -1265,4 +1415,5 @@ public class PhotoInfo {
                 && p.uid == this.uid
                 && p.quality == this.quality );
     }
+
 }

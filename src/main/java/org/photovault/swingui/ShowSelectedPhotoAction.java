@@ -21,6 +21,7 @@
 package org.photovault.swingui;
 
 
+import java.io.FileNotFoundException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -94,21 +95,34 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
 		// image buffers to avoid massive memory leak.
 
 		final JAIPhotoViewer pv = viewer;
-		frame.addWindowListener( new WindowAdapter() {
-			public void windowClosing( WindowEvent e ) {
-			pv.setPhoto( null );
-			}
-		    } );
-		viewer.setPhoto( photo );
-		frame.pack();
-		frame.setVisible( true );
+                frame.addWindowListener( new WindowAdapter() {
+                    public void windowClosing( WindowEvent e ) {
+                        try {
+                            pv.setPhoto( null );
+                        } catch (FileNotFoundException ex) {
+                            // No exception should be trown when caling with
+                        }
+                    }
+                } );
+                try {
+                    viewer.setPhoto( photo );
+                    frame.pack();
+                    frame.setVisible( true );                
+                } catch (FileNotFoundException ex) {
+                        JOptionPane.showMessageDialog( viewer, "No image file was found",
+                                "File not found", JOptionPane.ERROR_MESSAGE );
+                    }
 	    } catch ( Throwable e ) {
 		// Most likely we got an out of memory error
 		log.warn( "Error while trying to show a photo: " + e );
 		e.printStackTrace();
 		// Clean up as much as we can
 		if ( viewer != null ) {
-		    viewer.setPhoto( null );
+                    try {
+                        viewer.setPhoto( null );
+                    } catch (FileNotFoundException ex) {
+                        // No exception should be thrown when calling with null.
+                    }
 		}
 		try {
 		    JOptionPane.showMessageDialog( parentFrame,

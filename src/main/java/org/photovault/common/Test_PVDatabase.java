@@ -32,8 +32,10 @@ import java.io.FileReader;
 import java.io.File;
 import org.apache.commons.betwixt.io.BeanWriter;
 import org.apache.commons.betwixt.io.BeanReader;
+import org.photovault.imginfo.ExternalVolume;
 
 import org.photovault.imginfo.Volume;
+import org.photovault.imginfo.VolumeBase;
 
 /**
  *
@@ -62,8 +64,10 @@ public class Test_PVDatabase extends TestCase {
         db.setDbHost( "" );
         db.setDbName( "test" );
         
-        Volume v = new Volume( "test", "c:/temp" );
+        Volume v = new Volume( "test", "c:/temp/voltest" );
         db.addVolume( v );
+        ExternalVolume ev = new ExternalVolume( "test_extvol", "c./tem/extvoltest" );
+        db.addVolume( ev );
         
         File tempFile = null;
         try {
@@ -93,13 +97,17 @@ public class Test_PVDatabase extends TestCase {
         try {
             beanReader.registerBeanClass( "database", PVDatabase.class );
             beanReader.registerBeanClass( "volume", Volume.class );
+            beanReader.registerBeanClass( "external-volume", ExternalVolume.class );
             PVDatabase readDB = (PVDatabase) beanReader.parse( tempFile );
             assertEquals( readDB.getDbName(), "test" );
             List readVolumes = readDB.getVolumes();
-            assert( readVolumes.size() == 1 );
+            assertTrue( readVolumes.size() == 2 );
             Volume readVolume = (Volume) readVolumes.get(0);
             assertEquals( readVolume.getName(), "test" );
             assertEquals( readVolume.getBaseDir(), v.getBaseDir() );
+            ExternalVolume readExtVolume = (ExternalVolume) readVolumes.get(1);
+            assertEquals( ev.getName(), readExtVolume.getName() );
+            assertEquals( ev.getBaseDir(), readExtVolume.getBaseDir() );
         } catch ( Exception e ) {
             this.fail( e.getMessage() );
         }

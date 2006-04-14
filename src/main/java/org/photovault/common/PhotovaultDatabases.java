@@ -28,6 +28,7 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 import org.apache.commons.betwixt.io.BeanWriter;
 import org.apache.commons.betwixt.io.BeanReader;
+import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.Volume;
 
 /**
@@ -80,6 +81,7 @@ public class PhotovaultDatabases {
             beanReader.registerBeanClass( "databases", PhotovaultDatabases.class );
             beanReader.registerBeanClass( "database", PVDatabase.class );
             beanReader.registerBeanClass( "volume", Volume.class );
+            beanReader.registerBeanClass( "external-volume", ExternalVolume.class );
             databases = (PhotovaultDatabases) beanReader.parse( f );
         } catch ( Exception e ) {
             System.err.println( e.getMessage() );

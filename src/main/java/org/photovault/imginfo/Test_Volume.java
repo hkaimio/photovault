@@ -14,7 +14,7 @@
   General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with Foobar; if not, write to the Free Software Foundation,
+  along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 
@@ -242,6 +242,50 @@ public class Test_Volume extends PhotovaultTestCase {
     }
 
     /**
+     Test the functionality of isFileInVolume method
+     */
+    public void testIsFileInVolume() {
+        File basedir = volume.getBaseDir();
+        try {
+            
+            // Positive tests
+            assertTrue( volume.isFileInVolume( new File( basedir, "testpicture.jpg ") ) );
+            assertTrue( volume.isFileInVolume( basedir ) );
+            
+            // Negative tests
+            assertFalse( volume.isFileInVolume( basedir.getParentFile() ));
+            assertFalse( volume.isFileInVolume( File.listRoots()[0] ) );
+        } catch (IOException ex) {
+            fail( "IOError: " + ex.getMessage() );
+        }
+    }
+    
+    /**
+     Test basic use cases for method getVolumeOfFile
+     */
+    
+    public void testGetVolumeOfFile() {
+        try {
+            File testVolPath = File.createTempFile( "pv_voltest", "" );
+            VolumeBase extVolume = new ExternalVolume( "extvol", testVolPath.getAbsolutePath() );
+            
+            File test1 = new File( volume.getBaseDir(), "testfile" );
+            assertEquals( test1.getAbsolutePath() + " belongs to volume", 
+                    volume, VolumeBase.getVolumeOfFile( test1 ) ); 
+            File test2 = new File( testVolPath, "testfile" );
+            assertEquals( test2.getAbsolutePath() + " belongs to volume", 
+                    extVolume, VolumeBase.getVolumeOfFile( test2 ) ); 
+            File test3 = new File( testVolPath.getParentFile(), "testfile" );
+            this.assertNull( test3.getAbsoluteFile() + " does not belong to volume",
+                    VolumeBase.getVolumeOfFile( test3 ) );
+            // Test that null argument does not cause error
+            VolumeBase.getVolumeOfFile( null );
+        } catch (IOException ex) {
+            fail( "IOError: " + ex.getMessage() );
+        }
+    }
+    
+    /**
        Test a special case - creating a file name for a PhotoInfo in which the shooting date has not been set.
        Criteria is simply that a valid file name is created and that no Exception is thrown.
     */
@@ -255,5 +299,16 @@ public class Test_Volume extends PhotovaultTestCase {
 
 	return new TestSuite( Test_Volume.class );
     }
+    
+    
+    public static void main( String[] args ) {
+	//	org.apache.log4j.BasicConfigurator.configure();
+	// log.setLevel( org.apache.log4j.Level.DEBUG );
+	org.apache.log4j.Logger instLog = org.apache.log4j.Logger.getLogger( Volume.class.getName() );
+	instLog.setLevel( org.apache.log4j.Level.DEBUG );
+	junit.textui.TestRunner.run( suite() );
+    }
+    
+
 }
 	

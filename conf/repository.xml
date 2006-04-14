@@ -100,6 +100,8 @@
     </field-descriptor>
     <field-descriptor name="rotated" column="rotated" jdbc-type="FLOAT">
     </field-descriptor>
+    <field-descriptor name="hash" column="hash" jdbc-type="VARBINARY">        
+    </field-descriptor>
   </class-descriptor>
 
   <!-- PhotoInfo mappings -->
@@ -140,7 +142,9 @@
     </field-descriptor>
     <field-descriptor name="origFname" column="orig_fname" jdbc-type="VARCHAR">
     </field-descriptor>
-
+    <field-descriptor name="origInstanceHash" column="hash" jdbc-type="VARBINARY">
+    </field-descriptor>
+ 
     <!-- instances collection 
     Instances are aggregates of PhotoInfo object so we can use the default 
     collection implementation which deleted objects that are deleted from the 
@@ -172,4 +176,11 @@
 
   </class-descriptor>
 
+  <class-descriptor class="org.photovault.common.DbInfo" table="database_info">
+      <field-descriptor name="id" column="database_id" primarykey="true" jdbc-type="VARCHAR"/>
+      <field-descriptor name="createTime" column="create_time" 
+            jdbc-type="TIMESTAMP" 
+            conversion="org.photovault.imginfo.Timestamp2DateConversion"/>
+      <field-descriptor name="version" column="schema_version" jdbc-type="INTEGER"/>      
+  </class-descriptor>
 </descriptor-repository>
