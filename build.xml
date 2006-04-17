@@ -163,6 +163,12 @@
             </not>
           </condition>
       </fail>
+      <!-- Laynch4j task definition for creating windows .exe -->
+      <taskdef name="launch4j"
+        classname="net.sf.launch4j.ant.Launch4jTask"
+        classpath="${launch4j.dir}/launch4j.jar
+        :${launch4j.dir}/lib/xstream.jar" />
+      
     <mkdir dir="${dist}/win32/installer"/>
     <copy file="${nsis-src}/photovault_installer.template.nsi" 
         tofile="${nsis-src}/photovault_installer.nsi"
@@ -174,9 +180,10 @@
             <filter token="basedir" value="${basedir}"/>
         </filterset>
     </copy>
-    <exec executable="${nsiscompiler}">
-        <arg line="${nsis-src}/photovault_launcher.nsi"/>        
-    </exec>
+    <launch4j configFile="src/main/win32/pv_launch4j.xml" 
+        outfile="dist\win32\photovault.exe"
+        jar="dist\photovault-latest\photovault.jar" />
+        
     <exec executable="${nsiscompiler}">
         <arg line="${nsis-src}/photovault_installer.nsi"/>
     </exec>
