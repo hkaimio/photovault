@@ -1,13 +1,37 @@
-Photovault 0.1.1
+Photovault 0.2.alpha1
 Release notes
 
-0.1.1 is an error fix release.
+!!!!NOTE!!!!! Read at least section about backwards compatibility before upgrading!
 
-MAIN CHANGES:
-- Significant performance improvements in thumbnail creation
-- Improved database set up usability
-- Added diagnosis check to startup
-- Several other bug fixes
+0.2.alpha1 is intended for getting feedback on new features in Photovault 0.2. 
+It has not received full testing needed for production release and is not 
+recommended for general use.
+
+MAIN CHANGES IN PHOTOVAULT 0.2
+The biggest change in Photovault 0.2 is support for external volumes: Previously
+Photovault could only manage images stored in its own database. While this is OK
+when importing new images it was not convenient way to work with large existing 
+archives since Photovault created a new copy of each image file and thus doubled
+disk usage.
+
+In Photovault 0.2 this can be solved by defining the existing archive directory as
+an external volume. THen Photovault stores only metadata and a thumbnail of the 
+photos in its database. The actual image files are accessed from original directory.
+Photovault will also track any changes or additions made to the external volume 
+directory.
+
+Other changes:
+- Shortcut keys for moving between images in the same folder
+- Use launch4j for starting Photovault (instead if NSIS)
+
+BACKWARDS COMPATIBILITY
+Due to external olume support the database schema used by Photovault has changed. 
+If you open a database created with earlied version Photovault will automatically
+convert the database schema. This can take significant amount of time if there are
+lots of existing images in the database.
+
+Using old 0.1 version after upgrading is not recommended since making changes with it
+may leave database into inconsistent state.
 
 REQUIRED SOFTWARE
 Photovault needs Sub Java JRE 1.5 and Java Advanced Imaging libraries
@@ -25,7 +49,12 @@ Briefly:
 - Start Photovault and set database name & directory as the program asks for them
 
 KNOWN ISSUES
+- Tracking updates to external volume is disabled in 0.2.alpha1
 -Unit test suite require manual setup of MySQL database for data
 storage. Derby is currently not supported.
 - Some unit test cases do not pass due to unimplemented features and
 errors in Apache OJB version used in Photovault.
+
+SUPPORT
+For support please send e-mail to pvault-users@sourceforge.net or directly to 
+author (harri@photovault.org)
