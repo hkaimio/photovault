@@ -56,6 +56,9 @@ public class ExtVolIndexer implements Runnable {
      */
     public ExtVolIndexer( ExternalVolume vol ) {
         volume = vol;
+        if ( vol.getFolderId() >= 0 ) {
+            topFolder = PhotoFolder.getFolderById( vol.getFolderId() );
+        }
     }
     
     /** The volume that is indexed by this instance */
@@ -410,6 +413,9 @@ public class ExtVolIndexer implements Runnable {
      */
     public void setTopFolder(PhotoFolder topFolder) {
         this.topFolder = topFolder;
+        if ( volume != null ) {
+            volume.setFolderId( topFolder.getFolderId() );
+        }
     }
     
     /**

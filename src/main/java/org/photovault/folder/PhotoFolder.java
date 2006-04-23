@@ -426,6 +426,35 @@ public class PhotoFolder implements PhotoCollection {
 	return rootFolder;
     }
 
+    /**
+     Returns the root folder with givenId.
+     @param id id of the folder to retrieve
+     @return The given folder or <code>null</code> if not found
+    */
+    public static PhotoFolder getFolderById( int id ) {
+        PhotoFolder f = null;
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        Implementation odmg = ODMG.getODMGImplementation();
+        
+        List folders = null;
+        boolean mustCommit = false;
+        try {
+            OQLQuery query = odmg.newOQLQuery();
+            query.create( "select folders from " + PhotoFolder.class.getName() 
+                        + " where folderId = " + id );
+            folders = (List) query.execute();
+        } catch ( Exception e ) {
+            txw.abort();
+            return null;
+        }
+        f = (PhotoFolder) folders.get( 0 );
+        // If a new transaction was created, commit it
+        txw.commit();
+        return f;
+    }
+
+    
+    
     static PhotoFolder rootFolder = null;
 
     /**

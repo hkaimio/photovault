@@ -400,7 +400,6 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
             PhotovaultSettings settings = PhotovaultSettings.getSettings();
             PVDatabase db = settings.getCurrentDatabase();
             db.addVolume( v );
-            settings.saveConfig();
             
             // Set up the indexer
             ExtVolIndexer indexer = new ExtVolIndexer( v );
@@ -412,6 +411,9 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
                     parentFolder );
             topFolder.setDescription( "Indexed from " + dir.getAbsolutePath() );
             indexer.setTopFolder( topFolder );
+
+            // Save the configuration of the new volume
+            settings.saveConfig();
             
             // Show status dialog & index the directory
             IndexerStatusDlg statusDlg = new IndexerStatusDlg( this, false );

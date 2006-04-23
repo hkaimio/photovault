@@ -23,5 +23,6 @@
     <element name="external-volume" class="org.photovault.imginfo.ExternalVolume">
         <attribute name="name" property="name"/>
         <attribute name="basedir" property="baseDir"/>
+        <attribute name="folder" property="folderId"/>
     </element>
 </info>

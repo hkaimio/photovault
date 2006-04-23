@@ -66,6 +66,23 @@ public class ExternalVolume extends VolumeBase {
         return null;
     }
     
+    int folderId = -1;
     
+    /**
+     Returns the ID of the folder that is used to represent this external volume. 
+     If this external volume is not associated withny folder return <code>null</code>.
+     */
+    public int getFolderId() {
+        return folderId;
+    }
+    
+    /**
+     Sets the id of the folder that is used to represent this volume.
+     @param id The id of new folder of -1 to disassociate this volume from any 
+     folder.
+     */
+    public void setFolderId( int id ) {
+        folderId = id;
+    }
     
 }
