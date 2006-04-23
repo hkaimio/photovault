@@ -64,10 +64,12 @@ public class ImageInstance {
 	i.volume = vol;
 	i.volumeId = vol.getName();
 	i.imageFile = imgFile;
+        i.fileSize = imgFile.length();
+        i.mtime = imgFile.lastModified();
         i.fname = vol.mapFileToVolumeRelativeName( imgFile );
         txw.lock( i, Transaction.WRITE );
         i.calcHash();
-	// Read the rest of fields from the image file
+        // Read the rest of fields from the image file
 	try {
 	    i.readImageFile();
 	} catch (IOException e ) {
@@ -76,6 +78,7 @@ public class ImageInstance {
 	    // The image does not exist, so it cannot be read!!!
 	    return null;
 	}
+        i.checkTime = new java.util.Date();
         txw.commit();
         return i;
     }
@@ -104,6 +107,8 @@ public class ImageInstance {
 	f.volume = volume;
 	f.volumeId = volume.getName();
 	f.imageFile = imageFile;
+        f.fileSize = imageFile.length();
+        f.mtime = imageFile.lastModified();
         f.fname = volume.mapFileToVolumeRelativeName( imageFile );
 	txw.lock( f, Transaction.WRITE );
 	log.debug( "locked instance" );
@@ -119,7 +124,8 @@ public class ImageInstance {
 	    return null;
 	}
         f.calcHash();
-	txw.commit();
+	f.checkTime = new java.util.Date();
+        txw.commit();
 	return f;
     }
 
@@ -149,8 +155,11 @@ public class ImageInstance {
 	    txw.abort();
 	    return null;
 	}
-	
-	ImageInstance instance = (ImageInstance) instances.get( 0 );
+        
+	ImageInstance instance = null;
+        if ( instances != null && instances.size() > 0 ) {
+            instance = (ImageInstance) instances.get( 0 );
+        }
 	return instance;
     }
 
@@ -359,6 +368,103 @@ public class ImageInstance {
 	return relPath;
     }
 
+    private long fileSize;
+    
+    /**
+     Get the size of the image file <b>as stored in database</b>
+     */ 
+    public long getFileSize() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
+	return fileSize;        
+    }
+    
+    private long mtime;
+    
+    /**
+     Get the last modification time of the actual image file <b>as stored in 
+     database</b>. Measured as milliseconds since epoc(Jan 1, 1970 midnight)
+     */
+    public long getMtime() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
+	return mtime;                
+    }
+    
+    private java.util.Date checkTime;
+    
+    /**
+     Returns the time when consistency of the instance information was last checked 
+     (i.e. that the image file really exists and is still unchanged after creating 
+     the instance.
+     */
+    public java.util.Date getCheckTime() {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.READ );
+	txw.commit();
+	return checkTime;                
+    }
+    
+    /**
+     Check that the information in database and associated volume are consistent. 
+     In praticular, this method checks that
+     <ul>
+     <li>The file exists</li>
+     <li>That the actual file size matches information in database unless
+     size in database is 0.</li>
+     <li>That the last modification time matches that in the database. If the 
+     modification times differ the hash is recalculated and that is used
+     to determine consistency.</li>
+     <li>If file hash matches the hash stored in database the information is 
+     assumed to be consistent. If mtimes or file sizes differed thee are updated 
+     into database.
+     </ul>
+     @return true if information was consistent, false otherwise
+     */
+    public boolean doConsistencyCheck() {
+	boolean isConsistent = true;
+        boolean needsHashCheck = false;
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+        File f = this.getImageFile();
+        if ( f.exists() ) {
+            long size = f.length();
+            if ( size != this.fileSize ) {
+                isConsistent = false;
+                if ( this.fileSize == 0 ) {
+                    needsHashCheck = true;
+                }
+            }
+            
+            long mtime = f.lastModified();
+            if ( mtime != this.mtime ) {
+                needsHashCheck = true;
+            }
+            
+            if ( needsHashCheck ) {
+                byte[] dbHash = hash.clone();
+                calcHash();
+                byte[] realHash = hash.clone();
+                isConsistent = (dbHash.equals( realHash ) );
+                if ( isConsistent ) {
+                    txw.lock( this, Transaction.WRITE );
+                    this.mtime = mtime;
+                    this.fileSize = size;
+                }
+            }
+        }    
+        
+        /* Update the database with check result if it was positive */
+         
+        if ( isConsistent ) {
+            txw.lock( this, Transaction.WRITE );
+            this.checkTime = new java.util.Date();
+        }
+        txw.commit();
+        return isConsistent;
+    }
     
     private int width;
     
@@ -484,4 +590,8 @@ public class ImageInstance {
     }
     
     int photoUid;
+    
+    public int getPhotoUid() {
+        return photoUid;
+    }
 }

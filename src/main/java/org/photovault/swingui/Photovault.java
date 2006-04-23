@@ -71,7 +71,8 @@ public class Photovault implements SchemaUpdateListener {
             success = true;
         }
         
-        if ( db.getSchemaVersion() < db.CURRENT_SCHEMA_VERSION ) {
+        int schemaVersion = db.getSchemaVersion();
+        if ( schemaVersion < db.CURRENT_SCHEMA_VERSION ) {
             String options[] = {"Proceed", "Exit Photovault"};
             if ( JOptionPane.YES_OPTION == JOptionPane.showOptionDialog( ld,
                     "The database was created with an older version of Photovault\n" +

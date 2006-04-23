@@ -23,7 +23,7 @@ import org.photovault.dbhelper.ODMG;
 
 /**
  * This class handles proper OJB initialization for unti tests. This class is 
- * singlton and it just sets up the OJB environment according to configuration files
+ * a singleton and it just sets up the OJB environment according to configuration files
  * so it is enough that the unit tests just get a reference to it.
  *<p>
  * Environment setup is doe like this:
@@ -44,7 +44,7 @@ public class JUnitOJBManager {
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         settings.setConfiguration( "pv_junit" );
 	PVDatabase db = settings.getDatabase( "pv_junit" );
-
+        
 	if ( db == null ) {
 	    log.error( "Could not find dbname for configuration " );
 	    return;
@@ -56,6 +56,11 @@ public class JUnitOJBManager {
 	} else {
 	    log.error( "Error logging into Photovault" );
 	}
+        
+        if ( db.getSchemaVersion() < PVDatabase.CURRENT_SCHEMA_VERSION ) {
+            SchemaUpdateAction updater = new SchemaUpdateAction( db );
+            updater.upgradeDatabase();
+        }
     }
 
     static JUnitOJBManager mgr = null;

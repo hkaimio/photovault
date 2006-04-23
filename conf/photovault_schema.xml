@@ -51,6 +51,13 @@
 
       <column name="hash" primaryKey="false" required="false" type="VARBINARY" size="16" autoIncrement="false"/>
       
+      <!-- size of the file -->
+      <column name="file_size" primaryKey="false" required="false" type="BIGINT" autoIncrement="false"/>
+      <!-- last modification time of the file -->
+      <column name="mtime" primaryKey="false" required="false" type="BIGINT" autoIncrement="false"/>
+      <!-- time the consisteny between database record and actual image file was checked last time -->
+      <column name="check_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
+      
       <!-- Columns for reserved for future use -->
       <column name="instance_string1" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
       <column name="instance_string2" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>

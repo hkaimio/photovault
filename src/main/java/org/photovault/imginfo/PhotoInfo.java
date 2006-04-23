@@ -880,7 +880,7 @@ public class PhotoInfo {
     byte origInstanceHash[] = null;
     
     public byte[] getOrigInstanceHash() {
-        return (byte[]) origInstanceHash.clone();
+        return (origInstanceHash != null) ? ((byte[])origInstanceHash.clone()) : null;
     }
     
     /**

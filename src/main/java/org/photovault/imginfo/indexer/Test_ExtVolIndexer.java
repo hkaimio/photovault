@@ -23,8 +23,11 @@ package org.photovault.imginfo.indexer;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultSettings;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.FileUtils;
@@ -49,6 +52,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
     public void setUp() {
         File testfile1 = null;
         File testfile2 = null;
+        File testfile3 = null;
         try {
             // Create the directories
             extVolDir = File.createTempFile( "pv_indexer_test_", "" );
@@ -58,6 +62,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
             extVolSubdir.mkdir();
             testfile1 = new File("testfiles", "test1.jpg");
             testfile2 = new File( "testfiles", "test2.jpg" );
+            testfile3 = new File( "testfiles", "test3.jpg" );
             photo1 = new File( extVolDir, "test1.jpg");
             FileUtils.copyFile( testfile1, photo1 );
             photo2inst1 = new File( extVolDir, "test2.jpg");
@@ -92,16 +97,43 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
                 photos2[n].delete();
             }
         }
+        hash3 = ImageInstance.calcHash( testfile3);
+        PhotoInfo photos3[] = PhotoInfo.retrieveByOrigHash( hash3 );
+        if ( photos3 != null ) {
+            for ( int n = 0; n < photos3.length; n++ ) {
+                photos3[n].delete();
+            }
+        }
     }
 
     public void tearDown() {
         FileUtils.deleteTree( extVolDir );
         topFolder.delete();
+
+        PhotoInfo photos1[] = PhotoInfo.retrieveByOrigHash( hash1 );
+        if ( photos1 != null ) {
+            for ( int n = 0; n < photos1.length; n++ ) {
+                photos1[n].delete();
+            }
+        }
+        PhotoInfo photos2[] = PhotoInfo.retrieveByOrigHash( hash2 );
+        if ( photos2 != null ) {
+            for ( int n = 0; n < photos2.length; n++ ) {
+                photos2[n].delete();
+            }
+        }
+        PhotoInfo photos3[] = PhotoInfo.retrieveByOrigHash( hash3 );
+        if ( photos3 != null ) {
+            for ( int n = 0; n < photos3.length; n++ ) {
+                photos3[n].delete();
+            }
+        }        
     }
     
     File extVolDir = null;
     byte[] hash1;
     byte[] hash2;
+    byte[] hash3;
     
     File photo1 = null;
     File photo2inst1 = null;
@@ -135,6 +167,9 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
     public void testIndexing() {
         int n;
         ExternalVolume v = new ExternalVolume( "extVol", extVolDir.getAbsolutePath() );
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        PVDatabase db = settings.getDatabase( "pv_junit" );
+        db.addVolume( v );
         ExtVolIndexer indexer = new ExtVolIndexer( v );
         indexer.setTopFolder( topFolder );
         TestListener l = new TestListener();
@@ -150,13 +185,15 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         assertEquals( "Only 1 photo per picture should be found", 1, photos1.length );
         PhotoInfo p1 = photos1[0];
         assertEquals( "2 instances should be found in photo 1", 2, p1.getNumInstances() );
-        ImageInstance i1 = p1.getInstance( 0 );
-        assertEquals( i1.getImageFile(), photo1 );
-        
         PhotoInfo[] photos2 = PhotoInfo.retrieveByOrigHash( hash2 );
         assertEquals( "1 photo per picture should be found", 1, photos2.length );
         PhotoInfo p2 = photos2[0];
         assertEquals( "3 instances should be found in photo 2", 3, p2.getNumInstances() );
+//
+//        ImageInstance i1 = p1.getInstance( 0 );
+//        assertEquals( i1.getImageFile(), photo1 );
+
+        // CHeck that both instrances of p2 can be found
         boolean found[] = {false, false};
         File files[] = {photo2inst1, photo2inst2};
         for ( n = 0; n < p2.getNumInstances(); n++ ) {
@@ -188,6 +225,49 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         
         assertEquals( "Indexing complete 100%", 100, indexer.getPercentComplete() );
         assertNotNull( "StartTime still null", indexer.getStartTime() );
+            
+        // Next, let's make some modifications to the external volume
+        try {
+            // New file
+            File testfile3 = new File( "testfiles", "test3.jpg" ); 
+            File f3 = new File( extVolDir, "test3.jpg");
+            FileUtils.copyFile( testfile3, f3 );
+            
+            // Replace the test1 file with test3
+            File f1 = new File ( extVolDir, "test1.jpg" );
+            FileUtils.copyFile( testfile3, f1 );
+            
+            // Remove 1 copy of test2
+            File f2 = new File( extVolDir, "test2.jpg" );
+            f2.delete();
+        } catch (IOException ex) {
+            fail( "IOException while altering external volume: " + ex.getMessage() );
+        }
+        
+        indexer = new ExtVolIndexer( v );
+        indexer.setTopFolder( topFolder );
+        l = new TestListener();
+        indexer.addIndexerListener( l );
+    
+        assertEquals( "Indexing not started -> completeness must be 0", 
+                0, indexer.getPercentComplete() );
+        assertNull( "StartTime must be null before starting", indexer.getStartTime() );
+        indexer.run();
+
+        // Check that the folders have the correct photos
+
+        PhotoInfo[] photos3 = PhotoInfo.retrieveByOrigHash( hash3 );
+        assertEquals( "1 photo per picture should be found", 1, photos3.length );
+        PhotoInfo p3 = photos3[0];        
+        PhotoInfo photosInTopFolder2[] = { p3 };
+        assertFolderHasPhotos( topFolder, photosInTopFolder2 );
+        assertEquals( "More than 1 subfolder in topFolder", 1, topFolder.getSubfolderCount() );
+        subFolder = topFolder.getSubfolder( 0 );
+        assertEquals( "Subfolder name not correct", "test", subFolder.getName() );
+        PhotoInfo[] photosInSubFolder2 = { p2 };
+        assertFolderHasPhotos( subFolder, photosInSubFolder2 );   
+        Collection p2folders = p2.getFolders();
+        assertFalse( "p2 must not be in topFolder", p2folders.contains( topFolder ) );
     }
     
     void assertFolderHasPhotos( PhotoFolder folder, PhotoInfo photos[] ) {

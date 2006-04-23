@@ -21,14 +21,25 @@
 package org.photovault.imginfo.indexer;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Vector;
+import org.apache.ojb.broker.PersistenceBroker;
+import org.apache.ojb.broker.query.Criteria;
+import org.apache.ojb.broker.query.QueryByCriteria;
+import org.apache.ojb.odmg.HasBroker;
+import org.odmg.Implementation;
+import org.odmg.Transaction;
+import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoNotFoundException;
 
 /**
  ExtVolIndexer implements a background task for indexing all files in an
@@ -139,19 +150,61 @@ public class ExtVolIndexer implements Runnable {
     
     /**
      Indexes a single file to Photovault database.
-     <p>
-     First, Photovault tries to find an existing instance with the same checksum.
-     If such is found, Photovault assumes that this is another copy of the same
-     file and adds it as an instance to that PhotoInfo. </p>
-     <p> If no such instance is found Photovault creates a new PhotoInfo and
+     <ul>
+     <li>First Photovault checks if the file is already indexed. If the instance
+     is found in database and hash or both file zise and last modification time 
+     match this is assumed to be an existing instance.</li>
+     <li>
+     If the file is not found Photovault tries to find an existing instance with 
+     the same checksum. If such is found, Photovault assumes that this is another 
+     copy of the same file and adds it as an instance to that PhotoInfo. </li>
+     <li>
+     If no such instance is found Photovault creates a new PhotoInfo and
      adds this image as an original instance of it and create a thumbnail on
      default volume.
+     </li>
+     </ul>
      @param f File to be indexed
      @return The PhotoInfo object this file was added to or <code>null</code>
      if Photovault was not able to index this file.
      */
     PhotoInfo indexFile( File f ) {
         indexedFileCount++;
+        
+        // Check if the instance already exists n database
+        ImageInstance oldInstance = null;
+        try {
+            oldInstance = ImageInstance.retrieve( volume, 
+                    volume.mapFileToVolumeRelativeName(f ) );
+        } catch ( PhotoNotFoundException e ) {
+            // No action, there just were no matching instances in database
+        }
+        if ( oldInstance != null ) {
+            // There is an existing instance, check whether the data matches
+            if ( oldInstance.doConsistencyCheck() ) {
+                PhotoInfo photo = null;
+                try {
+                    photo = PhotoInfo.retrievePhotoInfo(oldInstance.getPhotoUid());
+                } catch (PhotoNotFoundException ex) {
+                    ex.printStackTrace();
+                }
+                return photo;
+            } else {
+                PhotoInfo photo = null;
+                try {
+                    photo = PhotoInfo.retrievePhotoInfo(oldInstance.getPhotoUid());
+                } catch (PhotoNotFoundException ex) {
+                    ex.printStackTrace();
+                }
+                Vector instances = photo.getInstances();
+                int instNum = instances.indexOf( oldInstance );
+                if ( instNum >= 0 ) {
+                    photo.removeInstance( instNum );
+                }
+            }
+        }
+        
+        
         // Check whether this is really an image file
         
         ODMGXAWrapper txw = new ODMGXAWrapper();
@@ -214,6 +267,17 @@ public class ExtVolIndexer implements Runnable {
      @param endPercent See above.
      */
     void indexDirectory( File dir, PhotoFolder folder, int startPercent, int endPercent ) {
+        /**
+         Maintain information how many instances for the photos that were previously 
+         added to the folder is found
+         */
+        HashMap photoInstanceCounts = new HashMap();
+        if ( folder != null ) {
+            for ( int n = 0; n < folder.getPhotoCount(); n++ ) {
+                photoInstanceCounts.put( folder.getPhoto( n ), new Integer( 0 ) );
+            }
+        }
+        
         File files[] = dir.listFiles();
         // Count the files
         int fileCount = 0;
@@ -261,13 +325,76 @@ public class ExtVolIndexer implements Runnable {
                 if ( f.canRead() ) {
                     currentEvent = new ExtVolIndexerEvent( this );
                     PhotoInfo p = indexFile( f );
-                    if ( p != null && folder != null ) {
-                        folder.addPhoto( p );
+                    if ( p != null ) {
+                        if ( photoInstanceCounts.containsKey( p ) ) {
+                            // The photo is already in this folder
+                            int refCount = ((Integer)photoInstanceCounts.get( p ) ).intValue();
+                            photoInstanceCounts.remove( p );
+                            photoInstanceCounts.put( p, Integer.valueOf( refCount+1 ));
+                        } else {
+                            // The photo is not yet in this folder
+                            folder.addPhoto( p );
+                            photoInstanceCounts.put( p, Integer.valueOf( 1 ));
+                        }
                     }
                     nFile++;
                     c.setProcessedFiles( nFile );
                     percentComplete = c.getProgress();
                     notifyListeners( currentEvent );
+                }
+            }
+        }
+        
+        /*
+         Check if some of the photos that were in folder before were not found in 
+         this directory
+         */
+        Iterator iter = photoInstanceCounts.keySet().iterator();
+        while ( iter.hasNext() ) {
+            PhotoInfo p = (PhotoInfo ) iter.next();
+            int refCount = ((Integer)photoInstanceCounts.get( p )).intValue();
+            if ( refCount == 0 ) {
+                folder.removePhoto( p );
+            }
+        }
+    }
+    
+    /**
+     Removes instance records that were not updated during indexing.
+     */
+    protected void cleanupInstances() {
+        Criteria crit = new Criteria();
+        crit.addEqualTo( "instances.volumeId", volume.getName() );
+        Criteria dateCrit = new Criteria();
+        dateCrit.addIsNull( "instances.checkTime" );
+        Criteria cutoffDateCrit = new Criteria();
+        cutoffDateCrit.addLessThan( "instances.checkTime", startTime );
+        dateCrit.addOrCriteria( cutoffDateCrit );
+        crit.addAndCriteria( dateCrit );
+        
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+	Implementation odmg = ODMG.getODMGImplementation();
+	Transaction tx = odmg.currentTransaction();
+        Collection result = null;
+	try {
+	    PersistenceBroker broker = ((HasBroker) tx).getBroker();
+	    QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
+	    result = broker.getCollectionByQuery( q );
+        } catch ( Exception e ) {
+            e.printStackTrace();
+        }        
+
+        // Now go through all the photos with stray instances
+        Iterator photoIter = result.iterator();
+        while ( photoIter.hasNext() ) {
+            PhotoInfo p = (PhotoInfo) photoIter.next();
+            Vector instances = p.getInstances();
+            for ( int i = instances.size()-1; i >= 0; i-- ) {
+                ImageInstance inst = (ImageInstance) instances.get( i );
+                Date checkTime = inst.getCheckTime();
+                if ( inst.getVolume() == volume 
+                        && (checkTime == null || checkTime.before( startTime )) ) {
+                    p.removeInstance( i );
                 }
             }
         }
@@ -313,6 +440,7 @@ public class ExtVolIndexer implements Runnable {
     public void run() {
         startTime = new Date();
         indexDirectory( volume.getBaseDir(), topFolder, 0, 100 );
+        cleanupInstances();
         notifyListenersIndexingComplete();
     }
     

@@ -102,6 +102,13 @@
     </field-descriptor>
     <field-descriptor name="hash" column="hash" jdbc-type="VARBINARY">        
     </field-descriptor>
+    <field-descriptor name="fileSize" column="file_size" jdbc-type="BIGINT">
+    </field-descriptor>
+    <field-descriptor name="mtime" column="mtime" jdbc-type="BIGINT">
+    </field-descriptor>
+    <field-descriptor name="checkTime" column="check_time" jdbc-type="TIMESTAMP" 
+        conversion="org.photovault.imginfo.Timestamp2DateConversion">
+    </field-descriptor>
   </class-descriptor>
 
   <!-- PhotoInfo mappings -->
