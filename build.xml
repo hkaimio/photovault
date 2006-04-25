@@ -193,11 +193,12 @@
       <delete dir="./${reports.test}/testresults"/>
       <mkdir dir="./${reports.test}/testresults"/>
       <mkdir dir="./build/test_volume"/>
-      <junit fork="yes" dir="${basedir}" printsummary="yes">
+      <junit fork="yes" dir="${basedir}" showoutput="yes" printsummary="yes">
 	<sysproperty key="photovault.propFname" value="${junittest.properties}"/>
 	<sysproperty key="photovault.configfile" value="${junittest.configfile}"/>      
         <sysproperty key="basedir" value="${basedir}"/>
         <formatter type="xml"/>
+        <formatter usefile="false" type="brief"/>
         <classpath>
            <path refid="project.class.path"/>
            <pathelement location="${build.dir}"/>
