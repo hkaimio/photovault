@@ -124,6 +124,15 @@ public class PVDatabase {
         volumes.add( volume );
     }
     
+    /**
+     Removes a volume from this database object. The data in volume is not deleted,
+     it is just removed form the volumes known for this database.
+     @param volume The volume that will be removed
+     */
+    public void removeVolume(Volume volume) {
+        volumes.remove( volume );
+    }
+    
     public List getVolumes( ) {
         return  volumes;
     }
@@ -326,6 +335,8 @@ public class PVDatabase {
         DbInfo info = DbInfo.getDbInfo();
         return info.getVersion();
     }
+
+
 
     /**
      The latest schema version which should be used with this version of 
