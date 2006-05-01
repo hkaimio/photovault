@@ -127,7 +127,7 @@ public class PhotoInfo {
     }
     
     /**
-     Createas a new persistent PhotoInfo object and stores it in database
+     Creates a new persistent PhotoInfo object and stores it in database
      (just a dummy onject with no meaningful field values)
      @return A new PhotoInfo object
      */

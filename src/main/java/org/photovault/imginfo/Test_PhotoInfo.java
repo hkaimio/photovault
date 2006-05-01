@@ -720,10 +720,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
             }
             i.delete();
         }
-        assertEquals( "PhotoInfo & origInstance hashes differ", hash, instanceHash );
+        assertTrue( "PhotoInfo & origInstance hashes differ", Arrays.equals( hash, instanceHash ) );
         
         byte hash2[] = photo.getOrigInstanceHash();
-        assertEquals( "Hash after deleting instances is changed", hash, hash2 );
+        assertTrue( "Hash after deleting instances is changed", Arrays.equals( hash, hash2 ) );
         
         photo.delete();
     }

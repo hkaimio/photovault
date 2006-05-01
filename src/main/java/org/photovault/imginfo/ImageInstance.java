@@ -447,7 +447,7 @@ public class ImageInstance {
                 byte[] dbHash = hash.clone();
                 calcHash();
                 byte[] realHash = hash.clone();
-                isConsistent = (dbHash.equals( realHash ) );
+                isConsistent = Arrays.equals( dbHash, realHash );
                 if ( isConsistent ) {
                     txw.lock( this, Transaction.WRITE );
                     this.mtime = mtime;

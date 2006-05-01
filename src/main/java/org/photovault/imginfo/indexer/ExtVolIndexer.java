@@ -401,6 +401,7 @@ public class ExtVolIndexer implements Runnable {
                 }
             }
         }
+        txw.commit();
     }
     
     /**

@@ -28,6 +28,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
+import org.photovault.dbhelper.ODMG;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.FileUtils;
@@ -179,13 +180,22 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
                 0, indexer.getPercentComplete() );
         assertNull( "StartTime must be null before starting", indexer.getStartTime() );
         indexer.run();
+        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
+            fail( "Still in transaction" );
+        }
         
         // Check that all the files can be found
         PhotoInfo[] photos1 = PhotoInfo.retrieveByOrigHash( hash1 );
+        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
+            fail( "Still in transaction" );
+        }
         assertEquals( "Only 1 photo per picture should be found", 1, photos1.length );
         PhotoInfo p1 = photos1[0];
         assertEquals( "2 instances should be found in photo 1", 2, p1.getNumInstances() );
         PhotoInfo[] photos2 = PhotoInfo.retrieveByOrigHash( hash2 );
+        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
+            fail( "Still in transaction" );
+        }
         assertEquals( "1 photo per picture should be found", 1, photos2.length );
         PhotoInfo p2 = photos2[0];
         assertEquals( "3 instances should be found in photo 2", 3, p2.getNumInstances() );
@@ -208,6 +218,9 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
             assertTrue( "Photo " + n + " not found", found[n] );
         } 
         
+        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
+            fail( "Still in transaction" );
+        }
         // Check that the folders have the correct photos
         PhotoInfo[] photosInTopFolder = { p1, p2 };
         assertFolderHasPhotos( topFolder, photosInTopFolder );
@@ -225,6 +238,10 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         
         assertEquals( "Indexing complete 100%", 100, indexer.getPercentComplete() );
         assertNotNull( "StartTime still null", indexer.getStartTime() );
+
+        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
+            fail( "Still in transaction" );
+        }
             
         // Next, let's make some modifications to the external volume
         try {
