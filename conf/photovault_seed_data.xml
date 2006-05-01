@@ -30,5 +30,5 @@
     <!--
     Root of the folder hierarchy must have ID 1
     -->
-    <photo_collections collection_id="1" parent="0" collection_name="Root" collection_desc="Root folder"/>
+    <photo_collections collection_id="1" parent="0" collection_name="Top" collection_desc="Root folder"/>
 </data>

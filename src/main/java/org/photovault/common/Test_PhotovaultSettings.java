@@ -123,9 +123,10 @@ public class Test_PhotovaultSettings extends TestCase {
         System.setProperty( "photovault.configfile", confFile.getAbsolutePath() );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase db = new PVDatabase();
-        db.setDbName( "pc_testest");
-        Volume vol = new Volume( "testvolume", dbDir.getAbsolutePath() );
-        db.addVolume( vol );
+        db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
+        db.setEmbeddedDirectory( dbDir );
+//        Volume vol = new Volume( "testvolume", dbDir.getAbsolutePath() );
+//        db.addVolume( vol );
         settings.addDatabase( db );
         settings.saveConfig();
         

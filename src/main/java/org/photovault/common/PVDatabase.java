@@ -236,12 +236,29 @@ public class PVDatabase {
      * Creates a new database with the parameters specified in this object.
      * <P>
      * The database schema is stored in DDLUTILS XML format in resource 
-     * photovault.xml.
+     * photovault_schema.xml.
      *
      * @param user Username used when creating the SQL database.
      * @param passwd Password for the user
      */
     public void createDatabase( String user, String passwd ) {
+        createDatabase( user, passwd, null );
+    }
+    
+    /**
+     * Creates a new database with the parameters specified in this object and
+     * populate it with given seed data.
+     * <P>
+     * The database schema is stored in DDLUTILS XML format in resource 
+     * photovault_schema.xml.
+     *
+     * @param user Username used when creating the SQL database.
+     * @param passwd Password for the user
+     * @param seedDataResource A resource URI that contains data that should be 
+     * loaded to the database. This data must be in Apache DDL format. If no 
+     * additional seed data is required this must be <code>null</code>
+     */
+    public void createDatabase( String user, String passwd, String seedDataResource ) {
         
         // Get the database schema XML file
         InputStream schemaIS = getClass().getClassLoader().getResourceAsStream( "photovault_schema.xml" );
@@ -307,6 +324,17 @@ public class PVDatabase {
             ex.printStackTrace();
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+        
+        if ( seedDataResource != null ) {
+            seedDataStream = this.getClass().getClassLoader().getResourceAsStream( seedDataResource );
+            try {
+                reader.parse( seedDataStream );
+            } catch (SAXException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
         
         // Create the database 

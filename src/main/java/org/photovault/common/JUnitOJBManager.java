@@ -19,6 +19,8 @@
 */
 
 package org.photovault.common;
+import java.io.File;
+import java.io.IOException;
 import org.photovault.dbhelper.ODMG;
 
 /**
@@ -41,6 +43,7 @@ public class JUnitOJBManager {
     private JUnitOJBManager() {
         System.setProperty( "photovault.configfile", "conf/junittest_config.xml" );
         log.error( "Initializing OB for JUnit tests" );
+        createDatabase();
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         settings.setConfiguration( "pv_junit" );
 	PVDatabase db = settings.getDatabase( "pv_junit" );
@@ -63,6 +66,26 @@ public class JUnitOJBManager {
         }
     }
 
+    /**
+     Creates a new Photovault database in temp directory.
+     */
+    private void createDatabase() {
+        File dbDir = null;
+        try {
+            dbDir = File.createTempFile("pv_junit_derby_instance", "");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        dbDir.delete();
+        PVDatabase pvd = new PVDatabase();
+        pvd.setInstanceType( PVDatabase.TYPE_EMBEDDED );
+        pvd.setEmbeddedDirectory( dbDir );
+        pvd.createDatabase( "", "", "junit_seed_data.xml" );
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        pvd.setName( "pv_junit" );
+        settings.addDatabase( pvd );
+    }
+    
     static JUnitOJBManager mgr = null;
     public static JUnitOJBManager getOJBManager() {
         if ( mgr == null ) {

@@ -21,13 +21,22 @@
 package org.photovault.imginfo;
 
 import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import junit.framework.*;
 import java.util.*;
 
 public class Test_FuzzyDate extends TestCase {
     
+    String[] months = null;
+    
     public void setUp() {
-
+        // Get the month names from current locale
+        DateFormat df = new SimpleDateFormat( "MMMM" );
+        months = new String[12];
+        for ( int n = 0; n < 12; n++ ) {
+            months[n] = df.format( createDate( 2005, n, 2, 0, 0, 0 ) );
+        }
     }
 
     public void tearDown() {
@@ -82,24 +91,26 @@ public class Test_FuzzyDate extends TestCase {
     }
 
     public void testParseWeek() {
-	Calendar cal = Calendar.getInstance();        
+	Calendar cal = Calendar.getInstance();     
+        // TODO: This check is made according to European week number standard - this 
+        // test case fails with US locale!!!
         checkParsingBoundaries( "wk 44 2005", createDate( 2005, 9, 31, 0, 0, 0), createDate( 2005, 10, 6, 23, 59, 59 ) );
     }
 
     public void testParseMonth() {
 	Calendar cal = Calendar.getInstance();        
-        checkParsingBoundaries( "tammikuu 2005", createDate( 2005, 0, 1, 0, 0, 0), createDate( 2005, 1, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "helmikuu 2005", createDate( 2005, 1, 1, 0, 0, 0), createDate( 2005, 2, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "maaliskuu 2005", createDate( 2005, 2, 1, 0, 0, 0), createDate( 2005, 3, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "huhtikuu 2005", createDate( 2005, 3, 1, 0, 0, 0), createDate( 2005, 4, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "toukokuu 2005", createDate( 2005, 4, 1, 0, 0, 0), createDate( 2005, 5, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "kesäkuu 2005", createDate( 2005, 5, 1, 0, 0, 0), createDate( 2005, 6, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "heinäkuu 2005", createDate( 2005, 6, 1, 0, 0, 0), createDate( 2005, 7, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "elokuu 2005", createDate( 2005, 7, 1, 0, 0, 0), createDate( 2005, 8, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "syyskuu 2005", createDate( 2005, 8, 1, 0, 0, 0), createDate( 2005, 9, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "lokakuu 2005", createDate( 2005, 9, 1, 0, 0, 0), createDate( 2005, 10, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "marraskuu 2005", createDate( 2005, 10, 1, 0, 0, 0), createDate( 2005, 11, 1, 0, 0, 0 ) );
-        checkParsingBoundaries( "joulukuu 2005", createDate( 2005, 11, 1, 0, 0, 0), createDate( 2006, 0, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[0] + " 2005", createDate( 2005, 0, 1, 0, 0, 0), createDate( 2005, 1, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[1] + " 2005", createDate( 2005, 1, 1, 0, 0, 0), createDate( 2005, 2, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[2] + " 2005", createDate( 2005, 2, 1, 0, 0, 0), createDate( 2005, 3, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[3] + " 2005", createDate( 2005, 3, 1, 0, 0, 0), createDate( 2005, 4, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[4] + " 2005", createDate( 2005, 4, 1, 0, 0, 0), createDate( 2005, 5, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[5] + " 2005", createDate( 2005, 5, 1, 0, 0, 0), createDate( 2005, 6, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[6] + " 2005", createDate( 2005, 6, 1, 0, 0, 0), createDate( 2005, 7, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[7] + " 2005", createDate( 2005, 7, 1, 0, 0, 0), createDate( 2005, 8, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[8] + " 2005", createDate( 2005, 8, 1, 0, 0, 0), createDate( 2005, 9, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[9] + " 2005", createDate( 2005, 9, 1, 0, 0, 0), createDate( 2005, 10, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[10] + " 2005", createDate( 2005, 10, 1, 0, 0, 0), createDate( 2005, 11, 1, 0, 0, 0 ) );
+        checkParsingBoundaries( months[11] + " 2005", createDate( 2005, 11, 1, 0, 0, 0), createDate( 2006, 0, 1, 0, 0, 0 ) );
     }
 
     public void testParseYear() {
@@ -128,8 +139,8 @@ public class Test_FuzzyDate extends TestCase {
         testConversionInvariance( "30.06.2005" );
         testConversionInvariance( "wk 8 2000" );
         testConversionInvariance( "wk 52 2000" );
-        testConversionInvariance( "tammikuu 2005" );
-        testConversionInvariance( "helmikuu 2000" );
+        testConversionInvariance( months[0] + " 2005" );
+        testConversionInvariance( months[1] + " 2000" );
         testConversionInvariance( "2000" );
         testConversionInvariance( "2005" );
     }

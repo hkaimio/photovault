@@ -20,11 +20,4 @@
 -->
 
 <databases>
-  <databases>
-    <database name="pv_junit" dbName="hashtest" instanceType="TYPE_EMBEDDED" instanceDir="c:\temp\hashtest">
-      <volumes>
-	<volume name="junitVolume" basedir="c:\temp\hashtest\photos"/>
-      </volumes>
-    </database>
-  </databases>	
 </databases>

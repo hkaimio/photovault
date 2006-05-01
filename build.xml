@@ -126,7 +126,7 @@
     passed to MANIFEST Class-Path property -->
     <pathconvert property="runtime-path" pathsep=" ">
           <path refid="runtime.path"></path>
-          <flattenmapper/>
+          <mapper type="flatten"/>
     </pathconvert>    
 
     <!-- Create the jar file  -->

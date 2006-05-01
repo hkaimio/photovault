@@ -48,16 +48,28 @@ public class Test_ExternalVolume extends PhotovaultTestCase {
        Sets ut the test environment
     */
     public void setUp() {
-	String volumeRoot =  "c:\\temp\\photoVaultVolumeTest";
-	volume = new Volume( "testVolume", volumeRoot );
+        try {
+            volumeRoot = File.createTempFile( "photovaultVolumeTest", "" );
+            volumeRoot.delete();
+            volumeRoot.mkdir();
+            extvolRoot = File.createTempFile( "photovaultVolumeTestExt", "" );
+            extvolRoot.delete();
+            extvolRoot.mkdir();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+	volume = new Volume( "testVolume", volumeRoot.getAbsolutePath() );
 	extVol = new ExternalVolume( "extVolume", extvolRoot.getAbsolutePath() );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase curDb = settings.getCurrentDatabase();
         curDb.addVolume( extVol );
     }
+    
     private Volume volume;
     private ExternalVolume extVol;
-    File extvolRoot = new File( "c:\\temp\\photoVaultVolumeTestExt" );
+    File extvolRoot = null;
+    File volumeRoot = null;
+    
     /**
        Tears down the testing environment
     */
