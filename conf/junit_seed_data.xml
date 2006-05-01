@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2006 Harri Kaimio
+  
+  This file is part of Photovault.
+
+  Photovault is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  Photovault is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Foobar; if not, write to the Free Software Foundation,
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+-->
+
+<!--
+    Initial data that is loaded to database for JUnit test cases.
+    
+    Contents of this file is loaded using Apache DDLUtils.
+-->
+
+
+<data>
+    <!--
+    Test_PhotoFolder#testPhotoretrieval
+    -->
+    <photo_collections collection_id="2" parent="1" 
+        collection_name="testPhotoRetrieval" 
+        collection_desc="Folder for testPhotoRetrieval"/>
+    <photos photo_id="1" description="testPhotoRetrieval1"/>
+    <photos photo_id="2" description="testPhotoRetrieval2"/>
+    <collection_photos collection_id="2" photo_id="1"/>
+    <collection_photos collection_id="2" photo_id="2"/>
+    
+    <!-- Test_PhotoFolder#testSubfolders -->
+    <photo_collections collection_id="3" parent="1" 
+        collection_name="subfolderTest" 
+        collection_desc="Folder for testSubfolders"/>
+    <photo_collections collection_id="4" parent="3" 
+        collection_name="Subfolder1" 
+        collection_desc="Folder for testSubfolders"/>
+    <photo_collections collection_id="5" parent="3" 
+        collection_name="Subfolder2" 
+        collection_desc="Folder for testSubfolders"/>
+    <photo_collections collection_id="6" parent="3" 
+        collection_name="Subfolder3" 
+        collection_desc="Folder for testSubfolders"/>
+    <photo_collections collection_id="7" parent="3" 
+        collection_name="Subfolder4" 
+        collection_desc="Folder for testSubfolders"/>
+    
+</data>
