@@ -133,6 +133,9 @@ public class PVDatabase {
         volumes.remove( volume );
     }
     
+    /**
+     Get a list of volumes for this database.
+     */       
     public List getVolumes( ) {
         return  volumes;
     }

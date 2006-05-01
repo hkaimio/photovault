@@ -39,6 +39,7 @@ import org.photovault.imginfo.indexer.ExtVolIndexer;
 import org.photovault.swingui.indexer.IndexerFileChooser;
 import org.photovault.swingui.indexer.IndexerSetupDlg;
 import org.photovault.swingui.indexer.IndexerStatusDlg;
+import org.photovault.swingui.indexer.UpdateIndexAction;
 
 public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
@@ -143,6 +144,13 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 		}
 	    });
 	fileMenu.add( indexDirItem );
+        
+        UpdateIndexAction updateIndex = new UpdateIndexAction( "Update indexed dirs",
+                null, "Checks for changes in previously indexed directories", 
+                KeyEvent.VK_U );
+        JMenuItem updateIndexItem = new JMenuItem( updateIndex );
+        fileMenu.add( updateIndexItem );
+        
 
 	JMenuItem exportItem = new JMenuItem( viewPane.getExportSelectedAction() );
 	fileMenu.add( exportItem );
