@@ -35,6 +35,8 @@ import org.photovault.imginfo.VolumeBase;
 import org.photovault.imginfo.indexer.ExtVolIndexer;
 import org.photovault.imginfo.indexer.ExtVolIndexerEvent;
 import org.photovault.imginfo.indexer.ExtVolIndexerListener;
+import org.photovault.swingui.StatusChangeEvent;
+import org.photovault.swingui.StatusChangeListener;
 
 /**
  * Class control the updating of indexed external volumes. When this action is 
@@ -85,22 +87,45 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
     }
 
     /**
-     * Initiate indexing of next volume if there are still unindexed volumes
+     Initiate indexing of next volume if there are still unindexed volumes.
+     The mothod creates a new ExtVolIndexer and runs it in its own thread. 
+     Since this method modifies UI status it must be called from AWT event 
+     thread.
      */
     private void indexNextVolume() {
         if ( volumes.size() > 0 ) {
-            ExternalVolume vol = (ExternalVolume)volumes.get(0);
+            vol = (ExternalVolume)volumes.get(0);
             ExtVolIndexer indexer = new ExtVolIndexer( vol );
             volumes.remove( vol );
             indexer.addIndexerListener( this );
             Thread t = new Thread( indexer );
             t.start();
+            percentIndexed = 0;
+            StatusChangeEvent e = new StatusChangeEvent( this, "Indexing " 
+                    + vol.getBaseDir() );
+            fireStatusChangeEvent( e );
         } else {
+            // Nothing more to index
+            StatusChangeEvent e = new StatusChangeEvent( this, "" );
+            fireStatusChangeEvent( e );
             setEnabled( true );
         }
     }
     
+    int percentIndexed = 0;
+    /**
+     Volume currently under work.
+     */
+    ExternalVolume vol = null;
+    
     public void fileIndexed(ExtVolIndexerEvent e) {
+        ExtVolIndexer indexer = (ExtVolIndexer) e.getSource();
+        int newPercentIndexed = indexer.getPercentComplete();
+        if ( newPercentIndexed > percentIndexed ) {
+            StatusChangeEvent statusEvent = new StatusChangeEvent( this, "Indexing " 
+                    + vol.getBaseDir() + " - " + newPercentIndexed + "%");
+            fireStatusChangeEvent( statusEvent );
+        }
     }
 
     public void indexingComplete(ExtVolIndexer indexer) {
@@ -111,4 +136,21 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
         });
     }
     
+    Vector statusChangeListeners = new Vector();
+    
+    public void addStatusChangeListener( StatusChangeListener l ) {
+        statusChangeListeners.add( l );
+    }
+    
+    public void removeStatusChangeListener( StatusChangeListener l ) {
+        statusChangeListeners.remove( l );
+    }
+    
+    protected void fireStatusChangeEvent( StatusChangeEvent e ) {
+        Iterator iter = statusChangeListeners.iterator();
+        while ( iter.hasNext() ) {
+            StatusChangeListener l = (StatusChangeListener) iter.next();
+            l.statusChanged( e );
+        }
+    }
 }

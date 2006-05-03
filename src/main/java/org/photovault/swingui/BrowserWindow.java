@@ -44,6 +44,7 @@ import org.photovault.swingui.indexer.UpdateIndexAction;
 public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
+
     
     /**
        Constructor
@@ -112,6 +113,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	cp.setLayout( new BorderLayout() );
 	cp.add( split, BorderLayout.CENTER );
 
+        statusBar = new StatusBar();
+        cp.add( statusBar, BorderLayout.SOUTH );
 	// Create the menu bar & menus
 	JMenuBar menuBar = new JMenuBar();
 	setJMenuBar( menuBar );
@@ -148,6 +151,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         UpdateIndexAction updateIndex = new UpdateIndexAction( "Update indexed dirs",
                 null, "Checks for changes in previously indexed directories", 
                 KeyEvent.VK_U );
+        updateIndex.addStatusChangeListener( statusBar );
         JMenuItem updateIndexItem = new JMenuItem( updateIndex );
         fileMenu.add( updateIndexItem );
         
@@ -492,7 +496,11 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     protected PhotoCollectionThumbView viewPane = null;
     protected JAIPhotoViewer previewPane = null;
 
-    
+    /**
+     *Status bar for this window
+     */
+    private StatusBar statusBar;
+  
     /**
        Simple main program for testing the compnent
     */
