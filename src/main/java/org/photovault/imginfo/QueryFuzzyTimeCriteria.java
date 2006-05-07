@@ -94,8 +94,8 @@ public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {
 	    crit.addBetween( dateField.getName(),
 			     date.getMinDate(),
 			     date.getMaxDate() );
-	    crit.addLessOrEqualThan( accuracyField.getName(),
-				     date.getAccuracy() );
+            crit.addLessOrEqualThan( accuracyField.getName(),
+				     new Double( date.getAccuracy() ) );
 	    break;
 
 	case INCLUDE_POSSIBLE:

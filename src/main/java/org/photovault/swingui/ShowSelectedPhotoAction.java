@@ -43,11 +43,11 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
        @param view The view this action object is associated with. 
     */
     public ShowSelectedPhotoAction( PhotoCollectionThumbView view, String text, ImageIcon icon,
-                      String desc, Integer mnemonic) {
+                      String desc, int mnemonic) {
 	super( text, icon );
 	this.view = view;
 	putValue(SHORT_DESCRIPTION, desc);
-        putValue(MNEMONIC_KEY, mnemonic);
+        putValue(MNEMONIC_KEY, new Integer( mnemonic ) );
 	view.addSelectionChangeListener( this );
 	setEnabled( view.getSelectedCount() > 0 );
     }

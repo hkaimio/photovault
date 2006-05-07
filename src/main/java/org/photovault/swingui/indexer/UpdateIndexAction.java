@@ -49,10 +49,10 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
     
     /** Creates a new instance of UpdateIndexAction */
     public UpdateIndexAction( String text, ImageIcon icon, String desc, 
-            Integer mnemonic) {
+            int mnemonic) {
         super( text, icon );
 	putValue(SHORT_DESCRIPTION, desc);
-        putValue(MNEMONIC_KEY, mnemonic);
+        putValue(MNEMONIC_KEY, new Integer( mnemonic) );
     }
     
     /**

@@ -444,9 +444,9 @@ public class ImageInstance {
             }
             
             if ( needsHashCheck ) {
-                byte[] dbHash = hash.clone();
+                byte[] dbHash = (byte[]) hash.clone();
                 calcHash();
-                byte[] realHash = hash.clone();
+                byte[] realHash = (byte[])hash.clone();
                 isConsistent = Arrays.equals( dbHash, realHash );
                 if ( isConsistent ) {
                     txw.lock( this, Transaction.WRITE );

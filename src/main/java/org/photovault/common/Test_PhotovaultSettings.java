@@ -80,7 +80,7 @@ public class Test_PhotovaultSettings extends TestCase {
         }
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         Collection dbs = settings.getDatabases();
-        assert( dbs.size() == 0 );
+        assertTrue( dbs.size() == 0 );
         
         PVDatabase db = new PVDatabase();
         db.setName( "testing" );

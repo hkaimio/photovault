@@ -44,11 +44,11 @@ class RotateSelectedPhotoAction extends AbstractAction implements SelectionChang
     public RotateSelectedPhotoAction( PhotoCollectionThumbView view, 
 				      double r,
 				      String text, ImageIcon icon,
-				      String desc, Integer mnemonic) {
+				      String desc, int mnemonic) {
 	super( text, icon );
 	this.view = view;
 	putValue(SHORT_DESCRIPTION, desc);
-        putValue(MNEMONIC_KEY, mnemonic);
+        putValue(MNEMONIC_KEY, new Integer( mnemonic ) );
 	view.addSelectionChangeListener( this );
 	setEnabled( view.getSelectedCount() > 0 );
 	rot = r;

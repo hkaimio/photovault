@@ -55,8 +55,8 @@ public class Test_PVDatabase extends TestCase {
         Volume v = new Volume( "test", "c:/temp" );
         db.addVolume( v );
         List volumes = db.getVolumes();
-        assert( volumes.get( 0 ) == v );
-        assert( volumes.size() == 1 );
+        assertTrue( volumes.get( 0 ) == v );
+        assertTrue( volumes.size() == 1 );
     }
 
     public void testXMLOutput() {

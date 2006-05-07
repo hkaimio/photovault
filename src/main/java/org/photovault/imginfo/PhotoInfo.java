@@ -890,7 +890,7 @@ public class PhotoInfo {
     protected void setOrigInstanceHash( byte[] hash ) {
        ODMGXAWrapper txw = new ODMGXAWrapper();
        txw.lock( this, Transaction.WRITE );
-       origInstanceHash = hash.clone();
+       origInstanceHash = (byte[]) hash.clone();
        txw.commit();
     }
     

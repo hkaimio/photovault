@@ -42,11 +42,11 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
        the selection to export from this view.
     */
     public ExportSelectedAction( PhotoCollectionThumbView view, String text, ImageIcon icon,
-                      String desc, Integer mnemonic) {
+                      String desc, int mnemonic) {
 	super( text, icon );
 	this.view = view;
 	putValue(SHORT_DESCRIPTION, desc);
-        putValue(MNEMONIC_KEY, mnemonic);
+        putValue(MNEMONIC_KEY, new Integer( mnemonic) );
 	putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_S, ActionEvent.CTRL_MASK ) );
 	view.addSelectionChangeListener( this );
 	setEnabled( view.getSelectedCount() > 0 );

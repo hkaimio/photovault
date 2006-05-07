@@ -333,11 +333,11 @@ public class ExtVolIndexer implements Runnable {
                             // The photo is already in this folder
                             int refCount = ((Integer)photoInstanceCounts.get( p ) ).intValue();
                             photoInstanceCounts.remove( p );
-                            photoInstanceCounts.put( p, Integer.valueOf( refCount+1 ));
+                            photoInstanceCounts.put( p, new Integer( refCount+1 ));
                         } else {
                             // The photo is not yet in this folder
                             folder.addPhoto( p );
-                            photoInstanceCounts.put( p, Integer.valueOf( 1 ));
+                            photoInstanceCounts.put( p, new Integer( 1 ));
                         }
                     }
                     nFile++;

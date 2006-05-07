@@ -63,12 +63,12 @@ public class ChangeSelectionAction extends AbstractAction implements SelectionCh
      */
     public ChangeSelectionAction(  PhotoCollectionThumbView view, int direction, 
             String text, ImageIcon icon,
-            String desc, Integer mnemonic, KeyStroke accelerator ) {
+            String desc, int mnemonic, KeyStroke accelerator ) {
 	super( text, icon );
 	this.view = view;
         this.direction = direction;
 	putValue(SHORT_DESCRIPTION, desc);
-        putValue(MNEMONIC_KEY, mnemonic);
+        putValue(MNEMONIC_KEY, new Integer( mnemonic ) );
 	putValue( ACCELERATOR_KEY, accelerator );
 	view.addSelectionChangeListener( this );
 	setEnabled( view.getSelectedCount() == 1 );                
