@@ -77,14 +77,14 @@
       </unique-->
       
     </table>
-    <table name="ojb_dlist">
+    <table name="OJB_DLIST">
       <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
       <column name="SIZE_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <!--unique name="PRIMARY">
         <unique-column name="ID"/>
       </unique-->
     </table>
-    <table name="ojb_dlist_entries">
+    <table name="OJB_DLIST_ENTRIES">
       <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
       <column name="DLIST_ID" primaryKey="false" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
       <column name="POSITION_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
@@ -93,14 +93,14 @@
         <unique-column name="ID"/>
       </unique-->
     </table>
-    <table name="ojb_dmap">
+    <table name="OJB_DMAP">
       <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
       <column name="SIZE_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <!--unique name="PRIMARY">
         <unique-column name="ID"/>
       </unique-->
     </table>
-    <table name="ojb_dmap_entries">
+    <table name="OJB_DMAP_ENTRIES">
       <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
       <column name="DMAP_ID" primaryKey="false" required="true" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="KEY_OID" primaryKey="false" required="false" type="LONGVARBINARY" size="2147483647" autoIncrement="false"/>
@@ -109,14 +109,14 @@
         <unique-column name="ID"/>
       </unique-->
     </table>
-    <table name="ojb_dset">
+    <table name="OJB_DSET">
       <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="SIZE_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <!--unique name="PRIMARY">
         <unique-column name="ID"/>
       </unique-->
     </table>
-    <table name="ojb_dset_entries">
+    <table name="OJB_DSET_ENTRIES">
       <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="DLIST_ID" primaryKey="false" required="true" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="POSITION_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
@@ -125,7 +125,7 @@
         <unique-column name="ID"/>
       </unique-->
     </table>
-    <table name="ojb_hl_seq">
+    <table name="OJB_HL_SEQ">
       <column name="TABLENAME" primaryKey="true" required="true" type="VARCHAR" size="175" autoIncrement="false"/>
       <column name="MAX_KEY" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="GRAB_SIZE" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
@@ -135,7 +135,7 @@
         <unique-column name="FIELDNAME"/>
       </unique-->
     </table>
-    <table name="ojb_lockentry">
+    <table name="OJB_LOCKENTRY">
       <column name="OID_" primaryKey="true" required="true" type="VARCHAR" size="250" autoIncrement="false"/>
       <column name="TX_ID" primaryKey="true" required="true" type="VARCHAR" size="50" autoIncrement="false"/>
       <column name="TIMESTAMP_" primaryKey="false" required="false" type="TIMESTAMP" size="19" default="CURRENT_TIMESTAMP" autoIncrement="false"/>
@@ -146,7 +146,7 @@
         <unique-column name="TX_ID"/>
       </unique-->
     </table>
-    <table name="ojb_nrm">
+    <table name="OJB_NRM">
       <column name="NAME" primaryKey="true" required="true" type="VARCHAR" size="250" autoIncrement="false"/>
       <column name="OID_" primaryKey="false" required="false" type="LONGVARBINARY" size="2147483647" autoIncrement="false"/>
       <!--unique name="PRIMARY">
