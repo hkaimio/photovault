@@ -151,6 +151,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         UpdateIndexAction updateIndex = new UpdateIndexAction( "Update indexed dirs",
                 null, "Checks for changes in previously indexed directories", 
                 KeyEvent.VK_U );
+        
         updateIndex.addStatusChangeListener( statusBar );
         JMenuItem updateIndexItem = new JMenuItem( updateIndex );
         fileMenu.add( updateIndexItem );

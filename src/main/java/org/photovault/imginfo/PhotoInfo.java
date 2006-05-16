@@ -466,7 +466,10 @@ public class PhotoInfo {
             txw.abort();
             throw e;
         }
+        txw.lock( this, Transaction.WRITE );
+        txw.lock( instance, Transaction.WRITE );
         instances.remove( instance );
+        instance.delete();
         txw.commit();
     }
     

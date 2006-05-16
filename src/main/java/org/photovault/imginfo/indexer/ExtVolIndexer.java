@@ -275,11 +275,17 @@ public class ExtVolIndexer implements Runnable {
          added to the folder is found
          */
         HashMap photoInstanceCounts = new HashMap();
+        HashSet foldersNotFound = new HashSet();
         if ( folder != null ) {
             for ( int n = 0; n < folder.getPhotoCount(); n++ ) {
                 photoInstanceCounts.put( folder.getPhoto( n ), new Integer( 0 ) );
             }
+            for ( int n = 0; n < folder.getSubfolderCount(); n++ ) {
+                foldersNotFound.add( folder.getSubfolder( n ) );
+            }
         }
+        
+        
         
         File files[] = dir.listFiles();
         // Count the files
@@ -308,6 +314,8 @@ public class ExtVolIndexer implements Runnable {
                     if ( subfolder == null ) {
                         subfolder = PhotoFolder.create( f.getName(), folder );
                         newFolderCount++;
+                    } else {
+                        foldersNotFound.remove( subfolder );
                     }
                 }
                 /*
@@ -359,6 +367,14 @@ public class ExtVolIndexer implements Runnable {
             if ( refCount == 0 ) {
                 folder.removePhoto( p );
             }
+        }
+        
+        // Delete folders that were not anymore found
+         
+        iter = foldersNotFound.iterator();
+        while ( iter.hasNext() ) {
+            PhotoFolder subfolder = (PhotoFolder)iter.next();
+            subfolder.delete();
         }
     }
     
