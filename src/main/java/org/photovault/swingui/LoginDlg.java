@@ -32,7 +32,7 @@ import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 
 /**
- * LoginDlg implementfs a simåple dialog for asking which database will be used 
+ * LoginDlg implementfs a sim?ple dialog for asking which database will be used 
  * as well as username & password for database connection. <p>
  *
  * LoginDlg works tightly together with the @see Photovault main allpication class.
@@ -198,8 +198,8 @@ public class LoginDlg extends JDialog {
 
 	getRootPane().setDefaultButton( okBtn );
 
-	setResizable( false );
 	pack();
+	// setResizable( false );
         
         // Center the dialog on screen
         int w = getSize().width;
