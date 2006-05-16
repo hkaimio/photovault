@@ -63,37 +63,37 @@ public class Photovault implements SchemaUpdateListener {
 	    JOptionPane.showMessageDialog( ld, "Could not find dbname for configuration " + db, "Configuration error", JOptionPane.ERROR_MESSAGE );
 	    return false;
         }
-
-	if ( ODMG.initODMG( user, passwd, db ) ) {
-	    log.debug( "Connection succesful!!!" );
-	    // Login is succesfull
-	    // ld.setVisible( false );
-            success = true;
-        }
         
-        int schemaVersion = db.getSchemaVersion();
-        if ( schemaVersion < db.CURRENT_SCHEMA_VERSION ) {
-            String options[] = {"Proceed", "Exit Photovault"};
-            if ( JOptionPane.YES_OPTION == JOptionPane.showOptionDialog( ld,
-                    "The database was created with an older version of Photovault\n" +
-                    "Photovault will upgrade the database format before starting.",
-                    "Upgrade database",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE,
-                    null,
-                    options,
-                    null ) ) {
-                final SchemaUpdateAction updater = new SchemaUpdateAction( db );
-                SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg( null, true );
-                updater.addSchemaUpdateListener( statusDlg );
-                Thread upgradeThread = new Thread() {
-                    public void run() {
-                        updater.upgradeDatabase();
-                    }
-                };
-                upgradeThread.start();
-                statusDlg.setVisible( true );
-                success = true;
+        if ( ODMG.initODMG( user, passwd, db ) ) {
+            log.debug( "Connection succesful!!!" );
+            // Login is succesfull
+            // ld.setVisible( false );
+            success = true;
+            
+            int schemaVersion = db.getSchemaVersion();
+            if ( schemaVersion < db.CURRENT_SCHEMA_VERSION ) {
+                String options[] = {"Proceed", "Exit Photovault"};
+                if ( JOptionPane.YES_OPTION == JOptionPane.showOptionDialog( ld,
+                        "The database was created with an older version of Photovault\n" +
+                        "Photovault will upgrade the database format before starting.",
+                        "Upgrade database",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE,
+                        null,
+                        options,
+                        null ) ) {
+                    final SchemaUpdateAction updater = new SchemaUpdateAction( db );
+                    SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg( null, true );
+                    updater.addSchemaUpdateListener( statusDlg );
+                    Thread upgradeThread = new Thread() {
+                        public void run() {
+                            updater.upgradeDatabase();
+                        }
+                    };
+                    upgradeThread.start();
+                    statusDlg.setVisible( true );
+                    success = true;
+                }
             }
         }
         return success;
