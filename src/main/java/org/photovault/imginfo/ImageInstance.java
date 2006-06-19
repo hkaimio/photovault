@@ -255,7 +255,9 @@ public class ImageInstance {
             log.error( "IOException while calculating hash: " + ex.getMessage() );
         }  finally {
             try {
-                is.close();
+                if ( is != null ) {
+                    is.close();
+                }
             } catch (IOException ex) {
                 log.error( "Cannot close stream after calculating hash" );
             }
