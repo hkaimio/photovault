@@ -501,22 +501,4 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
      *Status bar for this window
      */
     private StatusBar statusBar;
-  
-    /**
-       Simple main program for testing the compnent
-    */
-    public static void main( String [] args ) {
-	// Configure logging
-	//	BasicConfigurator.configure();
-	PropertyConfigurator.configure( "conf/log4j.properties" );
-	// 	try {
-// 	    org.apache.log4j.lf5.DefaultLF5Configurator.configure();
-// 	} catch ( Exception e ) {}
-// 	log.info( "Starting application" );
-
-	
-	BrowserWindow br = new BrowserWindow();
-    }
-
-    
 }

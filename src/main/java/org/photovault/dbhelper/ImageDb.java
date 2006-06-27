@@ -28,7 +28,7 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 import org.apache.ojb.broker.metadata.ConnectionRepository;
 import org.apache.ojb.broker.metadata.MetadataManager;
 /**
-   This class contains static methods that ain in database usage etc.
+   This class contains static methods that aid in database usage etc.
 */
 public class ImageDb {
     
@@ -58,22 +58,12 @@ public class ImageDb {
         } catch (LookupException ex) {
             ex.printStackTrace();
         }
-//	try {
-//	    Class.forName( "com.mysql.jdbc.Driver" ).newInstance();
-//	} catch ( Exception e ) {
-//	    System.err.println( "DB driver not found" );
-//	}
-//
-//	try {
-//	    conn = DriverManager.getConnection( "jdbc:mysql:///pv_junit", "", "" );
-//	} catch ( SQLException e ) {
-//	    System.err.println( "ERROR: Could not create DB connection: "
-//				+ e.getMessage() );
-//	}
     }
 
     /**
        This fuction generates a unique integer uid for usage as a database key.
+     TODO: This seems to be not used and besides is MySQL specific. Should this 
+     be removed?
        @return unique integer
     */
 
@@ -81,7 +71,7 @@ public class ImageDb {
 	int uid = -1;
 	Connection con  = getConnection();
 	try {
-	    Statement stmt = conn.createStatement();
+	    Statement stmt = con.createStatement();
 	    stmt.executeUpdate( "UPDATE sequence SET id = LAST_INSERT_ID( id+1 )" );
 	    ResultSet rs = stmt.executeQuery( "SELECT LAST_INSERT_ID()" );
 	    if ( rs.next() ) {

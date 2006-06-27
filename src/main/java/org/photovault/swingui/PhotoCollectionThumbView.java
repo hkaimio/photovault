@@ -429,7 +429,9 @@ public class PhotoCollectionThumbView
             thumbRect.setBounds(col*columnWidth, row*rowHeight, columnWidth, rowHeight );
             if ( thumbRect.intersects( clipRect ) ) {
                 PhotoInfo photo = photoCollection.getPhoto( i );
-                paintThumbnail( g2, photo, col*columnWidth, row*rowHeight, selection.contains( photo ) );
+                if ( photo != null ) {
+                    paintThumbnail( g2, photo, col*columnWidth, row*rowHeight, selection.contains( photo ) );
+                }
             }
             col++;
             if ( col >= columnsToPaint ) {
@@ -455,101 +457,99 @@ public class PhotoCollectionThumbView
     boolean showPlace = true;
     
     private void paintThumbnail( Graphics2D g2, PhotoInfo photo, int startx, int starty, boolean isSelected ) {
-	log.debug( "paintThumbnail entry " + photo.getUid() );
+        log.debug( "paintThumbnail entry " + photo.getUid() );
         long startTime = System.currentTimeMillis();
         long thumbReadyTime = 0;
         long thumbDrawnTime = 0;
         long endTime = 0;
         // Current position in which attributes can be drawn
         int ypos = starty + rowHeight/2;
-
+        
         // Create a transaction which will be used for persisten object operations
         // during painting (to avoid creating several short-livin transactions)
         ODMGXAWrapper txw = new ODMGXAWrapper();
         
-        if ( photo != null ) {
-	    Thumbnail thumbnail = null;
-	    log.debug( "finding thumb" );
-	    boolean hasThumbnail = photo.hasThumbnail();
-	    log.debug( "asked if has thumb" );
-	    if ( hasThumbnail ) {
-		log.debug( "Photo " + photo.getUid() + " has thumbnail" );
-		thumbnail = photo.getThumbnail();
-		log.debug( "got thumbnail" );
-	    } else {
-		thumbnail = Thumbnail.getDefaultThumbnail();
-		if ( !thumbCreatorThread.isBusy() ) {
-		    log.debug( "Create thumbnail for " + photo.getUid() );
-		    thumbCreatorThread.createThumbnail( photo );
-		    log.debug( "Thumbnail request submitted" );
-		}
-	    }
-            thumbReadyTime = System.currentTimeMillis();
-            
-	    log.debug( "starting to draw" );
-	    // Find the position for the thumbnail
-	    BufferedImage img = thumbnail.getImage();
-	    int x = startx + (columnWidth - img.getWidth())/(int)2;
-	    int y = starty + (rowHeight -  img.getHeight())/(int)2;
-
-	    log.debug( "drawing thumbnail" );
-	    g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
-	    log.debug( "Drawn, drawing decorations" );
-	    if ( isSelected ) {
-		Stroke prevStroke = g2.getStroke();
-		Color prevColor = g2.getColor();
-		g2.setStroke( new BasicStroke( 3.0f) );
-		g2.setColor( Color.BLUE );
-		g2.drawRect( x, y, img.getWidth(), img.getHeight() );
-		g2.setColor( prevColor );
-		g2.setStroke( prevStroke );
-	    }
-            
-            thumbDrawnTime = System.currentTimeMillis();
-	    // Increase ypos so that attributes are drawn under the image
-	    ypos += ((int)img.getHeight())/2 + 4;
-	    
-	
-	    // Draw the attributes
-	    Color prevBkg = g2.getBackground();
-	    if ( isSelected ) {
-		g2.setBackground( Color.BLUE );
-	    } else {
-                g2.setBackground( this.getBackground() );
+        Thumbnail thumbnail = null;
+        log.debug( "finding thumb" );
+        boolean hasThumbnail = photo.hasThumbnail();
+        log.debug( "asked if has thumb" );
+        if ( hasThumbnail ) {
+            log.debug( "Photo " + photo.getUid() + " has thumbnail" );
+            thumbnail = photo.getThumbnail();
+            log.debug( "got thumbnail" );
+        } else {
+            thumbnail = Thumbnail.getDefaultThumbnail();
+            if ( !thumbCreatorThread.isBusy() ) {
+                log.debug( "Create thumbnail for " + photo.getUid() );
+                thumbCreatorThread.createThumbnail( photo );
+                log.debug( "Thumbnail request submitted" );
             }
-	    Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
-	    FontRenderContext frc = g2.getFontRenderContext();
-	    if ( showDate && photo.getShootTime() != null ) {
-		FuzzyDate fd = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
-		
-		String dateStr = fd.format();
-		TextLayout txt = new TextLayout( dateStr, attrFont, frc );
-		// Calculate the position for the text
-		Rectangle2D bounds = txt.getBounds();
-		int xpos = startx + ((int)(columnWidth - bounds.getWidth()))/2 - (int)bounds.getMinX();
-		g2.clearRect( xpos-2, ypos-2,
-			      (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
-		txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
-		ypos += bounds.getHeight() + 4;
-	    }
-	    String shootPlace = photo.getShootingPlace();
-	    if ( showPlace && shootPlace != null && shootPlace.length() > 0  ) {
-		TextLayout txt = new TextLayout( photo.getShootingPlace(), attrFont, frc );
-		// Calculate the position for the text
-		Rectangle2D bounds = txt.getBounds();
-		int xpos = startx + ((int)(columnWidth-bounds.getWidth()))/2 - (int)bounds.getMinX();
-		
-		g2.clearRect( xpos-2, ypos-2,
-			      (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
-		txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
-		ypos += bounds.getHeight() + 4;
-	    }
-	    g2.setBackground( prevBkg );
-	}
+        }
+        thumbReadyTime = System.currentTimeMillis();
+        
+        log.debug( "starting to draw" );
+        // Find the position for the thumbnail
+        BufferedImage img = thumbnail.getImage();
+        int x = startx + (columnWidth - img.getWidth())/(int)2;
+        int y = starty + (rowHeight -  img.getHeight())/(int)2;
+        
+        log.debug( "drawing thumbnail" );
+        g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
+        log.debug( "Drawn, drawing decorations" );
+        if ( isSelected ) {
+            Stroke prevStroke = g2.getStroke();
+            Color prevColor = g2.getColor();
+            g2.setStroke( new BasicStroke( 3.0f) );
+            g2.setColor( Color.BLUE );
+            g2.drawRect( x, y, img.getWidth(), img.getHeight() );
+            g2.setColor( prevColor );
+            g2.setStroke( prevStroke );
+        }
+        
+        thumbDrawnTime = System.currentTimeMillis();
+        // Increase ypos so that attributes are drawn under the image
+        ypos += ((int)img.getHeight())/2 + 4;
+        
+        
+        // Draw the attributes
+        Color prevBkg = g2.getBackground();
+        if ( isSelected ) {
+            g2.setBackground( Color.BLUE );
+        } else {
+            g2.setBackground( this.getBackground() );
+        }
+        Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
+        FontRenderContext frc = g2.getFontRenderContext();
+        if ( showDate && photo.getShootTime() != null ) {
+            FuzzyDate fd = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
+            
+            String dateStr = fd.format();
+            TextLayout txt = new TextLayout( dateStr, attrFont, frc );
+            // Calculate the position for the text
+            Rectangle2D bounds = txt.getBounds();
+            int xpos = startx + ((int)(columnWidth - bounds.getWidth()))/2 - (int)bounds.getMinX();
+            g2.clearRect( xpos-2, ypos-2,
+                    (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
+            txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
+            ypos += bounds.getHeight() + 4;
+        }
+        String shootPlace = photo.getShootingPlace();
+        if ( showPlace && shootPlace != null && shootPlace.length() > 0  ) {
+            TextLayout txt = new TextLayout( photo.getShootingPlace(), attrFont, frc );
+            // Calculate the position for the text
+            Rectangle2D bounds = txt.getBounds();
+            int xpos = startx + ((int)(columnWidth-bounds.getWidth()))/2 - (int)bounds.getMinX();
+            
+            g2.clearRect( xpos-2, ypos-2,
+                    (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
+            txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
+            ypos += bounds.getHeight() + 4;
+        }
+        g2.setBackground( prevBkg );
         txw.commit();
         
         endTime = System.currentTimeMillis();
-	log.debug( "paintThumbnail: exit " + photo.getUid() );
+        log.debug( "paintThumbnail: exit " + photo.getUid() );
         log.debug( "Thumb fetch " + (thumbReadyTime - startTime ) + " ms" );
         log.debug( "Thumb draw " + ( thumbDrawnTime - thumbReadyTime ) + " ms" );
         log.debug( "Deacoration draw " + (endTime - thumbDrawnTime ) + " ms" );

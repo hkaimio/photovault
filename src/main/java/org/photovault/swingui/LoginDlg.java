@@ -169,7 +169,6 @@ public class LoginDlg extends JDialog {
         });
         
 	JButton okBtn = new JButton( "OK" );
-	final LoginDlg dlg = this; 
 	okBtn.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
                     returnReason = RETURN_REASON_APPROVE;

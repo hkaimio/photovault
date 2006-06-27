@@ -135,8 +135,6 @@ public class PhotoInfo {
         PhotoInfo photo = new PhotoInfo();
         
         ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();
-        // db.makePersistent( photo );
         txw.lock( photo, Transaction.WRITE );
         txw.commit();
         return photo;
@@ -310,9 +308,8 @@ public class PhotoInfo {
      Deletes the PhotoInfo and all related instances from database
      */
     public void delete() {
-        Implementation odmg = ODMG.getODMGImplementation();
-        Database db = ODMG.getODMGDatabase();
         ODMGXAWrapper txw = new ODMGXAWrapper();
+        Database db = ODMG.getODMGDatabase();
         
         // First delete all instances
         for ( int i = 0; i < instances.size(); i++ ) {
@@ -654,8 +651,7 @@ public class PhotoInfo {
         
         // Shrink the image to desired state and save it
         // Find first the correct transformation for doing this
-        int origWidth = origImage.getWidth();
-        
+        int origWidth = origImage.getWidth();        
         int origHeight = origImage.getHeight();
         int maxThumbWidth = 100;
         int maxThumbHeight = 100;
@@ -908,7 +904,7 @@ public class PhotoInfo {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
         txw.commit();
-        return shootTime;
+        return shootTime != null ? (java.util.Date) shootTime.clone() : null;
     }
     
     /**
@@ -918,7 +914,7 @@ public class PhotoInfo {
     public void setShootTime(java.util.Date  v) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
-        this.shootTime = v;
+        this.shootTime = (v != null) ? (java.util.Date) v.clone()  : null;
         modified();
         txw.commit();
     }
@@ -1287,13 +1283,13 @@ public class PhotoInfo {
      * @return a <code>Date</code> value
      */
     public final java.util.Date getLastModified() {
-        return lastModified;
+        return lastModified != null ? (java.util.Date) lastModified.clone() : null;
     }
     
     public  void setLastModified(final java.util.Date newDate) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
-        this.lastModified = newDate;
+        this.lastModified = (newDate != null) ? (java.util.Date) newDate.clone()  : null;
         modified();
         txw.commit();
     }
@@ -1393,7 +1389,7 @@ public class PhotoInfo {
     }
     
     public boolean equals( Object obj ) {
-        if ( obj.getClass() != this.getClass() ) {
+        if ( obj == null || obj.getClass() != this.getClass() ) {
             return false;
         }
         PhotoInfo p = (PhotoInfo)obj;
@@ -1419,4 +1415,7 @@ public class PhotoInfo {
                 && p.quality == this.quality );
     }
 
+    public int hashCode() {
+        return uid;
+    }
 }

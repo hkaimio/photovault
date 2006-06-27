@@ -31,7 +31,7 @@ public class FuzzyDate {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FuzzyDate.class.getName() );
     
     public FuzzyDate( Date date, double accuracy ) {
-	this.date = date;
+	this.date = (date != null) ? (Date) date.clone()  : null;
 	this.accuracy = accuracy;
     }
     
@@ -119,27 +119,13 @@ public class FuzzyDate {
             c.add( GregorianCalendar.YEAR, 1 );
             return c.getTimeInMillis() - startDate.getTime();
         }        
-        
-//        protected double getFloatFuzzyPeriodLength( Date startDate ) {
-//            double fuzzyPeriodLength = ((double)(getFuzzyPeriodLength( startDate ) ) ) / FuzzyDate.MILLIS_IN_DAY; 
-//            fuzzyPeriodLength = ((double)Math.round(  fuzzyPeriodLength*100 )) * 0.01;
-//            return fuzzyPeriodLength;
-//        }
     }
     
-    static double accuracyFormatLimits[] = {0.5/(24.0*60), .5, 3, 14, 180};
-    static String accuracyFormatStrings[] = {
-	"dd.MM.yyyy k:mm",
-	"dd.MM.yyyy",
-	"'wk' w yyyy",
-	"MMMM yyyy",
-	"yyyy"
-    };
 
     static FuzzyDateParser fdParsers[] = null;
     
     public Date getDate() {
-	return date;
+	return date != null ? (Date)date.clone() : null;
     }
 
     public double getAccuracy() {
@@ -279,5 +265,13 @@ public class FuzzyDate {
 	    }
 	}
 	return isEqual;
+    }
+    
+    public int hashCode() {
+        int hash = new Double( accuracy ).hashCode();
+        if ( date != null ) {
+            hash ^= date.hashCode();
+        }
+        return hash;
     }
 }

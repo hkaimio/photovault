@@ -270,24 +270,24 @@ public class PhotoQuery implements PhotoCollection {
     Vector listeners = null;
     PhotoFolder limitFolder = null;
 
-    public static int FIELD_SHOOTING_TIME          = 0;
-    public static int FIELD_SHOOTING_TIME_ACCURACY = 1;
-    public static int FIELD_FULLTEXT               = 2;
-    public static int FIELD_DESCRIPTION            = 3;
-    public static int FIELD_SHOOTING_PLACE         = 4;
-    public static int FIELD_PHOTOGRAPHER           = 5;
-    public static int FIELD_FSTOP                  = 6;
-    public static int FIELD_FOCAL_LENGTH           = 7;
-    public static int FIELD_SHUTTER_SPEED          = 8;
-    public static int FIELD_CAMERA                 = 9;
-    public static int FIELD_LENS                   = 10;
-    public static int FIELD_FILM                   = 11;
-    public static int FIELD_FILM_SPEED             = 12;
+    public static final int FIELD_SHOOTING_TIME          = 0;
+    public static final int FIELD_SHOOTING_TIME_ACCURACY = 1;
+    public static final int FIELD_FULLTEXT               = 2;
+    public static final int FIELD_DESCRIPTION            = 3;
+    public static final int FIELD_SHOOTING_PLACE         = 4;
+    public static final int FIELD_PHOTOGRAPHER           = 5;
+    public static final int FIELD_FSTOP                  = 6;
+    public static final int FIELD_FOCAL_LENGTH           = 7;
+    public static final int FIELD_SHUTTER_SPEED          = 8;
+    public static final int FIELD_CAMERA                 = 9;
+    public static final int FIELD_LENS                   = 10;
+    public static final int FIELD_FILM                   = 11;
+    public static final int FIELD_FILM_SPEED             = 12;
     
     static QueryField fields[] = null;
     QueryFieldCriteria criterias[] = null;
     
-    {
+    static {
 	fields = new QueryField[13];
 	fields[FIELD_SHOOTING_TIME] = new QueryField( "shootTime" );
 	fields[FIELD_SHOOTING_TIME_ACCURACY] = new QueryField( "timeAccuracy" );

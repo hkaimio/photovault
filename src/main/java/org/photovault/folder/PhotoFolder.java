@@ -104,14 +104,14 @@ public class PhotoFolder implements PhotoCollection {
 	modified();
 	txw.commit();
     }
-    Date creationDate;
+    Date creationDate = null;
     
     /**
      * Get the value of creationDate.
      * @return value of creationDate.
      */
     public Date getCreationDate() {
-	return creationDate;
+	return creationDate != null ? (Date) creationDate.clone()  : null;
     }
 
     // Implementation of PhotoCollection interface
@@ -274,7 +274,7 @@ public class PhotoFolder implements PhotoCollection {
     /**
        Id of the parend folder (needed for persistence to work correctly)
     */
-    int parentId;
+    int parentId = -1;
     
     /**
      * Adds a new listener that will be notified of changes to the collection. Note that listeners are transient!!

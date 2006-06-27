@@ -165,8 +165,8 @@ public class Photovault implements SchemaUpdateListener {
             System.exit( 1 );
         }
     }
-   
-    class PhotovaultException extends Exception {
+    
+    static class PhotovaultException extends Exception {
         PhotovaultException( String msg ) {
             super( msg );
         }

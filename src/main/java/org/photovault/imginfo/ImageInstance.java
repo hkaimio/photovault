@@ -182,13 +182,14 @@ public class ImageInstance {
        Deletes the ImageInstance object from database.
     */
     public void delete() {
-	Implementation odmg = ODMG.getODMGImplementation();
-	Database db = ODMG.getODMGDatabase();
-	
 	ODMGXAWrapper txw = new ODMGXAWrapper();
+	Database db = ODMG.getODMGDatabase();	
 	db.deletePersistent( this );
-	if ( imageFile != null && !imageFile.delete() ) {
-            log.error( "File " + imageFile.getAbsolutePath() + " could not be deleted" );
+        // Delete the file unless it is stored in external volume
+        if ( !(volume instanceof ExternalVolume) ) {
+            if ( imageFile != null && !imageFile.delete() ) {
+                log.error( "File " + imageFile.getAbsolutePath() + " could not be deleted" );
+            }
         }
 	txw.commit();
     }
@@ -204,13 +205,14 @@ public class ImageInstance {
 	Iterator readers = ImageIO.getImageReadersByFormatName("jpg");
 	ImageReader reader = (ImageReader)readers.next();
 	ImageInputStream iis = ImageIO.createImageInputStream( imageFile );
-	reader.setInput( iis, true );
-	
-	width = reader.getWidth( 0 );
-	height = reader.getHeight( 0 );
-
-	iis.close();
-	
+        if ( iis != null ) {
+            reader.setInput( iis, true );
+            
+            width = reader.getWidth( 0 );
+            height = reader.getHeight( 0 );
+            
+            iis.close();
+        }
     }
 
     /**
@@ -218,6 +220,7 @@ public class ImageInstance {
      */
     protected void calcHash() {
         hash = calcHash( imageFile );
+
         if ( instanceType == INSTANCE_TYPE_ORIGINAL && photoUid > 0 ) {
             try {
                 PhotoInfo p = PhotoInfo.retrievePhotoInfo( photoUid );
@@ -274,7 +277,7 @@ public class ImageInstance {
         if ( hash == null && imageFile != null ) {
             calcHash();
         }
-        return (byte[]) hash.clone();
+        return  (hash != null) ? (byte[]) hash.clone() : null;
     }
     
     /**
@@ -406,7 +409,7 @@ public class ImageInstance {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.READ );
 	txw.commit();
-	return checkTime;                
+	return checkTime != null ? (java.util.Date) checkTime.clone() : null;                
     }
     
     /**

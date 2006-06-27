@@ -72,7 +72,7 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
     /**
      * Comparator that orders the photos based on their uid.
      */
-    class PhotoIdComparator implements Comparator {
+    static class PhotoIdComparator implements Comparator {
         public int compare( Object o1, Object o2 ) {
             PhotoInfo p1 = (PhotoInfo) o1;
             PhotoInfo p2 = (PhotoInfo) o2;

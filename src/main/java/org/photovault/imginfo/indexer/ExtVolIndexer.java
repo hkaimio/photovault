@@ -77,7 +77,7 @@ public class ExtVolIndexer implements Runnable {
      */
     private int percentComplete;
      
-    class ProgressCalculator {
+    static class ProgressCalculator {
         
         /**
          Start for progress counter

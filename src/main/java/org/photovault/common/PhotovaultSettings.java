@@ -40,7 +40,7 @@ import java.io.IOException;
 public class PhotovaultSettings {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultSettings.class.getName() );
-    protected static PhotovaultSettings settings = null;
+    static PhotovaultSettings settings = null;
     
     /**
      * Get the singleton settings object.

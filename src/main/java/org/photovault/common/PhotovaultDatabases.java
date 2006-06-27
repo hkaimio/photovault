@@ -67,7 +67,7 @@ public class PhotovaultDatabases {
             beanWriter.write("databases", this );
             beanWriter.close();
         } catch( Exception e ) {
-
+            
         }        
     }
             

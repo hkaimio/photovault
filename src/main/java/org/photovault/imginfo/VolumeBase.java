@@ -40,9 +40,9 @@ import org.photovault.common.PhotovaultSettings;
  */
 public abstract class VolumeBase {
     
-     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( VolumeBase.class.getName() );
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( VolumeBase.class.getName() );
 
-    protected static VolumeBase defaultVolume = null;
+    static VolumeBase defaultVolume = null;
     private static HashMap volumes = null;
     
     /**

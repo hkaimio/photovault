@@ -82,7 +82,6 @@ public class SchemaUpdateAction {
         ConnectionRepository cr = MetadataManager.getInstance().connectionRepository();
         PBKey connKey = cr.getStandardPBKeyForJcdAlias( "pv" );
         JdbcConnectionDescriptor connDesc = cr.getDescriptor( connKey );
-        DataSource src = connDesc.getDataSource();
         String jdbcDriver = connDesc.getDriver();
         Platform platform = null;
         if ( jdbcDriver.equals( "org.apache.derby.jdbc.EmbeddedDriver" ) ) {

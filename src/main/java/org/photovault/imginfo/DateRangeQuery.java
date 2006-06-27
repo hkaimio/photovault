@@ -57,21 +57,21 @@ public class DateRangeQuery implements PhotoCollection {
     }
 
     public void setStartDate( java.util.Date date ) {
-	startDate = date;
+	startDate = (date != null) ? (java.util.Date)date.clone() : null;
 	modified();
     }
 
     public java.util.Date getStartDate() {
-	return startDate;
+	return startDate != null ? (java.util.Date)startDate.clone() : null;
     }
     
     public void setEndDate( java.util.Date date ) {
-	endDate = date;
+	endDate = (date != null) ? (java.util.Date) date.clone()  : null;
 	modified();
     }
 
     public java.util.Date getEndDate() {
-	return endDate;
+	return endDate != null ? (java.util.Date) endDate.clone() : null;
     }
 
     /**

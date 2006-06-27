@@ -84,7 +84,6 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 			isFit = true;
 			log.debug( "Fitting to window" );
 			fit();
-			float newScale = getScale();
 			String strNewScale = "Fit";
 			cb.setSelectedItem( strNewScale );
 		    } else {

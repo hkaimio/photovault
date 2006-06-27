@@ -55,7 +55,7 @@ public class TableCollectionView extends JPanel implements ActionListener {
     /**
        Table model for PhotoCollection
     */
-    class CollectionTableModel extends AbstractTableModel implements PhotoCollectionChangeListener {
+    static class CollectionTableModel extends AbstractTableModel implements PhotoCollectionChangeListener {
 	
 	String[]  columnNames = {
 	    "Photo",

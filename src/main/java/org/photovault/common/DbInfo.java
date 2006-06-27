@@ -95,7 +95,7 @@ import org.photovault.dbhelper.ODMGXAWrapper;
      Get the time when this database was created.
      */
     public Date getCreateTime() {
-        return createTime;
+        return createTime != null ? (Date) createTime.clone() : null;
     }
     
     /**
@@ -106,6 +106,6 @@ import org.photovault.dbhelper.ODMGXAWrapper;
     }
     
     private String id;
-    private int version;
-    private Date createTime;
+    private int version = -1;
+    private Date createTime = null;
 }
