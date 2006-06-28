@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<BugCollection version="1.0.0" sequence="0" timestamp="-1" analysisTimestamp="1150744245030" release="r433">
+<BugCollection version="1.0.0" sequence="1" timestamp="-1" analysisTimestamp="1151434600819" release="r435">
   <Project filename="/home/harri/projects/photovault/photovault_findbugs.fb">
     <Jar>/home/harri/projects/photovault/dist/photovault-latest/photovault.jar</Jar>
     <AuxClasspathEntry>/home/harri/projects/photovault/dist/photovault-latest/antlr-2.7.5.jar</AuxClasspathEntry>
@@ -23,7 +23,7 @@
     <AuxClasspathEntry>/home/harri/projects/photovault/dist/photovault-latest/swing-layout-0.9.jar</AuxClasspathEntry>
     <SrcDir>/home/harri/projects/photovault/src/main/java</SrcDir>
   </Project>
-  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.common.DbInfo">
       <SourceLine classname="org.photovault.common.DbInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="DbInfo.java" sourcepath="org/photovault/common/DbInfo.java"/>
     </Class>
@@ -44,7 +44,7 @@
     </Method>
     <SourceLine classname="org.photovault.common.DbInfo" start="66" end="66" startBytecode="79" endBytecode="79" sourcefile="DbInfo.java" sourcepath="org/photovault/common/DbInfo.java"/>
   </BugInstance>
-  <BugInstance type="UWF_UNWRITTEN_FIELD" priority="2" abbrev="UwF" category="CORRECTNESS">
+  <BugInstance type="UWF_NULL_FIELD" priority="2" abbrev="UwF" category="CORRECTNESS">
     <Class classname="org.photovault.common.DbInfo">
       <SourceLine classname="org.photovault.common.DbInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="DbInfo.java" sourcepath="org/photovault/common/DbInfo.java"/>
     </Class>
@@ -111,7 +111,7 @@
     </Method>
     <SourceLine classname="org.photovault.common.PhotovaultDatabases" start="86" end="86" startBytecode="77" endBytecode="77" sourcefile="PhotovaultDatabases.java" sourcepath="org/photovault/common/PhotovaultDatabases.java"/>
   </BugInstance>
-  <BugInstance type="MS_PKGPROTECT" priority="2" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_PKGPROTECT" priority="2" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.common.PhotovaultSettings">
       <SourceLine classname="org.photovault.common.PhotovaultSettings" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotovaultSettings.java" sourcepath="org/photovault/common/PhotovaultSettings.java"/>
     </Class>
@@ -132,27 +132,27 @@
     </Method>
     <SourceLine classname="org.photovault.common.PhotovaultSettings" start="81" end="81" startBytecode="175" endBytecode="175" sourcefile="PhotovaultSettings.java" sourcepath="org/photovault/common/PhotovaultSettings.java"/>
   </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="3" abbrev="DLS" category="STYLE">
     <Class classname="org.photovault.common.SchemaUpdateAction">
       <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Class>
-    <Method classname="org.photovault.common.SchemaUpdateAction" name="upgradeDatabase" signature="()V" isStatic="false">
-      <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="77" end="132" startBytecode="0" endBytecode="122" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
+    <Method classname="org.photovault.common.SchemaUpdateAction" name="createHashes" signature="()V" isStatic="false">
+      <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="137" end="174" startBytecode="0" endBytecode="88" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Method>
-    <LocalVariable name="src" register="5" pc="49" role="LOCAL_VARIABLE_NAMED"/>
-    <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="85" end="85" startBytecode="47" endBytecode="47" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
+    <LocalVariable name="?" register="11" pc="163" role="LOCAL_VARIABLE_UNKNOWN"/>
+    <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="166" end="166" startBytecode="163" endBytecode="163" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
   </BugInstance>
   <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="3" abbrev="DLS" category="STYLE">
     <Class classname="org.photovault.common.SchemaUpdateAction">
       <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Class>
     <Method classname="org.photovault.common.SchemaUpdateAction" name="createHashes" signature="()V" isStatic="false">
-      <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="138" end="175" startBytecode="0" endBytecode="88" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
+      <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="137" end="174" startBytecode="0" endBytecode="88" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Method>
-    <LocalVariable name="?" register="11" pc="163" role="LOCAL_VARIABLE_UNKNOWN"/>
-    <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="167" end="167" startBytecode="163" endBytecode="163" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
+    <LocalVariable name="origHash" register="9" pc="178" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="169" end="169" startBytecode="176" endBytecode="176" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
   </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="3" abbrev="DLS" category="STYLE">
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="3" abbrev="DLS" category="STYLE" last="0" removedByChange="true">
     <Class classname="org.photovault.common.SchemaUpdateAction">
       <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Class>
@@ -167,20 +167,20 @@
       <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Class>
     <Method classname="org.photovault.common.SchemaUpdateAction" name="upgradeDatabase" signature="()V" isStatic="false">
-      <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="77" end="132" startBytecode="0" endBytecode="122" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
+      <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="77" end="131" startBytecode="0" endBytecode="119" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Method>
-    <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="93" end="93" startBytecode="98" endBytecode="98" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
+    <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="92" end="92" startBytecode="91" endBytecode="91" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
   </BugInstance>
   <BugInstance type="REC_CATCH_EXCEPTION" priority="3" abbrev="REC" category="STYLE">
     <Class classname="org.photovault.common.SchemaUpdateAction">
       <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Class>
     <Method classname="org.photovault.common.SchemaUpdateAction" name="createHashes" signature="()V" isStatic="false">
-      <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="138" end="175" startBytecode="0" endBytecode="204" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
+      <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="137" end="174" startBytecode="0" endBytecode="204" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
     </Method>
-    <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="151" end="151" startBytecode="88" endBytecode="88" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
+    <SourceLine classname="org.photovault.common.SchemaUpdateAction" start="150" end="150" startBytecode="88" endBytecode="88" sourcefile="SchemaUpdateAction.java" sourcepath="org/photovault/common/SchemaUpdateAction.java"/>
   </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE" last="0" removedByChange="true">
     <Class classname="org.photovault.dbhelper.ImageDb">
       <SourceLine classname="org.photovault.dbhelper.ImageDb" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ImageDb.java" sourcepath="org/photovault/dbhelper/ImageDb.java"/>
     </Class>
@@ -195,9 +195,9 @@
       <SourceLine classname="org.photovault.dbhelper.ImageDb" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ImageDb.java" sourcepath="org/photovault/dbhelper/ImageDb.java"/>
     </Class>
     <Method classname="org.photovault.dbhelper.ImageDb" name="newUid" signature="()I" isStatic="true">
-      <SourceLine classname="org.photovault.dbhelper.ImageDb" start="81" end="93" startBytecode="0" endBytecode="36" sourcefile="ImageDb.java" sourcepath="org/photovault/dbhelper/ImageDb.java"/>
+      <SourceLine classname="org.photovault.dbhelper.ImageDb" start="71" end="83" startBytecode="0" endBytecode="36" sourcefile="ImageDb.java" sourcepath="org/photovault/dbhelper/ImageDb.java"/>
     </Method>
-    <SourceLine classname="org.photovault.dbhelper.ImageDb" start="84" end="84" startBytecode="9" endBytecode="9" sourcefile="ImageDb.java" sourcepath="org/photovault/dbhelper/ImageDb.java"/>
+    <SourceLine classname="org.photovault.dbhelper.ImageDb" start="74" end="74" startBytecode="7" endBytecode="7" sourcefile="ImageDb.java" sourcepath="org/photovault/dbhelper/ImageDb.java"/>
   </BugInstance>
   <BugInstance type="ES_COMPARING_STRINGS_WITH_EQ" priority="3" abbrev="ES" category="CORRECTNESS">
     <Class classname="org.photovault.dbhelper.ODMG">
@@ -220,7 +220,7 @@
     </Method>
     <SourceLine classname="org.photovault.dbhelper.ODMG" start="89" end="89" startBytecode="222" endBytecode="222" sourcefile="ODMG.java" sourcepath="org/photovault/dbhelper/ODMG.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.folder.PhotoFolder">
       <SourceLine classname="org.photovault.folder.PhotoFolder" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolder.java" sourcepath="org/photovault/folder/PhotoFolder.java"/>
     </Class>
@@ -250,7 +250,7 @@
     </Method>
     <SourceLine classname="org.photovault.folder.PhotoFolder" start="417" end="417" startBytecode="83" endBytecode="83" sourcefile="PhotoFolder.java" sourcepath="org/photovault/folder/PhotoFolder.java"/>
   </BugInstance>
-  <BugInstance type="UUF_UNUSED_FIELD" priority="2" abbrev="UuF" category="PERFORMANCE">
+  <BugInstance type="URF_UNREAD_FIELD" priority="2" abbrev="UrF" category="PERFORMANCE" first="1" introducedByChange="true">
     <Class classname="org.photovault.folder.PhotoFolder">
       <SourceLine classname="org.photovault.folder.PhotoFolder" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolder.java" sourcepath="org/photovault/folder/PhotoFolder.java"/>
     </Class>
@@ -258,7 +258,15 @@
       <SourceLine classname="org.photovault.folder.PhotoFolder" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolder.java" sourcepath="org/photovault/folder/PhotoFolder.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="UWF_UNWRITTEN_FIELD" priority="2" abbrev="UwF" category="CORRECTNESS">
+  <BugInstance type="UUF_UNUSED_FIELD" priority="2" abbrev="UuF" category="PERFORMANCE" last="0" removedByChange="true">
+    <Class classname="org.photovault.folder.PhotoFolder">
+      <SourceLine classname="org.photovault.folder.PhotoFolder" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolder.java" sourcepath="org/photovault/folder/PhotoFolder.java"/>
+    </Class>
+    <Field classname="org.photovault.folder.PhotoFolder" name="parentId" signature="I" isStatic="false">
+      <SourceLine classname="org.photovault.folder.PhotoFolder" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolder.java" sourcepath="org/photovault/folder/PhotoFolder.java"/>
+    </Field>
+  </BugInstance>
+  <BugInstance type="UWF_NULL_FIELD" priority="2" abbrev="UwF" category="CORRECTNESS">
     <Class classname="org.photovault.folder.PhotoFolder">
       <SourceLine classname="org.photovault.folder.PhotoFolder" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolder.java" sourcepath="org/photovault/folder/PhotoFolder.java"/>
     </Class>
@@ -274,7 +282,7 @@
       <SourceLine classname="org.photovault.folder.PhotoFolder" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolder.java" sourcepath="org/photovault/folder/PhotoFolder.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.folder.PhotoFolderEvent">
       <SourceLine classname="org.photovault.folder.PhotoFolderEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderEvent.java" sourcepath="org/photovault/folder/PhotoFolderEvent.java"/>
     </Class>
@@ -286,7 +294,7 @@
     </Field>
     <SourceLine classname="org.photovault.folder.PhotoFolderEvent" start="46" end="46" startBytecode="22" endBytecode="22" sourcefile="PhotoFolderEvent.java" sourcepath="org/photovault/folder/PhotoFolderEvent.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.folder.PhotoFolderEvent">
       <SourceLine classname="org.photovault.folder.PhotoFolderEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderEvent.java" sourcepath="org/photovault/folder/PhotoFolderEvent.java"/>
     </Class>
@@ -294,7 +302,7 @@
       <SourceLine classname="org.photovault.folder.PhotoFolderEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderEvent.java" sourcepath="org/photovault/folder/PhotoFolderEvent.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.folder.PhotoFolderEvent">
       <SourceLine classname="org.photovault.folder.PhotoFolderEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderEvent.java" sourcepath="org/photovault/folder/PhotoFolderEvent.java"/>
     </Class>
@@ -307,7 +315,7 @@
       <SourceLine classname="org.photovault.folder.PhotoFolderEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderEvent.java" sourcepath="org/photovault/folder/PhotoFolderEvent.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.DateRangeQuery">
       <SourceLine classname="org.photovault.imginfo.DateRangeQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="DateRangeQuery.java" sourcepath="org/photovault/imginfo/DateRangeQuery.java"/>
     </Class>
@@ -319,7 +327,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.DateRangeQuery" start="74" end="74" startBytecode="4" endBytecode="4" sourcefile="DateRangeQuery.java" sourcepath="org/photovault/imginfo/DateRangeQuery.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.DateRangeQuery">
       <SourceLine classname="org.photovault.imginfo.DateRangeQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="DateRangeQuery.java" sourcepath="org/photovault/imginfo/DateRangeQuery.java"/>
     </Class>
@@ -331,7 +339,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.DateRangeQuery" start="65" end="65" startBytecode="4" endBytecode="4" sourcefile="DateRangeQuery.java" sourcepath="org/photovault/imginfo/DateRangeQuery.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.DateRangeQuery">
       <SourceLine classname="org.photovault.imginfo.DateRangeQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="DateRangeQuery.java" sourcepath="org/photovault/imginfo/DateRangeQuery.java"/>
     </Class>
@@ -343,7 +351,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.DateRangeQuery" start="69" end="69" startBytecode="2" endBytecode="2" sourcefile="DateRangeQuery.java" sourcepath="org/photovault/imginfo/DateRangeQuery.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.DateRangeQuery">
       <SourceLine classname="org.photovault.imginfo.DateRangeQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="DateRangeQuery.java" sourcepath="org/photovault/imginfo/DateRangeQuery.java"/>
     </Class>
@@ -382,7 +390,7 @@
     </Method>
     <SourceLine classname="org.photovault.imginfo.FileUtils" start="38" end="38" startBytecode="9" endBytecode="9" sourcefile="FileUtils.java" sourcepath="org/photovault/imginfo/FileUtils.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.FuzzyDate">
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Class>
@@ -394,7 +402,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="142" end="142" startBytecode="4" endBytecode="4" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.FuzzyDate">
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Class>
@@ -411,11 +419,11 @@
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.FuzzyDate" name="equals" signature="(Ljava/lang/Object;)Z" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="272" end="281" startBytecode="0" endBytecode="89" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
+      <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="258" end="267" startBytecode="0" endBytecode="89" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="278" end="278" startBytecode="79" endBytecode="79" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
+    <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="264" end="264" startBytecode="79" endBytecode="79" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
   </BugInstance>
-  <BugInstance type="HE_EQUALS_USE_HASHCODE" priority="1" abbrev="HE" category="CORRECTNESS">
+  <BugInstance type="HE_EQUALS_USE_HASHCODE" priority="1" abbrev="HE" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.FuzzyDate">
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Class>
@@ -423,7 +431,7 @@
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="272" end="281" startBytecode="0" endBytecode="89" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Method>
   </BugInstance>
-  <BugInstance type="URF_UNREAD_FIELD" priority="2" abbrev="UrF" category="PERFORMANCE">
+  <BugInstance type="URF_UNREAD_FIELD" priority="2" abbrev="UrF" category="PERFORMANCE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.FuzzyDate">
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Class>
@@ -431,7 +439,7 @@
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="URF_UNREAD_FIELD" priority="2" abbrev="UrF" category="PERFORMANCE">
+  <BugInstance type="URF_UNREAD_FIELD" priority="2" abbrev="UrF" category="PERFORMANCE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.FuzzyDate">
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Class>
@@ -439,7 +447,7 @@
       <SourceLine classname="org.photovault.imginfo.FuzzyDate" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FuzzyDate.java" sourcepath="org/photovault/imginfo/FuzzyDate.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.ImageInstance">
       <SourceLine classname="org.photovault.imginfo.ImageInstance" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
     </Class>
@@ -449,7 +457,7 @@
     <LocalVariable name="odmg" register="1" pc="4" role="LOCAL_VARIABLE_NAMED"/>
     <SourceLine classname="org.photovault.imginfo.ImageInstance" start="185" end="185" startBytecode="3" endBytecode="3" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.ImageInstance">
       <SourceLine classname="org.photovault.imginfo.ImageInstance" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
     </Class>
@@ -461,16 +469,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.ImageInstance" start="407" end="407" startBytecode="22" endBytecode="22" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
   </BugInstance>
-  <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS">
-    <Class classname="org.photovault.imginfo.ImageInstance">
-      <SourceLine classname="org.photovault.imginfo.ImageInstance" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
-    </Class>
-    <Method classname="org.photovault.imginfo.ImageInstance" name="calcHash" signature="(Ljava/io/File;)[B" isStatic="true">
-      <SourceLine classname="org.photovault.imginfo.ImageInstance" start="239" end="263" startBytecode="0" endBytecode="103" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
-    </Method>
-    <SourceLine classname="org.photovault.imginfo.ImageInstance" start="258" end="258" startBytecode="204" endBytecode="204" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
-  </BugInstance>
-  <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS">
+  <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.ImageInstance">
       <SourceLine classname="org.photovault.imginfo.ImageInstance" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
     </Class>
@@ -478,6 +477,24 @@
       <SourceLine classname="org.photovault.imginfo.ImageInstance" start="351" end="368" startBytecode="0" endBytecode="47" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
     </Method>
     <SourceLine classname="org.photovault.imginfo.ImageInstance" start="362" end="362" startBytecode="34" endBytecode="34" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
+  </BugInstance>
+  <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS">
+    <Class classname="org.photovault.imginfo.ImageInstance">
+      <SourceLine classname="org.photovault.imginfo.ImageInstance" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
+    </Class>
+    <Method classname="org.photovault.imginfo.ImageInstance" name="getRelativePath" signature="()Ljava/lang/String;" isStatic="false">
+      <SourceLine classname="org.photovault.imginfo.ImageInstance" start="361" end="378" startBytecode="0" endBytecode="47" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
+    </Method>
+    <SourceLine classname="org.photovault.imginfo.ImageInstance" start="372" end="372" startBytecode="34" endBytecode="34" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
+  </BugInstance>
+  <BugInstance type="PZLA_PREFER_ZERO_LENGTH_ARRAYS" priority="3" abbrev="PZLA" category="STYLE" first="1" introducedByChange="true">
+    <Class classname="org.photovault.imginfo.ImageInstance">
+      <SourceLine classname="org.photovault.imginfo.ImageInstance" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
+    </Class>
+    <Method classname="org.photovault.imginfo.ImageInstance" name="getHash" signature="()[B" isStatic="false">
+      <SourceLine classname="org.photovault.imginfo.ImageInstance" start="282" end="285" startBytecode="0" endBytecode="42" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
+    </Method>
+    <SourceLine classname="org.photovault.imginfo.ImageInstance" start="285" end="285" startBytecode="42" endBytecode="42" sourcefile="ImageInstance.java" sourcepath="org/photovault/imginfo/ImageInstance.java"/>
   </BugInstance>
   <BugInstance type="REC_CATCH_EXCEPTION" priority="3" abbrev="REC" category="STYLE">
     <Class classname="org.photovault.imginfo.ImageInstance">
@@ -519,17 +536,7 @@
       <SourceLine classname="org.photovault.imginfo.PhotoCollectionChangeEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionChangeEvent.java" sourcepath="org/photovault/imginfo/PhotoCollectionChangeEvent.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
-    <Class classname="org.photovault.imginfo.PhotoInfo">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
-    </Class>
-    <Method classname="org.photovault.imginfo.PhotoInfo" name="create" signature="()Lorg/photovault/imginfo/PhotoInfo;" isStatic="true">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="135" end="142" startBytecode="0" endBytecode="17" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
-    </Method>
-    <LocalVariable name="db" register="2" pc="20" role="LOCAL_VARIABLE_NAMED"/>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="138" end="138" startBytecode="19" endBytecode="19" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
-  </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
@@ -544,12 +551,22 @@
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="createThumbnail" signature="(Lorg/photovault/imginfo/VolumeBase;)V" isStatic="false">
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="572" end="705" startBytecode="0" endBytecode="346" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    </Method>
+    <LocalVariable name="numImages" register="9" pc="223" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="608" end="608" startBytecode="221" endBytecode="221" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+  </BugInstance>
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="3" abbrev="DLS" category="STYLE" last="0" removedByChange="true">
+    <Class classname="org.photovault.imginfo.PhotoInfo">
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    </Class>
+    <Method classname="org.photovault.imginfo.PhotoInfo" name="createThumbnail" signature="(Lorg/photovault/imginfo/VolumeBase;)V" isStatic="false">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="573" end="707" startBytecode="0" endBytecode="346" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
     <LocalVariable name="numImages" register="9" pc="223" role="LOCAL_VARIABLE_NAMED"/>
     <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="609" end="609" startBytecode="221" endBytecode="221" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
@@ -561,7 +578,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1288" end="1288" startBytecode="4" endBytecode="4" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
@@ -573,7 +590,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="909" end="909" startBytecode="22" endBytecode="22" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
@@ -585,7 +602,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1294" end="1294" startBytecode="16" endBytecode="16" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
-  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
@@ -602,22 +619,22 @@
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="equals" signature="(Ljava/lang/Object;)Z" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1394" end="1403" startBytecode="0" endBytecode="242" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1392" end="1401" startBytecode="0" endBytecode="246" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1403" end="1403" startBytecode="177" endBytecode="177" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1403" end="1403" startBytecode="200" endBytecode="200" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1403" end="1403" startBytecode="212" endBytecode="212" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1401" end="1401" startBytecode="181" endBytecode="181" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1401" end="1401" startBytecode="204" endBytecode="204" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1401" end="1401" startBytecode="216" endBytecode="216" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="FE_FLOATING_POINT_EQUALITY" priority="3" abbrev="FE" category="CORRECTNESS">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="setPrefRotation" signature="(D)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1206" end="1215" startBytecode="0" endBytecode="41" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1204" end="1213" startBytecode="0" endBytecode="41" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1208" end="1208" startBytecode="20" endBytecode="20" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="1206" end="1206" startBytecode="20" endBytecode="20" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
-  <BugInstance type="HE_EQUALS_USE_HASHCODE" priority="1" abbrev="HE" category="CORRECTNESS">
+  <BugInstance type="HE_EQUALS_USE_HASHCODE" priority="1" abbrev="HE" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
@@ -639,11 +656,11 @@
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="createThumbnail" signature="(Lorg/photovault/imginfo/VolumeBase;)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="573" end="707" startBytecode="0" endBytecode="346" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="572" end="705" startBytecode="0" endBytecode="346" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="655" end="655" startBytecode="493" endBytecode="493" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="654" end="654" startBytecode="493" endBytecode="493" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
-  <BugInstance type="NP_NULL_ON_SOME_PATH" priority="2" abbrev="NP" category="CORRECTNESS">
+  <BugInstance type="NP_NULL_ON_SOME_PATH" priority="2" abbrev="NP" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
@@ -657,90 +674,90 @@
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="updateFromFileMetadata" signature="(Ljava/io/File;)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="247" end="306" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="245" end="304" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="266" end="266" startBytecode="47" endBytecode="47" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="264" end="264" startBytecode="47" endBytecode="47" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="updateFromFileMetadata" signature="(Ljava/io/File;)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="247" end="306" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="245" end="304" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="275" end="275" startBytecode="121" endBytecode="121" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="273" end="273" startBytecode="121" endBytecode="121" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="updateFromFileMetadata" signature="(Ljava/io/File;)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="247" end="306" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="245" end="304" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="282" end="282" startBytecode="192" endBytecode="192" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="280" end="280" startBytecode="192" endBytecode="192" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="updateFromFileMetadata" signature="(Ljava/io/File;)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="247" end="306" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="245" end="304" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="289" end="289" startBytecode="263" endBytecode="263" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="287" end="287" startBytecode="263" endBytecode="263" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="updateFromFileMetadata" signature="(Ljava/io/File;)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="247" end="306" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="245" end="304" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="295" end="295" startBytecode="309" endBytecode="309" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="293" end="293" startBytecode="309" endBytecode="309" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="NP_NULL_ON_SOME_PATH_EXCEPTION" priority="3" abbrev="NP" category="CORRECTNESS">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="updateFromFileMetadata" signature="(Ljava/io/File;)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="247" end="306" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="245" end="304" startBytecode="0" endBytecode="186" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="302" end="302" startBytecode="356" endBytecode="356" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="300" end="300" startBytecode="356" endBytecode="356" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="OS_OPEN_STREAM_EXCEPTION_PATH" priority="3" abbrev="OS" category="CORRECTNESS">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="addToDB" signature="(Ljava/io/File;)Lorg/photovault/imginfo/PhotoInfo;" isStatic="true">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="160" end="215" startBytecode="0" endBytecode="137" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="158" end="213" startBytecode="0" endBytecode="137" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="179" end="179" startBytecode="35" endBytecode="35" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="177" end="177" startBytecode="35" endBytecode="35" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="OS_OPEN_STREAM_EXCEPTION_PATH" priority="3" abbrev="OS" category="CORRECTNESS">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="addToDB" signature="(Ljava/io/File;)Lorg/photovault/imginfo/PhotoInfo;" isStatic="true">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="160" end="215" startBytecode="0" endBytecode="137" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="158" end="213" startBytecode="0" endBytecode="137" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="180" end="180" startBytecode="44" endBytecode="44" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="178" end="178" startBytecode="44" endBytecode="44" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="PZLA_PREFER_ZERO_LENGTH_ARRAYS" priority="3" abbrev="PZLA" category="STYLE">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="getOrigInstanceHash" signature="()[B" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="884" end="884" startBytecode="0" endBytecode="24" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="882" end="882" startBytecode="0" endBytecode="24" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="884" end="884" startBytecode="24" endBytecode="24" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="882" end="882" startBytecode="24" endBytecode="24" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="REC_CATCH_EXCEPTION" priority="3" abbrev="REC" category="STYLE">
     <Class classname="org.photovault.imginfo.PhotoInfo">
       <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.PhotoInfo" name="addToDB" signature="(Ljava/io/File;)Lorg/photovault/imginfo/PhotoInfo;" isStatic="true">
-      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="160" end="215" startBytecode="0" endBytecode="278" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+      <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="158" end="213" startBytecode="0" endBytecode="278" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="190" end="190" startBytecode="111" endBytecode="111" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
+    <SourceLine classname="org.photovault.imginfo.PhotoInfo" start="188" end="188" startBytecode="111" endBytecode="111" sourcefile="PhotoInfo.java" sourcepath="org/photovault/imginfo/PhotoInfo.java"/>
   </BugInstance>
   <BugInstance type="REC_CATCH_EXCEPTION" priority="4" abbrev="REC" category="STYLE">
     <Class classname="org.photovault.imginfo.PhotoInfo">
@@ -773,7 +790,7 @@
       <SourceLine classname="org.photovault.imginfo.PhotoInfoChangeEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoChangeEvent.java" sourcepath="org/photovault/imginfo/PhotoInfoChangeEvent.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -782,7 +799,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="282" end="282" startBytecode="53" endBytecode="53" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -791,7 +808,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="276" end="276" startBytecode="25" endBytecode="25" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -800,7 +817,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="284" end="284" startBytecode="63" endBytecode="63" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -809,7 +826,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="285" end="285" startBytecode="68" endBytecode="68" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -818,7 +835,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="280" end="280" startBytecode="43" endBytecode="43" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -827,7 +844,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="279" end="279" startBytecode="38" endBytecode="38" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -836,7 +853,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="275" end="275" startBytecode="21" endBytecode="21" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -845,7 +862,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="283" end="283" startBytecode="58" endBytecode="58" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -854,7 +871,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="278" end="278" startBytecode="33" endBytecode="33" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -863,7 +880,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="277" end="277" startBytecode="29" endBytecode="29" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -872,7 +889,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="273" end="273" startBytecode="13" endBytecode="13" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -881,7 +898,7 @@
     </Field>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="274" end="274" startBytecode="17" endBytecode="17" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -899,7 +916,7 @@
     </Method>
     <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="172" end="172" startBytecode="165" endBytecode="165" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
   </BugInstance>
-  <BugInstance type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" priority="1" abbrev="ST" category="STYLE">
+  <BugInstance type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" priority="1" abbrev="ST" category="STYLE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.PhotoQuery">
       <SourceLine classname="org.photovault.imginfo.PhotoQuery" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoQuery.java" sourcepath="org/photovault/imginfo/PhotoQuery.java"/>
     </Class>
@@ -951,7 +968,7 @@
       <SourceLine classname="org.photovault.imginfo.SortedPhotoCollection$PhotoIdComparator" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SortedPhotoCollection.java" sourcepath="org/photovault/imginfo/SortedPhotoCollection.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE">
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.SortedPhotoCollection$PhotoIdComparator">
       <SourceLine classname="org.photovault.imginfo.SortedPhotoCollection$PhotoIdComparator" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SortedPhotoCollection.java" sourcepath="org/photovault/imginfo/SortedPhotoCollection.java"/>
     </Class>
@@ -961,7 +978,7 @@
       <SourceLine classname="org.photovault.imginfo.Timestamp2DateConversion" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="Timestamp2DateConversion.java" sourcepath="org/photovault/imginfo/Timestamp2DateConversion.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="MS_PKGPROTECT" priority="2" abbrev="MS" category="MALICIOUS_CODE">
+  <BugInstance type="MS_PKGPROTECT" priority="2" abbrev="MS" category="MALICIOUS_CODE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.VolumeBase">
       <SourceLine classname="org.photovault.imginfo.VolumeBase" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="VolumeBase.java" sourcepath="org/photovault/imginfo/VolumeBase.java"/>
     </Class>
@@ -1002,11 +1019,11 @@
       <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexer" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ExtVolIndexer.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexer.java"/>
     </Class>
     <Method classname="org.photovault.imginfo.indexer.ExtVolIndexer" name="indexDirectory" signature="(Ljava/io/File;Lorg/photovault/folder/PhotoFolder;II)V" isStatic="false">
-      <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexer" start="277" end="379" startBytecode="0" endBytecode="535" sourcefile="ExtVolIndexer.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexer.java"/>
+      <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexer" start="277" end="379" startBytecode="0" endBytecode="534" sourcefile="ExtVolIndexer.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexer.java"/>
     </Method>
-    <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexer" start="366" end="366" startBytecode="473" endBytecode="473" sourcefile="ExtVolIndexer.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexer.java"/>
+    <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexer" start="366" end="366" startBytecode="472" endBytecode="472" sourcefile="ExtVolIndexer.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexer.java"/>
   </BugInstance>
-  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE">
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.indexer.ExtVolIndexer$ProgressCalculator">
       <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexer$ProgressCalculator" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ExtVolIndexer.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexer.java"/>
     </Class>
@@ -1027,7 +1044,7 @@
       <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexer$ProgressCalculator" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ExtVolIndexer.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexer.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.imginfo.indexer.ExtVolIndexerEvent">
       <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexerEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ExtVolIndexerEvent.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexerEvent.java"/>
     </Class>
@@ -1040,7 +1057,7 @@
       <SourceLine classname="org.photovault.imginfo.indexer.ExtVolIndexerEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ExtVolIndexerEvent.java" sourcepath="org/photovault/imginfo/indexer/ExtVolIndexerEvent.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="1" abbrev="DLS" category="STYLE">
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="1" abbrev="DLS" category="STYLE" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.BrowserWindow">
       <SourceLine classname="org.photovault.swingui.BrowserWindow" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="BrowserWindow.java" sourcepath="org/photovault/swingui/BrowserWindow.java"/>
     </Class>
@@ -1135,7 +1152,7 @@
     </Method>
     <SourceLine classname="org.photovault.swingui.ImageFilter" start="71" end="71" startBytecode="35" endBytecode="35" sourcefile="ImageFilter.java" sourcepath="org/photovault/swingui/ImageFilter.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="3" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="3" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.JAIPhotoView">
       <SourceLine classname="org.photovault.swingui.JAIPhotoView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="JAIPhotoView.java" sourcepath="org/photovault/swingui/JAIPhotoView.java"/>
     </Class>
@@ -1143,7 +1160,7 @@
       <SourceLine classname="org.photovault.swingui.JAIPhotoView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="JAIPhotoView.java" sourcepath="org/photovault/swingui/JAIPhotoView.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="3" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="3" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.JAIPhotoView">
       <SourceLine classname="org.photovault.swingui.JAIPhotoView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="JAIPhotoView.java" sourcepath="org/photovault/swingui/JAIPhotoView.java"/>
     </Class>
@@ -1151,7 +1168,7 @@
       <SourceLine classname="org.photovault.swingui.JAIPhotoView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="JAIPhotoView.java" sourcepath="org/photovault/swingui/JAIPhotoView.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.JAIPhotoViewer">
       <SourceLine classname="org.photovault.swingui.JAIPhotoViewer" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="JAIPhotoViewer.java" sourcepath="org/photovault/swingui/JAIPhotoViewer.java"/>
     </Class>
@@ -1159,7 +1176,7 @@
       <SourceLine classname="org.photovault.swingui.JAIPhotoViewer" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="JAIPhotoViewer.java" sourcepath="org/photovault/swingui/JAIPhotoViewer.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.JAIPhotoViewer$1">
       <SourceLine classname="org.photovault.swingui.JAIPhotoViewer$1" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="JAIPhotoViewer.java" sourcepath="org/photovault/swingui/JAIPhotoViewer.java"/>
     </Class>
@@ -1174,14 +1191,14 @@
       <SourceLine classname="org.photovault.swingui.JAIPhotoViewer$1" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="JAIPhotoViewer.java" sourcepath="org/photovault/swingui/JAIPhotoViewer.java"/>
     </Class>
     <Method classname="org.photovault.swingui.JAIPhotoViewer$1" name="actionPerformed" signature="(Ljava/awt/event/ActionEvent;)V" isStatic="false">
-      <SourceLine classname="org.photovault.swingui.JAIPhotoViewer$1" start="76" end="122" startBytecode="0" endBytecode="125" sourcefile="JAIPhotoViewer.java" sourcepath="org/photovault/swingui/JAIPhotoViewer.java"/>
+      <SourceLine classname="org.photovault.swingui.JAIPhotoViewer$1" start="76" end="121" startBytecode="0" endBytecode="121" sourcefile="JAIPhotoViewer.java" sourcepath="org/photovault/swingui/JAIPhotoViewer.java"/>
     </Method>
     <Class classname="java.lang.String" role="CLASS_REFTYPE">
       <SourceLine classname="java.lang.String" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="String.java" sourcepath="java/lang/String.java"/>
     </Class>
     <SourceLine classname="org.photovault.swingui.JAIPhotoViewer$1" start="83" end="83" startBytecode="63" endBytecode="63" sourcefile="JAIPhotoViewer.java" sourcepath="org/photovault/swingui/JAIPhotoViewer.java"/>
   </BugInstance>
-  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.LoginDlg">
       <SourceLine classname="org.photovault.swingui.LoginDlg" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="LoginDlg.java" sourcepath="org/photovault/swingui/LoginDlg.java"/>
     </Class>
@@ -1191,7 +1208,7 @@
     <LocalVariable name="dlg" register="15" pc="469" role="LOCAL_VARIABLE_NAMED"/>
     <SourceLine classname="org.photovault.swingui.LoginDlg" start="172" end="172" startBytecode="467" endBytecode="467" sourcefile="LoginDlg.java" sourcepath="org/photovault/swingui/LoginDlg.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.LoginDlg">
       <SourceLine classname="org.photovault.swingui.LoginDlg" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="LoginDlg.java" sourcepath="org/photovault/swingui/LoginDlg.java"/>
     </Class>
@@ -1204,10 +1221,10 @@
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Class>
     <Method classname="org.photovault.swingui.PhotoCollectionThumbView" name="paintThumbnail" signature="(Ljava/awt/Graphics2D;Lorg/photovault/imginfo/PhotoInfo;IIZ)V" isStatic="false">
-      <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="458" end="558" startBytecode="0" endBytecode="437" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
+      <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="460" end="558" startBytecode="0" endBytecode="435" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Method>
-    <LocalVariable name="ypos" register="14" pc="722" role="LOCAL_VARIABLE_NAMED"/>
-    <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="545" end="545" startBytecode="720" endBytecode="720" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
+    <LocalVariable name="ypos" register="14" pc="718" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="546" end="546" startBytecode="716" endBytecode="716" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
   </BugInstance>
   <BugInstance type="ES_COMPARING_STRINGS_WITH_EQ" priority="3" abbrev="ES" category="CORRECTNESS">
     <Class classname="org.photovault.swingui.PhotoCollectionThumbView">
@@ -1221,7 +1238,7 @@
     </Class>
     <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="596" end="596" startBytecode="8" endBytecode="8" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
   </BugInstance>
-  <BugInstance type="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE" priority="2" abbrev="RCN" category="CORRECTNESS">
+  <BugInstance type="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE" priority="2" abbrev="RCN" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoCollectionThumbView">
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Class>
@@ -1243,7 +1260,7 @@
     </Method>
     <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="93" end="93" startBytecode="151" endBytecode="151" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoCollectionThumbView">
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Class>
@@ -1251,7 +1268,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoCollectionThumbView">
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Class>
@@ -1259,7 +1276,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoCollectionThumbView">
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Class>
@@ -1267,7 +1284,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="3" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="3" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoCollectionThumbView">
       <SourceLine classname="org.photovault.swingui.PhotoCollectionThumbView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionThumbView.java" sourcepath="org/photovault/swingui/PhotoCollectionThumbView.java"/>
     </Class>
@@ -1306,7 +1323,7 @@
     </Method>
     <SourceLine classname="org.photovault.swingui.PhotoCollectionTransferHandler" start="77" end="77" startBytecode="67" endBytecode="67" sourcefile="PhotoCollectionTransferHandler.java" sourcepath="org/photovault/swingui/PhotoCollectionTransferHandler.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoCollectionTransferHandler">
       <SourceLine classname="org.photovault.swingui.PhotoCollectionTransferHandler" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionTransferHandler.java" sourcepath="org/photovault/swingui/PhotoCollectionTransferHandler.java"/>
     </Class>
@@ -1314,7 +1331,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoCollectionTransferHandler" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionTransferHandler.java" sourcepath="org/photovault/swingui/PhotoCollectionTransferHandler.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD_STORE" priority="3" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD_STORE" priority="3" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoCollectionTransferHandler">
       <SourceLine classname="org.photovault.swingui.PhotoCollectionTransferHandler" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoCollectionTransferHandler.java" sourcepath="org/photovault/swingui/PhotoCollectionTransferHandler.java"/>
     </Class>
@@ -1343,7 +1360,7 @@
     </Field>
     <SourceLine classname="org.photovault.swingui.PhotoCollectionTransferHandler" start="130" end="130" startBytecode="53" endBytecode="53" sourcefile="PhotoCollectionTransferHandler.java" sourcepath="org/photovault/swingui/PhotoCollectionTransferHandler.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoFolderSelectionDlg">
       <SourceLine classname="org.photovault.swingui.PhotoFolderSelectionDlg" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderSelectionDlg.java" sourcepath="org/photovault/swingui/PhotoFolderSelectionDlg.java"/>
     </Class>
@@ -1392,7 +1409,7 @@
     </Method>
     <SourceLine classname="org.photovault.swingui.PhotoFolderTree" start="70" end="70" startBytecode="45" endBytecode="45" sourcefile="PhotoFolderTree.java" sourcepath="org/photovault/swingui/PhotoFolderTree.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoFolderTree">
       <SourceLine classname="org.photovault.swingui.PhotoFolderTree" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderTree.java" sourcepath="org/photovault/swingui/PhotoFolderTree.java"/>
     </Class>
@@ -1400,7 +1417,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoFolderTree" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderTree.java" sourcepath="org/photovault/swingui/PhotoFolderTree.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoFolderTree">
       <SourceLine classname="org.photovault.swingui.PhotoFolderTree" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderTree.java" sourcepath="org/photovault/swingui/PhotoFolderTree.java"/>
     </Class>
@@ -1426,7 +1443,7 @@
     </Method>
     <SourceLine classname="org.photovault.swingui.PhotoFolderTree" start="261" end="261" startBytecode="74" endBytecode="74" sourcefile="PhotoFolderTree.java" sourcepath="org/photovault/swingui/PhotoFolderTree.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoFolderTreeEvent">
       <SourceLine classname="org.photovault.swingui.PhotoFolderTreeEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoFolderTreeEvent.java" sourcepath="org/photovault/swingui/PhotoFolderTreeEvent.java"/>
     </Class>
@@ -1562,7 +1579,7 @@
     <SourceLine classname="org.photovault.swingui.PhotoInfoDlg" start="142" end="142" startBytecode="6" endBytecode="6" sourcefile="PhotoInfoDlg.java" sourcepath="org/photovault/swingui/PhotoInfoDlg.java"/>
     <SourceLine classname="org.photovault.swingui.PhotoInfoDlg" start="155" end="155" startBytecode="117" endBytecode="117" sourcefile="PhotoInfoDlg.java" sourcepath="org/photovault/swingui/PhotoInfoDlg.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoDlg">
       <SourceLine classname="org.photovault.swingui.PhotoInfoDlg" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoDlg.java" sourcepath="org/photovault/swingui/PhotoInfoDlg.java"/>
     </Class>
@@ -1645,7 +1662,7 @@
     </Method>
     <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="610" end="610" startBytecode="102" endBytecode="102" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1653,7 +1670,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1661,7 +1678,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1669,7 +1686,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1677,7 +1694,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1685,7 +1702,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1693,7 +1710,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1701,7 +1718,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1709,7 +1726,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1717,7 +1734,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1725,7 +1742,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1733,7 +1750,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1741,7 +1758,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1749,7 +1766,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoInfoEditor">
       <SourceLine classname="org.photovault.swingui.PhotoInfoEditor" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoInfoEditor.java" sourcepath="org/photovault/swingui/PhotoInfoEditor.java"/>
     </Class>
@@ -1824,7 +1841,7 @@
     <String value="c:\java\photovault\testfiles\test1.jpg" role="FILE_NAME"/>
     <SourceLine classname="org.photovault.swingui.PhotoView" start="183" end="183" startBytecode="45" endBytecode="45" sourcefile="PhotoView.java" sourcepath="org/photovault/swingui/PhotoView.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoView">
       <SourceLine classname="org.photovault.swingui.PhotoView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoView.java" sourcepath="org/photovault/swingui/PhotoView.java"/>
     </Class>
@@ -1832,7 +1849,7 @@
       <SourceLine classname="org.photovault.swingui.PhotoView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoView.java" sourcepath="org/photovault/swingui/PhotoView.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoView">
       <SourceLine classname="org.photovault.swingui.PhotoView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoView.java" sourcepath="org/photovault/swingui/PhotoView.java"/>
     </Class>
@@ -1867,7 +1884,7 @@
     </Method>
     <SourceLine classname="org.photovault.swingui.PhotoViewer" start="274" end="274" startBytecode="106" endBytecode="106" sourcefile="PhotoViewer.java" sourcepath="org/photovault/swingui/PhotoViewer.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.PhotoViewer">
       <SourceLine classname="org.photovault.swingui.PhotoViewer" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="PhotoViewer.java" sourcepath="org/photovault/swingui/PhotoViewer.java"/>
     </Class>
@@ -1920,7 +1937,7 @@
       <SourceLine classname="org.photovault.swingui.Photovault" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="Photovault.java" sourcepath="org/photovault/swingui/Photovault.java"/>
     </Class>
     <Method classname="org.photovault.swingui.Photovault" name="checkJAI" signature="()V" isStatic="false">
-      <SourceLine classname="org.photovault.swingui.Photovault" start="146" end="154" startBytecode="0" endBytecode="10" sourcefile="Photovault.java" sourcepath="org/photovault/swingui/Photovault.java"/>
+      <SourceLine classname="org.photovault.swingui.Photovault" start="146" end="154" startBytecode="0" endBytecode="9" sourcefile="Photovault.java" sourcepath="org/photovault/swingui/Photovault.java"/>
     </Method>
     <LocalVariable name="?" register="1" pc="3" role="LOCAL_VARIABLE_UNKNOWN"/>
     <SourceLine classname="org.photovault.swingui.Photovault" start="146" end="146" startBytecode="3" endBytecode="3" sourcefile="Photovault.java" sourcepath="org/photovault/swingui/Photovault.java"/>
@@ -1959,7 +1976,7 @@
       <SourceLine classname="org.photovault.swingui.Photovault$1" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="Photovault.java" sourcepath="org/photovault/swingui/Photovault.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.Photovault$PhotovaultException">
       <SourceLine classname="org.photovault.swingui.Photovault$PhotovaultException" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="Photovault.java" sourcepath="org/photovault/swingui/Photovault.java"/>
     </Class>
@@ -1967,7 +1984,7 @@
       <SourceLine classname="org.photovault.swingui.Photovault$PhotovaultException" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="Photovault.java" sourcepath="org/photovault/swingui/Photovault.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE">
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.Photovault$PhotovaultException">
       <SourceLine classname="org.photovault.swingui.Photovault$PhotovaultException" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="Photovault.java" sourcepath="org/photovault/swingui/Photovault.java"/>
     </Class>
@@ -1984,7 +2001,7 @@
     </Class>
     <SourceLine classname="org.photovault.swingui.QueryPane" start="95" end="95" startBytecode="6" endBytecode="6" sourcefile="QueryPane.java" sourcepath="org/photovault/swingui/QueryPane.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.QueryPane">
       <SourceLine classname="org.photovault.swingui.QueryPane" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="QueryPane.java" sourcepath="org/photovault/swingui/QueryPane.java"/>
     </Class>
@@ -2015,7 +2032,7 @@
       <SourceLine classname="org.photovault.swingui.SelectionChangeEvent" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SelectionChangeEvent.java" sourcepath="org/photovault/swingui/SelectionChangeEvent.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="3" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="3" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.SetPhotoOrderAction">
       <SourceLine classname="org.photovault.swingui.SetPhotoOrderAction" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="SetPhotoOrderAction.java" sourcepath="org/photovault/swingui/SetPhotoOrderAction.java"/>
     </Class>
@@ -2076,7 +2093,7 @@
       <SourceLine classname="org.photovault.swingui.TableCollectionView$1" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="TableCollectionView.java" sourcepath="org/photovault/swingui/TableCollectionView.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.TableCollectionView$CollectionTableModel">
       <SourceLine classname="org.photovault.swingui.TableCollectionView$CollectionTableModel" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="TableCollectionView.java" sourcepath="org/photovault/swingui/TableCollectionView.java"/>
     </Class>
@@ -2089,7 +2106,7 @@
       <SourceLine classname="org.photovault.swingui.TableCollectionView$CollectionTableModel" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="TableCollectionView.java" sourcepath="org/photovault/swingui/TableCollectionView.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE">
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.TableCollectionView$CollectionTableModel">
       <SourceLine classname="org.photovault.swingui.TableCollectionView$CollectionTableModel" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="TableCollectionView.java" sourcepath="org/photovault/swingui/TableCollectionView.java"/>
     </Class>
@@ -2189,7 +2206,7 @@
     </Method>
     <SourceLine classname="org.photovault.swingui.ThumbnailView" start="203" end="203" startBytecode="75" endBytecode="75" sourcefile="ThumbnailView.java" sourcepath="org/photovault/swingui/ThumbnailView.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.ThumbnailView">
       <SourceLine classname="org.photovault.swingui.ThumbnailView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ThumbnailView.java" sourcepath="org/photovault/swingui/ThumbnailView.java"/>
     </Class>
@@ -2197,7 +2214,7 @@
       <SourceLine classname="org.photovault.swingui.ThumbnailView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ThumbnailView.java" sourcepath="org/photovault/swingui/ThumbnailView.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.ThumbnailView">
       <SourceLine classname="org.photovault.swingui.ThumbnailView" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="ThumbnailView.java" sourcepath="org/photovault/swingui/ThumbnailView.java"/>
     </Class>
@@ -2263,7 +2280,7 @@
     </Class>
     <SourceLine classname="org.photovault.swingui.folderpane.FolderTreePane" start="146" end="146" startBytecode="8" endBytecode="8" sourcefile="FolderTreePane.java" sourcepath="org/photovault/swingui/folderpane/FolderTreePane.java"/>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.folderpane.FolderTreePane">
       <SourceLine classname="org.photovault.swingui.folderpane.FolderTreePane" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FolderTreePane.java" sourcepath="org/photovault/swingui/folderpane/FolderTreePane.java"/>
     </Class>
@@ -2271,7 +2288,7 @@
       <SourceLine classname="org.photovault.swingui.folderpane.FolderTreePane" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="FolderTreePane.java" sourcepath="org/photovault/swingui/folderpane/FolderTreePane.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.indexer.IndexerFileChooser">
       <SourceLine classname="org.photovault.swingui.indexer.IndexerFileChooser" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="IndexerFileChooser.java" sourcepath="org/photovault/swingui/indexer/IndexerFileChooser.java"/>
     </Class>
@@ -2284,7 +2301,7 @@
       <SourceLine classname="org.photovault.swingui.indexer.IndexerFileChooser$1" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="IndexerFileChooser.java" sourcepath="org/photovault/swingui/indexer/IndexerFileChooser.java"/>
     </Class>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.indexer.IndexerStatusDlg">
       <SourceLine classname="org.photovault.swingui.indexer.IndexerStatusDlg" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="IndexerStatusDlg.java" sourcepath="org/photovault/swingui/indexer/IndexerStatusDlg.java"/>
     </Class>
@@ -2292,7 +2309,7 @@
       <SourceLine classname="org.photovault.swingui.indexer.IndexerStatusDlg" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="IndexerStatusDlg.java" sourcepath="org/photovault/swingui/indexer/IndexerStatusDlg.java"/>
     </Field>
   </BugInstance>
-  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS">
+  <BugInstance type="SE_BAD_FIELD" priority="2" abbrev="Se" category="CORRECTNESS" last="0" removedByChange="true">
     <Class classname="org.photovault.swingui.indexer.UpdateIndexAction">
       <SourceLine classname="org.photovault.swingui.indexer.UpdateIndexAction" start="-1" end="-1" startBytecode="-1" endBytecode="-1" sourcefile="UpdateIndexAction.java" sourcepath="org/photovault/swingui/indexer/UpdateIndexAction.java"/>
     </Class>
@@ -2301,52 +2318,53 @@
     </Field>
   </BugInstance>
   <Errors>
+    <MissingClass>java.lang.Object</MissingClass>
     <MissingClass>junit.framework.TestCase</MissingClass>
     <MissingClass>junit.framework.TestSuite</MissingClass>
   </Errors>
-  <FindBugsSummary timestamp="Mon, 19 Jun 2006 21:50:15 +0300" total_classes="200" total_bugs="262" total_size="8974" num_packages="12" cpu_seconds="0.23" clock_seconds="0.36" peak_mbytes="9.81" gc_seconds="0.02" priority_4="12" priority_3="117" priority_2="112" priority_1="21">
-    <PackageStats package="org.photovault.common" total_bugs="16" total_types="8" total_size="433" priority_4="2" priority_3="7" priority_2="7">
-      <ClassStats class="org.photovault.common.DbInfo" interface="false" size="38" bugs="4" priority_3="1" priority_2="3"/>
+  <FindBugsSummary timestamp="Tue, 27 Jun 2006 21:51:38 +0300" total_classes="200" total_bugs="169" total_size="8962" num_packages="12" cpu_seconds="0.24" clock_seconds="0.38" peak_mbytes="9.81" gc_seconds="0.02" priority_4="12" priority_3="112" priority_2="41" priority_1="4">
+    <PackageStats package="org.photovault.common" total_bugs="13" total_types="8" total_size="434" priority_4="2" priority_3="7" priority_2="4">
+      <ClassStats class="org.photovault.common.DbInfo" interface="false" size="40" bugs="3" priority_3="1" priority_2="2"/>
       <ClassStats class="org.photovault.common.JUnitOJBManager" interface="false" size="44" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.common.PVDatabase" interface="false" size="157" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.common.PhotovaultDatabases" interface="false" size="39" bugs="3" priority_4="1" priority_3="1" priority_2="1"/>
-      <ClassStats class="org.photovault.common.PhotovaultSettings" interface="false" size="53" bugs="2" priority_4="1" priority_2="1"/>
-      <ClassStats class="org.photovault.common.SchemaUpdateAction" interface="false" size="86" bugs="5" priority_3="3" priority_2="2"/>
+      <ClassStats class="org.photovault.common.PhotovaultSettings" interface="false" size="53" bugs="1" priority_4="1"/>
+      <ClassStats class="org.photovault.common.SchemaUpdateAction" interface="false" size="85" bugs="4" priority_3="3" priority_2="1"/>
       <ClassStats class="org.photovault.common.SchemaUpdateEvent" interface="false" size="14" bugs="0"/>
       <ClassStats class="org.photovault.common.SchemaUpdateListener" interface="true" size="2" bugs="0"/>
     </PackageStats>
-    <PackageStats package="org.photovault.dbhelper" total_bugs="4" total_types="3" total_size="120" priority_4="1" priority_3="1" priority_2="2">
-      <ClassStats class="org.photovault.dbhelper.ImageDb" interface="false" size="32" bugs="2" priority_2="2"/>
+    <PackageStats package="org.photovault.dbhelper" total_bugs="3" total_types="3" total_size="120" priority_4="1" priority_3="1" priority_2="1">
+      <ClassStats class="org.photovault.dbhelper.ImageDb" interface="false" size="32" bugs="1" priority_2="1"/>
       <ClassStats class="org.photovault.dbhelper.ODMG" interface="false" size="62" bugs="2" priority_4="1" priority_3="1"/>
       <ClassStats class="org.photovault.dbhelper.ODMGXAWrapper" interface="false" size="26" bugs="0"/>
     </PackageStats>
-    <PackageStats package="org.photovault.folder" total_bugs="10" total_types="3" total_size="248" priority_3="4" priority_2="6">
-      <ClassStats class="org.photovault.folder.PhotoFolder" interface="false" size="233" bugs="6" priority_3="3" priority_2="3"/>
+    <PackageStats package="org.photovault.folder" total_bugs="6" total_types="3" total_size="250" priority_3="4" priority_2="2">
+      <ClassStats class="org.photovault.folder.PhotoFolder" interface="false" size="235" bugs="5" priority_3="3" priority_2="2"/>
       <ClassStats class="org.photovault.folder.PhotoFolderChangeListener" interface="true" size="3" bugs="0"/>
-      <ClassStats class="org.photovault.folder.PhotoFolderEvent" interface="false" size="12" bugs="4" priority_3="1" priority_2="3"/>
+      <ClassStats class="org.photovault.folder.PhotoFolderEvent" interface="false" size="12" bugs="1" priority_3="1"/>
     </PackageStats>
     <PackageStats package="org.photovault.image" total_bugs="0" total_types="1" total_size="43">
       <ClassStats class="org.photovault.image.ImageXform" interface="false" size="43" bugs="0"/>
     </PackageStats>
-    <PackageStats package="org.photovault.imginfo" total_bugs="74" total_types="34" total_size="1996" priority_4="5" priority_3="29" priority_2="24" priority_1="16">
-      <ClassStats class="org.photovault.imginfo.DateRangeQuery" interface="false" size="91" bugs="5" priority_4="1" priority_2="4"/>
+    <PackageStats package="org.photovault.imginfo" total_bugs="39" total_types="34" total_size="1992" priority_4="5" priority_3="29" priority_2="5">
+      <ClassStats class="org.photovault.imginfo.DateRangeQuery" interface="false" size="91" bugs="1" priority_4="1"/>
       <ClassStats class="org.photovault.imginfo.ExternalVolume" interface="false" size="18" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.FileUtils" interface="false" size="26" bugs="2" priority_3="2"/>
-      <ClassStats class="org.photovault.imginfo.FuzzyDate" interface="false" size="102" bugs="6" priority_3="1" priority_2="4" priority_1="1"/>
+      <ClassStats class="org.photovault.imginfo.FuzzyDate" interface="false" size="103" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.imginfo.FuzzyDate$FuzzyDateMonthParser" interface="false" size="9" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.FuzzyDate$FuzzyDateParser" interface="false" size="32" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.FuzzyDate$FuzzyDateYearParser" interface="false" size="9" bugs="0"/>
-      <ClassStats class="org.photovault.imginfo.ImageInstance" interface="false" size="280" bugs="7" priority_3="5" priority_2="2"/>
+      <ClassStats class="org.photovault.imginfo.ImageInstance" interface="false" size="286" bugs="5" priority_3="5"/>
       <ClassStats class="org.photovault.imginfo.ImageInstanceRowReader" interface="false" size="10" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.imginfo.OJBInstanceTypeConversion" interface="false" size="22" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.imginfo.PhotoCollection" interface="true" size="5" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.PhotoCollectionChangeEvent" interface="false" size="4" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.imginfo.PhotoCollectionChangeListener" interface="true" size="2" bugs="0"/>
-      <ClassStats class="org.photovault.imginfo.PhotoInfo" interface="false" size="708" bugs="26" priority_4="2" priority_3="15" priority_2="8" priority_1="1"/>
+      <ClassStats class="org.photovault.imginfo.PhotoInfo" interface="false" size="710" bugs="18" priority_4="2" priority_3="15" priority_2="1"/>
       <ClassStats class="org.photovault.imginfo.PhotoInfoChangeEvent" interface="false" size="4" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.imginfo.PhotoInfoChangeListener" interface="true" size="2" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.PhotoNotFoundException" interface="false" size="3" bugs="0"/>
-      <ClassStats class="org.photovault.imginfo.PhotoQuery" interface="false" size="159" bugs="15" priority_4="1" priority_1="14"/>
+      <ClassStats class="org.photovault.imginfo.PhotoQuery" interface="false" size="147" bugs="1" priority_4="1"/>
       <ClassStats class="org.photovault.imginfo.QueryCriteria" interface="false" size="3" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.QueryField" interface="false" size="8" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.QueryFieldCriteria" interface="true" size="2" bugs="0"/>
@@ -2357,22 +2375,22 @@
       <ClassStats class="org.photovault.imginfo.ShootingDateComparator" interface="false" size="14" bugs="1" priority_2="1"/>
       <ClassStats class="org.photovault.imginfo.ShootingPlaceComparator" interface="false" size="16" bugs="2" priority_4="1" priority_2="1"/>
       <ClassStats class="org.photovault.imginfo.SortedPhotoCollection" interface="false" size="63" bugs="1" priority_2="1"/>
-      <ClassStats class="org.photovault.imginfo.SortedPhotoCollection$PhotoIdComparator" interface="false" size="14" bugs="2" priority_2="2"/>
+      <ClassStats class="org.photovault.imginfo.SortedPhotoCollection$PhotoIdComparator" interface="false" size="13" bugs="1" priority_2="1"/>
       <ClassStats class="org.photovault.imginfo.SortedPhotoCollectionTest" interface="false" size="39" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.Thumbnail" interface="false" size="35" bugs="0"/>
       <ClassStats class="org.photovault.imginfo.Timestamp2DateConversion" interface="false" size="16" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.imginfo.Volume" interface="false" size="69" bugs="0"/>
-      <ClassStats class="org.photovault.imginfo.VolumeBase" interface="false" size="113" bugs="1" priority_2="1"/>
+      <ClassStats class="org.photovault.imginfo.VolumeBase" interface="false" size="113" bugs="0"/>
     </PackageStats>
-    <PackageStats package="org.photovault.imginfo.indexer" total_bugs="9" total_types="4" total_size="281" priority_4="1" priority_3="3" priority_2="5">
+    <PackageStats package="org.photovault.imginfo.indexer" total_bugs="7" total_types="4" total_size="280" priority_4="1" priority_3="3" priority_2="3">
       <ClassStats class="org.photovault.imginfo.indexer.ExtVolIndexer" interface="false" size="220" bugs="4" priority_4="1" priority_3="2" priority_2="1"/>
-      <ClassStats class="org.photovault.imginfo.indexer.ExtVolIndexer$ProgressCalculator" interface="false" size="30" bugs="3" priority_2="3"/>
-      <ClassStats class="org.photovault.imginfo.indexer.ExtVolIndexerEvent" interface="false" size="28" bugs="2" priority_3="1" priority_2="1"/>
+      <ClassStats class="org.photovault.imginfo.indexer.ExtVolIndexer$ProgressCalculator" interface="false" size="29" bugs="2" priority_2="2"/>
+      <ClassStats class="org.photovault.imginfo.indexer.ExtVolIndexerEvent" interface="false" size="28" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.imginfo.indexer.ExtVolIndexerListener" interface="true" size="3" bugs="0"/>
     </PackageStats>
-    <PackageStats package="org.photovault.swingui" total_bugs="140" total_types="110" total_size="4677" priority_4="3" priority_3="69" priority_2="63" priority_1="5">
+    <PackageStats package="org.photovault.swingui" total_bugs="96" total_types="110" total_size="4667" priority_4="3" priority_3="64" priority_2="25" priority_1="4">
       <ClassStats class="org.photovault.swingui.BasicQueryFieldEditor" interface="false" size="50" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.BrowserWindow" interface="false" size="256" bugs="1" priority_1="1"/>
+      <ClassStats class="org.photovault.swingui.BrowserWindow" interface="false" size="252" bugs="0"/>
       <ClassStats class="org.photovault.swingui.BrowserWindow$1" interface="false" size="7" bugs="0"/>
       <ClassStats class="org.photovault.swingui.BrowserWindow$10" interface="false" size="7" bugs="0"/>
       <ClassStats class="org.photovault.swingui.BrowserWindow$11" interface="false" size="17" bugs="3" priority_4="1" priority_3="2"/>
@@ -2391,25 +2409,25 @@
       <ClassStats class="org.photovault.swingui.FieldController" interface="false" size="106" bugs="1" priority_2="1"/>
       <ClassStats class="org.photovault.swingui.ImageFilter" interface="false" size="26" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.ImagePreview" interface="false" size="39" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.JAIPhotoView" interface="false" size="110" bugs="2" priority_3="2"/>
-      <ClassStats class="org.photovault.swingui.JAIPhotoViewer" interface="false" size="98" bugs="1" priority_2="1"/>
-      <ClassStats class="org.photovault.swingui.JAIPhotoViewer$1" interface="false" size="44" bugs="2" priority_3="1" priority_2="1"/>
-      <ClassStats class="org.photovault.swingui.LoginDlg" interface="false" size="106" bugs="2" priority_2="2"/>
+      <ClassStats class="org.photovault.swingui.JAIPhotoView" interface="false" size="110" bugs="0"/>
+      <ClassStats class="org.photovault.swingui.JAIPhotoViewer" interface="false" size="98" bugs="0"/>
+      <ClassStats class="org.photovault.swingui.JAIPhotoViewer$1" interface="false" size="43" bugs="1" priority_3="1"/>
+      <ClassStats class="org.photovault.swingui.LoginDlg" interface="false" size="104" bugs="0"/>
       <ClassStats class="org.photovault.swingui.LoginDlg$1" interface="false" size="7" bugs="0"/>
       <ClassStats class="org.photovault.swingui.LoginDlg$2" interface="false" size="8" bugs="0"/>
       <ClassStats class="org.photovault.swingui.LoginDlg$3" interface="false" size="8" bugs="0"/>
       <ClassStats class="org.photovault.swingui.LoginDlg$4" interface="false" size="8" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.PhotoCollectionThumbView" interface="false" size="571" bugs="8" priority_3="3" priority_2="5"/>
+      <ClassStats class="org.photovault.swingui.PhotoCollectionThumbView" interface="false" size="571" bugs="3" priority_3="2" priority_2="1"/>
       <ClassStats class="org.photovault.swingui.PhotoCollectionThumbView$PopupListener" interface="false" size="14" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.PhotoCollectionTransferHandler" interface="false" size="68" bugs="7" priority_3="3" priority_2="4"/>
+      <ClassStats class="org.photovault.swingui.PhotoCollectionTransferHandler" interface="false" size="68" bugs="5" priority_3="2" priority_2="3"/>
       <ClassStats class="org.photovault.swingui.PhotoCollectionTransferHandler$PhotoCollectionTransferable" interface="false" size="16" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.PhotoFolderSelectionDlg" interface="false" size="36" bugs="1" priority_2="1"/>
+      <ClassStats class="org.photovault.swingui.PhotoFolderSelectionDlg" interface="false" size="36" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoFolderSelectionDlg$1" interface="false" size="11" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoFolderSelectionDlg$2" interface="false" size="8" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.PhotoFolderTree" interface="false" size="141" bugs="8" priority_3="3" priority_2="4" priority_1="1"/>
+      <ClassStats class="org.photovault.swingui.PhotoFolderTree" interface="false" size="141" bugs="6" priority_3="3" priority_2="2" priority_1="1"/>
       <ClassStats class="org.photovault.swingui.PhotoFolderTree$1" interface="false" size="6" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoFolderTree$PopupListener" interface="false" size="14" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.PhotoFolderTreeEvent" interface="false" size="9" bugs="2" priority_3="1" priority_2="1"/>
+      <ClassStats class="org.photovault.swingui.PhotoFolderTreeEvent" interface="false" size="9" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.PhotoFolderTreeListener" interface="true" size="2" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoFolderTreeModel" interface="false" size="100" bugs="2" priority_3="2"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoController" interface="false" size="152" bugs="1" priority_2="1"/>
@@ -2426,13 +2444,13 @@
       <ClassStats class="org.photovault.swingui.PhotoInfoController$7" interface="false" size="23" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoController$8" interface="false" size="23" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoController$9" interface="false" size="23" bugs="1" priority_3="1"/>
-      <ClassStats class="org.photovault.swingui.PhotoInfoDlg" interface="false" size="90" bugs="6" priority_4="1" priority_3="3" priority_2="2"/>
+      <ClassStats class="org.photovault.swingui.PhotoInfoDlg" interface="false" size="90" bugs="5" priority_4="1" priority_3="3" priority_2="1"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoDlg$1" interface="false" size="12" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoDlg$2" interface="false" size="11" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoDlg$3" interface="false" size="8" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoDlg$4" interface="false" size="6" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoDlg$5" interface="false" size="9" bugs="1" priority_3="1"/>
-      <ClassStats class="org.photovault.swingui.PhotoInfoEditor" interface="false" size="445" bugs="21" priority_4="1" priority_3="3" priority_2="15" priority_1="2"/>
+      <ClassStats class="org.photovault.swingui.PhotoInfoEditor" interface="false" size="445" bugs="7" priority_4="1" priority_3="3" priority_2="1" priority_1="2"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoEditor$1" interface="false" size="6" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoFieldChangedEvent" interface="false" size="8" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.PhotoInfoListener" interface="true" size="3" bugs="0"/>
@@ -2440,20 +2458,20 @@
       <ClassStats class="org.photovault.swingui.PhotoInfoView" interface="true" size="41" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoTreeDropTargetListener" interface="false" size="113" bugs="3" priority_3="1" priority_2="2"/>
       <ClassStats class="org.photovault.swingui.PhotoTreeDropTargetListener$1" interface="false" size="11" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.PhotoView" interface="false" size="108" bugs="5" priority_3="2" priority_2="3"/>
+      <ClassStats class="org.photovault.swingui.PhotoView" interface="false" size="108" bugs="3" priority_3="2" priority_2="1"/>
       <ClassStats class="org.photovault.swingui.PhotoView$1" interface="false" size="6" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.PhotoViewer" interface="false" size="118" bugs="4" priority_3="3" priority_2="1"/>
+      <ClassStats class="org.photovault.swingui.PhotoViewer" interface="false" size="118" bugs="3" priority_3="3"/>
       <ClassStats class="org.photovault.swingui.PhotoViewer$1" interface="false" size="44" bugs="2" priority_3="1" priority_2="1"/>
       <ClassStats class="org.photovault.swingui.PhotoViewer$2" interface="false" size="5" bugs="0"/>
       <ClassStats class="org.photovault.swingui.PhotoViewer$3" interface="false" size="6" bugs="0"/>
       <ClassStats class="org.photovault.swingui.Photovault" interface="false" size="88" bugs="4" priority_2="4"/>
       <ClassStats class="org.photovault.swingui.Photovault$1" interface="false" size="8" bugs="1" priority_3="1"/>
-      <ClassStats class="org.photovault.swingui.Photovault$PhotovaultException" interface="false" size="6" bugs="2" priority_2="2"/>
+      <ClassStats class="org.photovault.swingui.Photovault$PhotovaultException" interface="false" size="4" bugs="0"/>
       <ClassStats class="org.photovault.swingui.ProgressDlg" interface="false" size="36" bugs="0"/>
       <ClassStats class="org.photovault.swingui.ProgressDlg$1" interface="false" size="8" bugs="0"/>
       <ClassStats class="org.photovault.swingui.ProgressDlg$2" interface="false" size="8" bugs="0"/>
       <ClassStats class="org.photovault.swingui.ProgressDlg$3" interface="false" size="7" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.QueryPane" interface="false" size="100" bugs="4" priority_3="3" priority_2="1"/>
+      <ClassStats class="org.photovault.swingui.QueryPane" interface="false" size="100" bugs="3" priority_3="3"/>
       <ClassStats class="org.photovault.swingui.QueryPane$1" interface="false" size="6" bugs="0"/>
       <ClassStats class="org.photovault.swingui.RotateSelectedPhotoAction" interface="false" size="28" bugs="0"/>
       <ClassStats class="org.photovault.swingui.SchemaUpdateStatusDlg" interface="false" size="51" bugs="0"/>
@@ -2461,7 +2479,7 @@
       <ClassStats class="org.photovault.swingui.SchemaUpdateStatusDlg$2" interface="false" size="13" bugs="0"/>
       <ClassStats class="org.photovault.swingui.SelectionChangeEvent" interface="false" size="4" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.SelectionChangeListener" interface="true" size="2" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.SetPhotoOrderAction" interface="false" size="13" bugs="1" priority_3="1"/>
+      <ClassStats class="org.photovault.swingui.SetPhotoOrderAction" interface="false" size="13" bugs="0"/>
       <ClassStats class="org.photovault.swingui.SetPhotoQualityAction" interface="false" size="27" bugs="0"/>
       <ClassStats class="org.photovault.swingui.ShowAboutDlgAction" interface="false" size="13" bugs="0"/>
       <ClassStats class="org.photovault.swingui.ShowSelectedPhotoAction" interface="false" size="59" bugs="0"/>
@@ -2473,12 +2491,12 @@
       <ClassStats class="org.photovault.swingui.TableCollectionView" interface="false" size="161" bugs="4" priority_3="4"/>
       <ClassStats class="org.photovault.swingui.TableCollectionView$1" interface="false" size="8" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.TableCollectionView$2" interface="false" size="6" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.TableCollectionView$CollectionTableModel" interface="false" size="46" bugs="3" priority_3="1" priority_2="2"/>
+      <ClassStats class="org.photovault.swingui.TableCollectionView$CollectionTableModel" interface="false" size="45" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.TableCollectionView$PopupListener" interface="false" size="14" bugs="0"/>
       <ClassStats class="org.photovault.swingui.ThumbCreatorThread" interface="false" size="42" bugs="3" priority_3="2" priority_2="1"/>
       <ClassStats class="org.photovault.swingui.ThumbCreatorThread$1" interface="false" size="9" bugs="0"/>
       <ClassStats class="org.photovault.swingui.ThumbnailTableRenderer" interface="false" size="21" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.ThumbnailView" interface="false" size="111" bugs="10" priority_3="3" priority_2="7"/>
+      <ClassStats class="org.photovault.swingui.ThumbnailView" interface="false" size="111" bugs="8" priority_3="3" priority_2="5"/>
       <ClassStats class="org.photovault.swingui.ThumbnailView$1" interface="false" size="8" bugs="0"/>
       <ClassStats class="org.photovault.swingui.UIUtils" interface="false" size="21" bugs="0"/>
     </PackageStats>
@@ -2505,24 +2523,24 @@
       <ClassStats class="org.photovault.swingui.db.DbSettingsDlg$7" interface="false" size="7" bugs="0"/>
       <ClassStats class="org.photovault.swingui.db.DbSettingsDlg$8" interface="false" size="7" bugs="0"/>
     </PackageStats>
-    <PackageStats package="org.photovault.swingui.folderpane" total_bugs="3" total_types="5" total_size="295" priority_3="1" priority_2="2">
+    <PackageStats package="org.photovault.swingui.folderpane" total_bugs="2" total_types="5" total_size="295" priority_3="1" priority_2="1">
       <ClassStats class="org.photovault.swingui.folderpane.FolderController" interface="false" size="128" bugs="1" priority_2="1"/>
       <ClassStats class="org.photovault.swingui.folderpane.FolderNode" interface="false" size="44" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.folderpane.FolderTreePane" interface="false" size="101" bugs="2" priority_3="1" priority_2="1"/>
+      <ClassStats class="org.photovault.swingui.folderpane.FolderTreePane" interface="false" size="101" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.folderpane.FolderTreePane$1" interface="false" size="8" bugs="0"/>
       <ClassStats class="org.photovault.swingui.folderpane.FolderTreePane$PopupListener" interface="false" size="14" bugs="0"/>
     </PackageStats>
-    <PackageStats package="org.photovault.swingui.indexer" total_bugs="4" total_types="11" total_size="317" priority_3="1" priority_2="3">
-      <ClassStats class="org.photovault.swingui.indexer.IndexerFileChooser" interface="false" size="22" bugs="1" priority_2="1"/>
+    <PackageStats package="org.photovault.swingui.indexer" total_bugs="1" total_types="11" total_size="317" priority_3="1">
+      <ClassStats class="org.photovault.swingui.indexer.IndexerFileChooser" interface="false" size="22" bugs="0"/>
       <ClassStats class="org.photovault.swingui.indexer.IndexerFileChooser$1" interface="false" size="10" bugs="1" priority_3="1"/>
       <ClassStats class="org.photovault.swingui.indexer.IndexerSetupDlg" interface="false" size="66" bugs="0"/>
       <ClassStats class="org.photovault.swingui.indexer.IndexerSetupDlg$1" interface="false" size="7" bugs="0"/>
       <ClassStats class="org.photovault.swingui.indexer.IndexerSetupDlg$2" interface="false" size="7" bugs="0"/>
       <ClassStats class="org.photovault.swingui.indexer.IndexerSetupDlg$3" interface="false" size="6" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.indexer.IndexerStatusDlg" interface="false" size="88" bugs="1" priority_2="1"/>
+      <ClassStats class="org.photovault.swingui.indexer.IndexerStatusDlg" interface="false" size="88" bugs="0"/>
       <ClassStats class="org.photovault.swingui.indexer.IndexerStatusDlg$1" interface="false" size="7" bugs="0"/>
       <ClassStats class="org.photovault.swingui.indexer.IndexerStatusDlg$2" interface="false" size="28" bugs="0"/>
-      <ClassStats class="org.photovault.swingui.indexer.UpdateIndexAction" interface="false" size="69" bugs="1" priority_2="1"/>
+      <ClassStats class="org.photovault.swingui.indexer.UpdateIndexAction" interface="false" size="69" bugs="0"/>
       <ClassStats class="org.photovault.swingui.indexer.UpdateIndexAction$1" interface="false" size="7" bugs="0"/>
     </PackageStats>
     <PackageStats package="org.photovault.test" total_bugs="0" total_types="2" total_size="72">
@@ -2531,5 +2549,7 @@
     </PackageStats>
   </FindBugsSummary>
   <ClassFeatures></ClassFeatures>
-  <History></History>
+  <History>
+    <AppVersion sequence="0" timestamp="-1" release="r433" codeSize="8974" numClasses="200"/>
+  </History>
 </BugCollection>
