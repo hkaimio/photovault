@@ -910,7 +910,7 @@ public class PhotoCollectionThumbView
      */
     public void mouseReleased(MouseEvent mouseEvent) {
         firstMouseEvent = null;
-	if ( dragType == DRAG_TYPE_SELECT ) {
+	if ( dragType == DRAG_TYPE_SELECT && photoCollection != null ) {
             
             // Find out thumbails inside the selection rectangle
             
