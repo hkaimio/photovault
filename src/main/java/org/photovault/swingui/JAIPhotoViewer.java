@@ -37,7 +37,8 @@ import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
 
-public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, ComponentListener {
+public class JAIPhotoViewer extends JPanel implements 
+        PhotoInfoChangeListener, ComponentListener, CropAreaChangeListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JAIPhotoViewer.class.getName() );
 
     public JAIPhotoViewer() {
@@ -49,10 +50,23 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
     public void createUI() {
 	setLayout( new BorderLayout() );
 	imageView = new JAIPhotoView();
+        imageView.addCropAreaChangeListener( this );
 	scrollPane = new JScrollPane( imageView );
 	scrollPane.setPreferredSize( new Dimension( 500, 500 ) );
-	add( scrollPane, BorderLayout.CENTER );
-        // Listen fot resize events of the scroll area so that fitted image can 
+        add( scrollPane, BorderLayout.CENTER );
+        
+        // Get the crop icon
+        ImageIcon cropIcon = null;
+        java.net.URL cropIconURL = JAIPhotoViewer.class.getClassLoader().getResource( "crop_icon.png" );
+        if ( cropIconURL != null ) {
+            cropIcon = new ImageIcon( cropIconURL );
+        }
+        
+        cropPhotoAction = new CropPhotoAction( imageView,
+                "Crop photo", cropIcon, "Crop or rotate the selected photo",
+                KeyEvent.VK_C, null );
+        
+        // Listen fot resize events of the scroll area so that fitted image can
         // be resized as well.
         addComponentListener( this );
 
@@ -124,6 +138,11 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	toolbar.add( zoomLabel );
 	toolbar.add( zoomCombo );
 
+        // Create the crop checkbox
+        JButton cropBtn = new JButton( cropPhotoAction  );
+        cropBtn.setText( "" );
+        toolbar.add( cropBtn );
+        
 	add( toolbar, BorderLayout.NORTH );
 	    
     }
@@ -141,7 +160,20 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
         log.debug( "fit to " + displaySize.getWidth() + ", " + displaySize.getHeight() );
 	imageView.fitToRect( displaySize.getWidth()-4, displaySize.getHeight()-4 );
     }
+    
+    /**
+     Select whether to show the image cropped according to preferred state stored 
+     in database or as its original state.
+     */
+    public void setShowCroppedPhoto( boolean crop ) {
+        imageView.setDrawCropped( crop );
+    }
 
+    
+    public boolean getShowCroppedPhoto( ) {
+        return imageView.getDrawCropped();
+    }
+    
     /**
      Set the photo displayed in the component.
      
@@ -192,6 +224,7 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	    instanceRotation = original.getRotated();
 	    double rot = photo.getPrefRotation() - instanceRotation;
 	    imageView.setRotation( rot );
+            imageView.setCrop( photo.getCropBounds() );
 	}
     }
 
@@ -202,6 +235,11 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	return photo;
     }
 
+    CropPhotoAction cropPhotoAction;
+    
+    public CropPhotoAction getCropAction() {
+        return cropPhotoAction;
+    }
 
 
     public void componentHidden( ComponentEvent e) {
@@ -235,16 +273,20 @@ public class JAIPhotoViewer extends JPanel implements PhotoInfoChangeListener, C
 	if ( Math.abs( newRotation - imageView.getRotation() ) > 0.1 ) {
 	    imageView.setRotation( newRotation );
 	}
+        imageView.setCrop( photo.getCropBounds() );
     }
     
     void setImage( RenderedImage bi ) {
 	imageView.setImage( bi );
     }
 
+    public void cropAreaChanged(CropAreaChangeEvent evt) {
+        photo.setPrefRotation( evt.getRotation() );
+        photo.setCropBounds( evt.getCropArea() );
+        imageView.setDrawCropped( true );
+    }
+
     
-	
-    
-	    
     JAIPhotoView imageView = null;
     JScrollPane scrollPane = null;
 }    

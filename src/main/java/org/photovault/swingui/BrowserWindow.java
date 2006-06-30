@@ -1,4 +1,4 @@
-/*
+/*Ac
   Copyright (c) 2006 Harri Kaimio
   
   This file is part of Photovault.
@@ -230,6 +230,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	imageMenu.add( new JMenuItem( viewPane.getRotateCWActionAction() ) );
 	imageMenu.add( new JMenuItem( viewPane.getRotateCCWActionAction() ) );
 	imageMenu.add( new JMenuItem( viewPane.getRotate180degActionAction() ) );
+        imageMenu.add( new JMenuItem( previewPane.getCropAction() ) );
         
         JMenu aboutMenu = new JMenu( "About" );
         aboutMenu.setMnemonic( KeyEvent.VK_A );

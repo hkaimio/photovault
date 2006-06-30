@@ -208,6 +208,7 @@ public class PhotoInfo {
         photo.setOrigFname( imgFile.getName() );
         java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
         photo.setShootTime( shootTime );
+        photo.setCropBounds( new Rectangle2D.Float( 0.0F, 0.0F, 1.0F, 1.0F ) );
         photo.updateFromFileMetadata( instanceFile );
         txw.commit();
         return photo;
@@ -539,7 +540,8 @@ public class PhotoInfo {
             for ( int n = 0; n < instances.size(); n++ ) {
                 ImageInstance instance = (ImageInstance) instances.get( n );
                 if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-                        && Math.abs(instance.getRotated() - prefRotation) < 0.0001 ) {
+                        && Math.abs(instance.getRotated() - prefRotation) < 0.0001
+                        && instance.getCropBounds().equals( getCropBounds() ) ) {
                     log.debug( "Found thumbnail from database" );
                     thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
                     break;
@@ -564,6 +566,38 @@ public class PhotoInfo {
     
     Thumbnail thumbnail = null;
     
+    /**
+     Helper function to calculate aspect ratio of an image
+     @param width width of the image
+     @param height height of the image
+     @param pixelAspect Aspect ratio of a single pixel (width/height)
+     @return aspect ratio (width/height)
+     */
+    private double getAspect( int width, int height, double pixelAspect ) {
+        return height > 0 
+                ? pixelAspect*(((double) width) / ((double) height )) : -1.0;
+    }
+    
+    /**
+     Helper method to check if a image is ok for thumbnail creation, i.e. that 
+     it is large enough and that its aspect ration is same as the original has
+     @param width width of the image to test
+     @param height Height of the image to test
+     @param minWidth Minimun width needed for creating a thumbnail
+     @param minHeight Minimum height needed for creating a thumbnail
+     @param origAspect Aspect ratio of the original image
+     */
+    private boolean isOkForThumbCreation( int width, int height, 
+            int minWidth, int minHeight, double origAspect, double aspectAccuracy ) {
+        if ( width < minWidth ) return false;
+        if ( height < minHeight ) return false;
+        double aspect = getAspect( width, height, 1.0 );
+        if ( Math.abs( aspect - origAspect) / origAspect > aspectAccuracy )  {
+            return false;
+        }
+        return true;
+    }
+    
     /** Creates a new thumbnail for this image on specific volume
      @param volume The volume in which the instance is to be created
      */
@@ -572,6 +606,25 @@ public class PhotoInfo {
         log.debug( "Creating thumbnail for " + uid );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
+        
+        // Maximum size of the thumbnail
+        int maxThumbWidth = 100;
+        int maxThumbHeight = 100;
+
+        /*
+         Determine the minimum size for the instance used for thumbnail creation 
+         to get decent image quality.
+         The cropped portion of the image must be roughly the same
+         resolution as the intended thumbnail.
+         */
+        double cropWidth = cropMaxX - cropMinX;
+        cropWidth = ( cropWidth > 0.000001 ) ? cropWidth : 1.0;
+        double cropHeight = cropMaxY - cropMinY;
+        cropHeight = ( cropHeight > 0.000001 ) ? cropHeight : 1.0;        
+        int minInstanceWidth = (int)(((double)maxThumbWidth)/cropWidth);
+        int minInstanceHeight = (int)(((double)maxThumbHeight)/cropHeight);
+        int minInstanceSide = Math.max( minInstanceWidth, minInstanceHeight );
+        
         
         // Find the original image to use as a staring point
         ImageInstance original = null;
@@ -591,10 +644,23 @@ public class PhotoInfo {
         }
         log.debug( "Found original, reading it..." );
         
+        /*
+         We try to ensure that the thumbnail is actually from the original image
+         by comparing aspect ratio of it to original. This is not a perfect check 
+         but it will usually catch the most typical errors (like having a the original
+         rotated by RAW conversion SW but still the original EXIF thumbnail.
+         */
+        double origAspect = this.getAspect( 
+                original.getWidth(), 
+                original.getHeight(), 1.0 );
+        double aspectAccuracy = 0.01;
+        
         // First, check if there is a thumbnail in image header
         BufferedImage origImage = readExifThumbnail( original.getImageFile() );
         
-        if ( origImage == null ) {
+        if ( origImage == null 
+                || !isOkForThumbCreation( origImage.getWidth(),
+                        origImage.getHeight(), minInstanceWidth, minInstanceHeight, origAspect, aspectAccuracy ) ) {
             // Read the image
             try {
                 Iterator readers = ImageIO.getImageReadersByFormatName( "jpg" );
@@ -610,13 +676,16 @@ public class PhotoInfo {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    if ( numThumbs > 0 ) {
+                    if ( numThumbs > 0 
+                            && isOkForThumbCreation( reader.getThumbnailWidth( 0, 0 ),
+                                    reader.getThumbnailHeight( 0, 0 ) , minInstanceWidth, minInstanceHeight, origAspect, aspectAccuracy )   ) {
+                        // There is a thumbanil that is big enough - use it
+                        
                         log.debug( "Original has thumbnail, size "
                                 + reader.getThumbnailWidth( 0, 0 ) + " x "
                                 + reader.getThumbnailHeight( 0, 0 ) );
                         origImage = reader.readThumbnail( 0, 0 );
                         log.debug( "Read thumbnail" );
-
                     } else {
                         log.debug( "No thumbnail in original" );
                         ImageReadParam param = reader.getDefaultReadParam();
@@ -624,11 +693,8 @@ public class PhotoInfo {
                         // Find the maximum subsampling rate we can still use for creating
                         // a quality thumbnail
                         int subsampling = 1;
-                        int minDim = reader.getWidth( 0 );
-                        if ( reader.getHeight( 0 ) < minDim ) {
-                            minDim = reader.getHeight( 0 );
-                        }
-                        while ( 200 * subsampling < minDim ) {
+                        int minDim = Math.min( reader.getWidth( 0 ),reader.getHeight( 0 ) );
+                        while ( 2 * minInstanceSide * subsampling < minDim ) {
                             subsampling *= 2;
                         }
                         param.setSourceSubsampling( subsampling, subsampling, 0, 0 );
@@ -651,22 +717,48 @@ public class PhotoInfo {
         
         // Shrink the image to desired state and save it
         // Find first the correct transformation for doing this
-        int origWidth = origImage.getWidth();        
+
+        int origWidth = origImage.getWidth();
         int origHeight = origImage.getHeight();
-        int maxThumbWidth = 100;
-        int maxThumbHeight = 100;
         
-        AffineTransform xform = org.photovault.image.ImageXform.getFittingXform( maxThumbWidth, maxThumbHeight,
-                prefRotation -original.getRotated(),
-                origWidth, origHeight );
+        AffineTransform xform = org.photovault.image.ImageXform.getRotateXform(
+                prefRotation -original.getRotated(), origWidth, origHeight );
         
-        ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
-        scaleParams.addSource( origImage );
-        scaleParams.setParameter( "transform", xform );
-        scaleParams.setParameter( "interpolation",
+        ParameterBlockJAI rotParams = new ParameterBlockJAI( "affine" );
+        rotParams.addSource( origImage );
+        rotParams.setParameter( "transform", xform );
+        rotParams.setParameter( "interpolation",
                 Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
-        PlanarImage thumbImage = JAI.create( "affine", scaleParams );
+        RenderedOp rotatedImage = JAI.create( "affine", rotParams );
+
+        ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
+        cropParams.addSource( rotatedImage );
+        cropParams.setParameter( "x", 
+                (float)( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
+        cropParams.setParameter( "y", 
+                (float)( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight() ) );
+        cropParams.setParameter( "width", 
+                (float)( (cropWidth) * rotatedImage.getWidth() ) );
+        cropParams.setParameter( "height", 
+                (float) ( (cropHeight) * rotatedImage.getHeight() ) );
+	RenderedOp cropped = JAI.create("crop", cropParams, null);
+        // Translate the image so that it begins in origo
+        ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
+        pbXlate.addSource( cropped );
+        pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
+        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );        
+        RenderedOp xformImage = JAI.create( "translate", pbXlate );
+        // Finally, scale this to thumbnail
+        AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( maxThumbWidth, maxThumbHeight,
+                0,
+                xformImage.getWidth(), xformImage.getHeight() );
+        ParameterBlockJAI thumbScaleParams = new ParameterBlockJAI( "affine" );
+        thumbScaleParams.addSource( xformImage );
+        thumbScaleParams.setParameter( "transform", thumbScale );
+        thumbScaleParams.setParameter( "interpolation",
+                Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
         
+        PlanarImage thumbImage = JAI.create( "affine", thumbScaleParams );
         
         // Save it
         FileOutputStream out = null;
@@ -696,6 +788,7 @@ public class PhotoInfo {
         ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
                 ImageInstance.INSTANCE_TYPE_THUMBNAIL );
         thumbInstance.setRotated( prefRotation -original.getRotated() );
+        thumbInstance.setCropBounds( getCropBounds() );
         log.debug( "Loading thumbnail..." );
         
         thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
@@ -731,7 +824,7 @@ public class PhotoInfo {
                         try {
                             bis.close();
                         } catch (IOException ex) {
-                            log.error( "Cannot close image instanr after creating thumbnail." );
+                            log.error( "Cannot close image instance after creating thumbnail." );
                         }
                     }
                 }
@@ -749,9 +842,12 @@ public class PhotoInfo {
     }
     
     /**
-     Exports an image from database to a specified file with given resolution
+     Exports an image from database to a specified file with given resolution. 
+     The image aspect ratio is preserved and the image is scaled so that it fits 
+     to the given maximum resolution.
      @param file File in which the image will be saved
-     @param width Width of the exported image in pixels
+     @param width Width of the exported image in pixels. If negative the image is
+     exported in its "natural" resolution (i.e. not scaled)
      @param height Height of the exported image in pixels
      */
     public void exportPhoto( File file, int width, int height ) {
@@ -790,19 +886,49 @@ public class PhotoInfo {
         // Shrink the image to desired state and save it
         // Find first the correct transformation for doing this
         int origWidth = origImage.getWidth();
-        
         int origHeight = origImage.getHeight();
         
-        AffineTransform xform = org.photovault.image.
-                ImageXform.getFittingXform( origWidth, origHeight,
-                prefRotation -original.getRotated(),
-                origWidth, origHeight );
+        AffineTransform xform = org.photovault.image.ImageXform.getRotateXform(
+                prefRotation -original.getRotated(), origWidth, origHeight );
         
-        
-        // Create the target image
-        AffineTransformOp atOp = new AffineTransformOp( xform, AffineTransformOp.TYPE_BILINEAR );
-        
-        BufferedImage exportImage = atOp.filter( origImage, null );
+        ParameterBlockJAI rotParams = new ParameterBlockJAI( "affine" );
+        rotParams.addSource( origImage );
+        rotParams.setParameter( "transform", xform );
+        rotParams.setParameter( "interpolation",
+                Interpolation.getInstance( Interpolation.INTERP_BICUBIC ) );
+        RenderedOp rotatedImage = JAI.create( "affine", rotParams );
+
+        ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
+        cropParams.addSource( rotatedImage );
+        cropParams.setParameter( "x", 
+                (float)( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
+        cropParams.setParameter( "y", 
+                (float)( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight() ) );
+        cropParams.setParameter( "width", 
+                (float)( (cropMaxX - cropMinX) * rotatedImage.getWidth() ) );
+        cropParams.setParameter( "height", 
+                (float) ( (cropMaxY - cropMinY) * rotatedImage.getHeight() ) );
+	RenderedOp cropped = JAI.create("crop", cropParams, null);
+        // Translate the image so that it begins in origo
+        ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
+        pbXlate.addSource( cropped );
+        pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
+        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );        
+        RenderedOp xformImage = JAI.create( "translate", pbXlate );
+        // Finally, scale this to thumbnail        
+        PlanarImage exportImage = xformImage;
+        if ( width > 0 ) {
+            AffineTransform scale = org.photovault.image.ImageXform.getFittingXform( width, height,
+                    0,
+                    xformImage.getWidth(), xformImage.getHeight() );
+            ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
+            scaleParams.addSource( xformImage );
+            scaleParams.setParameter( "transform", scale );
+            scaleParams.setParameter( "interpolation",
+                    Interpolation.getInstance( Interpolation.INTERP_BICUBIC ) );
+            
+            exportImage = JAI.create( "affine", scaleParams );
+        }
         
         // Try to determine the file type based on extension
         String ftype = "jpg";
@@ -830,24 +956,24 @@ public class PhotoInfo {
                     // channel: this is especially needed for jpeg
                     // files where imageio seems to produce wrong jpeg
                     // files right now...
-                    if (exportImage.getType() == BufferedImage.TYPE_INT_ARGB ) {
-                        // this is not so obvious: create a new
-                        // ColorModel without OPAQUE transparency and
-                        // no alpha channel.
-                        ColorModel cm = new ComponentColorModel(exportImage.getColorModel().getColorSpace(),
-                                false, false,
-                                Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
-                        // tell the writer to only use the first 3 bands (skip alpha)
-                        int[] bands = {0, 1, 2};
-                        param.setSourceBands(bands);
-                        // although the java documentation says that
-                        // SampleModel can be null, an exception is
-                        // thrown in that case therefore a 1*1
-                        // SampleModel that is compatible to cm is
-                        // created:
-                        param.setDestinationType(new ImageTypeSpecifier(cm,
-                                cm.createCompatibleSampleModel(1, 1)));
-                    }
+//                    if (exportImage.getType() == BufferedImage.TYPE_INT_ARGB ) {
+//                        // this is not so obvious: create a new
+//                        // ColorModel without OPAQUE transparency and
+//                        // no alpha channel.
+//                        ColorModel cm = new ComponentColorModel(exportImage.getColorModel().getColorSpace(),
+//                                false, false,
+//                                Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
+//                        // tell the writer to only use the first 3 bands (skip alpha)
+//                        int[] bands = {0, 1, 2};
+//                        param.setSourceBands(bands);
+//                        // although the java documentation says that
+//                        // SampleModel can be null, an exception is
+//                        // thrown in that case therefore a 1*1
+//                        // SampleModel that is compatible to cm is
+//                        // created:
+//                        param.setDestinationType(new ImageTypeSpecifier(cm,
+//                                cm.createCompatibleSampleModel(1, 1)));
+//                    }
                     // Write the image
                     writer.write(null, new IIOImage(exportImage, null, null), param);
                     
@@ -1212,7 +1338,69 @@ public class PhotoInfo {
         txw.commit();
     }
     
+    /**
+     Check that the e crop bounds are defined in consistent manner. This is needed
+     since in old installations the max parameters can be larger thatn min ones.
+     */
     
+    private void checkCropBounds() {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        if ( cropMaxX - cropMinX <= 0) {
+            txw.lock( this, Transaction.WRITE );
+            cropMaxX = 1.0 - cropMinX;
+        }
+        if ( cropMaxY - cropMinY <= 0) {
+            txw.lock( this, Transaction.WRITE );
+            cropMaxY = 1.0 - cropMinY;
+        }
+        txw.commit();
+    }
+    
+    /**
+     Get the preferred crop bounds of the original image
+     */
+    public Rectangle2D getCropBounds() {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.READ );
+        checkCropBounds();
+        txw.commit();
+        return new Rectangle2D.Double( cropMinX, cropMinY, 
+                cropMaxX-cropMinX, cropMaxY-cropMinY );        
+    }
+
+    
+    /**
+     Set the preferred cropping operation
+     @param cropBounds New crop bounds
+     */
+    public void setCropBounds( Rectangle2D cropBounds ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        if ( !cropBounds.equals( getCropBounds() ) ) {
+            // Rotation changes, invalidate the thumbnail
+            thumbnail = null;
+        }
+        cropMinX = cropBounds.getMinX();
+        cropMinY = cropBounds.getMinY();
+        cropMaxX = cropBounds.getMaxX();
+        cropMaxY = cropBounds.getMaxY();
+        modified();
+        txw.commit();
+    }
+    
+
+    
+    /**
+     CropBounds describes the desired crop rectange from original image. It is 
+     defined as proportional coordinates that are applied after rotating the
+     original image so that top left corner is (0.0, 0.0) and bottong right
+     (1.0, 1.0)
+     */
+    
+    double cropMinX;
+    double cropMaxX;
+    double cropMinY;
+    double cropMaxY;
     
     String description;
     

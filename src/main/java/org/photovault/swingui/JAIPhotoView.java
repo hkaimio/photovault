@@ -20,35 +20,72 @@
 
 package org.photovault.swingui;
 
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D;
+import java.util.HashSet;
+import java.util.Iterator;
+import javax.media.jai.RenderedOp;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
-import javax.imageio.ImageIO;
-import java.io.*;
 import java.awt.geom.AffineTransform;
-import java.awt.image.renderable.ParameterBlock;
 import javax.media.jai.JAI;
 import javax.media.jai.ParameterBlockJAI;
-import javax.media.jai.OperationDescriptor;
-import javax.media.jai.OperationRegistry;
-import javax.media.jai.PlanarImage;
 import javax.media.jai.InterpolationBilinear;
-import javax.media.jai.widget.ImageCanvas;
 import javax.media.jai.widget.ScrollingImagePanel;
 
 
 /**
    PhotoView the actual viewing component for images stored in the database.
 */
-public class JAIPhotoView extends JPanel {
+public class JAIPhotoView extends JPanel 
+        implements MouseListener, 
+        MouseMotionListener, 
+        CropParamEditorListener {
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JAIPhotoView.class.getName() );
 
     ScrollingImagePanel canvas;
+    CropParamEditor paramEditor = null;
+    
     public JAIPhotoView() {
 	super();
 	imgRot = 0;
+        newRotDegrees = 0;
+        newCrop = crop = new Rectangle2D.Float( 0.0F, 0.0F, 1.0F, 1.0F );
+        addMouseListener( this );
+        addMouseMotionListener( this );
+        // Capture keyboard shortcuts
+        final JAIPhotoView staticThis = this;
+        Action applyCropAction = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( !staticThis.getDrawCropped() ) {
+                    staticThis.applyCrop();
+                }
+            }
+        };
+        getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put( 
+                KeyStroke.getKeyStroke( "ENTER"), 
+                "applyCrop" );
+        getActionMap().put( "applyCrop", applyCropAction );
+        
+        Action cancelCropAction = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( !staticThis.getDrawCropped() ) {
+                    staticThis.cancelCrop();
+                }
+            }
+        };
+        getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put( 
+                KeyStroke.getKeyStroke( "ESCAPE"), 
+                "cancelCrop" );
+        getActionMap().put( "cancelCrop", cancelCropAction );
+
+        
+        paramEditor = new CropParamEditor( null, false );
+        updateCropParamEditor();
+        paramEditor.addListener( this );
     }
     
     public void paint( Graphics g ) {
@@ -65,21 +102,435 @@ public class JAIPhotoView extends JPanel {
  	if ( xformImage != null ) {
 
  	    // Determine the place for the image. If the image is smaller that window, center it
-	    int imgWidth = xformImage.getWidth();
-	    int imgHeight = xformImage.getHeight();
-	    int x = (compWidth-imgWidth)/2;
-	    int y = (compHeight-imgHeight)/2;
-	    g2.drawRenderedImage( xformImage, new AffineTransform(1f,0f,0f,1f, x, y) );
+	    imgWidth = xformImage.getWidth();
+	    imgHeight = xformImage.getHeight();
+	    imgX = (compWidth-imgWidth)/2;
+	    imgY = (compHeight-imgHeight)/2;
+            
+	    g2.drawRenderedImage( xformImage, new AffineTransform(1f,0f,0f,1f, imgX, imgY) );
+            if ( !drawCropped ) {
+                paintCropBorder( g2, imgX, imgY, imgWidth, imgHeight );
+            }
 	}
     }
+    
+    /** Image top left X coordinate in the component */
+    int imgX;
+    /** Image top left Y coordinate in the component */
+    int imgY;
+    /** Image width in the component */
+    int imgWidth;
+    /** Image height in the component */
+    int imgHeight;
+    
+    int cropBorderXpoints[] = null;
+    int cropBorderYpoints[] = null;
+    int cropHandlesX[] = new int[9];
+    int cropHandlesY[] = new int[9];
+    /**
+     Cursors used when mouse is hovering on top of the crop handles
+     */
+    int cropHandleCursors[] = {
+        Cursor.NW_RESIZE_CURSOR,
+        Cursor.NE_RESIZE_CURSOR,
+        Cursor.SE_RESIZE_CURSOR,
+        Cursor.SW_RESIZE_CURSOR,
+        Cursor.N_RESIZE_CURSOR,
+        Cursor.E_RESIZE_CURSOR,
+        Cursor.S_RESIZE_CURSOR,
+        Cursor.W_RESIZE_CURSOR,
+        Cursor.MOVE_CURSOR
+    };
+    
+    final static int HANDLE_TOP_LEFT = 0;
+    final static int HANDLE_TOP_RIGHT = 1;
+    final static int HANDLE_BOT_RIGHT = 2;
+    final static int HANDLE_BOT_LEFT = 3;
+    final static int HANDLE_TOP = 4;
+    final static int HANDLE_RIGHT = 5;
+    final static int HANDLE_BOT = 6;
+    final static int HANDLE_LEFT = 7;
+    final static int HANDLE_CENTER = 8;
+    
+    /** X coordinate of the crop border coordinate system origo in image coordinates*/
+    double cropBorderX = 0;
+    /** Y coordinate of the crop border coordinate system origo in image coordinates */
+    double cropBorderY = 0;
+    /** Local Y coordinate of the top line in crop border coordinates */
+    double cropBorderTop = 0;
+    /** Local Y coordinate of the top line in crop border coordinates */
+    double cropBorderBottom = 0;
+    /** Local X coordinate of the left border */
+    double cropBorderLeft = 0;
+    /** Local X coordinate of the right border */
+    double cropBorderRight = 0;
+    /** Rotation of the crop border (compared to ImageView trasfcormation)
+     in radians, clockwise */
+    double cropBorderRot = 0;
+    /** X coordinates of the rotation handle, first the stating point of line, 
+     then the actual handle */
+    int rotHandleX[] = new int[2];
+    /** Y coordinates of the rotation handle */
+    int rotHandleY[] = new int[2];
+    
+    private final static int ROT_HANDLE_LENGTH = 20;
+  
+    private HashSet cropAreaListeners = new HashSet();
+    
+    public void addCropAreaChangeListener( CropAreaChangeListener l ) {
+        cropAreaListeners.add( l );
+    }
 
+    
+    public void removeCropAreaChangeListener( CropAreaChangeListener l ) {
+        cropAreaListeners.remove( l );
+    }
+    
+    protected void fireCropAreaChangeEvent( CropAreaChangeEvent e ) {
+        Iterator i = cropAreaListeners.iterator();
+        while ( i.hasNext() ) {
+            CropAreaChangeListener l = (CropAreaChangeListener) i.next();
+            l.cropAreaChanged( e );
+        }
+    }
+    
+    private HashSet photoViewListeners = new HashSet();
+    
+    public void addPhotoViewListener( PhotoViewListener l ) {
+        photoViewListeners.add( l );
+    }
+
+    
+    public void removePhotoViewListener( PhotoViewListener l ) {
+        photoViewListeners.remove( l );
+    }
+    
+    protected void fireImageChangedEvent( PhotoViewEvent e ) {
+        Iterator i = photoViewListeners.iterator();
+        while ( i.hasNext() ) {
+            PhotoViewListener l = (PhotoViewListener) i.next();
+            l.imageChanged( e );
+        }
+    }
+    
+    
+    
+    private void calcCropBorderCoords() {
+        double sinRot = Math.sin( cropBorderRot );
+        double cosRot = Math.cos( cropBorderRot );
+        cropBorderXpoints[0] = imgX + (int)(cropBorderX - cropBorderLeft  * cosRot + cropBorderTop    * sinRot);
+        cropBorderYpoints[0] = imgY + (int)(cropBorderY - cropBorderLeft  * sinRot - cropBorderTop    * cosRot);
+        cropBorderXpoints[1] = imgX + (int)(cropBorderX + cropBorderRight * cosRot + cropBorderTop    * sinRot );
+        cropBorderYpoints[1] = imgY + (int)(cropBorderY + cropBorderRight * sinRot - cropBorderTop    * cosRot);
+        cropBorderXpoints[2] = imgX + (int)(cropBorderX + cropBorderRight * cosRot - cropBorderBottom * sinRot );
+        cropBorderYpoints[2] = imgY + (int)(cropBorderY + cropBorderRight * sinRot + cropBorderBottom * cosRot);
+        cropBorderXpoints[3] = imgX + (int)(cropBorderX - cropBorderLeft  * cosRot - cropBorderBottom * sinRot );
+        cropBorderYpoints[3] = imgY + (int)(cropBorderY - cropBorderLeft  * sinRot + cropBorderBottom * cosRot);
+        
+        // Calculate the handle coordinates
+        // The first 4 handles are the corners so just copy the previously calculated
+        // coordinates
+        int  centerX = 0;
+        int centerY = 0;
+        for ( int n = 0; n < 4; n++ ) {
+            cropHandlesX[n] = cropBorderXpoints[n];
+            cropHandlesY[n] = cropBorderYpoints[n];
+            centerX += cropBorderXpoints[n];
+            centerY += cropBorderYpoints[n];            
+        }
+        centerX /= 4;
+        centerY /= 4;
+        
+        // The handles in the middle of a side
+        for ( int n = 4; n < 8; n++ ) {
+            cropHandlesX[n] = (cropBorderXpoints[n%4]+cropBorderXpoints[(n+1)%4]) / 2;
+            cropHandlesY[n] = (cropBorderYpoints[n%4]+cropBorderYpoints[(n+1)%4]) / 2;
+        }
+        
+        cropHandlesX[8] = centerX;
+        cropHandlesY[8] = centerY;
+        
+        rotHandleX[0] = (cropBorderXpoints[1]+cropBorderXpoints[0])/2;
+        rotHandleY[0] = (cropBorderYpoints[1]+cropBorderYpoints[0])/2;
+        rotHandleX[1] = rotHandleX[0] + (int)((double)(ROT_HANDLE_LENGTH) * sinRot );
+        rotHandleY[1] = rotHandleY[0] - (int)((double)(ROT_HANDLE_LENGTH) * cosRot );
+    }
+    
+    private void calcCropBorder( int x, int y, int imgWidth, int imgHeight ) {
+        cropBorderX = imgWidth*(newCrop.getMinX() + 0.5*newCrop.getWidth() ) ;
+        cropBorderY = imgHeight*(newCrop.getMinY() + 0.5*newCrop.getHeight() ) ;
+        cropBorderLeft = 0.5*imgWidth*newCrop.getWidth();
+        cropBorderRight = cropBorderLeft;
+        cropBorderTop = 0.5*imgHeight*newCrop.getHeight();
+        cropBorderBottom = cropBorderTop;
+        cropBorderRot = 0;
+        if ( cropBorderXpoints == null ) {
+            cropBorderXpoints = new int[4];
+            cropBorderYpoints = new int[4];
+        }
+        calcCropBorderCoords();
+    }
+
+    private void moveCropHandle( int handle, int newx, int newy ) {
+        // Calculate the new position in local coordinates
+        double sinRot = Math.sin( cropBorderRot );
+        double cosRot = Math.cos( cropBorderRot );
+        double localX = (newx-imgX-cropBorderX)*cosRot + (newy-imgY-cropBorderY)*sinRot;
+        double localY = (newy-imgY-cropBorderY)*cosRot - (newx-imgX-cropBorderX)*sinRot; 
+        final double minCropSize = 5.0;
+        // Determine top & botton
+        switch( handle ) {
+            case HANDLE_TOP_LEFT:
+            case HANDLE_TOP_RIGHT:
+            case HANDLE_TOP:
+                cropBorderTop = ( cropBorderBottom-localY > minCropSize ) 
+                                ? -localY : -cropBorderBottom +minCropSize;       
+                break;
+                
+            case HANDLE_BOT_LEFT:
+            case HANDLE_BOT_RIGHT:
+            case HANDLE_BOT:
+                cropBorderBottom = (cropBorderTop+localY > minCropSize)
+                ? localY : -cropBorderTop + minCropSize;
+                break;
+                
+            case HANDLE_CENTER:
+                cropBorderY = newy-imgY;
+                break;
+                
+            default:
+                break;
+
+        }
+        
+        switch ( handle ) {
+            case HANDLE_TOP_LEFT:
+            case HANDLE_BOT_LEFT:
+            case HANDLE_LEFT:
+                cropBorderLeft = (cropBorderRight-localX > minCropSize )
+                ? -localX : -cropBorderRight + minCropSize;
+                break;
+            case HANDLE_TOP_RIGHT:
+            case HANDLE_BOT_RIGHT:
+            case HANDLE_RIGHT:
+                cropBorderRight = (cropBorderLeft+localX > minCropSize )
+                ? localX : - cropBorderLeft+minCropSize;
+                break;
+                
+            case HANDLE_CENTER:
+                cropBorderX = newx-imgX;
+                break;
+            
+            default:
+                break;
+                
+        }
+        calcCropBorderCoords();
+    }
+    
+    /**
+     Recalculate the local crop border coordinate system so that origin (and 
+     center of rotation is at the center of the crop area.
+     */
+    private void alignCropBorderLocalCoordinates() {
+        double dx = cropBorderRight - cropBorderLeft;
+        cropBorderLeft += 0.5 * dx; cropBorderRight = cropBorderLeft;
+        double dy = cropBorderBottom - cropBorderTop;
+        cropBorderTop += 0.5 * dy; cropBorderBottom = cropBorderTop;
+        
+        // Change the origin in image coordinates
+        double sinRot = Math.sin( cropBorderRot );
+        double cosRot = Math.cos( cropBorderRot );
+        cropBorderX += 0.5*(dx*cosRot - dy*sinRot);
+        cropBorderY += 0.5*(dy*cosRot + dx*sinRot);
+    }
+    
+    /**
+     The new rotation that should be applied when next time transforming the
+     image
+     */
+     
+    double newRotDegrees;
+    
+    /**
+     Calculates the crop new crop for image based on crop rectange
+     */
+    private void calcNewCrop() {
+        double imgRotRadians = Math.toRadians( imgRot );
+        double newRot = imgRotRadians - cropBorderRot;
+        double sinNewRot = Math.sin( newRot );
+        double cosNewRot = Math.cos( newRot );
+        
+        double sinOldRot = Math.sin( imgRotRadians );
+        double cosOldRot = Math.cos( imgRotRadians );
+        
+        double sinDeltaRot = Math.sin( -cropBorderRot );
+        double cosDeltaRot = Math.cos( -cropBorderRot );
+        
+        /* 
+         Calculate the coordinate of crop border origin after applying
+         the rotation in screen coordinates via the center of the image. Note 
+         that this code expects that the image from which the crop is done is 
+         itself uncropped.
+         */
+        double imgCenterX = 0.5*imgWidth;
+        double imgCenterY = 0.5*imgHeight;
+        double imgCoordX =  imgCenterX + cosDeltaRot*(cropBorderX-imgCenterX) 
+                            - sinDeltaRot*(cropBorderY-imgCenterY);
+        double imgCoordY =  imgCenterY + sinDeltaRot*(cropBorderX-imgCenterX) 
+                            + cosDeltaRot*(cropBorderY-imgCenterY);
+        
+        /*
+         Crop is presented in normalized coordinates so that the full image 
+         fits inside (0,0)->(1,1) rectangle. Calcalate the scaling needed when 
+         converting from image coordinates to normalized coordinates
+         */
+        double origWidth = (double) origImage.getWidth();
+        double origHeight = (double) origImage.getHeight();
+        double oldWidth = Math.abs(cosOldRot)*origWidth + Math.abs(sinOldRot)*origHeight; 
+        double oldHeight = Math.abs(cosOldRot)*origHeight + Math.abs(sinOldRot)*origWidth; 
+        double newWidth = Math.abs(cosNewRot)*origWidth + Math.abs(sinNewRot)*origHeight; 
+        double newHeight = Math.abs(cosNewRot)*origHeight + Math.abs(sinNewRot)*origWidth; 
+        // These are in image coordinates which may have been scaled to fdit the window
+        double screenScaling = imgWidth / oldWidth;
+        
+        // We rotated around image center, transform origin into top left corner
+        imgCoordX += ( newWidth-oldWidth ) * screenScaling * 0.5;
+        imgCoordY += ( newHeight-oldHeight ) * screenScaling * 0.5;
+        
+        // And finally, normalize everything
+        double newCropX = (imgCoordX-cropBorderLeft) / (newWidth*screenScaling);
+        double newCropY = (imgCoordY-cropBorderTop) / (newHeight*screenScaling);
+        double newCropWidth = (cropBorderRight + cropBorderLeft) / (newWidth*screenScaling);
+        double newCropHeight = (cropBorderBottom + cropBorderTop) / (newHeight*screenScaling);
+        
+        newCrop = new Rectangle2D.Double( newCropX, newCropY, 
+                newCropWidth, newCropHeight);
+        newRotDegrees = Math.toDegrees( newRot );
+    }
+    
+    /**
+     Paints the crop border on top of an uncropped image
+     */
+    private void paintCropBorder( Graphics2D g2, int x, int y, int imgWidth, int imgHeight ) {
+        if ( cropBorderXpoints == null ) {
+            calcCropBorder( x, y, imgWidth, imgHeight );
+        }
+        
+        Graphics2D borderG2 = (Graphics2D) g2.create();
+        borderG2.setColor( Color.BLACK );
+        GeneralPath border = new GeneralPath( GeneralPath.WIND_EVEN_ODD, 
+                cropBorderXpoints.length );
+        border.moveTo( cropBorderXpoints[0], cropBorderYpoints[0] );
+        for ( int n = 1; n < cropBorderXpoints.length; n++ ) {
+            border.lineTo( cropBorderXpoints[n], cropBorderYpoints[n] );
+        }
+        border.closePath();
+        borderG2.draw( border );
+        // Draw the handles
+        int handleRadius = 4;
+        for ( int n = 0; n < cropHandlesX.length; n++ ) {
+            borderG2.setColor( Color.WHITE );
+            borderG2.fillOval(
+                    cropHandlesX[n]-handleRadius,
+                    cropHandlesY[n]-handleRadius,
+                    handleRadius*2, handleRadius*2 );
+            borderG2.setColor( Color.BLACK );
+            borderG2.drawOval(
+                    cropHandlesX[n]-handleRadius,
+                    cropHandlesY[n]-handleRadius,
+                    handleRadius*2, handleRadius*2 );
+        }
+        // Draw the rotation handle
+        borderG2.setColor( Color.BLACK );
+        borderG2.drawLine( rotHandleX[0], rotHandleY[0], 
+                rotHandleX[1], rotHandleY[1] );
+        borderG2.setColor( Color.GREEN );
+        borderG2.fillOval( 
+                rotHandleX[1]-handleRadius,
+                rotHandleY[1]-handleRadius,
+                handleRadius*2, handleRadius*2 );
+        borderG2.setColor( Color.BLACK );
+        borderG2.drawOval( 
+                rotHandleX[1]-handleRadius,
+                rotHandleY[1]-handleRadius,
+                handleRadius*2, handleRadius*2 );
+    }
+    
+    /**
+     Get the crop rectangle handle that is at a specified position
+     @param x x coordinate of the position
+     @param y y coordinate of the position
+     @return Number of the handle at the given position or -1 if none
+     */ 
+    private int getHandleAt( int x, int y ) {
+        int accuracy = 10;
+        int handle = -1;
+        for ( int n = 0; n < cropHandlesX.length; n++ ) {
+            int dx = x - cropHandlesX[n];
+            int dy = y - cropHandlesY[n];
+            if ( dx*dx + dy*dy < accuracy * accuracy ) {
+                handle = n;
+                break;
+            }
+        }
+        return handle;
+    }
+    
+    /**
+     Checks if the crop area rotation handle is at the given coordinates
+     @param x x coordinate of the position
+     @param y y coordinate of the position
+     @return true if the rotetion handle is at the position, false otherwise
+     */
+    private boolean isRotHandleAt( int x, int y ) {
+        int accuracy = 10;
+        int dx = x - rotHandleX[1];
+        int dy = y - rotHandleY[1];
+        boolean isHandle = ( dx*dx + dy*dy < accuracy * accuracy );
+        System.err.println( "Is rot handle? " + isHandle );
+        return isHandle;
+    }
+    
+    /**
+     Rotates the crop area so that rotation handle points to a given (mouse) 
+     position.
+     @param x x coordinate of the position
+     @param y y coordinate of the position
+     */
+    private void rotateCrop( int newx, int newy ) {
+        // Calculate new rotation
+        double dx = newx-imgX-cropBorderX;
+        double dy = newy-imgY-cropBorderY;
+        if ( Math.abs( dy ) > 0.0001 ) {
+            cropBorderRot = -Math.atan( dx/dy );
+        } else {
+            cropBorderRot =  0;
+        }
+        if ( dy > 0 ) {
+            cropBorderRot += Math.PI;
+        }
+        System.err.println( "New rotation " + cropBorderRot );
+        calcCropBorderCoords();
+
+    }
+
+    /**
+     Sets the image displayed in the component
+     2param img The image
+     */
     public void setImage( RenderedImage img ) {
 	boolean isFirst = (origImage == null ) ? true : false;
 	origImage = img;
 	xformImage = null;
+        fireImageChangedEvent( new PhotoViewEvent( this ) );
  	repaint();
     }
 
+    public RenderedImage getImage() {
+        return origImage;
+    }
+    
     public Dimension getPreferredSize() {
 	
 	int w = 0;
@@ -94,6 +545,10 @@ public class JAIPhotoView extends JPanel {
 	return new Dimension( w, h );
     }
 
+    /**
+     Set the zoom scaling factor used for drawing the image
+     @param scale (1.0 = actual scale, no zooming)
+     */
     public void setScale( float newValue ) {
 	imgScale = newValue;
 	xformImage = null;
@@ -108,18 +563,71 @@ public class JAIPhotoView extends JPanel {
 	return imgScale;
     }
 
+    /**
+     Set the rotation to apply for the image
+     @param rotation in degrees, clockwise
+     */
     public void setRotation( double newRot ) {
-	imgRot = newRot;
+	newRotDegrees = newRot;
 	xformImage = null;
 	revalidate();
         repaint();
     }
 
+    
     public double getRotation() {
 	return imgRot;
     }
 
+    /**
+     Set the crop rectangle to use for the image
+     */
+    public void setCrop( Rectangle2D crop ) {
+        newCrop = (Rectangle2D) crop.clone();
+        xformImage = null;
+        updateCropParamEditor();
+        revalidate();
+        repaint();
+    }
+
+    public Rectangle2D getCrop( ) {
+        return (Rectangle2D) crop.clone();
+    }
+    
     private double imgRot;
+    private Rectangle2D crop;
+    
+    /**
+     The new crop as a result of the crop operation
+     */
+    private Rectangle2D newCrop;
+
+    /**
+     Flag that tells whether to draw the cropped or original image
+     <ul>
+     <li>if <code>true</code> draws only the cropped portion of the image</li>
+     <li>if <code>false</code> draws the entire image without cropping</li>
+     */
+    private boolean drawCropped = true;
+    
+    /**
+     Sets the @see drawCropped property
+     */
+    public void setDrawCropped( boolean cropped ) {
+        drawCropped = cropped;
+        paramEditor.setVisible( !drawCropped );
+        xformImage = null;
+        revalidate();
+        repaint();
+    }
+    
+    /**
+     Get the current value of @see drawCropped property
+     */
+    
+    public boolean getDrawCropped() {
+        return drawCropped;
+    }
     
     /**
        Returns the width of the currently displayed image. Note that the original image may be rotated for
@@ -159,8 +667,19 @@ public class JAIPhotoView extends JPanel {
 	repaint();
     }
     
+    /**
+     Rebuilds the zoomed, cropped & rotated image to show
+     */
     private void buildXformImage() {
-	float scale = 1.0f;
+	
+//        ParameterBlock pbRen = new ParameterBlock();
+//        pbRen.addSource( origImage );
+//        pbRen.add(null).add(null).add(null).add(null).add(null);        
+//        RenderableImage renSrc = JAI.createRenderable( "renderable", pbRen );
+        
+        float scale = 1.0f;
+        imgRot = newRotDegrees;
+        
 	if ( fitSize ) {
 	    log.debug( "fitSize" );
 	    float widthScale = ((float)maxWidth)/origImage.getWidth();
@@ -180,15 +699,25 @@ public class JAIPhotoView extends JPanel {
 	Cursor oldCursor = getCursor();
 	setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
 	
+        Rectangle2D cropUsed = newCrop;
+        if ( !drawCropped ) {
+            cropUsed = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
+        } else {
+            crop = newCrop;
+        }
+        
 	// Create the zoom xform
-	AffineTransform at = null;
-	if ( fitSize ) {
-	    at = org.photovault.image.ImageXform.getFittingXform( (int)maxWidth, (int)maxHeight, imgRot,
-						       origImage.getWidth(), origImage.getHeight() );
-	} else {
-	    at = org.photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
-						       origImage.getWidth(), origImage.getHeight() );
-	}
+        AffineTransform at = null;
+        if ( fitSize ) {
+            at = org.photovault.image.ImageXform.getFittingXform( 
+                    (int)maxWidth, (int)maxHeight, imgRot,
+                    (int)( origImage.getWidth() * cropUsed.getWidth() ),
+                    (int)(( cropUsed.getHeight()* origImage.getHeight() ) ) );
+        } else {
+            at = org.photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
+                    (int)( origImage.getWidth() * cropUsed.getWidth() ),
+                    (int)(( cropUsed.getHeight()* origImage.getHeight() ) ) );
+        }
 
 	
 	// Create a ParameterBlock and specify the source and
@@ -199,11 +728,134 @@ public class JAIPhotoView extends JPanel {
 	scaleParams.setParameter( "interpolation", new InterpolationBilinear());
 	
 	// Create the scale operation
-	xformImage = JAI.create("affine", scaleParams, null);
-
+        RenderedOp tmp = JAI.create( "affine", scaleParams, null );
+        
+        ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
+        cropParams.addSource( tmp );
+        cropParams.setParameter( "x", (float)( tmp.getMinX() + cropUsed.getMinX() *  tmp.getWidth() ) );
+        cropParams.setParameter( "y", (float)( tmp.getMinY() + cropUsed.getMinY() *  tmp.getHeight() ) );
+        cropParams.setParameter( "width", (float)( cropUsed.getWidth() * tmp.getWidth() ) );
+        cropParams.setParameter( "height", (float) ( cropUsed.getHeight() * tmp.getHeight() ) );
+	RenderedOp cropped = JAI.create("crop", cropParams, null);
+        // Translate the image so that it begins in origo
+        ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
+        pbXlate.addSource( cropped );
+        pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
+        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );        
+        xformImage = JAI.create( "translate", pbXlate );
+       
+        // We need to update also the crop border since image size & orientation 
+        // has changed
+        cropBorderXpoints = null;
+        cropBorderYpoints = null;
+        
+        
 	setCursor( oldCursor );
     }
+
+    int handleMoving = -1;
+    boolean isRotating = false;
+    
+    
+    public void mouseClicked(MouseEvent mouseEvent) {
+    }
+
+    public void mousePressed(MouseEvent mouseEvent) {
+        if  ( !drawCropped ) {
+            // Check if we clicked on a handle
+            handleMoving = getHandleAt( mouseEvent.getX(), mouseEvent.getY() );
+            System.err.println( "Moving handle " + handleMoving );
+            if ( handleMoving < 0 ) {
+                isRotating = isRotHandleAt( mouseEvent.getX(), mouseEvent.getY() );
+            }
+        }
+    }
+
+    public void mouseReleased(MouseEvent mouseEvent) {
+        if ( handleMoving >= 0 || isRotating ) {
+            calcNewCrop();
+            updateCropParamEditor();
+            alignCropBorderLocalCoordinates();
+            handleMoving = -1;
+            isRotating = false;
+        } 
+    }
+
+    public void mouseEntered(MouseEvent mouseEvent) {
+    }
+
+    public void mouseExited(MouseEvent mouseEvent) {
+    }
+
+    public void mouseDragged(MouseEvent mouseEvent) {
+        if ( !drawCropped ) {
+            if ( handleMoving >= 0 ) {
+                moveCropHandle( handleMoving, mouseEvent.getX(), mouseEvent.getY() );
+                repaint();
+            } else if ( isRotating ) {
+               rotateCrop( mouseEvent.getX(), mouseEvent.getY() );
+               repaint();
+            }
+        }
+    }
+
+    public void mouseMoved(MouseEvent mouseEvent) {
+        // Change the mouse cursor if on top of crop handle
+        if ( !drawCropped && handleMoving == -1 && !isRotating ) {
+            int handle = getHandleAt( mouseEvent.getX(), mouseEvent.getY() );
+            if ( handle >= 0 ) {
+               setCursor( Cursor.getPredefinedCursor( cropHandleCursors[handle] ) );
+            } else if ( isRotHandleAt( mouseEvent.getX(), mouseEvent.getY() ) ) {
+                setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );               
+            } else {
+                setCursor( Cursor.getDefaultCursor() );
+            }
+        }
+    }
+
+    /**
+     Called by @see CropParamEditor when the user want's to apply the crop to 
+     image. Sends crop area change event to listeners.
+     */
+    public void applyCrop() {
+        CropAreaChangeEvent e = new CropAreaChangeEvent( this, newCrop, newRotDegrees );
+        fireCropAreaChangeEvent( e );
+        
+    }
+
+    /**
+     Called by @see CropParamEditor when the user want's to cancel the crop operation.     
+     */
+    public void cancelCrop() {
+        /* 
+         To cancel the crop, create a crop area change event with the old 
+         crop parameters
+         */
+        newCrop = crop;
+        updateCropParamEditor();
+        newRotDegrees = imgRot;
+        CropAreaChangeEvent e = new CropAreaChangeEvent( this, crop, imgRot );
+        fireCropAreaChangeEvent( e );
+        
+    }
+
+    public void cropParamsChanged() {
+        cropBorderRot = Math.toRadians( imgRot - paramEditor.getRot() );
+        if ( cropBorderXpoints != null ) {
+            calcCropBorderCoords();
+            calcNewCrop();
+            repaint();
+        }
+    }
 	
+    private void updateCropParamEditor() {
+        paramEditor.setXmin( newCrop.getX() );
+        paramEditor.setYmin( newCrop.getY() );
+        paramEditor.setXmax( newCrop.getX() + newCrop.getWidth() );
+        paramEditor.setYmax( newCrop.getY() + newCrop.getHeight() );
+        paramEditor.setRot( this.newRotDegrees );
+    }
+    
     // The image that is viewed
     RenderedImage origImage = null;
     RenderedImage xformImage = null;

@@ -67,8 +67,26 @@ public class ImageXform {
 	at.scale( scale, scale );
 	return at;
     }
-	
 
+    /**
+     Returns a transfor which rotates an image & translates it so that it is 
+     fully in the positive quadrant after the rotation
+     @param rot The rotation to be applied (in degrees, clockwise)
+     @param curWidth current width of rotated image im pixels (to translate in correctly)
+     @param curHeight The current height of the image
+     */
+    
+    public static AffineTransform getRotateXform( double rot, int curWidth, int curHeight ) {
+	AffineTransform at = new AffineTransform();
+ 	at.rotate( rot*Math.PI/180.0 );
+	
+	Rectangle2D bounds = getBounds( at, curWidth, curHeight );
+
+	at.preConcatenate( at.getTranslateInstance( -bounds.getMinX(), -bounds.getMinY() ) );
+	return at;        
+    }
+
+    
     private static Rectangle2D getBounds( AffineTransform xform, int w, int h ) {
 	double[] corners = {0.0f,              0.0f,
 			   0.0f,              (double) h,

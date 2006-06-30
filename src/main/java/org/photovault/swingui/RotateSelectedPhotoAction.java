@@ -21,6 +21,7 @@
 package org.photovault.swingui;
 
 
+import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -31,7 +32,9 @@ import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 
 /**
-   This action class implements displays the selected images
+  This action class rotates the selected images by the specified amount. In practice,
+ for cropped photos the rotation must be in 90 degrees increments - otherwise the 
+ effect of rotation is unspecified
 */
 class RotateSelectedPhotoAction extends AbstractAction implements SelectionChangeListener {
 
@@ -66,10 +69,38 @@ class RotateSelectedPhotoAction extends AbstractAction implements SelectionChang
             if ( photo != null ) {
                 double curRot = photo.getPrefRotation();
                 photo.setPrefRotation( curRot + rot );
+                Rectangle2D origCrop = photo.getCropBounds();
+                Rectangle2D newCrop = calcNewCrop( origCrop );
+                photo.setCropBounds( newCrop );
             }
         }
     }
 
+    /**
+     Calculates how the cropped area will be rotated as the specified rotation
+     is applied. Currently this function expects that the rotation is multiple of 
+     90 degrees - anyway, the whole rotation of cropped photo operation is not 
+     well defined if the rotation is something else.
+     
+     @oldRot The cropping before rotation.
+     @return The same crop area after rotation
+     */
+    private Rectangle2D calcNewCrop( Rectangle2D oldCrop ) {
+        double x1 = oldCrop.getMinX() - 0.5;
+        double y1 = oldCrop.getMinY() - 0.5;
+        double x2 = oldCrop.getMaxX() - 0.5;
+        double y2 = oldCrop.getMaxY() - 0.5;
+        double sin = Math.sin( Math.toRadians( rot ) );
+        double cos = Math.cos( Math.toRadians( rot ) );
+        double nx1 = x1*cos - y1*sin;
+        double ny1 = x1*sin + y1*cos;
+        double nx2 = x2*cos - y2*sin;
+        double ny2 = x2*sin + y2*cos;
+        Rectangle2D newCrop = new Rectangle2D.Double( nx1+0.5, ny1+0.5, 0.0, 0.0 );
+        newCrop.add( nx2+0.5, ny2+0.5 );
+        return newCrop;
+    }
+    
     PhotoCollectionThumbView view;
     double rot;
 }

@@ -64,15 +64,19 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
 	
 	int retval = fc.showDialog( view, "Export image" );
 	if ( retval == JFileChooser.APPROVE_OPTION ) {
-	    File exportFile = fc.getSelectedFile();
+       	    Container c = view.getTopLevelAncestor();
+	    Cursor oldCursor = c.getCursor();
+            c.setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
+            File exportFile = fc.getSelectedFile();
 	    Collection selection = view.getSelection();
 	    if ( selection != null ) {
 		Iterator iter = selection.iterator();
 		if ( iter.hasNext() ) {
 		    PhotoInfo photo = (PhotoInfo) iter.next();
-		    photo.exportPhoto( exportFile, 400, 400 );
+		    photo.exportPhoto( exportFile, -1, -1 );
 		}
 	    }
+            c.setCursor( oldCursor );
 	}
     }
 

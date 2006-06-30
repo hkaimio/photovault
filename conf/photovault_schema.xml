@@ -57,6 +57,12 @@
       <column name="mtime" primaryKey="false" required="false" type="BIGINT" autoIncrement="false"/>
       <!-- time the consisteny between database record and actual image file was checked last time -->
       <column name="check_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
+
+      <!-- Cropping applied to this instance -->
+      <column name="crop_xmin" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" defaultValue="0.0"/>
+      <column name="crop_ymin" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" defaultValue="0.0"/>
+      <column name="crop_xmax" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" defaultValue="1.0"/>
+      <column name="crop_ymax" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false" defaultValue="1.0"/>
       
       <!-- Columns for reserved for future use -->
       <column name="instance_string1" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>

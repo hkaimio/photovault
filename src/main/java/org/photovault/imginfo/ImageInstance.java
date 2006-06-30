@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 
+import java.awt.geom.Rectangle2D;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import org.odmg.*;
@@ -581,6 +582,63 @@ public class ImageInstance {
 	txw.commit();
     }
 
+    /**
+     CropBounds describes the how this instance is cropped from original image. It is 
+     defined as proportional coordinates that are applied after rotating the
+     original image so that top left corner is (0.0, 0.0) and bottom right
+     (1.0, 1.0)
+     */
+    
+    double cropMinX;
+    double cropMaxX;
+    double cropMinY;
+    double cropMaxY;
+    
+    /**
+     Check that the e crop bounds are defined in consistent manner. This is needed
+     since in old installations the max parameters can be larger than min ones.
+     */
+    
+    private void checkCropBounds() {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        if ( cropMaxX - cropMinX <= 0) {
+            txw.lock( this, Transaction.WRITE );
+            cropMaxX = 1.0 - cropMinX;
+        }
+        if ( cropMaxY - cropMinY <= 0) {
+            txw.lock( this, Transaction.WRITE );
+            cropMaxY = 1.0 - cropMinY;
+        }
+        txw.commit();
+    }
+    
+    /**
+     Get the preferred crop bounds of the original image
+     */
+    public Rectangle2D getCropBounds() {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.READ );
+        checkCropBounds();
+        txw.commit();
+        return new Rectangle2D.Double( cropMinX, cropMinY, 
+                cropMaxX-cropMinX, cropMaxY-cropMinY );        
+    }
+
+    
+    /**
+     Set the preferred cropping operation
+     @param cropBounds New crop bounds
+     */
+    public void setCropBounds( Rectangle2D cropBounds ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        cropMinX = cropBounds.getMinX();
+        cropMinY = cropBounds.getMinY();
+        cropMaxX = cropBounds.getMaxX();
+        cropMaxY = cropBounds.getMaxY();
+        txw.commit();
+    }
+       
     /**
      Sets the photo UID of this instance. THis should only be called by 
      PhotoInfo.addInstance()

@@ -100,6 +100,14 @@
     </field-descriptor>
     <field-descriptor name="rotated" column="rotated" jdbc-type="FLOAT">
     </field-descriptor>
+    <field-descriptor name="cropMinX" column="crop_xmin" jdbc-type="FLOAT">
+    </field-descriptor>
+    <field-descriptor name="cropMaxX" column="crop_xmax" jdbc-type="FLOAT">
+    </field-descriptor>
+    <field-descriptor name="cropMinY" column="crop_ymin" jdbc-type="FLOAT">
+    </field-descriptor>
+    <field-descriptor name="cropMaxY" column="crop_ymax" jdbc-type="FLOAT">
+    </field-descriptor>
     <field-descriptor name="hash" column="hash" jdbc-type="VARBINARY">        
     </field-descriptor>
     <field-descriptor name="fileSize" column="file_size" jdbc-type="BIGINT">
@@ -138,6 +146,14 @@
     <field-descriptor name="filmSpeed" column="film_speed" jdbc-type="INTEGER">
     </field-descriptor>
     <field-descriptor name="prefRotation" column="pref_rotation" jdbc-type="DOUBLE">
+    </field-descriptor>
+    <field-descriptor name="cropMinX" column="clip_xmin" jdbc-type="FLOAT">
+    </field-descriptor>
+    <field-descriptor name="cropMaxX" column="clip_xmax" jdbc-type="FLOAT">
+    </field-descriptor>
+    <field-descriptor name="cropMinY" column="clip_ymin" jdbc-type="FLOAT">
+    </field-descriptor>
+    <field-descriptor name="cropMaxY" column="clip_ymax" jdbc-type="FLOAT">
     </field-descriptor>
     <field-descriptor name="description" column="description" jdbc-type="VARCHAR">
     </field-descriptor>
