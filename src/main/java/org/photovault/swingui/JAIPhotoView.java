@@ -353,7 +353,7 @@ public class JAIPhotoView extends JPanel
     double newRotDegrees;
     
     /**
-     Calculates the crop new crop for image based on crop rectange
+     Calculates the new crop for image based on crop rectanlge
      */
     private void calcNewCrop() {
         double imgRotRadians = Math.toRadians( imgRot );
@@ -732,10 +732,14 @@ public class JAIPhotoView extends JPanel
         
         ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
         cropParams.addSource( tmp );
-        cropParams.setParameter( "x", (float)( tmp.getMinX() + cropUsed.getMinX() *  tmp.getWidth() ) );
-        cropParams.setParameter( "y", (float)( tmp.getMinY() + cropUsed.getMinY() *  tmp.getHeight() ) );
-        cropParams.setParameter( "width", (float)( cropUsed.getWidth() * tmp.getWidth() ) );
-        cropParams.setParameter( "height", (float) ( cropUsed.getHeight() * tmp.getHeight() ) );
+        float cropX = (float)( Math.rint( tmp.getMinX() + cropUsed.getMinX() *  tmp.getWidth() ));
+        float cropY = (float)( Math.rint( tmp.getMinY() + cropUsed.getMinY() *  tmp.getHeight() ));
+        float cropW = (float)( Math.rint( cropUsed.getWidth() * tmp.getWidth() ));
+        float cropH = (float) ( Math.rint( cropUsed.getHeight() * tmp.getHeight() ));
+        cropParams.setParameter( "x", cropX );
+        cropParams.setParameter( "y", cropY );
+        cropParams.setParameter( "width", cropW );
+        cropParams.setParameter( "height", cropH );
 	RenderedOp cropped = JAI.create("crop", cropParams, null);
         // Translate the image so that it begins in origo
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );

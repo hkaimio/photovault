@@ -610,7 +610,8 @@ public class PhotoInfo {
         // Maximum size of the thumbnail
         int maxThumbWidth = 100;
         int maxThumbHeight = 100;
-
+        checkCropBounds();
+        
         /*
          Determine the minimum size for the instance used for thumbnail creation 
          to get decent image quality.
@@ -733,14 +734,14 @@ public class PhotoInfo {
 
         ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
         cropParams.addSource( rotatedImage );
-        cropParams.setParameter( "x", 
-                (float)( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
-        cropParams.setParameter( "y", 
-                (float)( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight() ) );
-        cropParams.setParameter( "width", 
-                (float)( (cropWidth) * rotatedImage.getWidth() ) );
-        cropParams.setParameter( "height", 
-                (float) ( (cropHeight) * rotatedImage.getHeight() ) );
+        float cropX = (float)( Math.rint( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
+        float cropY = (float)( Math.rint( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight()));
+        float cropW = (float)( Math.rint((cropWidth) * rotatedImage.getWidth() ) );
+        float cropH = (float) ( Math.rint((cropHeight) * rotatedImage.getHeight() ));
+        cropParams.setParameter( "x", cropX );
+        cropParams.setParameter( "y", cropY );
+        cropParams.setParameter( "width", cropW );
+        cropParams.setParameter( "height", cropH );
 	RenderedOp cropped = JAI.create("crop", cropParams, null);
         // Translate the image so that it begins in origo
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
@@ -1340,20 +1341,22 @@ public class PhotoInfo {
     
     /**
      Check that the e crop bounds are defined in consistent manner. This is needed
-     since in old installations the max parameters can be larger thatn min ones.
+     since in old installations the max parameters can be larger than min ones.
      */
     
     private void checkCropBounds() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        if ( cropMaxX - cropMinX <= 0) {
-            txw.lock( this, Transaction.WRITE );
+        if ( cropMinX < 0.0 ) {
+            cropMinX = 0.0;            
+        }
+        if ( cropMinY < 0.0 ) {
+            cropMinY = 0.0;            
+        }
+        if ( cropMaxX - cropMinX <= 0.0) {
             cropMaxX = 1.0 - cropMinX;
         }
-        if ( cropMaxY - cropMinY <= 0) {
-            txw.lock( this, Transaction.WRITE );
+        if ( cropMaxY - cropMinY <= 0.0) {
             cropMaxY = 1.0 - cropMinY;
         }
-        txw.commit();
     }
     
     /**
@@ -1361,8 +1364,8 @@ public class PhotoInfo {
      */
     public Rectangle2D getCropBounds() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
         checkCropBounds();
+        txw.lock( this, Transaction.READ );
         txw.commit();
         return new Rectangle2D.Double( cropMinX, cropMinY, 
                 cropMaxX-cropMinX, cropMaxY-cropMinY );        
@@ -1384,6 +1387,7 @@ public class PhotoInfo {
         cropMinY = cropBounds.getMinY();
         cropMaxX = cropBounds.getMaxX();
         cropMaxY = cropBounds.getMaxY();
+        checkCropBounds();
         modified();
         txw.commit();
     }
