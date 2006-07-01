@@ -78,7 +78,8 @@ import java.awt.event.MouseEvent;
 public class PhotoCollectionThumbView
     extends JPanel
     implements MouseMotionListener, MouseListener, ActionListener,
-	       PhotoCollectionChangeListener, PhotoInfoChangeListener {
+	       PhotoCollectionChangeListener, PhotoInfoChangeListener,
+               Scrollable {
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoCollectionThumbView.class.getName() );
     
@@ -576,10 +577,12 @@ public class PhotoCollectionThumbView
                 prefWidth += columnWidth * (int)( photoCollection.getPhotoCount() / rowCount );
             }
         } else {
-            prefWidth = columnWidth * columnsToPaint;
+            Dimension compSize = getSize();
+            int columns = (int)(compSize.getWidth() / columnWidth);
+            prefWidth = columnWidth * columns;
             prefHeight = rowHeight;
             if ( photoCollection != null ) {
-                prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columnsToPaint );
+                prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columns );
             }            
         }
         return new Dimension( prefWidth, prefHeight );
@@ -1038,9 +1041,13 @@ public class PhotoCollectionThumbView
             if ( idx >= photos.size() ) {
                 idx = photos.size()-1;
             }
+            // Scroll so that the selected photo is visible
+            Rectangle selectionBounds = getPhotoCellBounds( idx );
+            scrollRectToVisible( selectionBounds );
+
             selection.clear();
             selection.add( photos.get( idx ));
-            fireSelectionChangeEvent();
+            fireSelectionChangeEvent();            
             repaint();
         }        
     }
@@ -1053,6 +1060,11 @@ public class PhotoCollectionThumbView
             if ( idx < 0 ) {
                 idx = 0;
             }
+
+            // Scroll so that the selected photo is visible
+            Rectangle selectionBounds = getPhotoCellBounds( idx );
+            scrollRectToVisible( selectionBounds );
+
             selection.clear();
             selection.add( photos.get( idx ));
             fireSelectionChangeEvent();
@@ -1100,6 +1112,71 @@ public class PhotoCollectionThumbView
                 }
             }
         }
+    }
+
+    // IMplementation of Scrollable interface
+    
+    
+    public Dimension getPreferredScrollableViewportSize() {
+        return getPreferredSize();
+    }
+
+    /**
+     Get the amount that needs to be scrolled when pressing scroll bar button.
+     @return number of pixels to scroll until next image thumbnail
+     */ 
+    public int getScrollableUnitIncrement(Rectangle visibleRect,
+            int orientation, int direction ) {
+        //Get the current position.
+        int currentPosition = 0;
+        int incrementUnit = 0;
+        if (orientation == SwingConstants.HORIZONTAL) {
+            currentPosition = visibleRect.x;
+            incrementUnit = columnWidth;
+        } else {
+            currentPosition = visibleRect.y;
+            incrementUnit = rowHeight;
+        }
+        
+        //Return the number of pixels between currentPosition
+        //and the nearest tick mark in the indicated direction.
+        if (direction  < 0) {
+            int newPosition = currentPosition -
+                    (currentPosition / incrementUnit) * incrementUnit;
+            return (newPosition == 0) ? incrementUnit : newPosition;
+        } else {
+            return ((currentPosition / incrementUnit) + 1) * incrementUnit
+                    - currentPosition;
+        }     
+    }
+
+    /**
+     Get the number of pixels to xcroll if user clicks on scroll bar outside 
+     handle.
+     */
+    public int getScrollableBlockIncrement(Rectangle visibleRect,
+            int orientation, int direction) {
+        if (orientation == SwingConstants.HORIZONTAL)
+            return visibleRect.width - columnWidth;
+        else
+            return visibleRect.height - rowHeight;
+    }
+
+    /**
+     Returns whether containing Scroll pane should force width of the component 
+     to match its width.
+     @return Returns <code>true</code> if the component is in "no preview" mode.
+     */
+    public boolean getScrollableTracksViewportWidth() {
+        boolean shouldTrack = false;
+        if ( rowCount < 0 && columnCount < 0 ) {
+            shouldTrack = true;
+        }
+        return shouldTrack;
+    }
+
+    public boolean getScrollableTracksViewportHeight() {
+        return false;
     }
 
 }
