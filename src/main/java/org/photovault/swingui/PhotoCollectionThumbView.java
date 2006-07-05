@@ -287,22 +287,34 @@ public class PhotoCollectionThumbView
 					 "Show the selected phot(s)",
 					 KeyEvent.VK_S );
         JMenuItem showItem = new JMenuItem( showSelectedPhotoAction );
+
+        ImageIcon rotateCWIcon = getIcon( "rotate_cw.png" );
 	rotateCWAction =
 	    new RotateSelectedPhotoAction( this, 90, "Rotate 90 deg CW",
-					   null, "Rotates the selected photo",
+					   rotateCWIcon, "Rotates the selected photo",
 					   KeyEvent.VK_R );
         JMenuItem rotateCW = new JMenuItem( rotateCWAction );
-	rotateCCWAction
+
+        ImageIcon rotateCCWIcon = getIcon( "rotate_ccw.png" );
+        rotateCCWAction
 	    = new RotateSelectedPhotoAction( this, 270, "Rotate 90 deg CCW",
-					     null, "Rotates the selected photo",
+					     rotateCCWIcon, "Rotates the selected photo",
 					     KeyEvent.VK_W );
         JMenuItem rotateCCW = new JMenuItem( rotateCCWAction );
-	rotate180degAction = new RotateSelectedPhotoAction( this, 180, "Rotate 180 deg", null, "Rotates the selected photo", KeyEvent.VK_R );
+        
+        ImageIcon rotate180Icon = getIcon( "rotate_180.png" );
+	rotate180degAction 
+                = new RotateSelectedPhotoAction( this, 180, "Rotate 180 deg", 
+                    rotate180Icon, "Rotates the selected photo", KeyEvent.VK_R );
         JMenuItem rotate180deg = new JMenuItem( rotate180degAction );
         JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
         addToFolder.addActionListener( this );
         addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
-	exportSelectedAction = new ExportSelectedAction( this, "Export selected...", null, "Export the selected photos to from archive database to image files", KeyEvent.VK_X );
+        ImageIcon exportIcon = getIcon( "filesave.png" );
+	exportSelectedAction 
+                = new ExportSelectedAction( this, "Export selected...", exportIcon, 
+                "Export the selected photos to from archive database to image files", 
+                KeyEvent.VK_X );
 	JMenuItem exportSelected = new JMenuItem( exportSelectedAction );
 
 	// Create the Quality submenu
@@ -328,10 +340,35 @@ public class PhotoCollectionThumbView
         popup.add( exportSelected );
         MouseListener popupListener = new PopupListener();
         addMouseListener( popupListener );
-               
+        
+        ImageIcon selectNextIcon = getIcon( "next.png" );
+        selectNextAction = new ChangeSelectionAction( this,
+                ChangeSelectionAction.MOVE_FWD, "Next photo", selectNextIcon,
+                "Move to next photo", KeyEvent.VK_N,
+                KeyStroke.getKeyStroke( KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK ) );
+
+        ImageIcon selectPrevIcon = getIcon( "previous.png" );
+        selectPrevAction = new ChangeSelectionAction( this,
+                ChangeSelectionAction.MOVE_BACK, "Previous photo", selectPrevIcon,
+                "Move to previous photo", KeyEvent.VK_P,
+                KeyStroke.getKeyStroke( KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK ) );
     }
 
-
+    /**
+     Loads an icon using class loader of this class
+     @param resouceName Name of the icon reosurce to load
+     @return The icon or <code>null</code> if no image was found using the given
+     resource name.
+     */
+    private ImageIcon getIcon( String resourceName ) {
+        ImageIcon icon = null;
+        java.net.URL iconURL = JAIPhotoViewer.class.getClassLoader().getResource( resourceName );
+        if ( iconURL != null ) {
+            icon = new ImageIcon( iconURL );
+        }
+        return icon;
+    }
+    
     /**
      * Sets the shape of the thumbnail grid so that it has specified number of columns.
      * When this is set then row count is adjusted so that all thumbnails fit.
@@ -371,6 +408,9 @@ public class PhotoCollectionThumbView
     private AbstractAction rotateCWAction;
     private AbstractAction rotateCCWAction;
     private AbstractAction rotate180degAction;
+    private AbstractAction selectNextAction;
+    private AbstractAction selectPrevAction;
+    
 
     public AbstractAction getExportSelectedAction() {
 	return exportSelectedAction;
@@ -396,6 +436,14 @@ public class PhotoCollectionThumbView
 	return rotate180degAction;
     }
     
+    public AbstractAction getSelectNextAction() {
+	return selectNextAction;
+    }
+    
+    public AbstractAction getSelectPreviousAction() {
+	return selectPrevAction;
+    }
+        
     
     public void paint( Graphics g ) {
         super.paint( g );

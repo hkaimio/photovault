@@ -115,6 +115,10 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
         statusBar = new StatusBar();
         cp.add( statusBar, BorderLayout.SOUTH );
+        
+        JToolBar tb = createToolbar();
+        cp.add( tb, BorderLayout.NORTH );
+        
 	// Create the menu bar & menus
 	JMenuBar menuBar = new JMenuBar();
 	setJMenuBar( menuBar );
@@ -196,18 +200,10 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	    });
 	viewMenu.add( noPreviewItem );
         
-        ChangeSelectionAction nextPhotoAction = new ChangeSelectionAction( viewPane,
-                ChangeSelectionAction.MOVE_FWD, "Next photo", null,
-                "Move to next photo", KeyEvent.VK_N,
-                KeyStroke.getKeyStroke( KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK ) );
-        JMenuItem nextPhotoItem = new JMenuItem( nextPhotoAction );
+        JMenuItem nextPhotoItem = new JMenuItem( viewPane.getSelectNextAction() );
 	viewMenu.add( nextPhotoItem );
         
-        ChangeSelectionAction prevPhotoAction = new ChangeSelectionAction( viewPane,
-                ChangeSelectionAction.MOVE_BACK, "Previous photo", null,
-                "Move to next photo", KeyEvent.VK_P,
-                KeyStroke.getKeyStroke( KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK ) );
-        JMenuItem prevPhotoItem = new JMenuItem( prevPhotoAction );
+        JMenuItem prevPhotoItem = new JMenuItem( viewPane.getSelectPreviousAction() );
 	viewMenu.add( prevPhotoItem );
         
         JMenu sortMenu = new JMenu( "Sort by" );
@@ -242,6 +238,42 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	setVisible( true );
     }
 
+    /**
+     Create the toolbar for this browser window.
+     */
+    protected JToolBar createToolbar() {
+        JToolBar tb = new JToolBar();
+        
+        JButton exportBtn = new JButton( viewPane.getExportSelectedAction() );
+        exportBtn.setText( "" );
+        
+        JButton rotCWBtn = new JButton( viewPane.getRotateCWActionAction() );
+        rotCWBtn.setText( "" );
+        JButton rotCCWBtn = new JButton( viewPane.getRotateCCWActionAction() );
+        rotCCWBtn.setText( "" );
+        JButton rot180Btn = new JButton( viewPane.getRotate180degActionAction() );
+        rot180Btn.setText( "" );
+        JButton cropBtn = new JButton( previewPane.getCropAction() );
+        cropBtn.setText( "" );
+        
+        JButton nextBtn = new JButton( viewPane.getSelectNextAction() );
+        nextBtn.setText( "" );
+        JButton prevBtn = new JButton( viewPane.getSelectPreviousAction() );
+        prevBtn.setText( "" );
+        
+        
+        tb.add( exportBtn );
+        tb.addSeparator();
+        tb.add( prevBtn );
+        tb.add( nextBtn );
+        tb.addSeparator();
+        tb.add( rotCWBtn );
+        tb.add( rotCCWBtn );
+        tb.add( rot180Btn );
+        tb.add( cropBtn );
+        return tb;
+    }
+    
     /**
      * Sets up the window layout so that the collection is displayed as one vertical
      * column with preview image on right
