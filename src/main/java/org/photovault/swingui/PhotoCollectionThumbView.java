@@ -265,77 +265,89 @@ public class PhotoCollectionThumbView
     TransferHandler photoTransferHandler = null;
     
     void createUI() {
-      photoTransferHandler = new PhotoCollectionTransferHandler( this );
+        photoTransferHandler = new PhotoCollectionTransferHandler( this );
         setTransferHandler( photoTransferHandler );
-
-	setAutoscrolls( true );
-	
+        
+        setAutoscrolls( true );
+        
         addMouseListener( this );
         addMouseMotionListener( this );
-
         
-
+        
+        
         // Create the popup menu
         popup = new JPopupMenu();
-	editSelectionPropsAction = 
-	    new EditSelectionPropsAction( this, "Properties...", null, 
-					  "Edit properties of the selected photos",
-					  KeyEvent.VK_P );
+        ImageIcon propsIcon = getIcon( "view_properties.png" );
+        editSelectionPropsAction =
+                new EditSelectionPropsAction( this, "Properties...", propsIcon,
+                "Edit properties of the selected photos",
+                KeyEvent.VK_P );
         JMenuItem propsItem = new JMenuItem( editSelectionPropsAction );
-	showSelectedPhotoAction =
-	    new ShowSelectedPhotoAction( this, "Show image", null,
-					 "Show the selected phot(s)",
-					 KeyEvent.VK_S );
+        ImageIcon showIcon = getIcon( "show_new_window.png" );
+        showSelectedPhotoAction =
+                new ShowSelectedPhotoAction( this, "Show image", showIcon,
+                "Show the selected phot(s)",
+                KeyEvent.VK_S );
         JMenuItem showItem = new JMenuItem( showSelectedPhotoAction );
-
+        
         ImageIcon rotateCWIcon = getIcon( "rotate_cw.png" );
-	rotateCWAction =
-	    new RotateSelectedPhotoAction( this, 90, "Rotate 90 deg CW",
-					   rotateCWIcon, "Rotates the selected photo",
-					   KeyEvent.VK_R );
+        rotateCWAction =
+                new RotateSelectedPhotoAction( this, 90, "Rotate 90 deg CW",
+                rotateCWIcon, "Rotates the selected photo clockwise",
+                KeyEvent.VK_R );
         JMenuItem rotateCW = new JMenuItem( rotateCWAction );
-
+        
         ImageIcon rotateCCWIcon = getIcon( "rotate_ccw.png" );
         rotateCCWAction
-	    = new RotateSelectedPhotoAction( this, 270, "Rotate 90 deg CCW",
-					     rotateCCWIcon, "Rotates the selected photo",
-					     KeyEvent.VK_W );
+                = new RotateSelectedPhotoAction( this, 270, "Rotate 90 deg CCW",
+                rotateCCWIcon,
+                "Rotates the selected photo counterclockwise",
+                KeyEvent.VK_W );
         JMenuItem rotateCCW = new JMenuItem( rotateCCWAction );
         
         ImageIcon rotate180Icon = getIcon( "rotate_180.png" );
-	rotate180degAction 
-                = new RotateSelectedPhotoAction( this, 180, "Rotate 180 deg", 
-                    rotate180Icon, "Rotates the selected photo", KeyEvent.VK_R );
+        rotate180degAction
+                = new RotateSelectedPhotoAction( this, 180, "Rotate 180 deg",
+                rotate180Icon, "Rotates the selected photo 180 degrees", KeyEvent.VK_R );
         JMenuItem rotate180deg = new JMenuItem( rotate180degAction );
         JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
         addToFolder.addActionListener( this );
         addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
         ImageIcon exportIcon = getIcon( "filesave.png" );
-	exportSelectedAction 
-                = new ExportSelectedAction( this, "Export selected...", exportIcon, 
-                "Export the selected photos to from archive database to image files", 
+        exportSelectedAction
+                = new ExportSelectedAction( this, "Export selected...", exportIcon,
+                "Export the selected photos to from archive database to image files",
                 KeyEvent.VK_X );
-	JMenuItem exportSelected = new JMenuItem( exportSelectedAction );
-
-	// Create the Quality submenu
-	JMenu qualityMenu = new JMenu( "Quality" );
-	String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
-	for ( int n = 0; n < qualityStrings.length; n++ ) {
-	    AbstractAction qualityAction
-		= new SetPhotoQualityAction( this, n, qualityStrings[n], null,
-					     "Set quality of selected phots to \"" + qualityStrings[n] + "\"",
-					     null );
-	    JMenuItem qualityMenuItem = new JMenuItem( qualityAction );
-	    qualityMenu.add( qualityMenuItem );
-	}
-
-	
+        JMenuItem exportSelected = new JMenuItem( exportSelectedAction );
+        
+        // Create the Quality submenu
+        JMenu qualityMenu = new JMenu( "Quality" );
+        String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
+        String qualityIconnames[] = { 
+            "quality_unevaluated.png", 
+            "quality_top.png", 
+            "quality_good.png", 
+            "quality_ok.png", 
+            "quality_poor.png", 
+            "quality_unusable.png" 
+        };
+        for ( int n = 0; n < qualityStrings.length; n++ ) {
+            ImageIcon icon = getIcon( qualityIconnames[n] );
+            AbstractAction qualityAction
+                    = new SetPhotoQualityAction( this, n, qualityStrings[n], icon,
+                    "Set quality of selected phots to \"" + qualityStrings[n] + "\"",
+                    null );
+            JMenuItem qualityMenuItem = new JMenuItem( qualityAction );
+            qualityMenu.add( qualityMenuItem );
+        }
+        
+        
         popup.add( showItem );
         popup.add( propsItem );
         popup.add( rotateCW );
         popup.add( rotateCCW );
         popup.add( rotate180deg );
-	popup.add( qualityMenu );
+        popup.add( qualityMenu );
         popup.add( addToFolder );
         popup.add( exportSelected );
         MouseListener popupListener = new PopupListener();
@@ -346,7 +358,7 @@ public class PhotoCollectionThumbView
                 ChangeSelectionAction.MOVE_FWD, "Next photo", selectNextIcon,
                 "Move to next photo", KeyEvent.VK_N,
                 KeyStroke.getKeyStroke( KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK ) );
-
+        
         ImageIcon selectPrevIcon = getIcon( "previous.png" );
         selectPrevAction = new ChangeSelectionAction( this,
                 ChangeSelectionAction.MOVE_BACK, "Previous photo", selectPrevIcon,

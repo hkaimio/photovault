@@ -99,7 +99,9 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	    } );
 	
 	// Create the split pane to display both of these components
-	viewScroll = new JScrollPane( viewPane );
+
+        
+        viewScroll = new JScrollPane( viewPane );
         
         collectionPane = new JPanel();
         collectionPane.add( viewScroll );
@@ -115,6 +117,56 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
         statusBar = new StatusBar();
         cp.add( statusBar, BorderLayout.SOUTH );
+        
+        // Create actions for BrowserWindow UI
+
+        ImageIcon indexDirIcon = getIcon( "index_dir.png" );
+        indexDirAction = new AbstractAction( "Index directory...", indexDirIcon ) {
+            public void actionPerformed( ActionEvent e ) {
+                indexDir();
+            }
+        };
+        indexDirAction.putValue( AbstractAction.SHORT_DESCRIPTION,
+                "Index all images in a directory" );
+        
+        ImageIcon importIcon = getIcon( "import.png" );
+        importAction = new AbstractAction( "Import image...", importIcon ) {
+            public void actionPerformed( ActionEvent e ) {
+                importFile();
+            }
+        };
+        importAction.putValue( AbstractAction.SHORT_DESCRIPTION,
+                "Import new image into database" );
+
+                ImageIcon updateIcon = getIcon( "update_indexed_dirs.png" );
+        updateIndexAction = new UpdateIndexAction( "Update indexed dirs",
+                updateIcon, "Check for changes in previously indexed directories",
+                KeyEvent.VK_U );
+        
+        ImageIcon previewTopIcon = getIcon( "view_preview_top.png" );
+        previewTopAction = new AbstractAction( "Preview on top", previewTopIcon ) {
+            public void actionPerformed( ActionEvent e ) {
+                setupLayoutPreviewWithHorizontalIcons();
+            }
+        };
+        previewTopAction.putValue( AbstractAction.SHORT_DESCRIPTION,
+                "Show preview on top of thumbnails" );
+        ImageIcon previewRightIcon = getIcon( "view_preview_right.png" );
+        previewRightAction = new AbstractAction( "Preview on right", previewRightIcon ) {
+            public void actionPerformed( ActionEvent e ) {
+                setupLayoutPreviewWithVerticalIcons();
+            }
+        };
+        previewRightAction.putValue( AbstractAction.SHORT_DESCRIPTION,
+                "Show preview on right of thumbnails" );
+        ImageIcon previewNoneIcon = getIcon( "view_no_preview.png" );
+        previewNoneAction = new AbstractAction( "No preview", previewNoneIcon ) {
+            public void actionPerformed( ActionEvent e ) {
+                setupLayoutNoPreview();
+            }
+        };
+        previewNoneAction.putValue( AbstractAction.SHORT_DESCRIPTION,
+                "Show no preview image" );
         
         JToolBar tb = createToolbar();
         cp.add( tb, BorderLayout.NORTH );
@@ -136,28 +188,15 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	    });
 	fileMenu.add( newWindowItem );
 
-	JMenuItem importItem = new JMenuItem( "Import image...", KeyEvent.VK_I );
-	importItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    importFile();
-		}
-	    });
+	JMenuItem importItem = new JMenuItem( importAction );
 	fileMenu.add( importItem );
 
-	JMenuItem indexDirItem = new JMenuItem( "Index directory...", KeyEvent.VK_D );
-	indexDirItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    indexDir();
-		}
-	    });
+	JMenuItem indexDirItem = new JMenuItem( indexDirAction );
 	fileMenu.add( indexDirItem );
         
-        UpdateIndexAction updateIndex = new UpdateIndexAction( "Update indexed dirs",
-                null, "Checks for changes in previously indexed directories", 
-                KeyEvent.VK_U );
         
-        updateIndex.addStatusChangeListener( statusBar );
-        JMenuItem updateIndexItem = new JMenuItem( updateIndex );
+        updateIndexAction.addStatusChangeListener( statusBar );
+        JMenuItem updateIndexItem = new JMenuItem( updateIndexAction );
         fileMenu.add( updateIndexItem );
         
 
@@ -176,28 +215,13 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         viewMenu.setMnemonic( KeyEvent.VK_V );
         menuBar.add( viewMenu );
         
-	JMenuItem vertIconsItem = new JMenuItem( "Preview on Right", KeyEvent.VK_R );
-	vertIconsItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    setupLayoutPreviewWithVerticalIcons();
-		}
-	    });
+	JMenuItem vertIconsItem = new JMenuItem( previewRightAction );
 	viewMenu.add( vertIconsItem );
         
-	JMenuItem horzIconsItem = new JMenuItem( "Preview on Top", KeyEvent.VK_T );
-	horzIconsItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    setupLayoutPreviewWithHorizontalIcons();
-		}
-	    });
+	JMenuItem horzIconsItem = new JMenuItem( previewTopAction );
 	viewMenu.add( horzIconsItem );
         
-	JMenuItem noPreviewItem = new JMenuItem( "No preview", KeyEvent.VK_T );
-	noPreviewItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    setupLayoutNoPreview();
-		}
-	    });
+	JMenuItem noPreviewItem = new JMenuItem( previewNoneAction );
 	viewMenu.add( noPreviewItem );
         
         JMenuItem nextPhotoItem = new JMenuItem( viewPane.getSelectNextAction() );
@@ -244,6 +268,12 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     protected JToolBar createToolbar() {
         JToolBar tb = new JToolBar();
         
+        JButton importBtn = new JButton( importAction );
+        importBtn.setText( "" );
+        JButton indexBtn = new JButton( indexDirAction );
+        indexBtn.setText( "" );
+        JButton updateBtn = new JButton( updateIndexAction );
+        updateBtn.setText( "" );
         JButton exportBtn = new JButton( viewPane.getExportSelectedAction() );
         exportBtn.setText( "" );
         
@@ -260,12 +290,23 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         nextBtn.setText( "" );
         JButton prevBtn = new JButton( viewPane.getSelectPreviousAction() );
         prevBtn.setText( "" );
+        JButton previewRightBtn = new JButton( previewRightAction );
+        previewRightBtn.setText( "" );
+        JButton previewTopBtn = new JButton( previewTopAction );
+        previewTopBtn.setText( "" );
+        JButton previewNoneBtn = new JButton( previewNoneAction );
+        previewNoneBtn.setText( "" );
         
-        
+        tb.add( importBtn );
+        tb.add( indexBtn );
+        tb.add( updateBtn );
         tb.add( exportBtn );
         tb.addSeparator();
         tb.add( prevBtn );
         tb.add( nextBtn );
+        tb.add( previewRightBtn );
+        tb.add( previewTopBtn );
+        tb.add( previewNoneBtn );
         tb.addSeparator();
         tb.add( rotCWBtn );
         tb.add( rotCCWBtn );
@@ -273,6 +314,22 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         tb.add( cropBtn );
         return tb;
     }
+
+    /**
+     Loads an icon using class loader of this class
+     @param resouceName Name of the icon reosurce to load
+     @return The icon or <code>null</code> if no image was found using the given
+     resource name.
+     */
+    private ImageIcon getIcon( String resourceName ) {
+        ImageIcon icon = null;
+        java.net.URL iconURL = JAIPhotoViewer.class.getClassLoader().getResource( resourceName );
+        if ( iconURL != null ) {
+            icon = new ImageIcon( iconURL );
+        }
+        return icon;
+    }
+
     
     /**
      * Sets up the window layout so that the collection is displayed as one vertical
@@ -530,6 +587,31 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     protected PhotoCollectionThumbView viewPane = null;
     protected JAIPhotoViewer previewPane = null;
 
+    /**
+     Action that imports a new image to Photovault archive
+     */
+    AbstractAction importAction;
+    /**
+     Action that lets user to select a directory that is indexed as an external
+     volume.
+     */
+    AbstractAction indexDirAction;
+    /**
+     Action that updates all external volumes in current database.
+     */
+    UpdateIndexAction updateIndexAction;
+    /**
+     Action that sets the preview window on top of thumbnails
+     */
+    AbstractAction previewTopAction;
+    /**
+     Action that sets the preview window on right side of thumbnails
+     */
+    AbstractAction previewRightAction;
+     /**
+     Action that hides the preview window
+     */
+    AbstractAction previewNoneAction;
     /**
      *Status bar for this window
      */
