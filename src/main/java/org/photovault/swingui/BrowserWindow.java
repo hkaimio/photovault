@@ -239,6 +239,10 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
                 new ShootingPlaceComparator(), "Place", null, 
                 "Order photos by shooting place", null ));
         sortMenu.add( byPlaceItem );
+        JMenuItem byQualityItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
+                new QualityComparator(), "Quality", null, 
+                "Order photos by quality", null ));
+        sortMenu.add( byQualityItem );
         viewMenu.add( sortMenu );
         
 	JMenu imageMenu = new JMenu( "Image" );

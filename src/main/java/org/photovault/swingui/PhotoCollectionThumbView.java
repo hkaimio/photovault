@@ -237,7 +237,10 @@ public class PhotoCollectionThumbView
     int columnCount = 1;
     int rowCount = -1;
     int columnsToPaint = 1;
-
+    /**
+     Array of icons used to represent different quality settings in thumbnails
+     */
+    ImageIcon qualityIcons[] = null;
 
     JPopupMenu popup = null;
 
@@ -331,10 +334,12 @@ public class PhotoCollectionThumbView
             "quality_poor.png", 
             "quality_unusable.png" 
         };
+        qualityIcons = new ImageIcon[qualityStrings.length];
         for ( int n = 0; n < qualityStrings.length; n++ ) {
-            ImageIcon icon = getIcon( qualityIconnames[n] );
+            qualityIcons[n] = getIcon( qualityIconnames[n] );
             AbstractAction qualityAction
-                    = new SetPhotoQualityAction( this, n, qualityStrings[n], icon,
+                    = new SetPhotoQualityAction( this, n, qualityStrings[n], 
+                    qualityIcons[n],
                     "Set quality of selected phots to \"" + qualityStrings[n] + "\"",
                     null );
             JMenuItem qualityMenuItem = new JMenuItem( qualityAction );
@@ -517,6 +522,7 @@ public class PhotoCollectionThumbView
 
     boolean showDate = true;
     boolean showPlace = true;
+    boolean showQuality = true;
     
     private void paintThumbnail( Graphics2D g2, PhotoInfo photo, int startx, int starty, boolean isSelected ) {
         log.debug( "paintThumbnail entry " + photo.getUid() );
@@ -574,6 +580,18 @@ public class PhotoCollectionThumbView
         
         
         // Draw the attributes
+        
+        // Draw the qualoity icon to the upper left corner of the thumbnail            
+        int quality = photo.getQuality();
+        if ( showQuality && quality != PhotoInfo.QUALITY_UNDEFINED ) {
+            ImageIcon qualityIcon = qualityIcons[quality];
+            int qx = startx 
+                    + (columnWidth-img.getWidth()-qualityIcon.getIconWidth())/(int)2;
+            int qy = starty
+                    + (rowHeight-img.getHeight()-qualityIcon.getIconHeight())/(int)2;
+            qualityIcon.paintIcon( this, g2, qx, qy );
+        }
+        
         Color prevBkg = g2.getBackground();
         if ( isSelected ) {
             g2.setBackground( Color.BLUE );
