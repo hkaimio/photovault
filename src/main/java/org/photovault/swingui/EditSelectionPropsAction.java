@@ -46,7 +46,22 @@ class EditSelectionPropsAction extends AbstractAction implements SelectionChange
     }
 
     public void selectionChanged( SelectionChangeEvent e ) {
-	setEnabled( view.getSelectedCount() > 0 );
+        setEnabled( view.getSelectedCount() > 0 );
+        if ( propertyDlg != null && propertyDlg.isVisible() ) {
+            if ( view.getSelectedCount() > 0 ) {
+                Collection selection = view.getSelection();
+                PhotoInfo[] photos = new PhotoInfo[selection.size()];
+                Iterator iter = selection.iterator();
+                int n = 0;
+                while ( iter.hasNext() && n < photos.length ) {
+                    photos[n++] = (PhotoInfo) iter.next();
+                }
+                propertyDlg.setPhotos( photos );
+            } else {
+                // No photos selected
+                propertyDlg.setPhotos( null );
+            }            
+        }
     }
     
     public void actionPerformed( ActionEvent ev ) {
@@ -69,7 +84,7 @@ class EditSelectionPropsAction extends AbstractAction implements SelectionChange
         }
 
         if (propertyDlg == null ) {
-            propertyDlg = new PhotoInfoDlg( frame, true, selectedPhotos );
+            propertyDlg = new PhotoInfoDlg( frame, false, selectedPhotos );
         } else {
             propertyDlg.setPhotos( selectedPhotos );
         }

@@ -64,20 +64,6 @@ public class PhotoInfoDlg extends JDialog {
     protected void createUI() {
 	editor = new PhotoInfoEditor( ctrl );
 	getContentPane().add( editor, BorderLayout.NORTH );
-
-	// Create a pane for the buttols
-	JButton okBtn = new JButton( "OK" );
-	okBtn.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    try {
-			ctrl.save();
-			photoChanged = true;
-		    } catch ( Exception ex ) {
-			log.warn( "problem while saving changes: " + ex.getMessage() );
-		    }
-		    setVisible( false );
-		}
-	    } );
 		    
 	JButton applyBtn = new JButton( "Apply" );
 	applyBtn.addActionListener( new ActionListener() {
@@ -90,8 +76,16 @@ public class PhotoInfoDlg extends JDialog {
 		    }
 		}
 	    } );
-	JButton cancelBtn = new JButton( "Cancel" );
-	cancelBtn.addActionListener( new ActionListener() {
+            
+        JButton discardBtn = new JButton( "Discard" );
+	discardBtn.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    ctrl.discard();
+		}
+	    } );
+
+        JButton closeBtn = new JButton( "Close" );
+	closeBtn.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
 		    ctrl.discard();
 		    setVisible( false );
@@ -102,14 +96,14 @@ public class PhotoInfoDlg extends JDialog {
 	buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
 	buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 	buttonPane.add(Box.createHorizontalGlue());
-	buttonPane.add(okBtn);
-	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 	buttonPane.add(applyBtn);
 	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
-	buttonPane.add(cancelBtn);
+	buttonPane.add(discardBtn);
+	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+	buttonPane.add(closeBtn);
 	getContentPane().add( buttonPane, BorderLayout.SOUTH );
 
-	getRootPane().setDefaultButton( okBtn );
+	getRootPane().setDefaultButton( applyBtn );
 
 	pack();
     }

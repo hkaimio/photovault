@@ -110,7 +110,7 @@ class FolderNode {
 	StringBuffer strbuf = new StringBuffer();
 	strbuf.append( "<html>" );
 	boolean hasPhotos = ((photos.size() > 0 || allAdded) && !allRemoved);
-	boolean hasAllPhotos = ((photos.size() == model.length || allAdded)
+	boolean hasAllPhotos = (model!= null && (photos.size() == model.length || allAdded)
 				&& !allRemoved );
 	if ( hasPhotos ) {
 	    strbuf.append( "<b>" );

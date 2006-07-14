@@ -40,9 +40,9 @@ public class FolderController extends FieldController {
     
     public FolderController( PhotoInfo[] model ) {
 	super( model );
+        treeModel = new DefaultTreeModel( new DefaultMutableTreeNode() );
 	addedToFolders = new HashSet();
 	removedFromFolders = new HashSet();
-	treeModel = new DefaultTreeModel( new DefaultMutableTreeNode() );
     }
 
 
@@ -183,22 +183,30 @@ public class FolderController extends FieldController {
 	the objects in model belong to
     */
     protected void initTree() {
-	folderNodes = new HashMap();
-	topNode = null;
-	if ( model == null ) {
-	    return;
-	}
-	
-	// Add all photos in the model to folder tree
-	for ( int n = 0; n < model.length; n++ ) {
-            // if the model is empty it can contain a null
-            // TODO: this is IMHO a hack - passing null up to this point is certainly
-            // not elegant and there might be even more error opportunities
-            if ( model[n] != null ) {
-                addPhotoToTree( (PhotoInfo) model[n] );
+        folderNodes = new HashMap();
+        topNode = null;
+//	if ( model == null ) {
+//	    return;
+//	}
+        
+        if ( model != null ) {
+            // Add all photos in the model to folder tree
+            for ( int n = 0; n < model.length; n++ ) {
+                // if the model is empty it can contain a null
+                // TODO: this is IMHO a hack - passing null up to this point is certainly
+                // not elegant and there might be even more error opportunities
+                if ( model[n] != null ) {
+                    addPhotoToTree( (PhotoInfo) model[n] );
+                }
             }
-	}
-        treeModel.nodeStructureChanged(topNode);
+        } else if ( treeModel != null ) {
+            // No photos in model and we are noit initializing, set just the top node
+            PhotoFolder top = PhotoFolder.getRoot();
+            addFolder( top );
+        }
+        if ( treeModel != null ) {
+            treeModel.nodeStructureChanged(topNode);
+        }
     }
 
     void addPhotoToTree( PhotoInfo photo ) {
