@@ -703,6 +703,7 @@ public class PhotoInfo {
                         origImage = reader.read( 0, param );
                         log.debug( "Read original" );
                     }
+                    iis.close();
                 }
             } catch ( IOException e ) {
                 log.warn( "Error reading image: " + e.getMessage() );

@@ -49,6 +49,8 @@ import org.photovault.imginfo.PhotoNotFoundException;
  
  */
 public class ExtVolIndexer implements Runnable {
+
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ExtVolIndexer.class.getName() );
     
     /**
      Creates a new instance of ExtVolIndexer
@@ -172,6 +174,7 @@ public class ExtVolIndexer implements Runnable {
      if Photovault was not able to index this file.
      */
     PhotoInfo indexFile( File f ) {
+        log.debug( "entry: indexFile " + f.getAbsolutePath() );
         indexedFileCount++;
         
         // Check if the instance already exists n database
@@ -245,6 +248,7 @@ public class ExtVolIndexer implements Runnable {
         }
         currentEvent.setPhoto( photo );
         txw.commit();
+        log.debug( "exit: indexFile " + f.getAbsolutePath() );
         return photo;
     }
     
@@ -270,6 +274,7 @@ public class ExtVolIndexer implements Runnable {
      @param endPercent See above.
      */
     void indexDirectory( File dir, PhotoFolder folder, int startPercent, int endPercent ) {
+        log.debug( "entry: indexDirectory " + dir.getAbsolutePath() );
         /**
          Maintain information how many instances for the photos that were previously 
          added to the folder is found

@@ -69,7 +69,6 @@ public class ImageInstance {
         i.mtime = imgFile.lastModified();
         i.fname = vol.mapFileToVolumeRelativeName( imgFile );
         txw.lock( i, Transaction.WRITE );
-        i.calcHash();
         // Read the rest of fields from the image file
 	try {
 	    i.readImageFile();
@@ -79,6 +78,7 @@ public class ImageInstance {
 	    // The image does not exist, so it cannot be read!!!
 	    return null;
 	}
+        i.calcHash();
         i.checkTime = new java.util.Date();
         txw.commit();
         return i;
@@ -205,14 +205,27 @@ public class ImageInstance {
 	// TODO: THis shoud decode also other readers from fname
 	Iterator readers = ImageIO.getImageReadersByFormatName("jpg");
 	ImageReader reader = (ImageReader)readers.next();
-	ImageInputStream iis = ImageIO.createImageInputStream( imageFile );
-        if ( iis != null ) {
-            reader.setInput( iis, true );
-            
-            width = reader.getWidth( 0 );
-            height = reader.getHeight( 0 );
-            
-            iis.close();
+	ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream( imageFile );        
+            if ( iis != null ) {
+                reader.setInput( iis, true );
+                
+                width = reader.getWidth( 0 );
+                height = reader.getHeight( 0 );
+                reader.dispose();
+            }
+        } catch (IOException ex) {
+            log.debug( "Exception in readImageFile: " + ex.getMessage() );
+            throw ex;
+        } finally {
+            if ( iis != null ) {
+                try {
+                    iis.close();
+                } catch (IOException ex) {
+                    log.warn( "Cannot close image stream: " + ex.getMessage() );
+                }
+            }
         }
     }
 
