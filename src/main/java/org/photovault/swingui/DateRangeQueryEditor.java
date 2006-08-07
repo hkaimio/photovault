@@ -57,7 +57,14 @@ public class DateRangeQueryEditor extends JPanel implements ActionListener {
 	
 	JLabel startLabel = new JLabel( "Start date" );
 	JLabel endLabel = new JLabel( "End date" );
-	JLabel dateRangeLabel = new JLabel( "Enter date range" );
+        
+        DateFormat df1 = new SimpleDateFormat( "MMMM yyyy" );
+        Calendar cal = Calendar.getInstance();
+        cal.set( 2006, 0, 15 );
+        Date d = cal.getTime();
+        String date2Str = df1.format( d );
+	JLabel dateRangeLabel = new JLabel( "Enter date range (e.g. \"2005 - " 
+                + date2Str +"\")");
 	JLabel guide1Label = new JLabel( "or enter start & end dates" );
 // 	JLabel shootingPlaceLabel = new JLabel( "Shooting place" );
 // 	JLabel descLabel = new JLabel( "Description" );
@@ -98,8 +105,11 @@ public class DateRangeQueryEditor extends JPanel implements ActionListener {
 	fieldConstraints.weightx = 1.0;
 	layout.setConstraints( dateRangeLabel, labelConstraints );
 	add( dateRangeLabel );
-	layout.setConstraints( dateRange, fieldConstraints );
+        layout.setConstraints( dateRange, fieldConstraints );
 	add( dateRange );
+/*
+ TODO: date range probabilities are currently not functional so this is not enabled
+
 	layout.setConstraints( guide1Label, labelConstraints );
 	add( guide1Label );
 	
@@ -115,7 +125,7 @@ public class DateRangeQueryEditor extends JPanel implements ActionListener {
 	add( maybeInRangeBtn );
 	layout.setConstraints( guide3Label, labelConstraints );
 	add( guide3Label );
-	
+*/	
     }
 
     /** @refactorit.skip str_equal_compare */
