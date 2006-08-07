@@ -73,10 +73,10 @@ public class JUnitOJBManager {
         File dbDir = null;
         try {
             dbDir = File.createTempFile("pv_junit_derby_instance", "");
+            dbDir.delete();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        dbDir.delete();
         PVDatabase pvd = new PVDatabase();
         pvd.setInstanceType( PVDatabase.TYPE_EMBEDDED );
         pvd.setEmbeddedDirectory( dbDir );

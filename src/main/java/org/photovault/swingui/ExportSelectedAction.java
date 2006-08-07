@@ -236,7 +236,7 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         }
     }
     
-    public void removestatusChangeListener( StatusChangeListener l ) {
+    public void removeStatusChangeListener( StatusChangeListener l ) {
         synchronized( listeners ) {
             listeners.remove( l );
         }

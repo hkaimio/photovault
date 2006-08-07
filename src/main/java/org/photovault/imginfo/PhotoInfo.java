@@ -115,7 +115,7 @@ public class PhotoInfo {
 	    QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
 	    Collection result = broker.getCollectionByQuery( q );
             if ( result.size() > 0 ) {
-                photos = (PhotoInfo[]) result.toArray( new PhotoInfo[0] );
+                photos = (PhotoInfo[]) result.toArray( new PhotoInfo[result.size()] );
             }
             txw.commit();
 	} catch ( Exception e ) {
@@ -172,21 +172,10 @@ public class PhotoInfo {
             vol = VolumeBase.getDefaultVolume();
             instanceFile = vol.getFilingFname( imgFile );
 
-            // 
             try {
-                FileInputStream in = new FileInputStream( imgFile );
-                FileOutputStream out = new FileOutputStream( instanceFile );
-                byte buf[] = new byte[1024];
-                int nRead = 0;
-                int offset = 0;
-                while ( (nRead = in.read( buf )) > 0 ) {
-                    out.write( buf, 0, nRead );
-                    offset += nRead;
-                }
-                out.close();
-                in.close();
-            } catch ( Exception e ) {
-                log.warn( "Error copying file: " + e.getMessage() );
+                FileUtils.copyFile( imgFile, instanceFile );
+            } catch (IOException ex) {
+                log.warn( "Error copying file: " + ex.getMessage() );
                 throw new PhotoNotFoundException();
             }
         } else if ( vol instanceof ExternalVolume ) {

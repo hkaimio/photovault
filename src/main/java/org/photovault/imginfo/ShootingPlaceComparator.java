@@ -40,9 +40,7 @@ public class ShootingPlaceComparator implements Comparator {
             place2 = "";
         }
         int res = 0;
-        if ( place1 != null ) {
-            res = place1.compareTo( place2 );
-        }
+        res = place1.compareTo( place2 );
         return res;
     }
 }

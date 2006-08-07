@@ -34,17 +34,40 @@ public class FileUtils {
        @param dst Destination file
     */
     public static void copyFile( File src, File dst ) throws IOException {
-	FileInputStream in = new FileInputStream( src );
-	FileOutputStream out = new FileOutputStream( dst );
-	byte buf[] = new byte[1024];
-	int nRead = 0;
-	int offset = 0;
-	while ( (nRead = in.read( buf )) > 0 ) {
-	    out.write( buf, 0, nRead );
-	    offset += nRead;
-	}
-	out.close();
-	in.close();
+        FileInputStream in = null;
+        FileOutputStream out = null;
+        try {
+            in = new FileInputStream( src );
+            out = new FileOutputStream( dst );
+            byte buf[] = new byte[1024];
+            int nRead = 0;
+            int offset = 0;
+            while ( (nRead = in.read( buf )) > 0 ) {
+                out.write( buf, 0, nRead );
+                offset += nRead;
+            }
+        } catch ( IOException e ) {
+            throw e;
+        } finally {
+            IOException outEx = null;
+            if ( out != null ) {
+                try {
+                    out.close();
+                } catch (IOException ex) {
+                    outEx = ex;
+                }
+            }
+            if ( in != null ) {
+                try {
+                    in.close();
+                } catch (IOException ex) {
+                    throw ex;
+                }
+            }
+            if ( outEx != null ) {
+                throw outEx;
+            }
+        }
     }
 
     /**

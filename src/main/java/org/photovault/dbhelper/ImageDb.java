@@ -59,29 +59,5 @@ public class ImageDb {
             ex.printStackTrace();
         }
     }
-
-    /**
-       This fuction generates a unique integer uid for usage as a database key.
-     TODO: This seems to be not used and besides is MySQL specific. Should this 
-     be removed?
-       @return unique integer
-    */
-
-    public static int newUid() {
-	int uid = -1;
-	Connection con  = getConnection();
-	try {
-	    Statement stmt = con.createStatement();
-	    stmt.executeUpdate( "UPDATE sequence SET id = LAST_INSERT_ID( id+1 )" );
-	    ResultSet rs = stmt.executeQuery( "SELECT LAST_INSERT_ID()" );
-	    if ( rs.next() ) {
-		uid = rs.getInt( 1 );
-	    }
-	} catch ( SQLException e ) {
-	    System.err.println( "Error generating uid: " + e.getMessage() );
-	}
-	return uid;
-    }
-    
 }
     
