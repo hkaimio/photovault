@@ -39,6 +39,7 @@ var ICONS_GROUP
 !insertmacro MUI_PAGE_STARTMENU Application $ICONS_GROUP
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
+!define MUI_FINISHPAGE_TEXT "Thank you for installing Photovault!\r\n\nWe appreciate your feedback, so whether you like it or not, please drop an email to feedback@photovault.org"
 !define MUI_FINISHPAGE_RUN "$INSTDIR\photovault.exe"
 !insertmacro MUI_PAGE_FINISH
 
