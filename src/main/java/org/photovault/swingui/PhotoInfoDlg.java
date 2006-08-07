@@ -65,7 +65,20 @@ public class PhotoInfoDlg extends JDialog {
 	editor = new PhotoInfoEditor( ctrl );
 	getContentPane().add( editor, BorderLayout.NORTH );
 		    
-	JButton applyBtn = new JButton( "Apply" );
+	JButton okBtn = new JButton( "OK" );
+	okBtn.addActionListener( new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+		    try {
+			ctrl.save();
+			photoChanged = true;
+		    } catch ( Exception ex ) {
+			log.warn( "problem while saving changes: " + ex.getMessage() );
+		    }
+                    setVisible( false );
+		}
+	    } );
+
+            JButton applyBtn = new JButton( "Apply" );
 	applyBtn.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
 		    try {
@@ -96,6 +109,8 @@ public class PhotoInfoDlg extends JDialog {
 	buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
 	buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 	buttonPane.add(Box.createHorizontalGlue());
+	buttonPane.add(okBtn);
+	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 	buttonPane.add(applyBtn);
 	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 	buttonPane.add(discardBtn);
