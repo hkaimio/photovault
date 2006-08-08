@@ -21,6 +21,7 @@
 package org.photovault.swingui;
 
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -84,19 +85,16 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
             if ( selection != null ) {
                 if ( selection.size() > 1 ) {
                     // Ensure that the numbering order is the same is in current view
+                    PhotoInfo exportPhotos[] 
+                            = (PhotoInfo[]) selection.toArray( new PhotoInfo[selection.size() ]);
                     Comparator comp = view.getPhotoOrderComparator();
                     if ( comp != null ) {
-                        TreeSet sortedSelection = new TreeSet( comp );
-                        sortedSelection.addAll( selection );
-                        selection = sortedSelection;
+                        Arrays.sort( exportPhotos, comp );
                     }
                     String format = getSequenceFnameFormat( exportFileTmpl );
                     BrowserWindow w = null;
-                    if ( c instanceof BrowserWindow ) {
-                        w = (BrowserWindow) c;
-                    }
-                    ExportThread exporter = new ExportThread( this, selection, format,
-                            exportWidth, exportHeight );
+                    ExportThread exporter = new ExportThread( this, exportPhotos, 
+                            format, exportWidth, exportHeight );
                     Thread t = new Thread( exporter );
                     setEnabled( false );
                     t.start();
@@ -113,9 +111,9 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         }
     }
     
-    class ExportThread implements Runnable {
+    static class ExportThread implements Runnable {
         
-        private Collection selection;
+        private PhotoInfo exportPhotos[];
         
         private String format;
         
@@ -125,9 +123,9 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         
         private ExportSelectedAction owner;
         
-        ExportThread( ExportSelectedAction owner, Collection selection, String fnameFormat,
-                int width, int height ) {
-            this.selection = selection;
+        ExportThread( ExportSelectedAction owner, PhotoInfo[] exportPhotos, 
+                String fnameFormat, int width, int height ) {
+            this.exportPhotos = exportPhotos;
             this.format = fnameFormat;
             this.exportWidth = width;
             this.exportHeight = height;
@@ -135,16 +133,13 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         }
         
         public void run() {
-            Iterator iter = selection.iterator();
-            int n = 1;
-            while ( iter.hasNext() ) {
-                String fname = String.format( format, new Integer( n ) );
-                int percent = (n-1) * 100 / selection.size();
+            for ( int n = 0; n < exportPhotos.length; n++  ) {
+                String fname = String.format( format, new Integer( n+1 ) );
+                int percent = (n) * 100 / exportPhotos.length;
                 owner.exportingPhoto( this, fname, percent );
                 File f = new File( fname );
-                PhotoInfo photo = (PhotoInfo) iter.next();
+                PhotoInfo photo = exportPhotos[n];
                 photo.exportPhoto( f, exportWidth, exportHeight );
-                n++;
             }
             owner.exportDone( this );
         }
@@ -203,7 +198,7 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
     }
     
     /**
-     This method is called by Exported before starting to export a new photo
+     This method is called by Exporter before starting to export a new photo
      @param exporter the exporter calling
      @param fname Name of the file to be created
      @param percent Percentage of export operation completed, 0..100
