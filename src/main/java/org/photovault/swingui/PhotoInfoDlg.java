@@ -64,46 +64,59 @@ public class PhotoInfoDlg extends JDialog {
     protected void createUI() {
 	editor = new PhotoInfoEditor( ctrl );
 	getContentPane().add( editor, BorderLayout.NORTH );
-		    
+	final PhotoInfoDlg staticThis = this;
+        
 	JButton okBtn = new JButton( "OK" );
 	okBtn.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    try {
-			ctrl.save();
-			photoChanged = true;
-		    } catch ( Exception ex ) {
-			log.warn( "problem while saving changes: " + ex.getMessage() );
-		    }
+            public void actionPerformed( ActionEvent e ) {
+                try {
+                    ctrl.save();
+                    photoChanged = true;
                     setVisible( false );
-		}
-	    } );
+                } catch ( Exception ex ) {
+                    JOptionPane.showMessageDialog(
+                            staticThis,
+                            "Error while saving changes: \n" + ex.getMessage(),
+                            "Error saving changes",
+                            JOptionPane.ERROR_MESSAGE,
+                            null );
+                    log.warn( "problem while saving changes: " + ex.getMessage() );
+                }
+            }
+        } );
 
-            JButton applyBtn = new JButton( "Apply" );
-	applyBtn.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    try {
-			ctrl.save();
-			photoChanged = true;
-		    } catch ( Exception ex ) {
-			log.warn( "problem while saving changes: " + ex.getMessage() );
-		    }
-		}
-	    } );
-            
+        JButton applyBtn = new JButton( "Apply" );
+        applyBtn.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent e ) {
+                try {
+                    ctrl.save();
+                    photoChanged = true;
+                } catch ( Exception ex ) {
+                    JOptionPane.showMessageDialog(
+                            staticThis,
+                            "Error while saving changes: \n" + ex.getMessage(),
+                            "Error saving changes",
+                            JOptionPane.ERROR_MESSAGE,
+                            null );
+                    log.warn( "problem while saving changes: " + ex.getMessage() );
+                }
+            }
+        } );
+        
         JButton discardBtn = new JButton( "Discard" );
-	discardBtn.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    ctrl.discard();
-		}
-	    } );
-
+        discardBtn.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent e ) {
+                ctrl.discard();
+            }
+        } );
+        
         JButton closeBtn = new JButton( "Close" );
-	closeBtn.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    ctrl.discard();
-		    setVisible( false );
-		}
-	    } );
+        closeBtn.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent e ) {
+                ctrl.discard();
+                setVisible( false );
+            }
+        } );
 	    
 	JPanel buttonPane = new JPanel();
 	buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));

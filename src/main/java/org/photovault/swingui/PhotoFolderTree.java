@@ -199,15 +199,28 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
        Creates a new subfolder for the selected folder
     */
     void createNewFolder() {
-	if ( selected != null ) {
-	    String newName = (String) JOptionPane.showInputDialog( this, "Enter name for new folder",
-								   "New folder", JOptionPane.PLAIN_MESSAGE,
-								   null, null, "New folder" );
-	    if ( newName != null ) {
-	    
-		PhotoFolder newFolder = PhotoFolder.create( newName, selected );
-	    }
-	}
+        if ( selected != null ) {
+            boolean ready = false;
+            while ( !ready ) {
+                String newName = (String) JOptionPane.showInputDialog( this, "Enter name for new folder",
+                        "New folder", JOptionPane.PLAIN_MESSAGE,
+                        null, null, "New folder" );
+                if ( newName != null ) {
+                    if ( newName.length() > PhotoFolder.NAME_LENGTH ) {
+                        JOptionPane.showMessageDialog( this,
+                                "Folder name cannot be longer than "
+                                + PhotoFolder.NAME_LENGTH + " characters",
+                                "Too long name", JOptionPane.ERROR_MESSAGE, null );
+                    } else {
+                        PhotoFolder newFolder = PhotoFolder.create( newName, selected );
+                        ready = true;
+                    }
+                } else {
+                    // User pressed Cancel
+                    ready = true;
+                }
+            }
+        }
     }
     
     /**
@@ -229,15 +242,29 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     void renameSelectedFolder() {
 	if ( selected != null ) {
 	    String origName = selected.getName();
-	    String newName = (String) JOptionPane.showInputDialog( this, "Enter new name",
-								   "Rename folder", JOptionPane.PLAIN_MESSAGE,
-								   null, null, origName );
-	    if ( newName != null ) {
-		PhotoFolder f = selected;
-		f.setName( newName );
-		log.debug( "Changed name to " + newName );
-	    }
-	}
+            boolean ready = false;
+            while ( !ready ) {
+                String newName = (String) JOptionPane.showInputDialog( this, "Enter new name",
+                        "Rename folder", JOptionPane.PLAIN_MESSAGE,
+                        null, null, origName );
+                if ( newName != null ) {
+                    PhotoFolder f = selected;
+                    try {
+                        f.setName( newName );
+                        ready = true;
+                    } catch ( IllegalArgumentException e ) {
+                        JOptionPane.showMessageDialog( this,
+                                "Folder name cannot be longer than "
+                                + PhotoFolder.NAME_LENGTH + " characters",
+                                "Too long name",
+                                JOptionPane.ERROR_MESSAGE, null );
+                    }
+                    log.debug( "Changed name to " + newName );
+                } else {
+                    ready = true;
+                }
+            }
+        }
     }
     
     

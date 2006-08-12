@@ -40,6 +40,11 @@ public class PhotoFolder implements PhotoCollection {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
 
+    /**
+     Maximum length of the "name" property
+     */
+    static public final int NAME_LENGTH = 30;
+    
     public PhotoFolder() {
 	//	subfolders = new Vector();
 	changeListeners = new Vector();
@@ -77,7 +82,8 @@ public class PhotoFolder implements PhotoCollection {
      * @param v  Value to assign to name.
      */
     public void setName(String  v) {
-	ODMGXAWrapper txw = new ODMGXAWrapper();
+	checkStringProperty( "Name", v, NAME_LENGTH );
+        ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.WRITE );
 	this.name = v;
 	modified();
@@ -277,6 +283,22 @@ public class PhotoFolder implements PhotoCollection {
     int parentId = -1;
     
     /**
+     Checks that a string is no longer tha tmaximum length allowed for it
+     @param propertyName The porperty name used in error message
+     @param value the new value
+     @param maxLength Maximum length for the string
+     @throws IllegalArgumentException if value is longer than maxLength
+     */
+    void checkStringProperty( String propertyName, String value, int maxLength ) 
+    throws IllegalArgumentException {
+        if ( value.length() > maxLength ) {
+            throw new IllegalArgumentException( propertyName 
+                    + " cannot be longer than " + maxLength + " characters" );
+        }
+    }
+    
+    
+    /**
      * Adds a new listener that will be notified of changes to the collection. Note that listeners are transient!!
      * @param listener The new listener
      */
@@ -387,16 +409,22 @@ public class PhotoFolder implements PhotoCollection {
        Creates & returns a new persistent PhotoFolder object
        @param name Name of the new folder
        @param parent Parent folder of the new folder
+       @throws IllegalArgumentException if name is longer than @see NAME_LENGTH
     */
     public static PhotoFolder create( String name, PhotoFolder parent ) {
-
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	PhotoFolder folder = new PhotoFolder();
-	folder.setName( name );
-	folder.setParentFolder( parent );
-	txw.lock( folder, Transaction.WRITE );
-	txw.commit();
-	return folder;
+        
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        PhotoFolder folder = new PhotoFolder();
+        try {
+            folder.setName( name );
+            folder.setParentFolder( parent );
+            txw.lock( folder, Transaction.WRITE );
+        } catch (IllegalArgumentException e ) {
+            throw e;
+        } finally {
+            txw.commit();
+        }
+        return folder;
     }
 
     /**

@@ -517,7 +517,11 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
             if ( parentFolder == null ) {
                 parentFolder = PhotoFolder.getRoot();
             }
-            PhotoFolder topFolder = PhotoFolder.create( "extvol_" + dir.getName(), 
+            String rootFolderName = "extvol_" + dir.getName();
+            if ( rootFolderName.length() > PhotoFolder.NAME_LENGTH ) {
+                rootFolderName = rootFolderName.substring( 0, PhotoFolder.NAME_LENGTH );
+            }
+            PhotoFolder topFolder = PhotoFolder.create( rootFolderName, 
                     parentFolder );
             topFolder.setDescription( "Indexed from " + dir.getAbsolutePath() );
             indexer.setTopFolder( topFolder );

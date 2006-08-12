@@ -51,6 +51,20 @@ public class PhotoInfo {
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
     
+    // Stirng field lengths
+    /** Max length of camera field */
+    final static int CAMERA_LENGTH = 30;
+    /** Max length of shooting place field */
+    final static int SHOOTING_PLACE_LENGTH = 30;
+    /** Max length of photographer field */
+    final static int PHOTOGRAPHER_LENGTH = 30;
+    /** Max length of lens field */
+    final static int LENS_LENGTH = 30;
+    /** Max length of film field */
+    final static int FILM_LENGTH = 30;
+    /** Max length of origFname field */
+    final static int ORIG_FNAME_LENGTH = 30;
+    
     public PhotoInfo() {
         changeListeners = new HashSet();
         instances = new Vector();
@@ -194,7 +208,12 @@ public class PhotoInfo {
         PhotoInfo photo = PhotoInfo.create();
         txw.lock( photo, Transaction.WRITE );
         photo.addInstance( vol, instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
-        photo.setOrigFname( imgFile.getName() );
+        String fname = imgFile.getName();
+        // Ensure that we are not overflowing the string
+        if ( fname.length() > ORIG_FNAME_LENGTH ) {
+            fname = fname.substring( 0, ORIG_FNAME_LENGTH );
+        }
+        photo.setOrigFname( fname );
         java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
         photo.setShootTime( shootTime );
         photo.setCropBounds( new Rectangle2D.Float( 0.0F, 0.0F, 1.0F, 1.0F ) );
@@ -289,7 +308,13 @@ public class PhotoInfo {
         // Camera name. Put here both camera manufacturer and model
         String maker = exif.getString( exif.TAG_MAKE );
         String model = exif.getString( exif.TAG_MODEL );
-        setCamera( maker + " " + model );
+        StringBuffer cameraBuf = new StringBuffer( maker );
+        cameraBuf.append( " "). append( model );
+        String camera = cameraBuf.toString();
+        if ( cameraBuf.length() > CAMERA_LENGTH ) {
+            camera = cameraBuf.substring( 0, CAMERA_LENGTH );
+        }
+        setCamera( camera );
         
     }
     
@@ -1148,6 +1173,7 @@ public class PhotoInfo {
      * @param v  Value to assign to shootingPlace.
      */
     public void setShootingPlace(String  v) {
+        checkStringProperty( "Shooting place", v, SHOOTING_PLACE_LENGTH );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.shootingPlace = v;
@@ -1172,6 +1198,7 @@ public class PhotoInfo {
      * @param v  Value to assign to photographer.
      */
     public void setPhotographer(String  v) {
+        checkStringProperty( "Photographer", v, this.PHOTOGRAPHER_LENGTH );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.photographer = v;
@@ -1220,6 +1247,7 @@ public class PhotoInfo {
      * @param v  Value to assign to camera.
      */
     public void setCamera(String  v) {
+        checkStringProperty( "Camera", v, CAMERA_LENGTH );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.camera = v;
@@ -1244,6 +1272,7 @@ public class PhotoInfo {
      * @param v  Value to assign to lens.
      */
     public void setLens(String  v) {
+        checkStringProperty( "Lens", v, LENS_LENGTH );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.lens = v;
@@ -1268,6 +1297,7 @@ public class PhotoInfo {
      * @param v  Value to assign to film.
      */
     public void setFilm(String  v) {
+        checkStringProperty( "Film", v, FILM_LENGTH );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.film = v;
@@ -1510,8 +1540,12 @@ public class PhotoInfo {
     /**
      Set the original file name of this photo. This is set also by addToDB which is the
      preferred way of creating a new photo into the DB.
+     @param newFname The original file name
+     @throws IllegalArgumentException if the given file name is longer than 
+     @see ORIG_FNAME_LENGTH
      */
     public final void setOrigFname(final String newFname) {
+        checkStringProperty( "OrigFname", newFname, ORIG_FNAME_LENGTH );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.origFname = newFname;
@@ -1568,6 +1602,21 @@ public class PhotoInfo {
             }
         }
         return o1.equals( o2 );
+    }
+    
+    /**
+     Checks that a string is no longer tha tmaximum length allowed for it
+     @param propertyName The porperty name used in error message
+     @param value the new value
+     @param maxLength Maximum length for the string
+     @throws IllegalArgumentException if value is longer than maxLength
+     */
+    void checkStringProperty( String propertyName, String value, int maxLength ) 
+    throws IllegalArgumentException {
+        if ( value.length() > maxLength ) {
+            throw new IllegalArgumentException( propertyName 
+                    + " cannot be longer than " + maxLength + " characters" );
+        }
     }
     
     public boolean equals( Object obj ) {

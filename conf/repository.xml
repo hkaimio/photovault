@@ -139,7 +139,7 @@
     </field-descriptor>
     <field-descriptor name="camera" column="camera" jdbc-type="VARCHAR">
     </field-descriptor>
-    <field-descriptor name="lens" column="lens" jdbc-type="VARCHAR">
+    <field-descriptor name="lens" column="lens" jdbc-type="VARCHAR" length="30">
     </field-descriptor>
     <field-descriptor name="film" column="film" jdbc-type="VARCHAR">
     </field-descriptor>
