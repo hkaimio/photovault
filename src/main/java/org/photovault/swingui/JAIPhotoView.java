@@ -91,8 +91,8 @@ public class JAIPhotoView extends JPanel
     public void paint( Graphics g ) {
         super.paint( g );
 	if ( xformImage == null && origImage != null ) {
-	    buildXformImage();
-	}
+            buildXformImage();
+        }
 	
  	Graphics2D g2 = (Graphics2D) g;
 	g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -100,7 +100,6 @@ public class JAIPhotoView extends JPanel
  	int compHeight = getHeight();
 	
  	if ( xformImage != null ) {
-
  	    // Determine the place for the image. If the image is smaller that window, center it
 	    imgWidth = xformImage.getWidth();
 	    imgHeight = xformImage.getHeight();
@@ -668,93 +667,107 @@ public class JAIPhotoView extends JPanel
     }
     
     /**
-     Rebuilds the zoomed, cropped & rotated image to show
+     Rebuilds the zoomed, cropped & rotated image to show 
      */
     private void buildXformImage() {
-	
-//        ParameterBlock pbRen = new ParameterBlock();
-//        pbRen.addSource( origImage );
-//        pbRen.add(null).add(null).add(null).add(null).add(null);        
-//        RenderableImage renSrc = JAI.createRenderable( "renderable", pbRen );
-        
-        float scale = 1.0f;
-        imgRot = newRotDegrees;
-        
-	if ( fitSize ) {
-	    log.debug( "fitSize" );
-	    float widthScale = ((float)maxWidth)/origImage.getWidth();
-	    float heightScale = ((float)maxHeight)/origImage.getHeight();
-
-	    scale = widthScale;
-	    if ( heightScale < scale ) {
-		scale = heightScale;
-	    }
-	    log.debug( "scale: " + scale );
-	} else {
-	    scale = (float) imgScale;
-	    log.debug( "scale: " + scale );
-	}
-
-	// Set the hourglass cursor
-	Cursor oldCursor = getCursor();
-	setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
-	
-        Rectangle2D cropUsed = newCrop;
-        if ( !drawCropped ) {
-            cropUsed = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
-        } else {
-            crop = newCrop;
+        Cursor oldCursor = getCursor();
+        try {
+            
+            float scale = 1.0f;
+            imgRot = newRotDegrees;
+            
+            if ( fitSize ) {
+                log.debug( "fitSize" );
+                float widthScale = ((float)maxWidth)/origImage.getWidth();
+                float heightScale = ((float)maxHeight)/origImage.getHeight();
+                
+                scale = widthScale;
+                if ( heightScale < scale ) {
+                    scale = heightScale;
+                }
+                log.debug( "scale: " + scale );
+            } else {
+                scale = (float) imgScale;
+                log.debug( "scale: " + scale );
+            }
+            
+            // Set the hourglass cursor
+            setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
+            
+            Rectangle2D cropUsed = newCrop;
+            if ( !drawCropped ) {
+                cropUsed = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
+            } else {
+                crop = newCrop;
+            }
+            
+            // Create the zoom xform
+            AffineTransform at = null;
+            if ( fitSize ) {
+                at = org.photovault.image.ImageXform.getFittingXform(
+                        (int)maxWidth, (int)maxHeight, imgRot,
+                        (int)( origImage.getWidth() * cropUsed.getWidth() ),
+                        (int)(( cropUsed.getHeight()* origImage.getHeight() ) ) );
+            } else {
+                at = org.photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
+                        (int)( origImage.getWidth() * cropUsed.getWidth() ),
+                        (int)(( cropUsed.getHeight()* origImage.getHeight() ) ) );
+            }
+            
+            
+            // Create a ParameterBlock and specify the source and
+            // parameters
+            ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
+            scaleParams.addSource( origImage );
+            scaleParams.setParameter( "transform", at );
+            scaleParams.setParameter( "interpolation", new InterpolationBilinear());
+            
+            // Create the scale operation
+            RenderedOp tmp = JAI.create( "affine", scaleParams, null );
+            
+            ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
+            cropParams.addSource( tmp );
+            float cropX = (float)( Math.rint( tmp.getMinX() + cropUsed.getMinX() *  tmp.getWidth() ));
+            float cropY = (float)( Math.rint( tmp.getMinY() + cropUsed.getMinY() *  tmp.getHeight() ));
+            float cropW = (float)( Math.rint( cropUsed.getWidth() * tmp.getWidth() ));
+            float cropH = (float) ( Math.rint( cropUsed.getHeight() * tmp.getHeight() ));
+            cropParams.setParameter( "x", cropX );
+            cropParams.setParameter( "y", cropY );
+            cropParams.setParameter( "width", cropW );
+            cropParams.setParameter( "height", cropH );
+            RenderedOp cropped = JAI.create("crop", cropParams, null);
+            // Translate the image so that it begins in origo
+            ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
+            pbXlate.addSource( cropped );
+            pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
+            pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
+            xformImage = JAI.create( "translate", pbXlate );
+            
+            // We need to update also the crop border since image size & orientation
+            // has changed
+            cropBorderXpoints = null;
+            cropBorderYpoints = null;
+        } catch ( Exception ex ) {
+                /*
+                 There was some kind of error when constructing hte image to show.
+                 Most likely the image file was corrupted.
+                 */
+            final String exMsg = ex.getMessage();
+            final JAIPhotoView staticThis = this;
+            staticThis.origImage = null;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    JOptionPane.showMessageDialog( staticThis,
+                            "Error while showing an image\n" +
+                            exMsg +
+                            "\nMost likely the image file in Photovault database is corrupted.",
+                            "Error displaying image",
+                            JOptionPane.ERROR_MESSAGE );
+                }
+            });
+            
         }
-        
-	// Create the zoom xform
-        AffineTransform at = null;
-        if ( fitSize ) {
-            at = org.photovault.image.ImageXform.getFittingXform( 
-                    (int)maxWidth, (int)maxHeight, imgRot,
-                    (int)( origImage.getWidth() * cropUsed.getWidth() ),
-                    (int)(( cropUsed.getHeight()* origImage.getHeight() ) ) );
-        } else {
-            at = org.photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
-                    (int)( origImage.getWidth() * cropUsed.getWidth() ),
-                    (int)(( cropUsed.getHeight()* origImage.getHeight() ) ) );
-        }
-
-	
-	// Create a ParameterBlock and specify the source and
-	// parameters
-	ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
-	scaleParams.addSource( origImage );
-	scaleParams.setParameter( "transform", at );
-	scaleParams.setParameter( "interpolation", new InterpolationBilinear());
-	
-	// Create the scale operation
-        RenderedOp tmp = JAI.create( "affine", scaleParams, null );
-        
-        ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
-        cropParams.addSource( tmp );
-        float cropX = (float)( Math.rint( tmp.getMinX() + cropUsed.getMinX() *  tmp.getWidth() ));
-        float cropY = (float)( Math.rint( tmp.getMinY() + cropUsed.getMinY() *  tmp.getHeight() ));
-        float cropW = (float)( Math.rint( cropUsed.getWidth() * tmp.getWidth() ));
-        float cropH = (float) ( Math.rint( cropUsed.getHeight() * tmp.getHeight() ));
-        cropParams.setParameter( "x", cropX );
-        cropParams.setParameter( "y", cropY );
-        cropParams.setParameter( "width", cropW );
-        cropParams.setParameter( "height", cropH );
-	RenderedOp cropped = JAI.create("crop", cropParams, null);
-        // Translate the image so that it begins in origo
-        ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
-        pbXlate.addSource( cropped );
-        pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
-        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );        
-        xformImage = JAI.create( "translate", pbXlate );
-       
-        // We need to update also the crop border since image size & orientation 
-        // has changed
-        cropBorderXpoints = null;
-        cropBorderYpoints = null;
-        
-        
-	setCursor( oldCursor );
+        setCursor( oldCursor );
     }
 
     int handleMoving = -1;

@@ -201,31 +201,30 @@ public class JAIPhotoViewer extends JPanel implements
 
 	// Find the original file
 	ImageInstance original = null;
-	Vector instances = photo.getInstances();
-	for ( int n = 0; n < instances.size(); n++ ) {
-	    ImageInstance instance = (ImageInstance) instances.get( n );
-	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-		original = instance;
-		break;
-	    } 
-	}
-	if ( original == null ) {
-	    log.debug( "Error - no original image was found!!!" );
-	} else {
-            File imageFile = original.getImageFile();
-            if ( imageFile == null ) {
-                throw new FileNotFoundException( );
+        Vector instances = photo.getInstances();
+        for ( int n = 0; n < instances.size(); n++ ) {
+            ImageInstance instance = (ImageInstance) instances.get( n );
+            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+                original = instance;
+                File imageFile = original.getImageFile();
+                if ( imageFile != null && imageFile.canRead() ) {
+                    final String imageFilePath = original.getImageFile().getAbsolutePath();
+                    log.debug( "loading image " + imageFilePath );
+                    PlanarImage origImage = JAI.create( "fileload", imageFilePath );
+                    log.debug( "image " + imageFilePath + " loaded");
+                    setImage( origImage );
+                    instanceRotation = original.getRotated();
+                    double rot = photo.getPrefRotation() - instanceRotation;
+                    imageView.setRotation( rot );
+                    imageView.setCrop( photo.getCropBounds() );
+                    return;
+                }
             }
-	    final String imageFilePath = original.getImageFile().getAbsolutePath();
-            log.debug( "loading image " + imageFilePath );
-            PlanarImage origImage = JAI.create( "fileload", imageFilePath );
-	    log.debug( "image " + imageFilePath + " loaded");
-            setImage( origImage );
-	    instanceRotation = original.getRotated();
-	    double rot = photo.getPrefRotation() - instanceRotation;
-	    imageView.setRotation( rot );
-            imageView.setCrop( photo.getCropBounds() );
-	}
+        }
+        // if we get this far no instance of the original image has been found
+        setImage( null );
+        throw new FileNotFoundException( "No original instance of photo " 
+                + photo.getUid() + " found" );
     }
 
     // Rotation of the currently displayed instance (compared to the original)
