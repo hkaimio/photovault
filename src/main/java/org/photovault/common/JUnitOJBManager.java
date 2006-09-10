@@ -84,7 +84,11 @@ public class JUnitOJBManager {
         pvd.createDatabase( "", "", "junit_seed_data.xml" );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         pvd.setName( "pv_junit" );
-        settings.addDatabase( pvd );
+        try {
+            settings.addDatabase( pvd );
+        } catch (PhotovaultException ex) {
+            ex.printStackTrace();
+        }
     }
     
     static JUnitOJBManager mgr = null;

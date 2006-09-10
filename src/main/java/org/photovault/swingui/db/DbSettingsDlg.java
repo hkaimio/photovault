@@ -23,6 +23,7 @@ package org.photovault.swingui.db;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import javax.swing.event.DocumentEvent;
+import org.photovault.common.PhotovaultException;
 import org.photovault.imginfo.Volume;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -362,37 +363,41 @@ public class DbSettingsDlg extends javax.swing.JDialog {
         });
     }
     
-    private void createDatabase() {
+    private boolean createDatabase() {
         // Ask for the admin password
-        PVDatabase db = new PVDatabase();
-        String user = "";
-        String passwd = "";
-        if ( dbServerBtn.isSelected() ) {
-            AdminLoginDlg loginDlg = new AdminLoginDlg( this, true );
-            if ( loginDlg.showDialog() == AdminLoginDlg.LOGIN_DLG_OK ) {
-                user = loginDlg.getUsername();
-                passwd = loginDlg.getPasswd();
+        try {
+            PVDatabase db = new PVDatabase();
+            db.setName( nameFld.getText() );
+            PhotovaultSettings settings = PhotovaultSettings.getSettings();
+            settings.addDatabase( db );
+            String user = "";
+            String passwd = "";
+            if ( dbServerBtn.isSelected() ) {
+                AdminLoginDlg loginDlg = new AdminLoginDlg( this, true );
+                if ( loginDlg.showDialog() == AdminLoginDlg.LOGIN_DLG_OK ) {
+                    user = loginDlg.getUsername();
+                    passwd = loginDlg.getPasswd();
+                }
+                db.setDbName( dbNameFld.getText() );
+                db.setDbHost( dbHostFld.getText() );
+                Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
+                db.addVolume( vol );
+            } else {
+                // Creating an embedded database
+                db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
+                db.setEmbeddedDirectory( new File( volumeDirFld.getText() ) );
             }
-            db.setDbName( dbNameFld.getText() );
-            db.setDbHost( dbHostFld.getText() );
-            db.setName( nameFld.getText() );
-            Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
-            db.addVolume( vol );
-        } else {
-            // Creating an embedded database
-            db.setName( nameFld.getText() );
-            db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-            db.setEmbeddedDirectory( new File( volumeDirFld.getText() ) );
+            db.createDatabase( user, passwd );
+            settings.saveConfig();
+        } catch (PhotovaultException ex) {
+            JOptionPane.showMessageDialog( this, ex.getMessage(),
+                    "Error creating database", JOptionPane.ERROR_MESSAGE );
+            return false;
         }
-        db.createDatabase( user, passwd );
-        
-        PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        settings.addDatabase( db );
-        settings.saveConfig();
         
         JOptionPane.showMessageDialog( this, "Database " + nameFld.getText() + " created successfully",
                 "Database created", JOptionPane.INFORMATION_MESSAGE );
-        
+        return true;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

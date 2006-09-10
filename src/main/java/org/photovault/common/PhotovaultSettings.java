@@ -131,8 +131,9 @@ public class PhotovaultSettings {
      * Add a new database to the configuration.Note that the configuration is not 
      * saved before calling saveConfiguration().
      * @pram db The database that is added to the configuration
+     @throws @see PhotovaultException if a database with the same name already exists
      */
-    public void addDatabase(PVDatabase db) {
+    public void addDatabase(PVDatabase db) throws PhotovaultException {
         databases.addDatabase( db );
     }
 	

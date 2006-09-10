@@ -44,7 +44,10 @@ public class PhotovaultDatabases {
         databases = new HashMap();
     }
     
-    public void addDatabase( PVDatabase db ) {
+    public void addDatabase( PVDatabase db ) throws PhotovaultException {
+        if ( databases.containsKey( db.getName() ) ) {
+            throw new PhotovaultException( "Database " + db.getDbName() + " already exists!" );
+        }
         databases.put( db.getName(), db );
     }
     

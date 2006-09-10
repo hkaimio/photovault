@@ -120,12 +120,20 @@ public class Test_PVDatabase extends TestCase {
         db1.setName( "test1" );
         db1.setDbName( "database1" );
         db1.setDbHost( "machine" );
-        pvd.addDatabase( db1 );
+        try {
+            pvd.addDatabase( db1 );
+        } catch (PhotovaultException ex) {
+            fail( "Exception while registering database: " + ex.getMessage() );
+        }
         PVDatabase db2 = new PVDatabase();
         db2.setName( "test2" );
         db2.setDbName( "database2" );
         db2.setDbHost( "machine2" );
-        pvd.addDatabase( db2 );
+        try {
+            pvd.addDatabase( db2 );
+        } catch (PhotovaultException ex) {
+            fail( "Exception while registering database: " + ex.getMessage() );
+        }
         
         File f = null;
         try {

@@ -85,7 +85,11 @@ public class Test_PhotovaultSettings extends TestCase {
         PVDatabase db = new PVDatabase();
         db.setName( "testing" );
         db.setDbHost( "thishost" );
-        settings.addDatabase( db );
+        try {
+            settings.addDatabase( db );
+        } catch (PhotovaultException ex) {
+            fail( "Exception while creating database: " + ex.getMessage() );
+        }
         settings.saveConfig();
         
         PhotovaultSettings.settings = null;
@@ -125,10 +129,25 @@ public class Test_PhotovaultSettings extends TestCase {
         PVDatabase db = new PVDatabase();
         db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
         db.setEmbeddedDirectory( dbDir );
-//        Volume vol = new Volume( "testvolume", dbDir.getAbsolutePath() );
-//        db.addVolume( vol );
-        settings.addDatabase( db );
+        try {
+            settings.addDatabase( db );
+        } catch (PhotovaultException ex) {
+            fail( "Exception while creating database: " + ex.getMessage() );
+        }
         settings.saveConfig();
+        
+        // try creating another database with the same name
+        PVDatabase db2 = new PVDatabase();
+        db2.setInstanceType( PVDatabase.TYPE_EMBEDDED );
+        db2.setEmbeddedDirectory( dbDir );
+        boolean throwsException = false;
+        try {
+            settings.addDatabase( db2 );
+        } catch (PhotovaultException ex) {
+            throwsException = true;
+        }
+        assertTrue( "Adding another database with same name must throw exception",
+                throwsException );
         
         db.createDatabase( "harri", "" );
         try {

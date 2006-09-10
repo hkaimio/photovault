@@ -119,8 +119,8 @@ public class ODMG {
             broker.close();
         } catch (Exception ex) {
             /*
-             Finding the real cause of the error needs a bit of guesswork: first 
-             lets find the root cause
+             Finding the real reason for the error needs a bit of guesswork: first 
+             lets find the original exception
             */
             Throwable rootCause = ex;
             while ( rootCause.getCause() != null ) {
@@ -171,13 +171,5 @@ public class ODMG {
                     + t.getMessage(), t );
             
 	}
-    }
-    // Init ODMG fields at creation time
-//     {
-	
-// 	getODMGImplementation();
-    
-// 	getODMGDatabase();
-//     }
-    
+    }    
 }
