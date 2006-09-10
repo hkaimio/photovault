@@ -26,6 +26,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
@@ -509,7 +510,11 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
                     dir.getAbsolutePath() );
             PhotovaultSettings settings = PhotovaultSettings.getSettings();
             PVDatabase db = settings.getCurrentDatabase();
-            db.addVolume( v );
+            try {
+                db.addVolume( v );
+            } catch (PhotovaultException ex) {
+                // This should not happen since we just checked for it!!!
+            }
             
             // Set up the indexer
             ExtVolIndexer indexer = new ExtVolIndexer( v );

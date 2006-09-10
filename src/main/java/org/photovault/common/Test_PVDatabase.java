@@ -53,7 +53,11 @@ public class Test_PVDatabase extends TestCase {
         db.setDbName( "test" );
         
         Volume v = new Volume( "test", "c:/temp" );
-        db.addVolume( v );
+        try {
+            db.addVolume( v );
+        } catch (PhotovaultException ex) {
+            fail( ex.getMessage() );
+        }
         List volumes = db.getVolumes();
         assertTrue( volumes.get( 0 ) == v );
         assertTrue( volumes.size() == 1 );
@@ -65,9 +69,13 @@ public class Test_PVDatabase extends TestCase {
         db.setDbName( "test" );
         
         Volume v = new Volume( "test", "c:/temp/voltest" );
-        db.addVolume( v );
         ExternalVolume ev = new ExternalVolume( "test_extvol", "c./tem/extvoltest" );
-        db.addVolume( ev );
+        try {
+            db.addVolume( v );
+            db.addVolume( ev );
+        } catch (PhotovaultException ex) {
+            fail( ex.getMessage() );
+        }
         
         File tempFile = null;
         try {

@@ -24,6 +24,7 @@ import java.io.*;
 import junit.framework.*;
 import java.util.*;
 import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.test.PhotovaultTestCase;
 
@@ -37,7 +38,11 @@ public class Test_Volume extends PhotovaultTestCase {
 	volume = new Volume( "testVolume", volumeRoot );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         db = settings.getCurrentDatabase();
-        db.addVolume( volume );
+        try {
+            db.addVolume( volume );
+        } catch (PhotovaultException ex) {
+            ex.printStackTrace();
+        }
     }
     private Volume volume;
     private PVDatabase db;
@@ -274,7 +279,11 @@ public class Test_Volume extends PhotovaultTestCase {
         try {
             File testVolPath = File.createTempFile( "pv_voltest", "" );
             VolumeBase extVolume = new ExternalVolume( "extvol", testVolPath.getAbsolutePath() );
-            db.addVolume( extVolume );
+            try {
+                db.addVolume( extVolume );
+            } catch (PhotovaultException ex) {
+                fail( ex.getMessage() );
+            }
             
             File test1 = new File( volume.getBaseDir(), "testfile" );
             assertEquals( test1.getAbsolutePath() + " belongs to volume", 

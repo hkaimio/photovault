@@ -30,6 +30,7 @@ import java.util.Vector;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.test.PhotovaultTestCase;
 
@@ -62,7 +63,11 @@ public class Test_ExternalVolume extends PhotovaultTestCase {
 	extVol = new ExternalVolume( "extVolume", extvolRoot.getAbsolutePath() );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase curDb = settings.getCurrentDatabase();
-        curDb.addVolume( extVol );
+        try {
+            curDb.addVolume( extVol );
+        } catch (PhotovaultException ex) {
+            ex.printStackTrace();
+        }
     }
     
     private Volume volume;

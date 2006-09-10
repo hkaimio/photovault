@@ -27,6 +27,7 @@ import java.util.Collection;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.folder.PhotoFolder;
@@ -170,7 +171,11 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         ExternalVolume v = new ExternalVolume( "extVol", extVolDir.getAbsolutePath() );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase db = settings.getDatabase( "pv_junit" );
-        db.addVolume( v );
+        try {
+            db.addVolume( v );
+        } catch (PhotovaultException ex) {
+            fail( ex.getMessage() );
+        }
         ExtVolIndexer indexer = new ExtVolIndexer( v );
         indexer.setTopFolder( topFolder );
         TestListener l = new TestListener();

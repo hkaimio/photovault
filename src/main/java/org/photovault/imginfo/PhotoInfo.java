@@ -1613,7 +1613,7 @@ public class PhotoInfo {
      */
     void checkStringProperty( String propertyName, String value, int maxLength ) 
     throws IllegalArgumentException {
-        if ( value.length() > maxLength ) {
+        if ( value != null && value.length() > maxLength ) {
             throw new IllegalArgumentException( propertyName 
                     + " cannot be longer than " + maxLength + " characters" );
         }

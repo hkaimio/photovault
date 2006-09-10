@@ -120,7 +120,17 @@ public class PVDatabase {
         this.dbName = dbName;
     }
     
-    public void addVolume( VolumeBase volume ) {
+    /**
+     Add a new volume to this database.
+     @param volume The new volume
+     @throws @see PhotovaultException if another volume with the same name is already present
+     */
+    public void addVolume( VolumeBase volume ) throws PhotovaultException {
+        VolumeBase v = getVolume( volume.getName() );
+        if ( v != null ) {
+            throw new PhotovaultException( "Volume with name " + volume.getName() +
+                    " already exists" );
+        }
         volumes.add( volume );
     }
     
@@ -280,7 +290,12 @@ public class PVDatabase {
             File derbyDir = new File( embeddedDirectory, "derby" );
             File photoDir = new File( embeddedDirectory, "photos");
             Volume vol = new Volume( "photos", photoDir.getAbsolutePath() );
-            addVolume( vol );
+            try {
+                addVolume( vol );
+            } catch (PhotovaultException ex) {
+                // This should not happen since this is the first volume, there cannot be 
+                // name conflict!!!
+            }
             System.setProperty( "derby.system.home", derbyDir.getAbsolutePath() );
             driverName = "org.apache.derby.jdbc.EmbeddedDriver";
             dbUrl = "jdbc:derby:photovault;create=true";
