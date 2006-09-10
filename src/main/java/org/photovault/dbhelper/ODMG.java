@@ -21,7 +21,14 @@
 package org.photovault.dbhelper;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.SQLException;
+import org.apache.derby.impl.jdbc.EmbedSQLException;
+import org.apache.ojb.broker.PersistenceBroker;
+import org.apache.ojb.broker.PersistenceBrokerFactory;
+import org.apache.ojb.broker.accesslayer.LookupException;
 import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 import org.odmg.*;
 import org.apache.ojb.odmg.*;
@@ -53,7 +60,15 @@ public class ODMG {
 	return db;
     }
 
-    public static boolean initODMG( String user, String passwd, PVDatabase dbDesc ) {
+    /**
+     Initialize database connection & OJB ODMG framework
+     @param user User name that is used to log into database
+     @param passwd password of the user
+     @dbDesc The database that is opened
+     @throws @see PhotovaultException if database login is not succesfull     
+     */
+    public static void initODMG( String user, String passwd, PVDatabase dbDesc )
+        throws PhotovaultException {
 
 	getODMGImplementation();
 
@@ -71,11 +86,15 @@ public class ODMG {
             File derbyDir = new File( dbDesc.getEmbeddedDirectory(), "derby" );
             System.setProperty( "derby.system.home", derbyDir.getAbsolutePath()  );
         } else {
+            // This is a MySQL database
             String dbhost = dbDesc.getDbHost();
             String dbname = dbDesc.getDbName();
             connDesc.setDbAlias( "//" + dbhost + "/" + dbname );
             connDesc.setUserName( user );
             connDesc.setPassWord( passwd );
+            connDesc.setDriver( "com.mysql.jdbc.Driver" );
+            connDesc.setDbms( "MySQL" );
+            connDesc.setSubProtocol( "mysql" );
         }        
 	
         
@@ -89,7 +108,41 @@ public class ODMG {
 	} catch ( Exception e ) {
 	    log.error( "Failed to get connection: " + e.getMessage() );
             e.printStackTrace();
-	}
+        }
+        
+        // Check whether the database was opened correctly
+        try {
+            PersistenceBroker broker = PersistenceBrokerFactory.createPersistenceBroker(connKey);
+            broker.beginTransaction();
+            Connection con = broker.serviceConnectionManager().getConnection();
+            broker.commitTransaction();
+            broker.close();
+        } catch (Exception ex) {
+            /*
+             Finding the real cause of the error needs a bit of guesswork: first 
+             lets find the root cause
+            */
+            Throwable rootCause = ex;
+            while ( rootCause.getCause() != null ) {
+                rootCause = rootCause.getCause();
+            }
+            log.error( rootCause.getMessage() );
+            if ( rootCause instanceof SQLException ) {
+                if ( rootCause instanceof EmbedSQLException ) {
+                    /*
+                     We are using Derby, the problem is likely that another 
+                     instance of the database has been started
+                     */
+                     throw new PhotovaultException( "Cannot start database.\n"
+                             + "Do you have another instance of Photovault running?", rootCause );
+                }
+                if ( dbDesc.getInstanceType() == PVDatabase.TYPE_SERVER ) {
+                    throw new PhotovaultException( "Cannot log in to MySQL database", rootCause );
+                }
+            }
+            throw new PhotovaultException( "Unknown error while starting database:\n"
+                    + rootCause.getMessage(), rootCause );
+        }
 
 	// Test the connection by fetching something
 	try {
@@ -103,19 +156,21 @@ public class ODMG {
 		} catch (ODMGException e ) {
 		    log.error( "Error closing database" );
 		}
+                throw new PhotovaultException( "Unknown error while starting database:\n" );
 	    }
-	} catch ( Throwable t ) {
+	} catch ( Exception t ) {
 	    log.error( "Could not open database connection" );
 	    log.error( t.getMessage() );
             t.printStackTrace();
             try {
 		db.close();
 	    } catch (ODMGException e ) {
-		log.error( "Error closing database" );
-	    }
+                log.error( "Error closing database" );
+            }
+            throw new PhotovaultException( "Unknown error while starting database:\n"
+                    + t.getMessage(), t );
+            
 	}
-
-	return ( success );
     }
     // Init ODMG fields at creation time
 //     {

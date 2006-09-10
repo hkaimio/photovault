@@ -131,9 +131,13 @@ public class Test_PhotovaultSettings extends TestCase {
         settings.saveConfig();
         
         db.createDatabase( "harri", "" );
-        
-        // Verify that the database can be used by importing a file
-        ODMG.initODMG( "harri", "", db );
+        try {
+            
+            // Verify that the database can be used by importing a file
+            ODMG.initODMG( "harri", "", db );
+        } catch (PhotovaultException ex) {
+            fail( ex.getMessage() );
+        }
         File photoFile = new File( "testfiles/test1.jpg" );
         PhotoInfo photo = null;
         try {

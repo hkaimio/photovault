@@ -24,6 +24,7 @@ import java.util.Collection;
 import javax.media.jai.JAI;
 import org.odmg.*;
 import javax.swing.JOptionPane;
+import org.photovault.common.PhotovaultException;
 import org.photovault.common.SchemaUpdateAction;
 import org.photovault.common.SchemaUpdateEvent;
 import org.photovault.common.SchemaUpdateListener;
@@ -49,7 +50,7 @@ public class Photovault implements SchemaUpdateListener {
 	settings = PhotovaultSettings.getSettings();
     }
 
-    private boolean login( LoginDlg ld ) {
+    private void login( LoginDlg ld ) throws PhotovaultException {
 	boolean success = false;
         String user = ld.getUsername();
 	String passwd = ld.getPassword();
@@ -58,45 +59,45 @@ public class Photovault implements SchemaUpdateListener {
 	settings.setConfiguration( dbName );
         PVDatabase db = settings.getDatabase( dbName );
         String sqldbName = db.getDbName();
-	log.debug( "Mysql DB name: " + sqldbName );
-	if ( sqldbName == null ) {
-	    JOptionPane.showMessageDialog( ld, "Could not find dbname for configuration " + db, "Configuration error", JOptionPane.ERROR_MESSAGE );
-	    return false;
+        log.debug( "Mysql DB name: " + sqldbName );
+        if ( sqldbName == null ) {
+            JOptionPane.showMessageDialog( ld, "Could not find dbname for configuration " + db, "Configuration error", JOptionPane.ERROR_MESSAGE );
+            throw new PhotovaultException( "Could not find dbname for configuration " + db );
         }
         
-        if ( ODMG.initODMG( user, passwd, db ) ) {
-            log.debug( "Connection succesful!!!" );
-            // Login is succesfull
-            // ld.setVisible( false );
-            success = true;
-            
-            int schemaVersion = db.getSchemaVersion();
-            if ( schemaVersion < db.CURRENT_SCHEMA_VERSION ) {
-                String options[] = {"Proceed", "Exit Photovault"};
-                if ( JOptionPane.YES_OPTION == JOptionPane.showOptionDialog( ld,
-                        "The database was created with an older version of Photovault\n" +
-                        "Photovault will upgrade the database format before starting.",
-                        "Upgrade database",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE,
-                        null,
-                        options,
-                        null ) ) {
-                    final SchemaUpdateAction updater = new SchemaUpdateAction( db );
-                    SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg( null, true );
-                    updater.addSchemaUpdateListener( statusDlg );
-                    Thread upgradeThread = new Thread() {
-                        public void run() {
-                            updater.upgradeDatabase();
-                        }
-                    };
-                    upgradeThread.start();
-                    statusDlg.setVisible( true );
-                    success = true;
-                }
+        ODMG.initODMG( user, passwd, db );
+        log.debug( "Connection succesful!!!" );
+        // Login is succesfull
+        // ld.setVisible( false );
+        success = true;
+        
+        int schemaVersion = db.getSchemaVersion();
+        if ( schemaVersion < db.CURRENT_SCHEMA_VERSION ) {
+            String options[] = {"Proceed", "Exit Photovault"};
+            if ( JOptionPane.YES_OPTION == JOptionPane.showOptionDialog( ld,
+                    "The database was created with an older version of Photovault\n" +
+                    "Photovault will upgrade the database format before starting.",
+                    "Upgrade database",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    null,
+                    options,
+                    null ) ) {
+                final SchemaUpdateAction updater = new SchemaUpdateAction( db );
+                SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg( null, true );
+                updater.addSchemaUpdateListener( statusDlg );
+                Thread upgradeThread = new Thread() {
+                    public void run() {
+                        updater.upgradeDatabase();
+                    }
+                };
+                upgradeThread.start();
+                statusDlg.setVisible( true );
+                success = true;
+            } else {
+                System.exit( 0 );
             }
         }
-        return success;
     }
     
     void run() {
@@ -125,11 +126,12 @@ public class Photovault implements SchemaUpdateListener {
                     }
                     break;
                 case LoginDlg.RETURN_REASON_APPROVE:
-                    if ( login( login ) ) {
+                    try {
+                        login( login ); 
                         loginOK = true;
                         BrowserWindow wnd = new BrowserWindow();
-                    } else {
-                        JOptionPane.showMessageDialog( null, "Error logging into Photovault", 
+                    } catch( PhotovaultException e ) {
+                        JOptionPane.showMessageDialog( null, e.getMessage(), 
                                 "Login error", JOptionPane.ERROR_MESSAGE );
                     }
                     break;
@@ -166,11 +168,6 @@ public class Photovault implements SchemaUpdateListener {
         }
     }
     
-    static class PhotovaultException extends Exception {
-        PhotovaultException( String msg ) {
-            super( msg );
-        }
-    }
     
     public static void main( String [] args ) {
         URL log4jPropertyURL = Photovault.class.getClassLoader().getResource( "photovault_log4j.properties");

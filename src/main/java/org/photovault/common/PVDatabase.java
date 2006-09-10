@@ -149,7 +149,7 @@ public class PVDatabase {
     }
         
     
-    private String instanceType;
+    private String instanceType = TYPE_SERVER;
 
     /**
      * Get the instacne type of the database This can be either 

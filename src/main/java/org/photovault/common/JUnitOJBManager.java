@@ -48,24 +48,25 @@ public class JUnitOJBManager {
         settings.setConfiguration( "pv_junit" );
 	PVDatabase db = settings.getDatabase( "pv_junit" );
         
-	if ( db == null ) {
-	    log.error( "Could not find dbname for configuration " );
-	    return;
-	}
-	    
-
-	if ( ODMG.initODMG( "", "", db ) ) {
-	    log.debug( "Connection succesful!!!" );
-	} else {
-	    log.error( "Error logging into Photovault" );
-	}
+        if ( db == null ) {
+            log.error( "Could not find dbname for configuration " );
+            return;
+        }
+        
+        try {
+            ODMG.initODMG( "", "", db );
+            log.debug( "Connection succesful!!!" );
+        } catch (PhotovaultException e ) {
+            log.error( "Error logging into Photovault: " + e.getMessage() );
+            System.exit( 1 );
+        }
         
         if ( db.getSchemaVersion() < PVDatabase.CURRENT_SCHEMA_VERSION ) {
             SchemaUpdateAction updater = new SchemaUpdateAction( db );
             updater.upgradeDatabase();
         }
     }
-
+    
     /**
      Creates a new Photovault database in temp directory.
      */

@@ -443,6 +443,11 @@ public class PhotoFolder implements PhotoCollection {
                 query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );                
                 folders = (List) query.execute();
             } catch ( Exception e ) {
+                Throwable rootCause = e;
+                while ( rootCause.getCause() != null ) {
+                    rootCause = rootCause.getCause();
+                }
+                log.error( rootCause.getMessage() );
                 txw.abort();
                 return null;
             }
