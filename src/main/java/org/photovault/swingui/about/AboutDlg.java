@@ -60,9 +60,11 @@ public class AboutDlg extends javax.swing.JDialog {
         svnbranchLabel.setText( prop.getProperty( "svn.info.url", "unknown" ) );
         buildTimeLabel.setText( prop.getProperty( "build.time", "unknown" ) );
         builderLabel.setText( prop.getProperty( "build.user", "unknown" ) );
-        versionLabel.setText( prop.getProperty( "build.version", "unknown" ) );
+        String version = prop.getProperty( "build.version", "unknown" );
+        String versionTag = prop.getProperty( "build.version_tag", "unknown" );
+        versionLabel.setText( version + " (" + versionTag + ")" );
         builderLabel.setText( prop.getProperty( "build.user", "unknown" ) );
-        
+      
         // Set up the splash screen image
         URL splashImageURL = AboutDlg.class.getClassLoader().getResource( "splash.jpg" );
         
@@ -85,7 +87,7 @@ public class AboutDlg extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
     private void initComponents() {
         copyrightPane = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
+        splashPane = new javax.swing.JPanel();
         splashLabel = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -129,17 +131,17 @@ public class AboutDlg extends javax.swing.JDialog {
             }
         });
 
-        org.jdesktop.layout.GroupLayout jPanel1Layout = new org.jdesktop.layout.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+        org.jdesktop.layout.GroupLayout splashPaneLayout = new org.jdesktop.layout.GroupLayout(splashPane);
+        splashPane.setLayout(splashPaneLayout);
+        splashPaneLayout.setHorizontalGroup(
+            splashPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(splashLabel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(splashLabel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)
+        splashPaneLayout.setVerticalGroup(
+            splashPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(splashLabel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 268, Short.MAX_VALUE)
         );
-        copyrightPane.addTab("Photovault", jPanel1);
+        copyrightPane.addTab("Photovault", splashPane);
 
         jLabel1.setText("Version:");
 
@@ -180,7 +182,7 @@ public class AboutDlg extends javax.swing.JDialog {
                     .add(svnbranchLabel)
                     .add(buildTimeLabel)
                     .add(builderLabel))
-                .addContainerGap(260, Short.MAX_VALUE))
+                .addContainerGap(231, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -205,7 +207,7 @@ public class AboutDlg extends javax.swing.JDialog {
                 .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(jLabel5)
                     .add(builderLabel))
-                .addContainerGap(162, Short.MAX_VALUE))
+                .addContainerGap(157, Short.MAX_VALUE))
         );
         copyrightPane.addTab("Version info", jPanel2);
 
@@ -220,7 +222,7 @@ public class AboutDlg extends javax.swing.JDialog {
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)
+            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 268, Short.MAX_VALUE)
         );
         copyrightPane.addTab("Copyright", jPanel3);
 
@@ -277,11 +279,11 @@ public class AboutDlg extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel splashLabel;
+    private javax.swing.JPanel splashPane;
     private javax.swing.JLabel svnbranchLabel;
     private javax.swing.JLabel svnrevLabel;
     private javax.swing.JLabel versionLabel;

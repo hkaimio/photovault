@@ -2,8 +2,8 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Photovault"
-!define PRODUCT_VERSION "@version@"
-!define PRODUCT_REVISION "@svnrevision@"
+!define PRODUCT_VERSION "@build.version@ (@build.version_tag@)"
+!define PRODUCT_REVISION "@svn.revision@"
 !define PRODUCT_PUBLISHER "Photovault"
 !define PRODUCT_WEB_SITE "www.photovault.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Photovault.exe"
@@ -23,12 +23,13 @@
 !cd "@basedir@"
 
 ; Welcome page
+!define MUI_WELCOMEPAGE_TITLE "Welcome to Photovault @build.version@ Setup Wizard"
 !insertmacro MUI_PAGE_WELCOME
 ; License page
 !insertmacro MUI_PAGE_LICENSE "LICENSE.txt"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
-; Start menu page€
+; Start menu page?
 var ICONS_GROUP
 !define MUI_STARTMENUPAGE_NODISABLE
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "${PRODUCT_NAME} ${PRODUCT_VERSION}"
@@ -54,7 +55,7 @@ var ICONS_GROUP
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
 OutFile "dist\win32\installer\PhotovaultSetup.exe"
-InstallDir "$PROGRAMFILES\Photovault_${PRODUCT_VERSION}"
+InstallDir "$PROGRAMFILES\Photovault_@build.version@"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show

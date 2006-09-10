@@ -174,10 +174,19 @@
         tofile="${nsis-src}/photovault_installer.nsi"
         overwrite="true">
         <filterset> 
-            <!-- TODO: This should not be hard coded -->
+            <filtersfile file="conf/buildinfo.properties"/>
+            <!-- TODO: This should not be hard coded 
             <filter token="version" value="0.2.alpha1"/>
-            <filter token="svnrevision" value="${svnrevision}"/>
-            <filter token="basedir" value="${basedir}"/>
+            <filter token="svnrevision" value="${svnrevision}"/> -->
+            <filter token="basedir" value="${basedir}"/> 
+        </filterset>
+    </copy>
+    <copy file="src/main/win32/pv_launch4j.template.xml" 
+        tofile="src/main/win32/pv_launch4j.xml"
+        overwrite="true">
+        <filterset> 
+            <filtersfile file="conf/buildinfo.properties"/>
+            <!--filter token="svnrev" value="${svn.info.rev}"/--> 
         </filterset>
     </copy>
     <launch4j configFile="src/main/win32/pv_launch4j.xml" 

@@ -1,8 +1,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>0</headerType>
-  <jar>C:\Documents and Settings\harri\My Documents\projects\photovault\dist\win32\photovault.jar</jar>
-  <outfile>C:\Documents and Settings\harri\My Documents\projects\photovault\dist\win32\photovault.exe</outfile>
+  <jar>dist\win32\photovault.jar</jar>
+  <outfile>dist\win32\photovault.exe</outfile>
   <errTitle></errTitle>
   <jarArgs></jarArgs>
   <chdir></chdir>
@@ -18,11 +18,11 @@
     <args></args>
   </jre>
   <versionInfo>
-    <fileVersion>0.1.2.0</fileVersion>
-    <txtFileVersion>0.2-dev</txtFileVersion>
-    <fileDescription>Photovault 0.2-dev</fileDescription>
+    <fileVersion>@build.major@.@build.minor@.@build.patch@.0</fileVersion>
+    <txtFileVersion>@build.version@ (@build.version_tag@)</txtFileVersion>
+    <fileDescription>Photovault @build.version@ (@build.version_tag@)</fileDescription>
     <copyright>(c) 2006 Harri Kaimio</copyright>
-    <productVersion>0.1.2.0</productVersion>
+    <productVersion>@build.major@.@build.minor@.@build.patch@.0</productVersion>
     <txtProductVersion>Photovault 0.2-dev</txtProductVersion>
     <productName>Photovault</productName>
     <companyName>Harri Kaimio</companyName>
