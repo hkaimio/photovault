@@ -558,6 +558,11 @@ public class PhotoCollectionThumbView
         log.debug( "starting to draw" );
         // Find the position for the thumbnail
         BufferedImage img = thumbnail.getImage();
+        if ( img.getWidth() > columnWidth || img.getHeight() > rowHeight ) {
+            img = img.getSubimage( 0, 0, 
+                    Math.min( img.getWidth(), columnWidth ),
+                    Math.min( img.getHeight(), rowHeight ) );
+        }
         int x = startx + (columnWidth - img.getWidth())/(int)2;
         int y = starty + (rowHeight -  img.getHeight())/(int)2;
         
