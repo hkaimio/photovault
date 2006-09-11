@@ -21,6 +21,7 @@
 package org.photovault.imginfo;
 
 
+import java.net.URL;
 import javax.imageio.*;
 import java.awt.image.*;
 import java.io.*;
@@ -95,7 +96,13 @@ public class Thumbnail {
     public static Thumbnail getDefaultThumbnail() {
 	if ( defaultThumbnail == null ) {
 	    defaultThumbnail = new Thumbnail();
-	    defaultThumbnail.image = new BufferedImage( 100, 75, BufferedImage.TYPE_INT_RGB );
+            try {
+                URL defThumbURL = Thumbnail.class.getClassLoader().getResource( "defthumb.png" );
+                defaultThumbnail.image = ImageIO.read( defThumbURL );
+            } catch (IOException ex) {
+                log.error( "Error loading default thumbnail: " + ex.getMessage() );
+                defaultThumbnail.image = new BufferedImage( 100, 75, BufferedImage.TYPE_INT_RGB );
+            }
 	}
 	return defaultThumbnail;
     }
