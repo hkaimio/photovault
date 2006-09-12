@@ -35,6 +35,42 @@ import java.util.*;
 public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoFolderTreeModel.class.getName() );
 
+    FolderNodeMapper nodeMapper = null;
+    
+    /**
+     Constructs the tee model
+     @param mapper The {@link FolderNodeMapper} object used to map folder hierarchy 
+                   to objects that represent the nodes in tree.
+     
+     */
+    public PhotoFolderTreeModel( FolderNodeMapper mapper ) {
+        super();
+        nodeMapper = mapper;
+    }
+    
+    /**
+     Construct a fodler tree model using default mapping (i.e. the PhotoFolders
+     are used as tree nodes themselves.
+     */
+    public PhotoFolderTreeModel() {
+        super();
+        nodeMapper = new DefaultFolderNodeMapper();
+    }
+    
+    /**
+     Default mapping from folders to tree nodes that just returns the node itself.
+     */
+    static class DefaultFolderNodeMapper implements FolderNodeMapper {
+        public Object mapFolderToNode(PhotoFolder f) {
+            return f;
+        }
+
+        public PhotoFolder mapNodeToFolder(Object o) {
+            return (PhotoFolder) o;
+        }
+        
+    }
+    
     // implementation of javax.swing.tree.TreeModel interface
 
     /**
@@ -45,8 +81,9 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
      */
     public Object getChild(Object obj, int childNum)
     {
-	PhotoFolder folder = (PhotoFolder) obj;
-	return folder.getSubfolder( childNum );
+	PhotoFolder folder = nodeMapper.mapNodeToFolder( obj );
+	PhotoFolder child = folder.getSubfolder( childNum );
+        return nodeMapper.mapFolderToNode( child );
     }
 
     PhotoFolder rootFolder = null;
@@ -61,16 +98,15 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	}
 	rootFolder = root;
 	rootFolder.addPhotoCollectionChangeListener( this );
-	log.warn( "New root " + root.getName() + " - subfolderCount: " + getChildCount( root ) );
+	// log.warn( "New root " + root.getName() + " - subfolderCount: " + getChildCount( root ) );
     }
     
     /**
-     *
-     * @return <description>
+    Returns the node representing root folder of the tree.
      */
     public Object getRoot()
     {
-	return rootFolder;
+	return nodeMapper.mapFolderToNode( rootFolder );
     }
 
     /**
@@ -80,18 +116,18 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
      */
     public int getChildCount(Object obj)
     {
-	PhotoFolder folder = (PhotoFolder) obj;
+	PhotoFolder folder = nodeMapper.mapNodeToFolder( obj );
 	log.debug( "childCount for " + folder.getName() + ": " + folder.getSubfolderCount() );
 	return folder.getSubfolderCount();
     }
 
     /**
      * Returns true if the given subfolder has no subfolders
-     * @param obj The PhotoFolder to inspect
+     * @param obj The node to inspect
      */
     public boolean isLeaf(Object obj)
     {
-	PhotoFolder folder = (PhotoFolder) obj;
+	PhotoFolder folder = nodeMapper.mapNodeToFolder( obj );
 	int subfolderCount = folder.getSubfolderCount();
 	log.debug( "subfolderCount for " + folder.getName() + ": " + subfolderCount );
 	return (subfolderCount == 0);
@@ -115,12 +151,13 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
      */
     public int getIndexOfChild(Object parent, Object child)
     {
-	PhotoFolder parentFolder = (PhotoFolder) parent;
+	PhotoFolder parentFolder = nodeMapper.mapNodeToFolder( parent );
+        PhotoFolder childFolder = nodeMapper.mapNodeToFolder( child );
 	int childIndex = -1;
 	if ( parent != null && child != null ) {
 	    int childCount = parentFolder.getSubfolderCount();
 	    for ( int n = 0; n < childCount; n++ ) {
-		if ( parentFolder.getSubfolder( n ) == child ) {
+		if ( parentFolder.getSubfolder( n ) == childFolder ) {
 		    childIndex = n;
 		    break;
 		}
@@ -173,7 +210,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	if ( e instanceof PhotoFolderEvent  ){
 	    changedFolder = ((PhotoFolderEvent)e).getSubfolder();
 	}
-	PhotoFolder[] path = findFolderPath( changedFolder );
+	Object[] path = findFolderPath( changedFolder );
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
@@ -186,7 +223,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	if ( e instanceof PhotoFolderEvent ) {
 	    changedFolder = ((PhotoFolderEvent)e).getSubfolder();
 	}
-	PhotoFolder[] path = findFolderPath( changedFolder );
+	Object[] path = findFolderPath( changedFolder );
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
@@ -200,7 +237,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	if ( e instanceof PhotoFolderEvent ) {
 	    changedFolder = ((PhotoFolderEvent)e).getSubfolder();
 	}
-	PhotoFolder[] path = findFolderPath( changedFolder );
+	Object[] path = findFolderPath( changedFolder );
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
@@ -208,7 +245,11 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	fireTreeModelEvent( treeEvent );
     }
 
-    protected PhotoFolder[] findFolderPath( PhotoFolder folder ) {
+    /**
+     Construc a tree path from root to given folder
+     @param folder The folder at the end of the requested path.
+     */
+    protected Object[] findFolderPath( PhotoFolder folder ) {
 	// Construct a TreePath for this object
 
 	// Number of ancestors between this 
@@ -228,9 +269,10 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	}
 
 	// Now ancestors has the path but in reversed order.
-	PhotoFolder[] path = new PhotoFolder[ ancestors.size() ];
+	Object[] path = new Object[ ancestors.size() ];
 	for ( int m = 0; m < ancestors.size(); m++ ) {
-	    path[m] = (PhotoFolder) ancestors.get( ancestors.size()-1-m );
+	    PhotoFolder f = (PhotoFolder) ancestors.get( ancestors.size()-1-m );
+            path[m] = nodeMapper.mapFolderToNode( f );
 	}
 	return path;
     }	

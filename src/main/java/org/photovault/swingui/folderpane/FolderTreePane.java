@@ -24,7 +24,6 @@ package org.photovault.swingui.folderpane;
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
 import java.awt.event.ActionListener;
@@ -179,11 +178,10 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 	PhotoFolder selected = null;
 	TreePath path = folderTree.getSelectionPath();
 	if ( path != null ) {
-	    DefaultMutableTreeNode treeNode =
-		(DefaultMutableTreeNode) path.getLastPathComponent();
-	    FolderNode node = (FolderNode) treeNode.getUserObject();
-	    selected = node.getFolder();
-	}
+	    FolderNode treeNode =
+		(FolderNode) path.getLastPathComponent();
+            selected = treeNode.getFolder();
+        }
 	return selected;
     }
 
