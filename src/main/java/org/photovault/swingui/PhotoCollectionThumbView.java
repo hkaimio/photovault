@@ -96,6 +96,7 @@ public class PhotoCollectionThumbView
 
     ThumbCreatorThread thumbCreatorThread;
     
+    
     /**
      * Returns the currently displayed photo collection or <code>null</code> if none specified 
      <p>
@@ -240,8 +241,7 @@ public class PhotoCollectionThumbView
     /**
      Array of icons used to represent different quality settings in thumbnails
      */
-    ImageIcon qualityIcons[] = null;
-
+    ImageIcon qualityIcons[] = null;    
     JPopupMenu popup = null;
 
     /**
@@ -266,6 +266,12 @@ public class PhotoCollectionThumbView
 
 
     TransferHandler photoTransferHandler = null;
+
+    /**
+     Icon to display in front of a thumbnail while Photovault is creating a new
+     replacement for it.
+     */
+    ImageIcon creatingThumbIcon = null;
     
     void createUI() {
         photoTransferHandler = new PhotoCollectionTransferHandler( this );
@@ -369,6 +375,8 @@ public class PhotoCollectionThumbView
                 ChangeSelectionAction.MOVE_BACK, "Previous photo", selectPrevIcon,
                 "Move to previous photo", KeyEvent.VK_P,
                 KeyStroke.getKeyStroke( KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK ) );
+        
+        creatingThumbIcon = getIcon( "creating_thumb.png" );
     }
 
     /**
@@ -532,6 +540,7 @@ public class PhotoCollectionThumbView
         long endTime = 0;
         // Current position in which attributes can be drawn
         int ypos = starty + rowHeight/2;
+        boolean useOldThumbnail = false;
         
         // Create a transaction which will be used for persisten object operations
         // during painting (to avoid creating several short-livin transactions)
@@ -546,12 +555,24 @@ public class PhotoCollectionThumbView
             thumbnail = photo.getThumbnail();
             log.debug( "got thumbnail" );
         } else {
-            thumbnail = Thumbnail.getDefaultThumbnail();
+            /*
+             Check if the thumbnail has been just invalidated. If so, use the 
+             old one until we get the new thumbnail created.
+             */
+            thumbnail = photo.getOldThumbnail();
+            if ( thumbnail != null ) {
+                useOldThumbnail = true;
+            } else {
+                // No success, use default thumnail.
+                thumbnail = Thumbnail.getDefaultThumbnail();
+            }
+
+            // The photo does not have a thumbnail, so request one to be created
             if ( !thumbCreatorThread.isBusy() ) {
                 log.debug( "Create thumbnail for " + photo.getUid() );
                 thumbCreatorThread.createThumbnail( photo );
                 log.debug( "Thumbnail request submitted" );
-            }
+            }            
         }
         thumbReadyTime = System.currentTimeMillis();
         
@@ -559,6 +580,11 @@ public class PhotoCollectionThumbView
         // Find the position for the thumbnail
         BufferedImage img = thumbnail.getImage();
         if ( img.getWidth() > columnWidth || img.getHeight() > rowHeight ) {
+            /*
+             If the image is too large for the space reserved for thumbnail, crop
+             (yes, this should not be possible but many kinds of miracles do 
+             happen. Also this has happened in some weird test cases!!!
+             */
             img = img.getSubimage( 0, 0, 
                     Math.min( img.getWidth(), columnWidth ),
                     Math.min( img.getHeight(), rowHeight ) );
@@ -568,6 +594,11 @@ public class PhotoCollectionThumbView
         
         log.debug( "drawing thumbnail" );
         g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
+        if ( useOldThumbnail ) {
+            creatingThumbIcon.paintIcon( this, g2, 
+                        startx + (columnWidth - creatingThumbIcon.getIconWidth())/(int)2,
+                        starty + ( rowHeight - creatingThumbIcon.getIconHeight())/(int)2 );
+        }
         log.debug( "Drawn, drawing decorations" );
         if ( isSelected ) {
             Stroke prevStroke = g2.getStroke();

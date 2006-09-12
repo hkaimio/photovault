@@ -454,7 +454,7 @@ public class PhotoInfo {
         // If this is the first instance or we are adding original image we need to invalidate
         // thumbnail
         if ( instances.size() == 1 || instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-            thumbnail = null;
+            invalidateThumbnail();
         }
         
         if ( instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
@@ -534,6 +534,7 @@ public class PhotoInfo {
             // Thumbnail was not successful created, most probably because there 
             // is no available instance
             thumbnail = Thumbnail.getDefaultThumbnail();
+            oldThumbnail = null;
         }
         
         log.debug( "getThumbnail: exit" );
@@ -558,6 +559,7 @@ public class PhotoInfo {
                         && instance.getCropBounds().equals( getCropBounds() ) ) {
                     log.debug( "Found thumbnail from database" );
                     thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
+                    oldThumbnail = null;
                     break;
                 }
             }
@@ -579,6 +581,29 @@ public class PhotoInfo {
     }
     
     Thumbnail thumbnail = null;
+    
+    /**
+     Reference to an outdated thumbnail image while a new thumbnail in being created
+     */
+    Thumbnail oldThumbnail = null;
+    
+    public Thumbnail getOldThumbnail() {
+        return oldThumbnail;
+    }
+
+    /**
+     Invalidates the current thumbnail:
+     <ul>
+     <li>Set thumbnail to null</li>
+     <li>Set oldThumbnail to the previous thumbnail</li>
+     </ul>
+     */
+    private void invalidateThumbnail() {
+        if ( thumbnail != null ) {
+            oldThumbnail = thumbnail;
+            thumbnail = null;
+        }
+    }
     
     /**
      Helper function to calculate aspect ratio of an image
@@ -808,7 +833,7 @@ public class PhotoInfo {
         log.debug( "Loading thumbnail..." );
         
         thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
-        
+        oldThumbnail = null;
         log.debug( "Thumbnail loaded" );
         txw.commit();
     }
@@ -1352,7 +1377,7 @@ public class PhotoInfo {
         txw.lock( this, Transaction.WRITE );
         if ( v != prefRotation ) {
             // Rotation changes, invalidate the thumbnail
-            thumbnail = null;
+            invalidateThumbnail();
         }
         this.prefRotation = v;
         modified();
@@ -1401,7 +1426,7 @@ public class PhotoInfo {
         txw.lock( this, Transaction.WRITE );
         if ( !cropBounds.equals( getCropBounds() ) ) {
             // Rotation changes, invalidate the thumbnail
-            thumbnail = null;
+            invalidateThumbnail();
         }
         cropMinX = cropBounds.getMinX();
         cropMinY = cropBounds.getMinY();
