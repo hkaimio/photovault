@@ -21,7 +21,12 @@
 package org.photovault.swingui.folderpane;
 
 
+import java.util.EventObject;
 import javax.swing.*;
+import javax.swing.event.CellEditorListener;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeCellEditor;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.event.TreeModelListener;
@@ -42,15 +47,16 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 	createUI();
 	this.ctrl = ctrl;
     }
-
-
+    
     void createUI() {
 	setLayout(new GridBagLayout());
 	folderTree = new JTree(  );
  	folderTree.setRootVisible( true );
 	folderTree.setShowsRootHandles( false );
-	folderTree.setEditable( false );
-	JScrollPane scrollPane = new JScrollPane( folderTree );
+	folderTree.setEditable( true );
+        folderTree.setCellEditor( new FolderNodeEditor( this ) );
+        folderTree.setCellRenderer( new FolderNodeEditor( this ) );
+        JScrollPane scrollPane = new JScrollPane( folderTree );
  	scrollPane.setPreferredSize( new Dimension( 300, 300 ) );
 
 	GridBagConstraints c = new GridBagConstraints();
@@ -185,14 +191,14 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 	return selected;
     }
 
-    void addAllToSelectedFolder() {
+    protected void addAllToSelectedFolder() {
 	PhotoFolder selected = getSelectedFolder();
 	if ( selected != null ) {
 	    ctrl.addAllToFolder( selected );
 	}
     }
 
-    void removeAllFromSelectedFolder() {
+    protected void removeAllFromSelectedFolder() {
 	PhotoFolder selected = getSelectedFolder();
 	if ( selected != null ) {
 	    ctrl.removeAllFromFolder( selected );

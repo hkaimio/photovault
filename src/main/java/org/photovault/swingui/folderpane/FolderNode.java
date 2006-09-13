@@ -27,7 +27,7 @@ import org.photovault.imginfo.*;
 import java.util.*;
 
 /**
- * FolderNode keeps track of photos currently in the model that belong to a cretain folder.
+ * FolderNode keeps track of photos currently in the model that belong to a certain folder.
  * It determises the presentation of the folder in folder tree.
  * <P>
  * FolderNode is used as an user object of DefaultMutableTreeNode. 
