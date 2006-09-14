@@ -21,6 +21,7 @@
 package org.photovault.swingui.folderpane;
 
 import javax.swing.tree.*;
+import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.*;
 import java.util.HashMap;
@@ -102,8 +103,9 @@ public class FolderController extends FieldController {
 	fn.addAllPhotos();
 	
 	// Notify the tree model that representation of this node may
-	// be changed
-        // treeModel.nodeChanged( fn );
+	// be changed;
+        PhotoCollectionChangeEvent e = new PhotoCollectionChangeEvent( f );
+        treeModel.photoCollectionChanged( e );
     }
     /**
        Mark all photos in model so that they will be removed from specified folder
@@ -116,8 +118,8 @@ public class FolderController extends FieldController {
 	
         FolderNode fn = (FolderNode) nodeMapper.mapFolderToNode( f );
         fn.removeAllPhotos();
-        
-        // treeModel.nodeChanged(treeNode);
+        PhotoCollectionChangeEvent e = new PhotoCollectionChangeEvent( f );
+        treeModel.photoCollectionChanged( e );        
     }
 
     /**

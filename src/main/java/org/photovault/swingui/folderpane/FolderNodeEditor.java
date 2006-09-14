@@ -59,7 +59,7 @@ class FolderNodeEditor
     /**
      Check box used to render/edit the node
      */
-    JCheckBox check;
+    ThreeStateCheckBox check;
     /**
     Label containing the folder name
     */     
@@ -85,6 +85,7 @@ class FolderNodeEditor
     
     Color selectedBkg = null;
     
+    
     /**
      Constructs a FolderNodeEditor
      @param treePane The tree that will be notified about edits.
@@ -93,7 +94,7 @@ class FolderNodeEditor
         super();
         this.treePane = treePane;
         setLayout( new BoxLayout(this, BoxLayout.X_AXIS) );
-        check = new JCheckBox();
+        check = new ThreeStateCheckBox();
         check.setBackground( Color.WHITE );
         check.addActionListener( this );
         name = new JLabel();
@@ -121,13 +122,9 @@ class FolderNodeEditor
      @param row        Row if the node
      */
     public Component getTreeCellEditorComponent(JTree jTree, Object object, 
-            boolean isSelected, boolean isExpanded, boolean isLeaf, int i) {
+            boolean isSelected, boolean isExpanded, boolean isLeaf, int row ) {
         node = (FolderNode) object;
-        icon.setIcon( isExpanded ? expandedIcon : closedIcon );
-        PhotoFolder f = node.getFolder();
-        name.setText( f.getName() );
-        name.setBackground( isSelected ? selectedBkg : nonSelectedBkg );
-        check.setSelected( node.containsPhotos() );
+        setupComponent( jTree, node, isSelected, isExpanded, isLeaf, row, true );
         return this;
     }
 
@@ -147,14 +144,52 @@ class FolderNodeEditor
             int row, boolean hasFocus) {
         if (object instanceof FolderNode) {
             node = (FolderNode) object;
-            icon.setIcon( isExpanded ? expandedIcon : closedIcon );
-            PhotoFolder f = node.getFolder();
-            name.setText( f.getName() );
-            name.setBackground( isSelected ? selectedBkg : nonSelectedBkg );
-            check.setSelected( node.containsPhotos() );
+            setupComponent( jTree, node, isSelected, isExpanded, isLeaf, row, hasFocus );
         }
         return this;
     }        
+    
+    
+    /**
+     Set up the component based on information about tree and current folder node
+     @param jTree      The tree
+     @param node       Value of the current node
+     @param isSelected Whether the node is selected
+     @param isExpanded Whether the node is expanded
+     @param isLeaf     Whether the node is leaf
+     @param row        Row if the node
+     @param hasFocus   Whether the node has focus     
+     */
+    private void setupComponent( JTree jTree, FolderNode node,
+            boolean isSelected, boolean isExpanded, boolean isLeaf,
+            int row, boolean hasFocus ) {
+        icon.setIcon( isExpanded ? expandedIcon : closedIcon );
+        PhotoFolder f = node.getFolder();
+        setupFolder( f );
+        name.setBackground( isSelected ? selectedBkg : nonSelectedBkg );
+    }
+
+    /**
+     Set up the information of current folder (name & whether it has photos)
+     @param f  The current folder
+     */
+    private void setupFolder( PhotoFolder f ) {
+        String labelStr = f.getName();
+        if ( node.containsPhotos() ) {
+            check.setSelected(true);
+            if ( node.containsAllPhotos() ) {
+                labelStr = "<html><strong>" + labelStr + "</strong>";
+                check.setUndef( false );
+            } else {
+                labelStr = "<html><font color=\"gray\"><strong>" + labelStr + "</strong></font>";
+                check.setUndef( true );
+            }
+        } else {
+            check.setSelected( false );
+            check.setUndef( false );
+        }
+        name.setText( labelStr );        
+    }
     
     /**
      Get the value of the currently edited node.
@@ -208,12 +243,14 @@ class FolderNodeEditor
      */
     public void actionPerformed(ActionEvent actionEvent) {
         if ( actionEvent.getSource() == check ) {
+            check.setUndef( false );
             // Add or remove photos from current node depending on checkbox state
             if ( check.isSelected() ) {
                 treePane.addAllToSelectedFolder();
             } else {
                 treePane.removeAllFromSelectedFolder();
             }
+            setupFolder( treePane.getSelectedFolder() );
         }
     }
 }

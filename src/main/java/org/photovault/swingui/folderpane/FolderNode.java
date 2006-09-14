@@ -93,7 +93,16 @@ class FolderNode {
     public boolean containsPhotos() {
         return allAdded || ((photos.size() > 0) && !allRemoved);
     }
-    
+
+    /**
+     * Returns <code>true</code> if the FolderNode contains all photos in model, 
+     * <code>false</code> otherwise.
+     */
+    boolean containsAllPhotos() {
+        return (model!= null && (photos.size() == model.length || allAdded)
+				&& !allRemoved );
+    }
+	    
     /**
      * Returns the string that represents this folder in folder tree. <p>
      *
@@ -129,7 +138,7 @@ class FolderNode {
 	}
 	return strbuf.toString();
     }
-	
+
 
 
 }
