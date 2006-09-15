@@ -14,14 +14,14 @@
   General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with Foobar; if not, write to the Free Software Foundation,
+  along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 -->
 
 
-<project name="PhotoVault" default="dist" basedir=".">
+<project name="Photovault" default="dist" basedir=".">
     <description>
-        Photo archiving system
+        Photovault image organization system
     </description>
   <!-- set global properties for this build -->
   <property name="src" location="src/main/java"/>
@@ -96,10 +96,11 @@
 	    <filter token="build.user" value="${user.name}"/>
 	</filterset>
      </copy>
+     <property file="conf/buildinfo.properties"/>   
   </target>
 
   <target name="compile" depends="init"
-        description="compile the source " >
+        description="Compile the source" >
 
 
     <!-- Compile the java code from ${src} into ${build} -->
@@ -112,7 +113,7 @@
   </target>
 
   <target name="dist" depends="compile"
-        description="generate the distribution" >
+        description="Build Photovault JAR files" >
     
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}/photovault-latest"/>
@@ -155,7 +156,7 @@
   </target>
 
   <target name="win32-installer" depends="dist"
-    description="Creates a WIN32 installer ron this build using NSIS">
+    description="Creates a WIN32 installer using NSIS">
       <fail message="The 'nsiscompiler' property must contain absolute path of NSIS compiler">
           <condition>
             <not>
@@ -198,7 +199,7 @@
     </exec>
   </target>
   
-    <target name="test" depends="dist">
+    <target name="test" depends="dist" description="Run JUnit tests">
       <delete dir="./${reports.test}/testresults"/>
       <mkdir dir="./${reports.test}/testresults"/>
       <mkdir dir="./build/test_volume"/>
@@ -309,7 +310,7 @@
     
   
     
-  <target name="run" depends="dist">
+  <target name="run" depends="dist" description="Run Photovault">
         <java fork="true" classname="org.photovault.swingui.Photovault">
             <!-- Use large enough heap to fit also big images -->
             <jvmarg value="-Xmx256M"/>
@@ -359,7 +360,7 @@
         </emma>      
   </target>
   
-  <target name="debug" depends="compile" if="netbeans.home" description="Debug Project">  
+  <target name="debug" depends="compile" if="netbeans.home" description="Debug in Netbeans">  
     <nbjpdastart name="Photovault" addressproperty="jpda.address" transport="dt_socket">
      <classpath refid="project.class.path"/>
 
@@ -375,7 +376,7 @@
   </java>
 </target>   
 
-    <target name="debug-selected-files" depends="compile" if="netbeans.home" description="Debug a Single File">
+    <target name="debug-selected-files" depends="compile" if="netbeans.home" description="Debug a single file in Netbeans">
        <fail unless="classname">Must set property 'classname'</fail>
        <nbjpdastart name="${classname}" addressproperty="jpda.address" transport="dt_socket">
           <classpath refid="project.class.path"/>
@@ -391,7 +392,7 @@
      </target>
 
      <!-- Profile Photovault in Netbeans 5 -->
-    <target name="profile" depends="dist" description="Profile Project">
+    <target name="profile" depends="dist" description="Profile in Netbeans profiler">
         <fail unless="netbeans.home">This target can only run inside the NetBeans IDE.</fail>
         <!-- Start the profiler & waint for Java VM -->
         <nbprofiledirect>
@@ -408,7 +409,7 @@
         </java> 
     </target>   
    
-  <target name="doc">
+  <target name="doc" description="Create Javadoc documentation">
     <javadoc packagenames = "*"
              destdir="docs/api"
 	     sourcepath="${src}"
@@ -431,4 +432,65 @@
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
   </target>
+
+  <target name="dist-bin-tgz" depends="dist"
+    description="Creates the binary distribution">
+      <property name="version" value="${build.major}.${build.minor}.${build.patch}${build.version_shorttag}"/>
+      <property name="tardir" value="photovault-${build.major}.${build.minor}.${build.patch}"/>
+      <tar destfile="${dist}/photovault-${version}.tar.gz" compression="gzip">
+          <tarfileset dir="${dist}/photovault-latest" prefix="${tardir}/lib">
+              <exclude name="${dist}/photovault-latest/jai_*"/>
+          </tarfileset>
+          <tarfileset dir="." prefix="${tardir}">
+              <include name="relnotes.txt"/>
+              <include name="LICENSE.txt"/>
+          </tarfileset>
+          <tarfileset dir="." fullpath="${tardir}/photovault" mode="755">
+              <include name="photovault.sh"/>
+          </tarfileset>
+      </tar>
+  </target>
+  <target name="dist-src-tgz" depends="dist"
+    description="Creates the source distribution tar file">
+      <property name="version" value="${build.major}.${build.minor}.${build.patch}${build.version_shorttag}"/>
+      <property name="tardir" value="photovault-${build.major}.${build.minor}.${build.patch}"/>
+      <tar destfile="${dist}/photovault-src-${version}.tar.gz" compression="gzip">
+          <tarfileset dir="src" prefix="${tardir}/src">
+              <exclude name="**/.svn"/>
+          </tarfileset>
+          <tarfileset dir="lib" prefix="${tardir}/lib">
+              <exclude name="**/.svn"/>
+              <exclude name="**/jai_*"/>
+          </tarfileset>
+          <tarfileset dir="conf" prefix="${tardir}/conf">
+              <exclude name="**/.svn"/>
+          </tarfileset>
+          <tarfileset dir="." prefix="${tardir}">
+              <include name="relnotes.txt"/>
+              <include name="LICENSE.txt"/>
+              <include name="build.properties"/>
+              <include name="forrest.properties"/>
+          </tarfileset>
+      </tar>
+  </target>
+  <target name="dist-testfiles-tgz" depends="dist"
+    description="Crates the test file distribution tar file">
+      <property name="version" value="${build.major}.${build.minor}.${build.patch}${build.version_shorttag}"/>
+      <property name="tardir" value="photovault-${build.major}.${build.minor}.${build.patch}"/>
+      <tar destfile="${dist}/photovault-testfiles-${version}.tar.gz" compression="gzip">
+          <tarfileset dir="tests" prefix="${tardir}/tests">
+              <exclude name="**/.svn"/>
+          </tarfileset>
+          <tarfileset dir="testfiles" prefix="${tardir}/testfiles">
+              <exclude name="**/.svn"/>
+          </tarfileset>
+          <tarfileset dir="." prefix="${tardir}">
+              <include name="relnotes.txt"/>
+              <include name="LICENSE.txt"/>
+          </tarfileset>
+      </tar>
+  </target>
+  <target name="dist-files" depends="win32-installer,dist-bin-tgz,dist-src-tgz,dist-testfiles-tgz"
+    description="Creates the distribution packages"/>
+
 </project>
