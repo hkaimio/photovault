@@ -57,12 +57,15 @@ public class AboutDlg extends javax.swing.JDialog {
         }
         
         svnrevLabel.setText( prop.getProperty( "svn.revision", "unknown" ) );   
-        svnbranchLabel.setText( prop.getProperty( "svn.info.url", "unknown" ) );
+        svnbranchLabel.setText( prop.getProperty( "svn.url", "unknown" ) );
         buildTimeLabel.setText( prop.getProperty( "build.time", "unknown" ) );
         builderLabel.setText( prop.getProperty( "build.user", "unknown" ) );
         String version = prop.getProperty( "build.version", "unknown" );
-        String versionTag = prop.getProperty( "build.version_tag", "unknown" );
-        versionLabel.setText( version + " (" + versionTag + ")" );
+        String versionTag = prop.getProperty( "build.version_tag", "" );
+        if ( versionTag.length() > 0 ) {
+            version = version + " (" + versionTag + ")";
+        }
+        versionLabel.setText( version );
         builderLabel.setText( prop.getProperty( "build.user", "unknown" ) );
       
         // Set up the splash screen image

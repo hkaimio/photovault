@@ -86,6 +86,7 @@
     </exec>
     <svninfoproperties dir="." verbose="true"/> 
     <echo>SVN revision: ${svnrevision}</echo>
+    <echo>SVN URL: ${svn.info.url}</echo>
     <copy file="conf/buildinfo.template.properties" 
 	    tofile="conf/buildinfo.properties"
 	    overwrite="true">
