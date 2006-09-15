@@ -22,6 +22,7 @@
 package org.photovault.swingui;
 
 
+import javax.swing.tree.TreePath;
 import org.photovault.imginfo.FuzzyDate;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -243,10 +244,14 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     protected void createFolderPaneUI() {
 	JPanel pane = new JPanel();
-	tabPane.addTab( "Folders", pane );
+        pane.setLayout( new GridBagLayout() );
 	folderTreePane = new FolderTreePane( ctrl.getFolderController() );
-	pane.add( folderTreePane, BorderLayout.NORTH );
-
+	tabPane.addTab( "Folders", pane );
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1;
+        c.weighty = 1;
+	pane.add( folderTreePane, c );
     }
 
     public void setPhotographer( String newValue ) {
@@ -449,6 +454,10 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     public void setFolderTreeModel( TreeModel model ) {
 	folderTreePane.setFolderTreeModel( model );
+    }
+
+    public void expandFolderTreePath(TreePath path) {
+        folderTreePane.expandPath( path );
     }
     
     // Important UI components

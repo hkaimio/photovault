@@ -49,33 +49,30 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
     }
     
     void createUI() {
-	setLayout(new GridBagLayout());
-	folderTree = new JTree(  );
+	GridBagLayout layout = new GridBagLayout();
+        setLayout( layout );
+	folderTree = new JTree();
  	folderTree.setRootVisible( true );
 	folderTree.setShowsRootHandles( false );
 	folderTree.setEditable( true );
         folderTree.setCellEditor( new FolderNodeEditor( this ) );
         folderTree.setCellRenderer( new FolderNodeEditor( this ) );
         JScrollPane scrollPane = new JScrollPane( folderTree );
- 	scrollPane.setPreferredSize( new Dimension( 300, 300 ) );
-
+        scrollPane.setPreferredSize( new Dimension( 300, 300 ) );
+        
+        
 	GridBagConstraints c = new GridBagConstraints();
 	c.gridx = 0;
 	c.gridy = 0;
 	c.gridheight = GridBagConstraints.REMAINDER;
+	c.gridwidth = GridBagConstraints.REMAINDER;
+        c.weightx = 1;
+        c.weighty = 1;
 	c.fill = GridBagConstraints.BOTH;
+        c.anchor = GridBagConstraints.SOUTHEAST;
+	add( scrollPane );
+        layout.setConstraints( scrollPane, c );
 	
-	add( scrollPane, c );
-	
-	JButton addFolderBtn = new JButton( "Add to folder..." );
-	addFolderBtn.setActionCommand( ADD_ALL_TO_FOLDER_CMD );
-	addFolderBtn.addActionListener( this );
-	c = new GridBagConstraints();
-	c.gridx = 1;
-	c.gridy = 0;
-	add( addFolderBtn, c );
-
-
 	popup = new JPopupMenu();
 	JMenuItem addAllItem = new JMenuItem( "Add photos" );
 	addAllItem.addActionListener( this );
@@ -203,6 +200,10 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 	if ( selected != null ) {
 	    ctrl.removeAllFromFolder( selected );
 	}
+    }
+
+    public void expandPath(TreePath path) {
+        folderTree.expandPath( path );    
     }
 
 

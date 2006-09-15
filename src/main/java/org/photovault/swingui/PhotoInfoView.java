@@ -20,6 +20,7 @@
 
 package org.photovault.swingui;
 
+import javax.swing.tree.TreePath;
 import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import javax.swing.tree.TreeModel;
@@ -65,5 +66,10 @@ public interface PhotoInfoView {
     public Number getFilmSpeed();
     public void setFilmSpeedMultivalued( boolean mv );
     public void setFolderTreeModel( TreeModel model );
+    /**
+     Expand the given path in folder tree
+     @param path The path to expand
+     */
+    public void expandFolderTreePath( TreePath path );
 }
     
