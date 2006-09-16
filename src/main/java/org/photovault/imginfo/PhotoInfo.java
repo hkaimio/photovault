@@ -1013,6 +1013,23 @@ public class PhotoInfo {
             exportImage = JAI.create( "affine", scaleParams );
         }
         
+        // Reduce to 8 bit samples if we have more...
+        if ( exportImage.getSampleModel().getSampleSize( 0 ) == 16 ) {
+            double[] subtract = new double[1]; subtract[0] = 0;
+            double[] divide   = new double[1]; divide[0]   = 1./256.;
+            // Now we can rescale the pixels gray levels:
+            ParameterBlock pbRescale = new ParameterBlock();
+            pbRescale.add(divide);
+            pbRescale.add(subtract);
+            pbRescale.addSource( exportImage );
+            PlanarImage outputImage = (PlanarImage)JAI.create("rescale", pbRescale, null);
+            // Make sure it is a byte image - force conversion.
+            ParameterBlock pbConvert = new ParameterBlock();
+            pbConvert.addSource(outputImage);
+            pbConvert.add(DataBuffer.TYPE_BYTE);
+            exportImage = JAI.create("format", pbConvert);
+        }
+        
         // Try to determine the file type based on extension
         String ftype = "jpg";
         String imageFname = file.getName();
