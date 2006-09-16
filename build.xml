@@ -437,7 +437,7 @@
   <target name="dist-bin-tgz" depends="dist"
     description="Creates the binary distribution">
       <property name="version" value="${build.major}.${build.minor}.${build.patch}${build.version_shorttag}"/>
-      <property name="tardir" value="photovault-${build.major}.${build.minor}.${build.patch}"/>
+      <property name="tardir" value="photovault-${build.major}.${build.minor}.${build.patch}${build.version_shorttag}"/>
       <tar destfile="${dist}/photovault-${version}.tar.gz" compression="gzip">
           <tarfileset dir="${dist}/photovault-latest" prefix="${tardir}/lib">
               <exclude name="${dist}/photovault-latest/jai_*"/>
