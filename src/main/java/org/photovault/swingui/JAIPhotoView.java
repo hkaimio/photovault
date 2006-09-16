@@ -538,8 +538,10 @@ public class JAIPhotoView extends JPanel
 	    if ( xformImage == null ) {
 		buildXformImage();
 	    }
-	    w = xformImage.getWidth();
-	    h = xformImage.getHeight();
+            if ( xformImage != null ) {
+                w = xformImage.getWidth();
+                h = xformImage.getHeight();
+            }
 	}
 	return new Dimension( w, h );
     }
