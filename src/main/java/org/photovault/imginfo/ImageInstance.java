@@ -9,7 +9,7 @@
   (at your option) any later version.
 
   Photovault is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
+  WITHOUT ANY WARRANTY; without even therrore implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
 
@@ -60,7 +60,8 @@ public class ImageInstance {
      the method also aborts ongoing ODMG transaction.
      */
     public static ImageInstance create ( VolumeBase vol, File imgFile ) {
-	ODMGXAWrapper txw = new ODMGXAWrapper();
+	log.debug( "Creating instance " + imgFile.getAbsolutePath() );
+        ODMGXAWrapper txw = new ODMGXAWrapper();
         ImageInstance i = new ImageInstance();
 	i.volume = vol;
 	i.volumeId = vol.getName();
@@ -203,8 +204,18 @@ public class ImageInstance {
 
 	// Find the JPEG image reader
 	// TODO: THis shoud decode also other readers from fname
-	Iterator readers = ImageIO.getImageReadersByFormatName("jpg");
-	ImageReader reader = (ImageReader)readers.next();
+        String fname = imageFile.getName();
+        int lastDotPos = fname.lastIndexOf( "." );
+        if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
+            throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
+        }
+        String suffix = fname.substring( lastDotPos+1 );
+        Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
+        if ( !readers.hasNext() ) {
+            throw new IOException( "Unknown image file extension " + suffix + 
+                    "\nwhile reading " + imageFile.getAbsolutePath() );
+        }
+        ImageReader reader = (ImageReader)readers.next();
 	ImageInputStream iis = null;
         try {
             iis = ImageIO.createImageInputStream( imageFile );        

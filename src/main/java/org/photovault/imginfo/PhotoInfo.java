@@ -1,24 +1,25 @@
 /*
   Copyright (c) 2006 Harri Kaimio
-  
+ 
   This file is part of Photovault.
-
+ 
   Photovault is free software; you can redistribute it and/or modify it
   under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-
+ 
   Photovault is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
-
+ 
   You should have received a copy of the GNU General Public License
   along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
-*/
+ */
 
 package org.photovault.imginfo;
+import java.awt.image.renderable.ParameterBlock;
 import java.util.*;
 import java.sql.*;
 import java.io.*;
@@ -106,7 +107,7 @@ public class PhotoInfo {
         }
         return photo;
     }
-
+    
     /**
      Retrieves the PhotoInfo objects whose original instance has a specific hash code
      @param hash The hash code we are looking for
@@ -114,30 +115,30 @@ public class PhotoInfo {
      if none found.
      */
     static public PhotoInfo[] retrieveByOrigHash(byte[] hash) {
- 	ODMGXAWrapper txw = new ODMGXAWrapper();
-	Implementation odmg = ODMG.getODMGImplementation();
-
-	Transaction tx = odmg.currentTransaction();
-
-       PhotoInfo photos[] = null;
-	try {
-	    PersistenceBroker broker = ((HasBroker) tx).getBroker();
-	    
-	    Criteria crit = new Criteria();
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        Implementation odmg = ODMG.getODMGImplementation();
+        
+        Transaction tx = odmg.currentTransaction();
+        
+        PhotoInfo photos[] = null;
+        try {
+            PersistenceBroker broker = ((HasBroker) tx).getBroker();
+            
+            Criteria crit = new Criteria();
             crit.addEqualTo( "hash", hash );
-	    
-	    QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
-	    Collection result = broker.getCollectionByQuery( q );
+            
+            QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
+            Collection result = broker.getCollectionByQuery( q );
             if ( result.size() > 0 ) {
                 photos = (PhotoInfo[]) result.toArray( new PhotoInfo[result.size()] );
             }
             txw.commit();
-	} catch ( Exception e ) {
-	    log.warn( "Error executing query: " + e.getMessage() );
-	    e.printStackTrace( System.out );
-	    txw.abort();
-	}
-       return photos;
+        } catch ( Exception e ) {
+            log.warn( "Error executing query: " + e.getMessage() );
+            e.printStackTrace( System.out );
+            txw.abort();
+        }
+        return photos;
     }
     
     /**
@@ -156,12 +157,12 @@ public class PhotoInfo {
     
     
     /**
-     Add a new image to the database. Unless the image resides in an external 
-     volume this method first copies a given image file to the default database 
-     volume. It then extracts the information it can from the image file and 
+     Add a new image to the database. Unless the image resides in an external
+     volume this method first copies a given image file to the default database
+     volume. It then extracts the information it can from the image file and
      stores a corresponding entry in DB.
      
-     @param imgFile File object that describes the image file that is to be added 
+     @param imgFile File object that describes the image file that is to be added
      to the database
      @return The PhotoInfo object describing the new file.
      @throws PhotoNotFoundException if the file given as imgFile argument does
@@ -179,13 +180,13 @@ public class PhotoInfo {
         // Determine the fle that will be added as an instance
         File instanceFile = null;
         if ( vol == null ) {
-            /* 
-             The "normal" case: we are adding a photo that is not part of any 
+            /*
+             The "normal" case: we are adding a photo that is not part of any
              volume. Copy the file to the archive.
              */
             vol = VolumeBase.getDefaultVolume();
             instanceFile = vol.getFilingFname( imgFile );
-
+            
             try {
                 FileUtils.copyFile( imgFile, instanceFile );
             } catch (IOException ex) {
@@ -199,7 +200,7 @@ public class PhotoInfo {
             // Adding file from normal volume is not permitted
             throw new PhotoNotFoundException();
         } else {
-            throw new java.lang.Error( "Unknown subclass of VolumeBase: " 
+            throw new java.lang.Error( "Unknown subclass of VolumeBase: "
                     + vol.getClass().getName() );
         }
         
@@ -226,7 +227,7 @@ public class PhotoInfo {
      Reads field values from original file EXIF values
      @return true if successfull, false otherwise
      */
-     
+    
     public boolean updateFromOriginalFile() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         ImageInstance instance = null;
@@ -237,7 +238,7 @@ public class PhotoInfo {
                 File f = instance.getImageFile();
                 if ( f != null ) {
                     updateFromFileMetadata( f );
-                    txw.commit();                    
+                    txw.commit();
                     return true;
                 }
             }
@@ -251,7 +252,7 @@ public class PhotoInfo {
      @param f The file to read
      */
     void updateFromFileMetadata( File f ) {
-        ExifDirectory exif = null; 
+        ExifDirectory exif = null;
         try {
             Metadata metadata = JpegMetadataReader.readMetadata(f);
             if ( metadata.containsDirectory( ExifDirectory.class ) ) {
@@ -270,7 +271,7 @@ public class PhotoInfo {
         }
         // Shooting date
         try {
-            java.util.Date origDate = exif.getDate( exif.TAG_DATETIME_ORIGINAL );   
+            java.util.Date origDate = exif.getDate( exif.TAG_DATETIME_ORIGINAL );
             setShootTime( origDate );
             log.debug( "TAG_DATETIME_ORIGINAL: " + origDate.toString() );
         } catch ( MetadataException e ) {
@@ -308,8 +309,10 @@ public class PhotoInfo {
         // Camera name. Put here both camera manufacturer and model
         String maker = exif.getString( exif.TAG_MAKE );
         String model = exif.getString( exif.TAG_MODEL );
-        StringBuffer cameraBuf = new StringBuffer( maker );
-        cameraBuf.append( " "). append( model );
+        StringBuffer cameraBuf = new StringBuffer( maker != null ? maker : "" );
+        if ( model != null ) {
+            cameraBuf.append( " "). append( model );
+        }
         String camera = cameraBuf.toString();
         if ( cameraBuf.length() > CAMERA_LENGTH ) {
             camera = cameraBuf.substring( 0, CAMERA_LENGTH );
@@ -470,7 +473,7 @@ public class PhotoInfo {
     }
     
     public void removeInstance( int instanceNum )  throws IndexOutOfBoundsException {
-        ODMGXAWrapper txw = new ODMGXAWrapper();        
+        ODMGXAWrapper txw = new ODMGXAWrapper();
         ImageInstance instance = null;
         try {
             instance = (ImageInstance) getInstances().get(instanceNum );
@@ -531,7 +534,7 @@ public class PhotoInfo {
             }
         }
         if ( thumbnail == null ) {
-            // Thumbnail was not successful created, most probably because there 
+            // Thumbnail was not successful created, most probably because there
             // is no available instance
             thumbnail = Thumbnail.getDefaultThumbnail();
             oldThumbnail = null;
@@ -542,7 +545,7 @@ public class PhotoInfo {
     }
     
     /**
-     Returns an existing thumbnail for this photo but do not try to contruct a new 
+     Returns an existing thumbnail for this photo but do not try to contruct a new
      one if there is no thumbnail already created
      @return Thumbnail for this photo or null if none created
      */
@@ -590,7 +593,7 @@ public class PhotoInfo {
     public Thumbnail getOldThumbnail() {
         return oldThumbnail;
     }
-
+    
     /**
      Invalidates the current thumbnail:
      <ul>
@@ -613,12 +616,12 @@ public class PhotoInfo {
      @return aspect ratio (width/height)
      */
     private double getAspect( int width, int height, double pixelAspect ) {
-        return height > 0 
+        return height > 0
                 ? pixelAspect*(((double) width) / ((double) height )) : -1.0;
     }
     
     /**
-     Helper method to check if a image is ok for thumbnail creation, i.e. that 
+     Helper method to check if a image is ok for thumbnail creation, i.e. that
      it is large enough and that its aspect ration is same as the original has
      @param width width of the image to test
      @param height Height of the image to test
@@ -626,7 +629,7 @@ public class PhotoInfo {
      @param minHeight Minimum height needed for creating a thumbnail
      @param origAspect Aspect ratio of the original image
      */
-    private boolean isOkForThumbCreation( int width, int height, 
+    private boolean isOkForThumbCreation( int width, int height,
             int minWidth, int minHeight, double origAspect, double aspectAccuracy ) {
         if ( width < minWidth ) return false;
         if ( height < minHeight ) return false;
@@ -652,7 +655,7 @@ public class PhotoInfo {
         checkCropBounds();
         
         /*
-         Determine the minimum size for the instance used for thumbnail creation 
+         Determine the minimum size for the instance used for thumbnail creation
          to get decent image quality.
          The cropped portion of the image must be roughly the same
          resolution as the intended thumbnail.
@@ -660,7 +663,7 @@ public class PhotoInfo {
         double cropWidth = cropMaxX - cropMinX;
         cropWidth = ( cropWidth > 0.000001 ) ? cropWidth : 1.0;
         double cropHeight = cropMaxY - cropMinY;
-        cropHeight = ( cropHeight > 0.000001 ) ? cropHeight : 1.0;        
+        cropHeight = ( cropHeight > 0.000001 ) ? cropHeight : 1.0;
         int minInstanceWidth = (int)(((double)maxThumbWidth)/cropWidth);
         int minInstanceHeight = (int)(((double)maxThumbHeight)/cropHeight);
         int minInstanceSide = Math.max( minInstanceWidth, minInstanceHeight );
@@ -686,24 +689,35 @@ public class PhotoInfo {
         
         /*
          We try to ensure that the thumbnail is actually from the original image
-         by comparing aspect ratio of it to original. This is not a perfect check 
+         by comparing aspect ratio of it to original. This is not a perfect check
          but it will usually catch the most typical errors (like having a the original
          rotated by RAW conversion SW but still the original EXIF thumbnail.
          */
-        double origAspect = this.getAspect( 
-                original.getWidth(), 
+        double origAspect = this.getAspect(
+                original.getWidth(),
                 original.getHeight(), 1.0 );
         double aspectAccuracy = 0.01;
         
         // First, check if there is a thumbnail in image header
         BufferedImage origImage = readExifThumbnail( original.getImageFile() );
         
-        if ( origImage == null 
+        if ( origImage == null
                 || !isOkForThumbCreation( origImage.getWidth(),
-                        origImage.getHeight(), minInstanceWidth, minInstanceHeight, origAspect, aspectAccuracy ) ) {
+                origImage.getHeight(), minInstanceWidth, minInstanceHeight, origAspect, aspectAccuracy ) ) {
             // Read the image
             try {
-                Iterator readers = ImageIO.getImageReadersByFormatName( "jpg" );
+                File imageFile = original.getImageFile();
+                String fname = imageFile.getName();
+                int lastDotPos = fname.lastIndexOf( "." );
+                if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
+                    throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
+                }
+                String suffix = fname.substring( lastDotPos+1 );
+                Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
+                if ( !readers.hasNext() ) {
+                    throw new IOException( "Unknown image file extension " + suffix +
+                            "\nwhile reading " + imageFile.getAbsolutePath() );
+                }
                 if ( readers.hasNext() ) {
                     ImageReader reader = (ImageReader)readers.next();
                     log.debug( "Creating stream" );
@@ -716,9 +730,9 @@ public class PhotoInfo {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    if ( numThumbs > 0 
+                    if ( numThumbs > 0
                             && isOkForThumbCreation( reader.getThumbnailWidth( 0, 0 ),
-                                    reader.getThumbnailHeight( 0, 0 ) , minInstanceWidth, minInstanceHeight, origAspect, aspectAccuracy )   ) {
+                            reader.getThumbnailHeight( 0, 0 ) , minInstanceWidth, minInstanceHeight, origAspect, aspectAccuracy )   ) {
                         // There is a thumbanil that is big enough - use it
                         
                         log.debug( "Original has thumbnail, size "
@@ -729,17 +743,23 @@ public class PhotoInfo {
                     } else {
                         log.debug( "No thumbnail in original" );
                         ImageReadParam param = reader.getDefaultReadParam();
-
+                        
                         // Find the maximum subsampling rate we can still use for creating
-                        // a quality thumbnail
+                        // a quality thumbnail. Some image format readers seem to have 
+                        // problems with subsampling values (e.g. PNG sometimes crashed
+                        // the whole virtual machine, to for now let's do this only
+                        // with JPG.
                         int subsampling = 1;
-                        int minDim = Math.min( reader.getWidth( 0 ),reader.getHeight( 0 ) );
-                        while ( 2 * minInstanceSide * subsampling < minDim ) {
-                            subsampling *= 2;
+                        if ( suffix.toLowerCase().equals( "jpg" ) ) {
+                            int minDim = Math.min( reader.getWidth( 0 ),reader.getHeight( 0 ) );
+                            while ( 2 * minInstanceSide * subsampling < minDim ) {
+                                subsampling *= 2;
+                            }
                         }
                         param.setSourceSubsampling( subsampling, subsampling, 0, 0 );
-
+                        
                         origImage = reader.read( 0, param );
+                        // Image image = JAI.create( "fileload", original.getImageFile() );
                         log.debug( "Read original" );
                     }
                     iis.close();
@@ -751,14 +771,14 @@ public class PhotoInfo {
             }
         }
         log.debug( "Done, finding name" );
-
+        
         // Find where to store the file in the target volume
         File thumbnailFile = volume.getInstanceName( this, "jpg" );
         log.debug( "name = " + thumbnailFile.getName() );
         
         // Shrink the image to desired state and save it
         // Find first the correct transformation for doing this
-
+        
         int origWidth = origImage.getWidth();
         int origHeight = origImage.getHeight();
         
@@ -771,7 +791,7 @@ public class PhotoInfo {
         rotParams.setParameter( "interpolation",
                 Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
         RenderedOp rotatedImage = JAI.create( "affine", rotParams );
-
+        
         ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
         cropParams.addSource( rotatedImage );
         float cropX = (float)( Math.rint( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
@@ -782,12 +802,12 @@ public class PhotoInfo {
         cropParams.setParameter( "y", cropY );
         cropParams.setParameter( "width", cropW );
         cropParams.setParameter( "height", cropH );
-	RenderedOp cropped = JAI.create("crop", cropParams, null);
+        RenderedOp cropped = JAI.create("crop", cropParams, null);
         // Translate the image so that it begins in origo
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
         pbXlate.addSource( cropped );
         pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
-        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );        
+        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
         RenderedOp xformImage = JAI.create( "translate", pbXlate );
         // Finally, scale this to thumbnail
         AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( maxThumbWidth, maxThumbHeight,
@@ -811,16 +831,38 @@ public class PhotoInfo {
             return;
         }
         
+        String logStr = "Creating thumbnail for " + original.getImageFile().getAbsolutePath() + "\n" + 
+                "# bands: " + thumbImage.getNumBands();
+        for ( int band = 0; band < thumbImage.getNumBands(); band++ ) {
+            logStr = logStr + "\nBand " + band + " size: " + 
+                    thumbImage.getSampleModel().getSampleSize( band );
+        }
+        log.debug( logStr );
+        if ( thumbImage.getSampleModel().getSampleSize( 0 ) == 16 ) {
+            double[] subtract = new double[1]; subtract[0] = 0;
+            double[] divide   = new double[1]; divide[0]   = 1./256.;
+            // Now we can rescale the pixels gray levels:
+            ParameterBlock pbRescale = new ParameterBlock();
+            pbRescale.add(divide);
+            pbRescale.add(subtract);
+            pbRescale.addSource( thumbImage );
+            PlanarImage outputImage = (PlanarImage)JAI.create("rescale", pbRescale, null);
+            // Make sure it is a byte image - force conversion.
+            ParameterBlock pbConvert = new ParameterBlock();
+            pbConvert.addSource(outputImage);
+            pbConvert.add(DataBuffer.TYPE_BYTE);
+            thumbImage = JAI.create("format", pbConvert);
+        }
         JPEGEncodeParam encodeParam = new JPEGEncodeParam();
         ImageEncoder encoder = ImageCodec.createImageEncoder("JPEG", out,
-                encodeParam);
+              encodeParam);
         try {
             encoder.encode( thumbImage );
             out.close();
             // origImage.dispose();
             thumbImage.dispose();
-        } catch (IOException e) {
-            log.error( "Error writing thumbnail: " + e.getMessage() );
+        } catch (Exception e) {
+            log.error( "Error writing thumbnail for " + original.getImageFile().getAbsolutePath()+ ": " + e.getMessage() );
             txw.abort();
             return;
         }
@@ -883,8 +925,8 @@ public class PhotoInfo {
     }
     
     /**
-     Exports an image from database to a specified file with given resolution. 
-     The image aspect ratio is preserved and the image is scaled so that it fits 
+     Exports an image from database to a specified file with given resolution.
+     The image aspect ratio is preserved and the image is scaled so that it fits
      to the given maximum resolution.
      @param file File in which the image will be saved
      @param width Width of the exported image in pixels. If negative the image is
@@ -938,25 +980,25 @@ public class PhotoInfo {
         rotParams.setParameter( "interpolation",
                 Interpolation.getInstance( Interpolation.INTERP_BICUBIC ) );
         RenderedOp rotatedImage = JAI.create( "affine", rotParams );
-
+        
         ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
         cropParams.addSource( rotatedImage );
-        cropParams.setParameter( "x", 
+        cropParams.setParameter( "x",
                 (float)( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
-        cropParams.setParameter( "y", 
+        cropParams.setParameter( "y",
                 (float)( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight() ) );
-        cropParams.setParameter( "width", 
+        cropParams.setParameter( "width",
                 (float)( (cropMaxX - cropMinX) * rotatedImage.getWidth() ) );
-        cropParams.setParameter( "height", 
+        cropParams.setParameter( "height",
                 (float) ( (cropMaxY - cropMinY) * rotatedImage.getHeight() ) );
-	RenderedOp cropped = JAI.create("crop", cropParams, null);
+        RenderedOp cropped = JAI.create("crop", cropParams, null);
         // Translate the image so that it begins in origo
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
         pbXlate.addSource( cropped );
         pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
-        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );        
+        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
         RenderedOp xformImage = JAI.create( "translate", pbXlate );
-        // Finally, scale this to thumbnail        
+        // Finally, scale this to thumbnail
         PlanarImage exportImage = xformImage;
         if ( width > 0 ) {
             AffineTransform scale = org.photovault.image.ImageXform.getFittingXform( width, height,
@@ -1038,9 +1080,9 @@ public class PhotoInfo {
     
     /**
      MD5 hash code of the original instance of this PhotoInfo. It must is stored also
-     as part of PhotoInfo object since the original instance might be deleted from the 
+     as part of PhotoInfo object since the original instance might be deleted from the
      database (or we might synchronize just metadata without originals into other database!).
-     With the hash code we are still able to detect that an image file is actually the 
+     With the hash code we are still able to detect that an image file is actually the
      original.
      */
     byte origInstanceHash[] = null;
@@ -1054,10 +1096,10 @@ public class PhotoInfo {
      @param hash MD5 hash value for original instance
      */
     protected void setOrigInstanceHash( byte[] hash ) {
-       ODMGXAWrapper txw = new ODMGXAWrapper();
-       txw.lock( this, Transaction.WRITE );
-       origInstanceHash = (byte[]) hash.clone();
-       txw.commit();
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        origInstanceHash = (byte[]) hash.clone();
+        txw.commit();
     }
     
     java.util.Date shootTime;
@@ -1391,10 +1433,10 @@ public class PhotoInfo {
     
     private void checkCropBounds() {
         if ( cropMinX < 0.0 ) {
-            cropMinX = 0.0;            
+            cropMinX = 0.0;
         }
         if ( cropMinY < 0.0 ) {
-            cropMinY = 0.0;            
+            cropMinY = 0.0;
         }
         if ( cropMaxX - cropMinX <= 0.0) {
             cropMaxX = 1.0 - cropMinX;
@@ -1412,10 +1454,10 @@ public class PhotoInfo {
         checkCropBounds();
         txw.lock( this, Transaction.READ );
         txw.commit();
-        return new Rectangle2D.Double( cropMinX, cropMinY, 
-                cropMaxX-cropMinX, cropMaxY-cropMinY );        
+        return new Rectangle2D.Double( cropMinX, cropMinY,
+                cropMaxX-cropMinX, cropMaxY-cropMinY );
     }
-
+    
     
     /**
      Set the preferred cropping operation
@@ -1437,10 +1479,10 @@ public class PhotoInfo {
         txw.commit();
     }
     
-
+    
     
     /**
-     CropBounds describes the desired crop rectange from original image. It is 
+     CropBounds describes the desired crop rectange from original image. It is
      defined as proportional coordinates that are applied after rotating the
      original image so that top left corner is (0.0, 0.0) and bottong right
      (1.0, 1.0)
@@ -1566,7 +1608,7 @@ public class PhotoInfo {
      Set the original file name of this photo. This is set also by addToDB which is the
      preferred way of creating a new photo into the DB.
      @param newFname The original file name
-     @throws IllegalArgumentException if the given file name is longer than 
+     @throws IllegalArgumentException if the given file name is longer than
      @see ORIG_FNAME_LENGTH
      */
     public final void setOrigFname(final String newFname) {
@@ -1636,10 +1678,10 @@ public class PhotoInfo {
      @param maxLength Maximum length for the string
      @throws IllegalArgumentException if value is longer than maxLength
      */
-    void checkStringProperty( String propertyName, String value, int maxLength ) 
+    void checkStringProperty( String propertyName, String value, int maxLength )
     throws IllegalArgumentException {
         if ( value != null && value.length() > maxLength ) {
-            throw new IllegalArgumentException( propertyName 
+            throw new IllegalArgumentException( propertyName
                     + " cannot be longer than " + maxLength + " characters" );
         }
     }
@@ -1670,7 +1712,7 @@ public class PhotoInfo {
                 && p.uid == this.uid
                 && p.quality == this.quality );
     }
-
+    
     public int hashCode() {
         return uid;
     }
