@@ -54,6 +54,7 @@ import org.photovault.imginfo.PhotoInfo;
  other modificationto datamay be needed in addition just altering DB tables.
  */
 public class SchemaUpdateAction {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( SchemaUpdateAction.class.getName() );
     
     PVDatabase db = null;
     
@@ -108,7 +109,7 @@ public class SchemaUpdateAction {
              after it has been corrected the alterColumns flag should be set to
              true.
              */
-             System.out.println( platform.getAlterTablesSql( con, dbModel, false, true, true ) );
+             log.info( platform.getAlterTablesSql( con, dbModel, false, true, true ) );
              platform.alterTables( con, dbModel, false, true, true );
         } catch (DynaSqlException ex) {
             ex.printStackTrace();

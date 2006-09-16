@@ -34,7 +34,7 @@ import java.awt.geom.AffineTransform;
 */
 public class PhotoView extends JPanel {
     
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoView.class.getName() );
 
     public PhotoView() {
 	super();
@@ -185,9 +185,9 @@ public class PhotoView extends JPanel {
 	    BufferedImage bi = ImageIO.read(f);
 	    view.setImage( bi );
 	    view.setScale( 0.3f );
-	    System.out.println( "Succesfully loaded \""+ f.getPath() + "\"" );
+	    log.debug( "Succesfully loaded \""+ f.getPath() + "\"" );
 	} catch (IOException e ) {
-	    System.out.println( "Error loading image \""+ f.getPath() + "\"" );
+	    log.debug( "Error loading image \""+ f.getPath() + "\"" );
 	}
 	
 	frame.pack();

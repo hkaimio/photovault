@@ -487,7 +487,7 @@ public class JAIPhotoView extends JPanel
         int dx = x - rotHandleX[1];
         int dy = y - rotHandleY[1];
         boolean isHandle = ( dx*dx + dy*dy < accuracy * accuracy );
-        System.err.println( "Is rot handle? " + isHandle );
+        log.debug( "Is rot handle? " + isHandle );
         return isHandle;
     }
     
@@ -509,7 +509,7 @@ public class JAIPhotoView extends JPanel
         if ( dy > 0 ) {
             cropBorderRot += Math.PI;
         }
-        System.err.println( "New rotation " + cropBorderRot );
+        log.debug( "New rotation " + cropBorderRot );
         calcCropBorderCoords();
 
     }
@@ -781,7 +781,7 @@ public class JAIPhotoView extends JPanel
         if  ( !drawCropped ) {
             // Check if we clicked on a handle
             handleMoving = getHandleAt( mouseEvent.getX(), mouseEvent.getY() );
-            System.err.println( "Moving handle " + handleMoving );
+            log.debug( "Moving handle " + handleMoving );
             if ( handleMoving < 0 ) {
                 isRotating = isRotHandleAt( mouseEvent.getX(), mouseEvent.getY() );
             }

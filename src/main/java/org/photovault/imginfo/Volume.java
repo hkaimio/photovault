@@ -87,7 +87,7 @@ public class Volume extends VolumeBase {
     }
     
     private File getNewFname( java.util.Date date, String strExtension ) {
-	System.err.println( "getNewFname " + date + " " + strExtension );
+	log.debug( "getNewFname " + date + " " + strExtension );
         SimpleDateFormat fmt = new SimpleDateFormat( "yyyy" );
 	String strYear = fmt.format( date );
 	fmt.applyPattern( "yyyyMM" );
@@ -96,9 +96,9 @@ public class Volume extends VolumeBase {
 	String strDate = fmt.format( date );
 
 	File yearDir = new File( volumeBaseDir, strYear );
-        System.err.println( "YearDir: " + yearDir );
+        log.debug( "YearDir: " + yearDir );
 	if ( !yearDir.exists() ) {
-	    System.err.println( "making yeardir" );
+	    log.debug( "making yeardir" );
             if ( !yearDir.mkdir() ) {
                 log.error( "Failed to create directory " + yearDir.getAbsoluteFile() );
             }
@@ -106,9 +106,9 @@ public class Volume extends VolumeBase {
 
 	// Create the month directeory if it does not exist yet
 	File monthDir = new File ( yearDir, strMonth );
-        System.err.println( "MontDir: " + monthDir );
+        log.debug( "MontDir: " + monthDir );
 	if ( !monthDir.exists() ) {
-	    System.err.println( "making yeardir" );
+	    log.debug( "making yeardir" );
 	    if ( !monthDir.mkdir() ) {
                 log.error( "Failed to create " + monthDir.getAbsolutePath() );
             }

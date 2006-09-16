@@ -60,9 +60,9 @@ public class PhotovaultSettings {
         // Load XML configuration file
         String confFileName = System.getProperty( "photovault.configfile" );
         if ( confFileName != null ) {
-            System.out.println( "photovault.configfile " + confFileName );
+            log.debug( "photovault.configfile " + confFileName );
             configFile = new File( confFileName );
-            System.out.println( configFile );
+            log.debug( configFile );
         } else {
             // If the photovault.configfile property is not set, use file photovault.xml 
             // in directory .photovault in user's home directory

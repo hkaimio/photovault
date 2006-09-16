@@ -41,6 +41,7 @@ import org.photovault.folder.*;
 */
 class PhotoTreeDropTargetListener implements DropTargetListener
 {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoTreeDropTargetListener.class.getName() );
     private TreePath lastPath = null;
     private Rectangle2D cueRect = new Rectangle2D.Float();
     private Rectangle2D ghostImgRect = new Rectangle2D.Float();
@@ -221,11 +222,11 @@ class PhotoTreeDropTargetListener implements DropTargetListener
 		    }
 		    break; // No need to check remaining flavors
 		} catch (UnsupportedFlavorException ufe) {
-		    System.out.println(ufe);
+		    log.warn(ufe);
 		    e.dropComplete(false);
 		    return;
 		} catch (IOException ioe) {
-		    System.out.println(ioe);
+		    log.warn(ioe);
 		    e.dropComplete(false);
 		    return;
 		}

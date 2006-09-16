@@ -30,7 +30,6 @@ import java.util.*;
    This class contains helper functions that can be used in test cases that need to analyze images.
 */
 public class ImgTestUtils {
-
   static String tempDir = "/tmp";
     public static boolean compareImgToFile( BufferedImage img, File file ) {
 	if ( file.exists() ) {

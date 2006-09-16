@@ -22,6 +22,7 @@ package org.photovault.imginfo;
 import org.apache.ojb.broker.query.Criteria;
 
 public class QueryFulltextCriteria implements QueryFieldCriteria {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( QueryFulltextCriteria.class.getName() );
 
     public QueryFulltextCriteria( QueryField field ) {
 	this.field = field;
@@ -38,9 +39,9 @@ public class QueryFulltextCriteria implements QueryFieldCriteria {
 
     public void setupQuery( Criteria crit ) {
 	String sql = "MATCH(" + field.getName() + ") AGAINST('" + text + "')";
-	System.out.println( sql );
+	log.debug( sql );
 	crit.addSql( sql );
-	System.out.println( "Added" );
+	log.debug( "Added" );
     }
 
     String text = null;

@@ -36,6 +36,7 @@ import org.photovault.imginfo.Volume;
  * @author Harri Kaimio
  */
 public class PhotovaultDatabases {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultDatabases.class.getName() );
 
     HashMap databases;
     
@@ -87,7 +88,7 @@ public class PhotovaultDatabases {
             beanReader.registerBeanClass( "external-volume", ExternalVolume.class );
             databases = (PhotovaultDatabases) beanReader.parse( f );
         } catch ( Exception e ) {
-            System.err.println( e.getMessage() );
+            log.warn( e.getMessage() );
         }        
         return databases;
     }
