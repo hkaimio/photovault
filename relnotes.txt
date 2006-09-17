@@ -1,4 +1,4 @@
-PHOTOVAULT 0.3.0
+PHOTOVAULT 0.4.0-dev
 RELEASE NOTES
 
 This is release 0.3.0 of Photovault, a cross-platform Java based image 
@@ -6,6 +6,23 @@ archiving application for photographers. 0.3.0 is a feature release that
 adds lots of new functionality to Photovault, including support for
 arbitrary rotation and cropping of images, improved export functionality
 as well as speed and usability improvements.
+
+MAIN CHANGES IN PHOTOVAULT 0.3.1
+
+New features
+- Use checkboxes to select folders a photo belongs to
+- Default thumbnail image used if the photo does not have a thumbnail
+
+Bug fixes
+- Improved support for image formats. Photovault can now read all image 
+  formats support Java Advanced imaging. It also supports using images with
+  16 bits per channel although exporting is always done with 8 bits per
+  channel.
+- Better EXIF tag handling
+- Improved error messages when login or database startup fails
+- Possible to cahnge database after unsuccesfull login
+- Improved error handling if photo instance file is missing or corrupted
+
 
 MAIN CHANGES IN PHOTOVAULT 0.3.0
 
