@@ -54,7 +54,7 @@ var ICONS_GROUP
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
-OutFile "dist\win32\installer\PhotovaultSetup.exe"
+OutFile "dist\win32\installer\photovault-win32-setup-@build.version@@build.version_shorttag@.exe"
 InstallDir "$PROGRAMFILES\Photovault_@build.version@"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
