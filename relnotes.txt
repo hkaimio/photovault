@@ -1,41 +1,47 @@
-Photovault 0.2.alpha1
-Release notes
+PHOTOVAULT 0.3.0
+RELEASE NOTES
 
-!!!!NOTE!!!!! Read at least section about backwards compatibility before upgrading!
+This is release 0.3.0 of Photovault, a cross-platform Java based image 
+archiving application for photographers. 0.3.0 is a feature release that
+adds lots of new functionality to Photovault, including support for
+arbitrary rotation and cropping of images, improved export functionality
+as well as speed and usability improvements.
 
-0.2.alpha1 is intended for getting feedback on new features in Photovault 0.2. 
-It has not received full testing needed for production release and is not 
-recommended for general use.
+MAIN CHANGES IN PHOTOVAULT 0.3.0
+
+New features
+- Arbitrary cropping and rotating of images. As all Photovault operations,
+  the original image is always preserved and the operations are only
+  applied when wieving/exporting the image.
+- Improved exporting of multiple images at once
+- Possibility to freely set resolution of exported images
+- Sorting of viewed images by shooting time, shooting place or quality
+- Visual icons for indicating image quality setting in thumbnail view
+- Toolbar & menu icons
+- Improved performance when indexing external volumes
 
 MAIN CHANGES IN PHOTOVAULT 0.2
-The biggest change in Photovault 0.2 is support for external volumes: Previously
-Photovault could only manage images stored in its own database. While this is OK
-when importing new images it was not convenient way to work with large existing 
-archives since Photovault created a new copy of each image file and thus doubled
-disk usage.
-
-In Photovault 0.2 this can be solved by defining the existing archive directory as
-an external volume. THen Photovault stores only metadata and a thumbnail of the 
-photos in its database. The actual image files are accessed from original directory.
-Photovault will also track any changes or additions made to the external volume 
-directory.
-
-Other changes:
+- Support for external volumes
 - Shortcut keys for moving between images in the same folder
 - Use launch4j for starting Photovault (instead if NSIS)
 
 BACKWARDS COMPATIBILITY
-Due to external olume support the database schema used by Photovault has changed. 
-If you open a database created with earlied version Photovault will automatically
-convert the database schema. This can take significant amount of time if there are
-lots of existing images in the database.
+Photovault 0.3.0 database format is compatible with 0.2.0. However,
+Photovault 0.2 cannot correctly display cropped or rotated images.
 
-Using old 0.1 version after upgrading is not recommended since making changes with it
-may leave database into inconsistent state.
+Photovault converts automatically databases created with versions prior to
+0.2.0 to the new format. Using Photovault 0.1.x after the conversion is
+not recommended.
+
+SUPPORTED OPERATING SYSTEMS
+Photovault has been tested in Linux and Windows XP and it should work
+in all environments supported by Java SE.Specifically, there are some 
+compatibility problems in MacOS X (e.g. importing images form network
+drive does not work) - these will be addressed in future release.
 
 REQUIRED SOFTWARE
-Photovault needs Sub Java JRE 1.5 and Java Advanced Imaging libraries
-to work. You can download both from Sun web site.
+Photovault needs Sun Java JRE 1.4.2 or newer and Java Advanced Imaging 
+libraries to work. You can download both from Sun web site.
 
 Photovault can use either Apache Derby or MySQL as metadata
 store. Derby is included in this release; if you want to use MySQL
@@ -43,18 +49,20 @@ instead you need to download it from www.mysql.com.
 
 INSTALLATION INSTRUCTIONS
 Briefly:
-- Install Java 1.5
-- Install Java Advanced Imaging
+- Install Java from http://java.com/getjava 
+- Install Java Advanced Imaging from 
+  http://java.sun.com/products/java-media/jai/downloads/download-1_1_2_01.html
 - Install Photovault
-- Start Photovault and set database name & directory as the program asks for them
+- Start Photovault and set database name & directory as the program asks for 
+  them
+
+See http://www.photovault.org/guide/install.html for full installation
+instructions.
 
 KNOWN ISSUES
-- Tracking updates to external volume is disabled in 0.2.alpha1
--Unit test suite require manual setup of MySQL database for data
-storage. Derby is currently not supported.
 - Some unit test cases do not pass due to unimplemented features and
-errors in Apache OJB version used in Photovault.
+  errors in Apache OJB version used in Photovault.
 
-SUPPORT
-For support please send e-mail to pvault-users@sourceforge.net or directly to 
-author (harri@photovault.org)
+FEEDBACK & SUPPORT
+For feedback and support please send e-mail to pvault-users@sourceforge.net 
+or directly to author (harri@photovault.org)
