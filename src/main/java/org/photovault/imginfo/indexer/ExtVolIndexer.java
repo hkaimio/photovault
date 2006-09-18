@@ -21,6 +21,8 @@
 package org.photovault.imginfo.indexer;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -175,6 +177,7 @@ public class ExtVolIndexer implements Runnable {
      */
     PhotoInfo indexFile( File f ) {
         log.debug( "entry: indexFile " + f.getAbsolutePath() );
+        currentEvent.setIndexedFile( f );
         indexedFileCount++;
         
         // Check if the instance already exists n database
@@ -214,7 +217,13 @@ public class ExtVolIndexer implements Runnable {
         // Check whether this is really an image file
         
         ODMGXAWrapper txw = new ODMGXAWrapper();
-        ImageInstance instance = ImageInstance.create( volume, f );
+        ImageInstance instance = null;
+        try {
+            instance = ImageInstance.create( volume, f );
+        } catch ( Exception e ) {
+            currentEvent.setResult( ExtVolIndexerEvent.RESULT_ERROR );
+            return null;
+        }
         if ( instance == null ) {
             currentEvent.setResult( ExtVolIndexerEvent.RESULT_NOT_IMAGE );
             /*
@@ -476,6 +485,11 @@ public class ExtVolIndexer implements Runnable {
             cleanupInstances();
             notifyListenersIndexingComplete();
         } catch( Throwable t ) {
+            StringWriter strw = new StringWriter();
+            strw.write( "Error indexing " + volume.getBaseDir().getAbsolutePath() );
+            strw.write( "\n" );
+            t.printStackTrace( new PrintWriter( strw ) );
+            log.error( strw.toString() );                   
             notifyListenersIndexingError( t.getMessage() );
         }
     }

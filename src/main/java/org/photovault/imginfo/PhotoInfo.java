@@ -827,7 +827,11 @@ public class PhotoInfo {
             out = new FileOutputStream(thumbnailFile.getAbsolutePath());
         } catch(IOException e) {
             log.error( "Error writing thumbnail: " + e.getMessage() );
-            txw.abort();
+            // TODO: If we abort here due to image writing problem we will have 
+            // problems later with non-existing transaction. We should really 
+            // rethink the error handling login in the whole function. Anyway, we 
+            // haven't changed anything yet so we can safely commit the tx.
+            txw.commit();
             return;
         }
         
@@ -863,7 +867,12 @@ public class PhotoInfo {
             thumbImage.dispose();
         } catch (Exception e) {
             log.error( "Error writing thumbnail for " + original.getImageFile().getAbsolutePath()+ ": " + e.getMessage() );
-            txw.abort();
+            // TODO: If we abort here due to image writing problem we will have 
+            // problems later with non-existing transaction. We should really 
+            // rethink the error handling login in the whole function. Anyway, we 
+            // haven't changed anything yet so we can safely commit the tx.
+            txw.commit();
+//            txw.abort();
             return;
         }
         

@@ -21,6 +21,8 @@
 package org.photovault.swingui.indexer;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -95,6 +97,7 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
      */
     private void indexNextVolume() {
         if ( volumes.size() > 0 ) {
+            errorFiles.clear();
             vol = (ExternalVolume)volumes.get(0);
             ExtVolIndexer indexer = new ExtVolIndexer( vol );
             volumes.remove( vol );
@@ -119,10 +122,22 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
      */
     ExternalVolume vol = null;
     
+    List errorFiles = new ArrayList();
+    
     public void fileIndexed(ExtVolIndexerEvent e) {
         ExtVolIndexer indexer = (ExtVolIndexer) e.getSource();
         int newPercentIndexed = indexer.getPercentComplete();
-        if ( newPercentIndexed > percentIndexed ) {
+        if ( e.getResult() == ExtVolIndexerEvent.RESULT_ERROR ) {
+            StringBuffer errorBuf = new StringBuffer( "Error indexing file" );
+            if ( e.getIndexedFile() != null ) {
+                errorBuf.append( " " ).append( e.getIndexedFile().getAbsolutePath() );
+                errorFiles.add( e.getIndexedFile() );
+            }
+            StatusChangeEvent statusEvent = new StatusChangeEvent( this, 
+                    errorBuf.toString() );
+            fireStatusChangeEvent( statusEvent );
+            
+        } else if ( newPercentIndexed > percentIndexed ) {
             StatusChangeEvent statusEvent = new StatusChangeEvent( this, "Indexing " 
                     + vol.getBaseDir() + " - " + newPercentIndexed + "%");
             fireStatusChangeEvent( statusEvent );
@@ -130,6 +145,9 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
     }
 
     public void indexingComplete(ExtVolIndexer indexer) {
+        if ( errorFiles.size() > 0 ) {
+            showErrorDialog();
+        }
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 indexNextVolume();
@@ -147,6 +165,30 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
                 indexNextVolume();
             }
         });
+    }
+
+    /**
+     Shows an error dialog that informas about files that the indexer was not 
+     able to index (i.e. files stored in {@link errorFiles}).
+     <p>
+     The dialog is shown in AWT thread, so this method can be called from any 
+     thread.
+     **/
+    private void showErrorDialog() {
+        StringBuffer msgBuf = new StringBuffer( "Could not read the following files:" );
+        Iterator iter = errorFiles.iterator();
+        while ( iter.hasNext() ) {
+            File f = (File) iter.next();
+            msgBuf.append( "\n" ).append( f.getAbsolutePath() );
+        }
+        final String msg = msgBuf.toString();
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                JOptionPane.showMessageDialog( null, msg, "Indexing error", 
+                        JOptionPane.ERROR_MESSAGE );
+            }
+        });
+        
     }
     
     Vector statusChangeListeners = new Vector();

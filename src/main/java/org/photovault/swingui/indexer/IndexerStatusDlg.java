@@ -24,6 +24,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.BoxLayout;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.indexer.ExtVolIndexer;
@@ -235,6 +236,15 @@ public class IndexerStatusDlg extends javax.swing.JDialog implements ExtVolIndex
     }
 
     public void indexingError(String message) {
+        final String finalMessage = "Error while indexing:\n" + message;        
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                JOptionPane.showMessageDialog( null, finalMessage, "Indexing error", 
+                        JOptionPane.ERROR_MESSAGE );
+            }
+        });
+        closeBtn.setEnabled( true );
+        this.setTitle( "Indexing complete" );
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
