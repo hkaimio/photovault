@@ -233,6 +233,9 @@ public class IndexerStatusDlg extends javax.swing.JDialog implements ExtVolIndex
         closeBtn.setEnabled( true );
         this.setTitle( "Indexing complete" );
     }
+
+    public void indexingError(String message) {
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton closeBtn;

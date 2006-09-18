@@ -163,6 +163,9 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         public void indexingComplete(ExtVolIndexer indexer) {
             complete = true;
         }
+
+        public void indexingError(String message) {
+        }
         
     }
     

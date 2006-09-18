@@ -37,4 +37,11 @@ public interface ExtVolIndexerListener {
      @param indexer The indexer that completed its operation
      */
     void indexingComplete( ExtVolIndexer indexer );
+    
+    /**
+     This method is called if an unrecovable error happens while indexing 
+     the volume.
+     @param message Message that describes the error
+     */
+    void indexingError( String message );
 }

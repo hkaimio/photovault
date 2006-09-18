@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
@@ -135,6 +136,18 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
             }
         });
     }
+
+    public void indexingError(String message) {
+        final String finalMessage = "Error while indexing " + 
+                        vol.getBaseDir() + ":\n" + message;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                JOptionPane.showMessageDialog( null, finalMessage, "Indexing error", 
+                        JOptionPane.ERROR_MESSAGE );
+                indexNextVolume();
+            }
+        });
+    }
     
     Vector statusChangeListeners = new Vector();
     
@@ -153,4 +166,5 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
             l.statusChanged( e );
         }
     }
+
 }

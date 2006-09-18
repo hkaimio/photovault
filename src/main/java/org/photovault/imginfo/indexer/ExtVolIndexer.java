@@ -470,10 +470,14 @@ public class ExtVolIndexer implements Runnable {
      Run the actual indexing operation.
      */
     public void run() {
-        startTime = new Date();
-        indexDirectory( volume.getBaseDir(), topFolder, 0, 100 );
-        cleanupInstances();
-        notifyListenersIndexingComplete();
+        try {
+            startTime = new Date();
+            indexDirectory( volume.getBaseDir(), topFolder, 0, 100 );
+            cleanupInstances();
+            notifyListenersIndexingComplete();
+        } catch( Throwable t ) {
+            notifyListenersIndexingError( t.getMessage() );
+        }
     }
     
     // Listener support
@@ -523,6 +527,19 @@ public class ExtVolIndexer implements Runnable {
             l.indexingComplete( this );
         }
     }
+    
+    /**
+     Notify all listeners that an error happened during indexing
+     */
+    private void notifyListenersIndexingError( String message ) {
+        Iterator iter = listeners.iterator();
+        while ( iter.hasNext() ) {
+            ExtVolIndexerListener l = (ExtVolIndexerListener) iter.next();
+            l.indexingError( message );
+        }
+    }
+    
+    
     
     // Statistics
     
