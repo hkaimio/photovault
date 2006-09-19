@@ -77,6 +77,8 @@ See http://www.photovault.org/guide/install.html for full installation
 instructions.
 
 KNOWN ISSUES
+- Problems when viewing some indexed color PNG files. This is due to a bug in
+  Sun's Java implementation
 - Some unit test cases do not pass due to unimplemented features and
   errors in Apache OJB version used in Photovault.
 
