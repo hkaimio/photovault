@@ -20,6 +20,7 @@
 
 package org.photovault.swingui;
 
+import javax.swing.SwingUtilities;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.folder.*;
 import javax.swing.tree.*;
@@ -190,10 +191,15 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
       
     protected void fireTreeModelEvent( TreeModelEvent e ) {
 	Iterator iter = treeModelListeners.iterator();
+        final TreeModelEvent fe = e;
 	while ( iter.hasNext() ) {
-	    TreeModelListener l = (TreeModelListener) iter.next();
+	    final TreeModelListener l = (TreeModelListener) iter.next();
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+        	    l.treeStructureChanged( fe );                    
+                }
+            });
 	    log.warn( "Sending treeModelEvent" );
-	    l.treeStructureChanged( e );
 	}
     }
     

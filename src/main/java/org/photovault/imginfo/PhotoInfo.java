@@ -764,9 +764,13 @@ public class PhotoInfo {
                     }
                     iis.close();
                 }
-            } catch ( IOException e ) {
+            } catch ( Exception e ) {
                 log.warn( "Error reading image: " + e.getMessage() );
-                txw.abort();
+                // TODO: If we abort here due to image writing problem we will have
+                // problems later with non-existing transaction. We should really
+                // rethink the error handling login in the whole function. Anyway, we
+                // haven't changed anything yet so we can safely commit the tx.
+                txw.commit();
                 return;
             }
         }

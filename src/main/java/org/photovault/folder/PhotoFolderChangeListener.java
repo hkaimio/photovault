@@ -27,7 +27,11 @@ import org.photovault.imginfo.PhotoCollectionChangeListener;
 
 /**
    PhotoFolderChangeListener is an extension of PhotoCollectionChangeListener that
-   contains methods to informa also about changes to subfolders or subfolder hierarchy
+   contains methods to inform also about changes to subfolders or subfolder hierarchy.
+   <p>
+   Note that these methods are called in the thread that initiated the change 
+   operation. Specifially, the call is <strong>not</strong> guaranteed to happen
+   in AWT event thread.
 */
 
 public interface PhotoFolderChangeListener extends PhotoCollectionChangeListener {
