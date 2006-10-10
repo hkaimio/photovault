@@ -85,6 +85,10 @@ public class ODMG {
             connDesc.setDbAlias( "photovault" );
             File derbyDir = new File( dbDesc.getEmbeddedDirectory(), "derby" );
             System.setProperty( "derby.system.home", derbyDir.getAbsolutePath()  );
+            if ( ( user != null && user.length() != 0 ) ||
+                    ( passwd != null && passwd.length() != 0 ) )  {
+                throw new PhotovaultException( "No username or password allowed for Derby database" );
+            }
         } else {
             // This is a MySQL database
             String dbhost = dbDesc.getDbHost();
@@ -105,7 +109,7 @@ public class ODMG {
 	    log.debug( "Opening database" );
 	    db.open( "pv#" + user + "#" + passwd, Database.OPEN_READ_WRITE );
 	    log.debug( "Success!!!" );
-	} catch ( Exception e ) {
+	} catch ( Throwable e ) {
 	    log.error( "Failed to get connection: " + e.getMessage() );
             e.printStackTrace();
         }
@@ -156,7 +160,6 @@ public class ODMG {
 		} catch (ODMGException e ) {
 		    log.error( "Error closing database" );
 		}
-                throw new PhotovaultException( "Unknown error while starting database:\n" );
 	    }
 	} catch ( Exception t ) {
 	    log.error( "Could not open database connection" );
@@ -164,12 +167,15 @@ public class ODMG {
             t.printStackTrace();
             try {
 		db.close();
-	    } catch (ODMGException e ) {
+	    } catch ( Exception e ) {
                 log.error( "Error closing database" );
             }
             throw new PhotovaultException( "Unknown error while starting database:\n"
                     + t.getMessage(), t );
             
 	}
+        if ( !success ) {
+            throw new PhotovaultException( "Unknown exception while starting database" );
+        }
     }    
 }
