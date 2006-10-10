@@ -2,7 +2,11 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Photovault"
+!if "@build.version_tag@" == ""
+!define PRODUCT_VERSION "@build.version@"
+!else
 !define PRODUCT_VERSION "@build.version@ (@build.version_tag@)"
+!endif
 !define PRODUCT_REVISION "@svn.revision@"
 !define PRODUCT_PUBLISHER "Photovault"
 !define PRODUCT_WEB_SITE "www.photovault.org"
