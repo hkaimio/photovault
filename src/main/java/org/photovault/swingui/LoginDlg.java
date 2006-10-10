@@ -100,6 +100,37 @@ public class LoginDlg extends JDialog {
 	return dbField.getSelectedItem().toString();
     }
     
+    /**
+     Username saved when disabling credentials fields
+     */
+    String savedUsername = null;
+    
+    /**
+     Enable or disable the credentials fields (username & password) - not all 
+     database types support these.
+     <p>
+     Whend the fields are disabled, the existing username is saved to 
+     savedUsername and the fields are emptied. When they are enabled, the 
+     ptentially saved username is restored.
+     @param enabled <code>true</code> if the fields should be enabled
+     */
+    public void setCredentialsEnabled( boolean enabled ) {
+        if ( enabled ) {
+            if ( savedUsername != null ) {
+                // Restore username
+                idField.setText( savedUsername );
+            }
+        } else {
+            if ( idField.isEnabled() ) {
+                savedUsername = idField.getText();
+                idField.setText( "" );
+                passField.setText( "" );
+            } 
+        }
+        idField.setEnabled( enabled );
+        passField.setEnabled( enabled );
+    }
+    
     boolean okPressed = false;
     
     /**
@@ -155,6 +186,27 @@ public class LoginDlg extends JDialog {
 	gb.setConstraints( dbLabel, labelConstraints );
 	loginPane.add( dbLabel );
 	dbField = new JComboBox( dbs );
+        dbField.addItemListener( new ItemListener() {
+            public void itemStateChanged(ItemEvent itemEvent) {
+                if ( itemEvent.getStateChange() == ItemEvent.SELECTED ) {
+                    // Enable/disable the username & password fields based on
+                    // database type
+                    Object item = itemEvent.getItem();
+                    String dbName = item.toString();
+                    PhotovaultSettings settings = PhotovaultSettings.getSettings();
+                    PVDatabase db = settings.getDatabase( dbName );
+                    if ( db != null ) {
+                        setCredentialsEnabled( 
+                                db.getInstanceType() == PVDatabase.TYPE_SERVER );
+                    }
+                }
+            }
+        });
+        
+        // Select the 1st item - this will also call the selection callback
+        // and enable/disable credentials field.
+        dbField.setSelectedIndex( -1 );
+        dbField.setSelectedIndex( 0 );
 	gb.setConstraints( dbField, fieldConstraints );
 	loginPane.add( dbField );
 
