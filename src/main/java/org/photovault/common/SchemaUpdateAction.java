@@ -94,7 +94,9 @@ public class SchemaUpdateAction {
         
         // Get the database schema XML file
         InputStream schemaIS = getClass().getClassLoader().getResourceAsStream( "photovault_schema.xml" );
-        Database dbModel = new DatabaseIO().read( new InputStreamReader( schemaIS ) );
+        DatabaseIO dbio = new DatabaseIO();
+        dbio.setValidateXml( false );
+        Database dbModel = dbio.read( new InputStreamReader( schemaIS ) );
         
         // Alter tables to match corrent schema
         PersistenceBroker broker = PersistenceBrokerFactory.createPersistenceBroker( connKey );
