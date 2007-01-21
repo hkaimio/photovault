@@ -61,7 +61,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     }
 
     protected void createUI() {
-	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	tabPane = new JTabbedPane();
 	queryPane = new QueryPane();
 	treePane = new PhotoFolderTree();
@@ -90,24 +90,25 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 			viewPane.setCollection( queryPane.getResultCollection() );
 		    }
 		}
-	    } );
-
-	/*
-	  If the selected folder is changed in treePane, switch to that immediately
-	*/
-	treePane.addPhotoFolderTreeListener( new PhotoFolderTreeListener() {
-		public void photoFolderTreeSelectionChanged( PhotoFolderTreeEvent e ) {
-		    PhotoFolder f = e.getSelected();
-		    if ( f != null ) {
-			viewPane.setCollection( f );
-		    }
-		}
-	    } );
-	
-	// Create the split pane to display both of these components
-
+        } );
+        
+        /*
+          If the selected folder is changed in treePane, switch to that immediately
+         */
+        treePane.addPhotoFolderTreeListener( new PhotoFolderTreeListener() {
+            public void photoFolderTreeSelectionChanged( PhotoFolderTreeEvent e ) {
+                PhotoFolder f = e.getSelected();
+                if ( f != null ) {
+                    viewPane.setCollection( f );
+                }
+            }
+        } );
+        
+        // Create the split pane to display both of these components
         
         viewScroll = new JScrollPane( viewPane );
+        viewPane.setBackground( Color.WHITE );
+        viewScroll.getViewport().setBackground( Color.WHITE );
         
         collectionPane = new JPanel();
         collectionPane.add( viewScroll );
@@ -115,9 +116,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         
         setupLayoutPreviewWithHorizontalIcons();
         
- //       JSplitPane collectionSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, viewScroll, previewPane );
 	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );
-	Container cp = getContentPane();
+        Container cp = getContentPane();
 	cp.setLayout( new BorderLayout() );
 	cp.add( split, BorderLayout.CENTER );
 
@@ -363,7 +363,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         c.gridx = 0;
 
         // Minimum size is the size of one thumbnail
-        viewScroll.setMinimumSize( new Dimension( 150, 150 ));
+        viewScroll.setMinimumSize( new Dimension( 170, 150 ));
         viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
         layout.setConstraints( viewScroll, c );
@@ -385,7 +385,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     protected void setupLayoutPreviewWithHorizontalIcons() {
         GridBagLayout layout = new GridBagLayout();
         collectionPane.setLayout( layout );
-
+        
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
         c.weighty = 0.0;
@@ -395,7 +395,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         // Minimum size is the size of one thumbnail
         viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
         viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
-        viewScroll.setMinimumSize( new Dimension( 150, 200 ));
+        viewScroll.setMinimumSize( new Dimension( 150, 180 ));
         layout.setConstraints( viewScroll, c );
         viewPane.setRowCount( 1 );
         

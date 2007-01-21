@@ -612,6 +612,27 @@ public class PhotoCollectionThumbView
         int y = starty + (rowHeight -  img.getHeight())/(int)2;
         
         log.debug( "drawing thumbnail" );
+
+        // Draw shadow
+        int offset = isSelected? 2 : 0;
+        int shadowX[] = { x+3-offset, x+img.getWidth()+1+offset, x+img.getWidth()+1+offset };
+        int shadowY[] = { y+img.getHeight()+1+offset, y+img.getHeight()+1+offset, y+3-offset };
+        GeneralPath polyline =
+                new GeneralPath(GeneralPath.WIND_EVEN_ODD, shadowX.length);
+        polyline.moveTo(shadowX[0], shadowY[0]);
+        for (int index = 1; index < shadowX.length; index++) {
+            polyline.lineTo(shadowX[index], shadowY[index] );
+        };
+        BasicStroke shadowStroke = new BasicStroke(4.0f,
+                BasicStroke.CAP_BUTT,
+                BasicStroke.JOIN_MITER );
+        Stroke oldStroke = g2.getStroke();
+        g2.setStroke( shadowStroke );
+        g2.setColor( Color.DARK_GRAY );
+        g2.draw( polyline );
+        g2.setStroke( oldStroke );
+
+        // Paint thumbnail
         g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
         if ( useOldThumbnail ) {
             creatingThumbIcon.paintIcon( this, g2, 
@@ -631,7 +652,7 @@ public class PhotoCollectionThumbView
         
         thumbDrawnTime = System.currentTimeMillis();
         // Increase ypos so that attributes are drawn under the image
-        ypos += ((int)img.getHeight())/2 + 4;
+        ypos += ((int)img.getHeight())/2 + 9;
         
         
         // Draw the attributes
@@ -726,6 +747,7 @@ public class PhotoCollectionThumbView
                 prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columns );
             }            
         }
+        prefHeight += 10;
         return new Dimension( prefWidth, prefHeight );
 
     }
