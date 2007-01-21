@@ -71,6 +71,11 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	viewPane = new PhotoCollectionThumbView();
         viewPane.addSelectionChangeListener( this );
         previewPane = new JAIPhotoViewer();
+        
+        // TODO: get rid of this!!!!
+        EditSelectionColorsAction colorAction = 
+                (EditSelectionColorsAction) viewPane.getEditSelectionColorsAction();
+        colorAction.setPreviewCtrl( previewPane );
 
 	// Set listeners to both query and folder tree panes
 
@@ -259,6 +264,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	imageMenu.add( new JMenuItem( viewPane.getRotateCCWActionAction() ) );
 	imageMenu.add( new JMenuItem( viewPane.getRotate180degActionAction() ) );
         imageMenu.add( new JMenuItem( previewPane.getCropAction() ) );
+        imageMenu.add( new JMenuItem( viewPane.getEditSelectionColorsAction() ) );
         
         JMenu aboutMenu = new JMenu( "About" );
         aboutMenu.setMnemonic( KeyEvent.VK_A );
@@ -293,6 +299,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         rot180Btn.setText( "" );
         JButton cropBtn = new JButton( previewPane.getCropAction() );
         cropBtn.setText( "" );
+        JButton colorsBtn = new JButton( viewPane.getEditSelectionColorsAction() );
+        colorsBtn.setText( "" );
         
         JButton nextBtn = new JButton( viewPane.getSelectNextAction() );
         nextBtn.setText( "" );
@@ -320,6 +328,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         tb.add( rotCCWBtn );
         tb.add( rot180Btn );
         tb.add( cropBtn );
+        tb.add( colorsBtn );
         return tb;
     }
 

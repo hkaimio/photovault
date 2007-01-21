@@ -20,10 +20,12 @@
 
 package org.photovault.imginfo;
 
+import org.photovault.common.PhotovaultException;
+
 /**
    Exception to indicate that a photo was not found
 */
-public class PhotoNotFoundException extends Exception {
+public class PhotoNotFoundException extends PhotovaultException {
 
 
 }

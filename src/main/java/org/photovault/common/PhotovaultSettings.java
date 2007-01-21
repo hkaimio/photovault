@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,6 +20,12 @@
 
 package org.photovault.common;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Collection;
 import java.io.InputStream;
@@ -28,6 +34,10 @@ import java.net.URL;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import org.apache.commons.digester.Digester;
+import org.photovault.imginfo.ExternalVolume;
+import org.photovault.imginfo.Volume;
+import org.xml.sax.SAXException;
 
 /**
    PhotovaultSettings provides access to the installation specific settings - most 
@@ -75,7 +85,8 @@ public class PhotovaultSettings {
         }
         if ( configFile.exists() ) {
             log.debug( "Using config file " + configFile.getAbsolutePath() );
-            databases = PhotovaultDatabases.loadDatabases( configFile );
+            loadConfig();
+//            databases = PhotovaultDatabases.loadDatabases( configFile );
         } else {
             try {
                 configFile.createNewFile();
@@ -109,9 +120,83 @@ public class PhotovaultSettings {
      * Saves the configuration to the current configuration file.
      */
     public void saveConfig() {
-        databases.save( configFile );
+        try {
+            BufferedWriter outputWriter = new BufferedWriter( new FileWriter( configFile ));
+            outputWriter.write("<?xml version='1.0' ?>\n");
+            outputWriter.write( "<!--\n" +
+                    "This is configuration file for Photovault image organizing application\n" +
+                    "-->\n");
+            outputWriter.write( "<photovault-config>\n" );
+            String indent = "  ";
+            outputWriter.write( indent + "<!-- Installation specific properties -->\n" );
+            Iterator iter = properties.entrySet().iterator();
+            while ( iter.hasNext() ) {
+                Map.Entry e = (Entry) iter.next();
+                outputWriter.write( indent + "<property name=\"" + e.getKey() +
+                        "\" value=\"" + e.getValue() + "\"/>\n" );
+            }
+            databases.save( outputWriter );
+            outputWriter.write( "</photovault-config>\n" );
+        outputWriter.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
+    private void loadConfig() {
+        Digester digester = new Digester();
+        digester.push(this); // Push controller servlet onto the stack
+        digester.setValidating(true);
+        
+        // Digester rules for parsing the file
+        digester.addObjectCreate( "databases/databases", PhotovaultDatabases.class );
+        digester.addSetNext( "databases/databases", "setDatabases" );
+        digester.addObjectCreate( "photovault-config/databases", PhotovaultDatabases.class );
+        digester.addSetNext( "photovault-config/databases", "setDatabases" );
+        digester.addObjectCreate( "*/databases/database", PVDatabase.class );
+        digester.addSetProperties( "*/databases/database" );
+        digester.addSetNext( "*/databases/database", "addDatabase" );
+        
+        // Property setting
+        digester.addCallMethod( "*/photovault-config/property", "setProperty", 2 );
+        digester.addCallParam( "*/photovault-config/property", 0, "name" );
+        digester.addCallParam( "*/photovault-config/property", 1, "value" );
+        
+        // Volume creation
+        digester.addObjectCreate( "*/database/volumes/volume", Volume.class );
+        String [] volumeAttrNames = {
+            "basedir", "name"
+        };
+        String [] volumePropNames = {
+            "baseDir", "name"
+        };
+        digester.addSetProperties( "*/database/volumes/volume",
+                volumeAttrNames, volumePropNames );
+        digester.addSetNext( "*/database/volumes/volume", "addVolume" );
+        digester.addObjectCreate( "*/database/volumes/external-volume", ExternalVolume.class );
+        String [] extVolAttrNames = {
+            "folder", "basedir", "name"
+        };
+        String [] extVolPropNames = {
+            "folderId", "baseDir", "name"
+        };
+        
+        digester.addSetProperties( "*/database/volumes/external-volume", 
+                extVolAttrNames, extVolPropNames );
+        digester.addSetNext( "*/database/volumes/external-volume", "addVolume" );
+        try {
+            
+            digester.parse( configFile );
+        } catch (SAXException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    public void setDatabases( PhotovaultDatabases dbs ) {
+        this.databases = dbs;
+    }
 
     /**
        Set the configuration used when determining property values
@@ -125,6 +210,24 @@ public class PhotovaultSettings {
 
     public PVDatabase getCurrentDatabase() {
         return databases.getDatabase( confName );
+    }
+    
+    HashMap properties = new HashMap();
+    
+    public void setProperty( String name, String value ) {
+        properties.put( name, value );
+    }
+    
+    public String getProperty( String name ) {
+        return getProperty( name, null );
+    }
+    
+    public String getProperty( String name, String defaultValue ) {
+        String ret = defaultValue;
+        if ( properties.containsKey( name ) ) {
+            ret = (String) properties.get( name );
+        }
+        return ret;
     }
 
     /**

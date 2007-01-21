@@ -328,9 +328,9 @@ public class ExtVolIndexer implements Runnable {
                     if ( folderName.length() > PhotoFolder.NAME_LENGTH ) {
                         folderName = folderName.substring( 0, PhotoFolder.NAME_LENGTH );
                     }
-                    subfolder = findSubfolderByName( folder, f.getName() );
+                    subfolder = findSubfolderByName( folder, folderName );
                     if ( subfolder == null ) {
-                        subfolder = PhotoFolder.create( f.getName(), folder );
+                        subfolder = PhotoFolder.create( folderName, folder );
                         newFolderCount++;
                     } else {
                         foldersNotFound.remove( subfolder );

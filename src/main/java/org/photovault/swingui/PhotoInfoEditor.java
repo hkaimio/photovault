@@ -23,6 +23,7 @@ package org.photovault.swingui;
 
 
 import javax.swing.tree.TreePath;
+import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.imginfo.FuzzyDate;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -644,6 +645,18 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	    } );
 	frame.pack();
 	frame.setVisible( true );
+    }
+
+    RawConversionSettings rawSettings = null;
+    public void setRawSettings(RawConversionSettings rs ) {
+        rawSettings = rs;
+    }
+
+    public void setRawSettingsMultivalued(boolean mv) {
+    }
+
+    public RawConversionSettings getRawSettings() {
+        return rawSettings;
     }
 
     private PhotoInfoController ctrl = null;

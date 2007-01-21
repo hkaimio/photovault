@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -165,6 +165,12 @@ public class Volume extends VolumeBase {
      */
     public String mapFileToVolumeRelativeName( File f ) {
        return f.getName(); 
+    }
+
+    public void writeXml(BufferedWriter outputWriter, int indent ) throws IOException {
+        String s = "                                ".substring( 0, indent );
+        outputWriter.write( s + "<volume name=\"" + getName() +
+               "\" basedir=\"" + getBaseDir() + "\"/>\n" );
     }
 
 

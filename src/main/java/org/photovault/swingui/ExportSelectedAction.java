@@ -23,6 +23,7 @@ package org.photovault.swingui;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.IllegalFormatException;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -134,7 +135,13 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         
         public void run() {
             for ( int n = 0; n < exportPhotos.length; n++  ) {
-                String fname = String.format( format, new Integer( n+1 ) );
+                String fname;
+                try {
+                    fname = String.format(format, new Integer(n + 1));
+                } catch (IllegalFormatException e ) {
+                    owner.exportError( "Cannot format file name: \n" + e.getMessage() );
+                    break;
+                }
                 int percent = (n) * 100 / exportPhotos.length;
                 owner.exportingPhoto( this, fname, percent );
                 File f = new File( fname );
@@ -179,6 +186,13 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
             
             //Check padding
             String padStr = m.group( 1 );
+            /*
+             Check for case in which padStr contains only zeros since format()
+             throws exception for format string like %00d.
+             */
+            if ( padStr.matches( "^0*$") ) {
+                padStr = "1";
+            }
             if ( padStr.length() > 0 ) {
                 padStr = "0" + padStr;
             }
@@ -218,6 +232,18 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
     private void exportDone(ExportThread exporter) {
         fireStatusChangeEvent( "" );
         setEnabled( true );
+    }
+    
+    /**
+     This method is called if there happens an error in the exporting thread.
+     It shows the given error message in error dialog.
+     @param msg Error message that is displayed to user
+     */
+    private void exportError( final String msg ) {
+        JOptionPane.showMessageDialog( view.getRootPane(),
+                msg,
+                "Error exporting images",
+                JOptionPane.ERROR_MESSAGE );
     }
     
     /**

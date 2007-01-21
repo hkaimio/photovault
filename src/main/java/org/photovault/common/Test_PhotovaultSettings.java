@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -84,7 +84,7 @@ public class Test_PhotovaultSettings extends TestCase {
         
         PVDatabase db = new PVDatabase();
         db.setName( "testing" );
-        db.setDbHost( "thishost" );
+        db.setHost( "thishost" );
         try {
             settings.addDatabase( db );
         } catch (PhotovaultException ex) {
@@ -127,6 +127,7 @@ public class Test_PhotovaultSettings extends TestCase {
         System.setProperty( "photovault.configfile", confFile.getAbsolutePath() );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase db = new PVDatabase();
+        db.setName( "testing" );
         db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
         db.setEmbeddedDirectory( dbDir );
         try {
@@ -135,9 +136,14 @@ public class Test_PhotovaultSettings extends TestCase {
             fail( "Exception while creating database: " + ex.getMessage() );
         }
         settings.saveConfig();
+        PhotovaultSettings.settings = null;
+        settings = PhotovaultSettings.getSettings();
+        settings.setConfiguration( "testing" );     
+        db = settings.getCurrentDatabase();
         
         // try creating another database with the same name
         PVDatabase db2 = new PVDatabase();
+        db2.setName( "testing" );
         db2.setInstanceType( PVDatabase.TYPE_EMBEDDED );
         db2.setEmbeddedDirectory( dbDir );
         boolean throwsException = false;
@@ -175,6 +181,24 @@ public class Test_PhotovaultSettings extends TestCase {
             fail( "Photo not found in database" );
         }
     }
+    
+    public void testProperties() {
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        settings.setProperty( "test", "testing" );
+        settings.setProperty( "test2", "testing2" );
+        assertEquals( "testing", settings.getProperty( "test" ) );
+        assertEquals( "testing2", settings.getProperty( "test2" ) );
+        assertNull( settings.getProperty( "test3" ) );
+        assertEquals( "testing3", settings.getProperty( "test3", "testing3" ) );
+        settings.saveConfig();
+        PhotovaultSettings.settings = null;
+        settings = PhotovaultSettings.getSettings();
+        assertEquals( "testing", settings.getProperty( "test" ) );
+        assertEquals( "testing2", settings.getProperty( "test2" ) );
+        assertNull( settings.getProperty( "test3" ) );
+        assertEquals( "testing3", settings.getProperty( "test3", "testing3" ) );        
+    }
+    
     public static void main( String[] args ) {
 	junit.textui.TestRunner.run( suite() );
     }

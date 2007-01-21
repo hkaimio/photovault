@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -21,13 +21,13 @@
 
 package org.photovault.common;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Collection;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
-import org.apache.commons.betwixt.io.BeanWriter;
-import org.apache.commons.betwixt.io.BeanReader;
+import java.util.Iterator;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.Volume;
 
@@ -59,37 +59,15 @@ public class PhotovaultDatabases {
     public Collection getDatabases() {
         return databases.values();
     }
-    
-    public void save( File f ) {
-        try {
-            BufferedWriter outputWriter = new BufferedWriter( new FileWriter( f ));
-            outputWriter.write("<?xml version='1.0' ?>\n");
-            BeanWriter beanWriter = new BeanWriter( outputWriter );
-            beanWriter.getXMLIntrospector().setAttributesForPrimitives(false);
-            beanWriter.setWriteIDs(false);
-            beanWriter.enablePrettyPrint();
-            beanWriter.write("databases", this );
-            beanWriter.close();
-        } catch( Exception e ) {
-            
-        }        
-    }
-            
-    public static PhotovaultDatabases loadDatabases( File f ) {
-       // Now try to read the info
-        BeanReader beanReader = new BeanReader();
-        beanReader.getXMLIntrospector().getConfiguration().setAttributesForPrimitives(false);
-        beanReader.getBindingConfiguration().setMapIDs(false);
-        PhotovaultDatabases databases = null;
-        try {
-            beanReader.registerBeanClass( "databases", PhotovaultDatabases.class );
-            beanReader.registerBeanClass( "database", PVDatabase.class );
-            beanReader.registerBeanClass( "volume", Volume.class );
-            beanReader.registerBeanClass( "external-volume", ExternalVolume.class );
-            databases = (PhotovaultDatabases) beanReader.parse( f );
-        } catch ( Exception e ) {
-            log.warn( e.getMessage() );
-        }        
-        return databases;
+
+    void save(BufferedWriter outputWriter ) throws IOException {
+        String indent = "  ";
+        outputWriter.write( indent + "<databases>\n" );
+        Iterator iter = databases.values().iterator();
+        while( iter.hasNext() ) {
+            PVDatabase db = (PVDatabase) iter.next();
+            db.writeXml( outputWriter, 4 );
+        }
+        outputWriter.write( indent + "</databases>\n" );
     }
 }

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--
+/*
   Copyright (c) 2006 Harri Kaimio
   
   This file is part of Photovault.
@@ -15,13 +14,20 @@
   General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with Photovault if not, write to the Free Software Foundation,
+  along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
--->
+*/
 
-<info primitiveTypes="attribute">
-    <element name="volume" class="org.photovault.imginfo.Volume">
-        <attribute name="name" property="name"/>
-        <attribute name="basedir" property="baseDir"/>
-    </element>
-</info>
+package org.photovault.dcraw;
+
+/**
+  Interface for receiving information about changes to a {@linkto RawImage} 
+ in the form of {@linkto RawImageChangeEvent}s
+ */
+public interface RawImageChangeListener {
+    /**
+     Called when some settings (exposure, color balance etc.) of an
+     {@linkto RawImage} have been changed
+     */
+    public void rawImageSettingsChanged( RawImageChangeEvent ev );
+}

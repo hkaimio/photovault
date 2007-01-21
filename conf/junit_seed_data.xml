@@ -54,5 +54,9 @@
     <photo_collections collection_id="7" parent="3" 
         collection_name="Subfolder4" 
         collection_desc="Folder for testSubfolders"/>
+    <icc_profiles profile_id="1" profile_name="Test 1"
+        profile_desc="Seed profile"/>
+    <icc_instances profile_id="1" volume_id="photos" fname="nonexistent.icc"/>
+    
     
 </data>

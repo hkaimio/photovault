@@ -97,6 +97,7 @@ public abstract class FieldController {
     */
     public void setModel( Object[] model, boolean preserveState ) {
 	this.model = model;
+        valueSet = new HashSet();
 	if ( preserveState ) {
 	    // We are copying the state of this controller to the new model. Set the modified flag to indicate
 	    // that the state must be saved.
@@ -108,9 +109,13 @@ public abstract class FieldController {
 	    if ( model != null ) {
 		if ( model[0] != null ) {
 		    valueCandidate = getModelValue( model[0] );
+                    valueSet.add( valueCandidate );
 		}
 		for ( int n = 1; n < model.length; n++ ) {
 		    Object modelObjectValue = getModelValue( model[n] );
+                    if ( !valueSet.contains( modelObjectValue ) ) {
+                        valueSet.add( modelObjectValue );
+                    }
 		    if ( modelObjectValue != null ) {
 			if ( !modelObjectValue.equals( valueCandidate ) ) {
 			    isMultiValued = true;
@@ -133,8 +138,6 @@ public abstract class FieldController {
 	    // Update info in all views
 	    updateViews( null );
 	}
-	
-
     }
 
     
@@ -225,7 +228,7 @@ public abstract class FieldController {
      */
     protected abstract void updateView( Object view );
 
-    /**
+    /**a
        This abstract method must be overridden to update the contorller value from the view
     */
     protected abstract void updateValue( Object view );
@@ -238,6 +241,7 @@ public abstract class FieldController {
     */
     protected Object[] model = null;
     protected Object value;
+    protected Set valueSet = null;
     protected Collection views = null;
     protected boolean modified = false;       
     protected boolean isMultiValued = false;

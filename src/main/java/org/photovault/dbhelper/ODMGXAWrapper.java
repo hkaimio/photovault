@@ -32,6 +32,7 @@ import org.apache.ojb.odmg.*;
 */
 
 public class ODMGXAWrapper {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ODMGXAWrapper.class.getName() );
     Transaction tx = null;
     boolean ownsTx = false;
     static Implementation odmg = ODMG.getODMGImplementation();
@@ -39,6 +40,7 @@ public class ODMGXAWrapper {
     public ODMGXAWrapper() {
 	tx = odmg.currentTransaction();
 	if ( tx == null ) {
+            log.debug( "Starting transaction" );
 	    tx = odmg.newTransaction();
 	    tx.begin();
 	    ownsTx = true;
@@ -48,14 +50,23 @@ public class ODMGXAWrapper {
     public void commit() {
 	if ( ownsTx ) {
 	    tx.commit();
+            log.debug( "Committing transaction" );
 	}
     }
 
     public void abort() {
+        log.debug( "Aborting transaction" );
 	tx.abort();
     }
 
     public void lock( Object obj, int type ) {
-	tx.lock( obj, type );
+        log.debug( "Trying to lock " + obj );
+        tx.lock( obj, type );
+        log.debug( "Success" );
+    }
+
+    public void flush() {
+        log.debug( "Flushing transaction" );
+        ((TransactionExt)tx).flush();
     }
 }

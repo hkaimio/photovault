@@ -117,6 +117,13 @@
     <field-descriptor name="checkTime" column="check_time" jdbc-type="TIMESTAMP" 
         conversion="org.photovault.imginfo.Timestamp2DateConversion">
     </field-descriptor>
+    <field-descriptor name="rawSettingsId" column="rawconv_id" jdbc-type="INTEGER">
+    </field-descriptor>
+    <reference-descriptor name="rawSettings" class-ref="org.photovault.dcraw.RawConversionSettings">
+      <documentation>Raw conversion settings for this photo</documentation>
+      <foreignkey field-ref="rawSettingsId">
+      </foreignkey>
+    </reference-descriptor>
   </class-descriptor>
 
   <!-- PhotoInfo mappings -->
@@ -167,6 +174,13 @@
     </field-descriptor>
     <field-descriptor name="origInstanceHash" column="hash" jdbc-type="VARBINARY">
     </field-descriptor>
+    <field-descriptor name="rawSettingsId" column="rawconv_id" jdbc-type="INTEGER">
+    </field-descriptor>
+    <reference-descriptor name="rawSettings" class-ref="org.photovault.dcraw.RawConversionSettings">
+      <documentation>Raw conversion settings for this photo</documentation>
+      <foreignkey field-ref="rawSettingsId">
+      </foreignkey>
+    </reference-descriptor>
  
     <!-- instances collection 
     Instances are aggregates of PhotoInfo object so we can use the default 
@@ -198,7 +212,50 @@
 
 
   </class-descriptor>
+  
+  <class-descriptor class="org.photovault.dcraw.RawConversionSettings"
+                    table="dcraw_settings">
+      <field-descriptor name="rawSettingId" column="rawconv_id" primarykey="true"
+                        jdbc-type="INTEGER" autoincrement="true"/>
+      <field-descriptor name="white" column="whitepoint" jdbc-type="INTEGER"/>
+      <field-descriptor name="black" column="blackpoint" jdbc-type="INTEGER"/>
+      <field-descriptor name="evCorr" column="ev_corr" jdbc-type="FLOAT"/>
+      <field-descriptor name="hlightComp" column="hlight_corr" jdbc-type="FLOAT"/>
+      <field-descriptor name="useEmbeddedICCProfile" column="embedded_profile" jdbc-type="BIT"/>
+      <field-descriptor name="whiteBalanceType" column="wb_type" jdbc-type="INTEGER"/>
+      <field-descriptor name="redGreenRatio" column="r_g_ratio" jdbc-type="FLOAT"/>
+      <field-descriptor name="blueGreenRatio" column="b_g_ratio" jdbc-type="FLOAT"/>
+      <field-descriptor name="daylightRedGreenRatio" column="dl_r_g_ratio" jdbc-type="FLOAT"/>
+      <field-descriptor name="daylightBlueGreenRatio" column="dl_b_g_ratio" jdbc-type="FLOAT"/>
+      <field-descriptor name="colorProfileId" column="profile_id" jdbc-type="INTEGER"/>
+      <reference-descriptor name="colorProfile" class-ref="org.photovault.dcraw.ColorProfileDesc">
+          <documentation>ICC profile used for raw conversion</documentation>
+          <foreignkey field-ref="colorProfileId">
+          </foreignkey>
+      </reference-descriptor>
+  </class-descriptor>
+  
+  <class-descriptor class="org.photovault.dcraw.ColorProfileDesc" table="icc_profiles">
+      <field-descriptor name="id" column="profile_id" primarykey="true" 
+                        jdbc-type="INTEGER" autoincrement="true"/>
+      <field-descriptor name="name" column="profile_name" jdbc-type="VARCHAR"/>
+      <field-descriptor name="description" column="profile_desc" jdbc-type="VARCHAR"/>
+      <field-descriptor name="hash" column="hash" jdbc-type="VARBINARY"/>
+      <collection-descriptor name="instances"
+                             element-class-ref="org.photovault.dcraw.ColorProfileInstance"
+                             auto-retrieve="true"
+                             auto-update="none"
+                             auto-delete="none">
+          <inverse-foreignkey field-ref="profileId"/>
+      </collection-descriptor>
+  </class-descriptor>
 
+  <class-descriptor class="org.photovault.dcraw.ColorProfileInstance" table="icc_instances">
+      <field-descriptor name="profileId" column="profile_id" primarykey="true" jdbc-type="INTEGER"/>
+      <field-descriptor name="volumeId" column="volume_id" primarykey="true" jdbc-type="VARCHAR"/>
+      <field-descriptor name="fname" column="fname" jdbc-type="VARCHAR"/>
+  </class-descriptor>
+  
   <class-descriptor class="org.photovault.common.DbInfo" table="database_info">
       <field-descriptor name="id" column="database_id" primarykey="true" jdbc-type="VARCHAR"/>
       <field-descriptor name="createTime" column="create_time" 

@@ -23,6 +23,7 @@ package org.photovault.imginfo;
 import java.awt.geom.Rectangle2D;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import javax.media.jai.PlanarImage;
 import org.odmg.*;
 import java.sql.*;
 import java.util.*;
@@ -31,6 +32,8 @@ import javax.imageio.stream.*;
 import java.io.*;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
+import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.dcraw.RawImage;
 
 /**
    This class abstracts a single instance of a image that is stored in a file.
@@ -211,35 +214,44 @@ public class ImageInstance {
         }
         String suffix = fname.substring( lastDotPos+1 );
         Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
-        if ( !readers.hasNext() ) {
-            throw new IOException( "Unknown image file extension " + suffix + 
-                    "\nwhile reading " + imageFile.getAbsolutePath() );
-        }
-        ImageReader reader = (ImageReader)readers.next();
-	ImageInputStream iis = null;
-        try {
-            iis = ImageIO.createImageInputStream( imageFile );        
-            if ( iis != null ) {
-                reader.setInput( iis, true );
-                
-                width = reader.getWidth( 0 );
-                height = reader.getHeight( 0 );
-                reader.dispose();
-            }
-        } catch (IOException ex) {
-            log.debug( "Exception in readImageFile: " + ex.getMessage() );
-            throw ex;
-        } finally {
-            if ( iis != null ) {
-                try {
-                    iis.close();
-                } catch (IOException ex) {
-                    log.warn( "Cannot close image stream: " + ex.getMessage() );
+        if ( readers.hasNext() ) {
+            ImageReader reader = (ImageReader)readers.next();
+            ImageInputStream iis = null;
+            try {
+                iis = ImageIO.createImageInputStream( imageFile );
+                if ( iis != null ) {
+                    reader.setInput( iis, true );
+                    
+                    width = reader.getWidth( 0 );
+                    height = reader.getHeight( 0 );
+                    reader.dispose();
+                }
+            } catch (IOException ex) {
+                log.debug( "Exception in readImageFile: " + ex.getMessage() );
+                throw ex;
+            } finally {
+                if ( iis != null ) {
+                    try {
+                        iis.close();
+                    } catch (IOException ex) {
+                        log.warn( "Cannot close image stream: " + ex.getMessage() );
+                    }
                 }
             }
+        } else {
+            RawImage ri = new RawImage( imageFile );
+            if ( ri.isValidRawFile() ) {
+                // PlanarImage img = ri.getCorrectedImage();
+                width = ri.getWidth();
+                height = ri.getHeight();
+            } else {
+                throw new IOException( "Unknown image file extension " + suffix +
+                        "\nwhile reading " + imageFile.getAbsolutePath() );
+            }
         }
+        
     }
-
+    
     /**
         Calculates MD5 hash of the image file
      */
@@ -663,6 +675,51 @@ public class ImageInstance {
         txw.commit();
     }
        
+    /**
+     Raw conversion settings that were used when creating this instance or 
+     <code>null</code> if it was not created from raw image.
+     */
+    RawConversionSettings rawSettings = null;
+    
+    /**
+     OJB database identified for the raw settings
+     */
+    int rawSettingsId;
+    
+    /**
+     Set the raw conversion settings for this photo
+     @param s The new raw conversion settings used to create this instance. 
+     The method makes a clone of the object.     
+     */
+    public void setRawSettings( RawConversionSettings s ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        RawConversionSettings settings = null;
+        if ( s != null ) {
+            settings = s.clone();
+            txw.lock( settings, Transaction.WRITE );
+        }
+        if ( rawSettings != null ) {
+            Database db = ODMG.getODMGDatabase();
+            db.deletePersistent( rawSettings );
+        }
+        rawSettings = settings;        
+        txw.commit();
+    }
+    
+    /**
+     Get the current raw conversion settings.
+     @return Current settings or <code>null</code> if instance was not created
+     from a raw image.     
+     */
+    public RawConversionSettings getRawSettings() {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.READ );
+        txw.commit();
+        return rawSettings;
+    }
+    
+    
     /**
      Sets the photo UID of this instance. THis should only be called by 
      PhotoInfo.addInstance()

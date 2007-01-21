@@ -20,6 +20,13 @@
 
 package org.photovault.swingui;
 
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import javax.media.jai.RenderedOp;
+import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.dcraw.RawImage;
+import org.photovault.dcraw.RawImageChangeEvent;
+import org.photovault.dcraw.RawImageChangeListener;
 import org.photovault.imginfo.*;
 import javax.swing.*;
 import java.awt.*;
@@ -36,9 +43,12 @@ import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
+import org.photovault.swingui.color.ColorSettingsDlg;
+import org.photovault.swingui.color.RawSettingsPreviewEvent;
 
 public class JAIPhotoViewer extends JPanel implements 
-        PhotoInfoChangeListener, ComponentListener, CropAreaChangeListener {
+        PhotoInfoChangeListener, ComponentListener, CropAreaChangeListener,
+        RawImageChangeListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JAIPhotoViewer.class.getName() );
 
     public JAIPhotoViewer() {
@@ -144,15 +154,31 @@ public class JAIPhotoViewer extends JPanel implements
         toolbar.add( cropBtn );
         
 	add( toolbar, BorderLayout.NORTH );
-	    
-    }
 
+    }
+    
+    float rawConvScaling = 1.0f;
+    
     public void setScale( float scale ) {
-	imageView.setScale(scale);
+        if ( rawImage != null ) {
+            // Check if the raw image needs to be refiltered
+            int minWidth = (int) (rawImage.getWidth() * scale);
+            int minHeight = (int) (rawImage.getHeight() * scale);
+            boolean needsReload = rawImage.setMinimumPreferredSize( 
+                    minWidth, minHeight ); 
+            PlanarImage img = rawImage.getCorrectedImage();
+            rawConvScaling = img.getWidth() / (float) rawImage.getWidth();
+            imageView.setScale( scale/rawConvScaling );
+            if ( needsReload ) {
+                setImage( img );
+            }
+        } else {
+            imageView.setScale(scale);
+        }
     }
 
     public float getScale() {
-	return imageView.getScale();
+	return imageView.getScale() * rawConvScaling;
     }
 
     public void fit() {
@@ -208,10 +234,49 @@ public class JAIPhotoViewer extends JPanel implements
                 original = instance;
                 File imageFile = original.getImageFile();
                 if ( imageFile != null && imageFile.canRead() ) {
+                    String fname = imageFile.getName();
+                    int lastDotPos = fname.lastIndexOf( "." );
+                    if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
+                        // TODO: error handling needs thinking!!!!
+                        // throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
+                        return;
+                    }
+                    String suffix = fname.substring( lastDotPos+1 );
+                    Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
+                    RenderedImage origImage = null;
+                    if ( readers.hasNext() ) {
+                        ImageReader reader = (ImageReader)readers.next();
+                        log.debug( "Creating stream" );
+                        ImageInputStream iis = null;
+                        try {
+                            iis = ImageIO.createImageInputStream(original.getImageFile());
+                            reader.setInput( iis, false, false );
+                            origImage = reader.readAsRenderedImage( 0, null );
+                        } catch (IOException ex) {
+                            log.warn( ex.getMessage() );
+                            ex.printStackTrace();
+                            return;
+                        }
+                        rawImage = null;
+                        rawConvScaling = 1.0f;
+                    } else {
+                        // JAI could not read the image, check if it is a raw file
+                        RawImage tmpRaw = new RawImage( original.getImageFile() );
+                        if ( tmpRaw.isValidRawFile() ) {
+                            if ( rawImage != null ) {
+                                rawImage.removeChangeListener( this );
+                            }
+                            rawImage = tmpRaw;
+                            rawImage.setRawSettings( photo.getRawSettings() );
+                            rawImage.addChangeListener( this );
+                            // Check the correct resolution for this image
+                            if ( !isFit ) {
+                                setScale( getScale() );
+                            }                            
+                            origImage = rawImage.getCorrectedImage();
+                        }
+                    }
                     final String imageFilePath = original.getImageFile().getAbsolutePath();
-                    log.debug( "loading image " + imageFilePath );
-                    PlanarImage origImage = JAI.create( "fileload", imageFilePath );
-                    log.debug( "image " + imageFilePath + " loaded");
                     setImage( origImage );
                     instanceRotation = original.getRotated();
                     double rot = photo.getPrefRotation() - instanceRotation;
@@ -250,8 +315,7 @@ public class JAIPhotoViewer extends JPanel implements
     public void componentResized( ComponentEvent e) {
 	if ( isFit ) {
             fit();
-	}
-			 
+	}			 
     }
 
     public void componentShown( ComponentEvent e) {
@@ -262,6 +326,14 @@ public class JAIPhotoViewer extends JPanel implements
     
     PhotoInfo photo = null;
     boolean isFit = true;
+    
+    /**
+     {@lookup RawImage} of the currently displayed instance or <code>null</code>
+     if current instance is not a raw image.
+     */
+    RawImage rawImage = null;
+    
+    ColorSettingsDlg colorDlg = null;
 
     /**
        Implementation of the photoInfoChangeListener interface. Checks if the preferred rotation is changed
@@ -285,6 +357,38 @@ public class JAIPhotoViewer extends JPanel implements
         imageView.setDrawCropped( true );
     }
 
+    public void rawImageSettingsChanged(RawImageChangeEvent ev) {
+        /*
+         TODO: This may recreate the converted image unnecessarily. It would 
+         probably be faster to just modify the parameters in image chain & 
+         redraw.
+         */
+        PlanarImage origImage = rawImage.getCorrectedImage();
+        setImage( origImage );
+    }
+
+    /**
+     List of current preview listener. These will be notified when the actual image
+     displayed changes.
+     */
+    
+    Vector previewListeners = new Vector();
+    
+    /**
+     Called when raw settings in another control that user this control as 
+     a preview image are changed.
+     @param e Event that describes the change.
+     */
+    public void previewRawSettingsChanged(RawSettingsPreviewEvent e) {
+        PhotoInfo[] model = e.getModel();
+        if ( model != null && model.length == 1 && model[0] == photo ) {
+            RawConversionSettings r = e.getNewSettings();
+            if ( rawImage != null ) {
+                rawImage.setRawSettings( r );
+                
+            }
+        }
+    }
     
     JAIPhotoView imageView = null;
     JScrollPane scrollPane = null;

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -379,7 +379,7 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                     passwd = loginDlg.getPasswd();
                 }
                 db.setDbName( dbNameFld.getText() );
-                db.setDbHost( dbHostFld.getText() );
+                db.setHost( dbHostFld.getText() );
                 Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
                 try {
                     db.addVolume( vol );

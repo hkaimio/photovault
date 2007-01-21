@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--
+/*
   Copyright (c) 2006 Harri Kaimio
   
   This file is part of Photovault.
@@ -15,14 +14,25 @@
   General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with Photovault if not, write to the Free Software Foundation,
+  along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
--->
+*/
+package org.photovault.dcraw;
 
-<info primitiveTypes="attribute">
-    <element name="external-volume" class="org.photovault.imginfo.ExternalVolume">
-        <attribute name="name" property="name"/>
-        <attribute name="basedir" property="baseDir"/>
-        <attribute name="folder" property="folderId"/>
-    </element>
-</info>
+import java.util.EventObject;
+
+/**
+  This event describes a change to {@linkto RawImage} object (e.g. exposure 
+ settings.
+ */
+public class RawImageChangeEvent extends EventObject {
+    
+    /** 
+     Creates a new instance of RawImageChangeEvent 
+     @param source the RawImage that initiated the event
+     */
+    public RawImageChangeEvent( RawImage source ) {
+        super( source );
+    }
+    
+}

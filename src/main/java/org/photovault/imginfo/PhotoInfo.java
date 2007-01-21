@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -40,8 +40,11 @@ import org.apache.ojb.broker.query.Criteria;
 import org.apache.ojb.broker.query.QueryByCriteria;
 import org.apache.ojb.odmg.*;
 import org.odmg.*;
+import org.photovault.common.PhotovaultException;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
+import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
 
 /**
@@ -236,10 +239,21 @@ public class PhotoInfo {
             if ( candidate.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
                 instance = candidate;
                 File f = instance.getImageFile();
+                boolean success = false;
                 if ( f != null ) {
-                    updateFromFileMetadata( f );
+                    String suffix = "";
+                    int suffixStart = f.getName().lastIndexOf( "." );
+                    if ( suffixStart >= 0 &&  suffixStart < f.getName().length() -1 ) {
+                        suffix = f.getName().substring( suffixStart+1 );
+                    }
+                    if ( suffix.equalsIgnoreCase( "jpg" ) || suffix.equalsIgnoreCase( "jpeg" ) ) {
+                        updateFromFileMetadata( f );
+                        success = true;
+                    } else {
+                        success = updateFromRawFileMetadata( f );
+                    }
                     txw.commit();
-                    return true;
+                    return success;
                 }
             }
         }
@@ -319,6 +333,35 @@ public class PhotoInfo {
         }
         setCamera( camera );
         
+    }
+
+    /**
+     Reads metadata from raw camera file (using dcraw) and updates PhotoInfo
+     fields based on that
+     @param f The raw file to read
+     @return <code>true</code> if meta data was succesfully read, <code>false</code> 
+     otherwise (e.g. if f was not a raw image file.
+     */
+    private boolean updateFromRawFileMetadata( File f ) {
+        RawImage ri = new RawImage( f );
+        if ( !ri.isValidRawFile() ) {
+            return false;
+        }
+        setShootTime( ri.getTimestamp() );
+        setFStop( ri.getAperture() );
+        setShutterSpeed( ri.getShutterSpeed() );
+        setFilmSpeed( ri.getFilmSpeed() );
+        String camera = ri.getCamera();
+        if ( camera.length() > CAMERA_LENGTH ) {
+            camera = camera.substring( 0, CAMERA_LENGTH );
+        }
+        setCamera( camera );
+        setFilm( "Digital" );
+        setFocalLength( ri.getFocalLength() );
+        
+        ri.autoExpose();
+        setRawSettings( ri.getRawSettings() );
+        return true;
     }
     
     
@@ -558,8 +601,7 @@ public class PhotoInfo {
             for ( int n = 0; n < instances.size(); n++ ) {
                 ImageInstance instance = (ImageInstance) instances.get( n );
                 if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-                        && Math.abs(instance.getRotated() - prefRotation) < 0.0001
-                        && instance.getCropBounds().equals( getCropBounds() ) ) {
+                        && matchesCurrentSettings( instance ) ) {
                     log.debug( "Found thumbnail from database" );
                     thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
                     oldThumbnail = null;
@@ -609,6 +651,33 @@ public class PhotoInfo {
     }
     
     /**
+     Delete all thumbnail/copy instance that do not match to the image settings.
+     */
+    private void purgeInvalidInstances() {
+        log.debug( "entry: purgeInvalidInstances" );
+        Vector purgeList = new Vector();
+        for ( int n = 0; n < instances.size(); n++ ) {
+            ImageInstance instance = (ImageInstance) instances.get( n );
+            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
+                    && !matchesCurrentSettings( instance ) ) {
+                purgeList.add( instance );
+            }
+        }
+        log.debug( "Deleting " + purgeList.size() + " instances" );
+        Iterator iter = purgeList.iterator();
+        while ( iter.hasNext() ) {
+            ImageInstance i = (ImageInstance) iter.next();
+            ODMGXAWrapper txw = new ODMGXAWrapper();
+            txw.lock( this, Transaction.WRITE );
+            txw.lock( i, Transaction.WRITE );
+            instances.remove( i );
+            i.delete();
+            txw.commit();
+        }
+        log.debug( "exit: purgeInvalidInstances" );        
+    }
+
+    /**
      Helper function to calculate aspect ratio of an image
      @param width width of the image
      @param height height of the image
@@ -640,6 +709,12 @@ public class PhotoInfo {
         return true;
     }
     
+    private boolean matchesCurrentSettings( ImageInstance instance ) {
+        return Math.abs(instance.getRotated() - prefRotation) < 0.0001
+                && instance.getCropBounds().equals( getCropBounds() )
+                && ( rawSettings == null || rawSettings.equals( instance.getRawSettings()));            
+        }
+        
     /** Creates a new thumbnail for this image on specific volume
      @param volume The volume in which the instance is to be created
      */
@@ -714,10 +789,6 @@ public class PhotoInfo {
                 }
                 String suffix = fname.substring( lastDotPos+1 );
                 Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
-                if ( !readers.hasNext() ) {
-                    throw new IOException( "Unknown image file extension " + suffix +
-                            "\nwhile reading " + imageFile.getAbsolutePath() );
-                }
                 if ( readers.hasNext() ) {
                     ImageReader reader = (ImageReader)readers.next();
                     log.debug( "Creating stream" );
@@ -763,6 +834,24 @@ public class PhotoInfo {
                         log.debug( "Read original" );
                     }
                     iis.close();
+                } else {
+                    // JAI failed to read the file, check if it is a raw file
+                    RawImage ri = new RawImage( imageFile );
+                    if ( ri.isValidRawFile() ) {
+                        if ( rawSettings != null ) {
+                            ri.setRawSettings( rawSettings );
+                        }
+                        origImage = ri.getCorrectedImage().getAsBufferedImage();
+                        if ( rawSettings == null ) {
+                            // No raw settings for this photo yet, let's use
+                            // the thumbnail settings
+                            rawSettings = ri.getRawSettings();
+                            txw.lock( rawSettings, Transaction.WRITE );
+                        }
+                    } else {
+                        throw new IOException( "Unknown image file extension " + suffix +
+                                "\nwhile reading " + imageFile.getAbsolutePath() );
+                    }
                 }
             } catch ( Exception e ) {
                 log.warn( "Error reading image: " + e.getMessage() );
@@ -815,8 +904,7 @@ public class PhotoInfo {
         RenderedOp xformImage = JAI.create( "translate", pbXlate );
         // Finally, scale this to thumbnail
         AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( maxThumbWidth, maxThumbHeight,
-                0,
-                xformImage.getWidth(), xformImage.getHeight() );
+                0, xformImage.getWidth(), xformImage.getHeight() );
         ParameterBlockJAI thumbScaleParams = new ParameterBlockJAI( "affine" );
         thumbScaleParams.addSource( xformImage );
         thumbScaleParams.setParameter( "transform", thumbScale );
@@ -824,59 +912,16 @@ public class PhotoInfo {
                 Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
         
         PlanarImage thumbImage = JAI.create( "affine", thumbScaleParams );
-        
-        // Save it
-        FileOutputStream out = null;
         try {
-            out = new FileOutputStream(thumbnailFile.getAbsolutePath());
-        } catch(IOException e) {
-            log.error( "Error writing thumbnail: " + e.getMessage() );
+            saveInstance( thumbnailFile, thumbImage );
+        } catch (PhotovaultException ex) {
+            log.error( "error writing thumbnail for " + original.getImageFile().getAbsolutePath() + 
+                    ": " + ex.getMessage() );
             // TODO: If we abort here due to image writing problem we will have 
             // problems later with non-existing transaction. We should really 
             // rethink the error handling login in the whole function. Anyway, we 
             // haven't changed anything yet so we can safely commit the tx.
             txw.commit();
-            return;
-        }
-        
-        String logStr = "Creating thumbnail for " + original.getImageFile().getAbsolutePath() + "\n" + 
-                "# bands: " + thumbImage.getNumBands();
-        for ( int band = 0; band < thumbImage.getNumBands(); band++ ) {
-            logStr = logStr + "\nBand " + band + " size: " + 
-                    thumbImage.getSampleModel().getSampleSize( band );
-        }
-        log.debug( logStr );
-        if ( thumbImage.getSampleModel().getSampleSize( 0 ) == 16 ) {
-            double[] subtract = new double[1]; subtract[0] = 0;
-            double[] divide   = new double[1]; divide[0]   = 1./256.;
-            // Now we can rescale the pixels gray levels:
-            ParameterBlock pbRescale = new ParameterBlock();
-            pbRescale.add(divide);
-            pbRescale.add(subtract);
-            pbRescale.addSource( thumbImage );
-            PlanarImage outputImage = (PlanarImage)JAI.create("rescale", pbRescale, null);
-            // Make sure it is a byte image - force conversion.
-            ParameterBlock pbConvert = new ParameterBlock();
-            pbConvert.addSource(outputImage);
-            pbConvert.add(DataBuffer.TYPE_BYTE);
-            thumbImage = JAI.create("format", pbConvert);
-        }
-        JPEGEncodeParam encodeParam = new JPEGEncodeParam();
-        ImageEncoder encoder = ImageCodec.createImageEncoder("JPEG", out,
-              encodeParam);
-        try {
-            encoder.encode( thumbImage );
-            out.close();
-            // origImage.dispose();
-            thumbImage.dispose();
-        } catch (Exception e) {
-            log.error( "Error writing thumbnail for " + original.getImageFile().getAbsolutePath()+ ": " + e.getMessage() );
-            // TODO: If we abort here due to image writing problem we will have 
-            // problems later with non-existing transaction. We should really 
-            // rethink the error handling login in the whole function. Anyway, we 
-            // haven't changed anything yet so we can safely commit the tx.
-            txw.commit();
-//            txw.abort();
             return;
         }
         
@@ -885,12 +930,56 @@ public class PhotoInfo {
                 ImageInstance.INSTANCE_TYPE_THUMBNAIL );
         thumbInstance.setRotated( prefRotation -original.getRotated() );
         thumbInstance.setCropBounds( getCropBounds() );
+        thumbInstance.setRawSettings( rawSettings );
         log.debug( "Loading thumbnail..." );
         
         thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
         oldThumbnail = null;
         log.debug( "Thumbnail loaded" );
         txw.commit();
+    }
+    
+    /**
+     Helper function to save a rendered image to file
+     @param instanceFile The file into which the image will be saved
+     @img Image that willb e saved
+     @throws PhotovaultException if saving does not succeed
+     */
+    protected void saveInstance( File instanceFile, PlanarImage img ) throws PhotovaultException {
+        OutputStream out = null;
+        try {
+            out = new FileOutputStream( instanceFile.getAbsolutePath());
+        } catch(IOException e) {
+            log.error( "Error writing thumbnail: " + e.getMessage() );
+            throw new PhotovaultException( e.getMessage() );
+        }
+        if ( img.getSampleModel().getSampleSize( 0 ) == 16 ) {
+            double[] subtract = new double[1]; subtract[0] = 0;
+            double[] divide   = new double[1]; divide[0]   = 1./256.;
+            // Now we can rescale the pixels gray levels:
+            ParameterBlock pbRescale = new ParameterBlock();
+            pbRescale.add(divide);
+            pbRescale.add(subtract);
+            pbRescale.addSource( img );
+            PlanarImage outputImage = (PlanarImage)JAI.create("rescale", pbRescale, null);
+            // Make sure it is a byte image - force conversion.
+            ParameterBlock pbConvert = new ParameterBlock();
+            pbConvert.addSource(outputImage);
+            pbConvert.add(DataBuffer.TYPE_BYTE);
+            img = JAI.create("format", pbConvert);
+        }
+        JPEGEncodeParam encodeParam = new JPEGEncodeParam();
+        ImageEncoder encoder = ImageCodec.createImageEncoder("JPEG", out,
+                encodeParam);
+        try {
+            encoder.encode( img );
+            out.close();
+            // origImage.dispose();
+        } catch (Exception e) {
+            throw new PhotovaultException( "Error writing instance " + 
+                    instanceFile.getAbsolutePath()+ ": " + 
+                    e.getMessage() );
+        }
     }
     
     /**
@@ -970,8 +1059,37 @@ public class PhotoInfo {
         // Read the image
         BufferedImage origImage = null;
         try {
-            log.warn( "Export: reading image " + original.getImageFile() );
-            origImage = ImageIO.read( original.getImageFile() );
+            File imageFile = original.getImageFile();
+            String fname = imageFile.getName();
+            int lastDotPos = fname.lastIndexOf( "." );
+            if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
+                throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
+            }
+            
+            RawImage ri = new RawImage( imageFile );
+            if ( ri.isValidRawFile() ) {
+                if ( rawSettings != null ) {
+                    ri.setRawSettings( rawSettings );
+                }
+                if ( width > 0 ) {
+                    int minWidth = (int) (width / (cropMaxX-cropMinX));
+                    int minHeight = (int) (height / (cropMaxY-cropMinY));
+                    ri.setMinimumPreferredSize( minWidth, minHeight );
+                } else {
+                    // Original resolution requested
+                    ri.setMinimumPreferredSize( ri.getWidth(), ri.getHeight() );
+                }
+                origImage =ri.getCorrectedImage().getAsBufferedImage();
+                if ( rawSettings == null ) {
+                    // No raw settings for this photo yet, let's use
+                    // the thumbnail settings
+                    rawSettings = ri.getRawSettings();
+                    txw.lock( rawSettings, Transaction.WRITE );
+                }
+            } else {
+                log.debug( "Export: reading image " + original.getImageFile() );
+                origImage = ImageIO.read( original.getImageFile() );
+            }
         } catch ( IOException e ) {
             log.warn( "Error reading image: " + e.getMessage() );
             txw.abort();
@@ -1450,6 +1568,7 @@ public class PhotoInfo {
         if ( v != prefRotation ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
+            purgeInvalidInstances();
         }
         this.prefRotation = v;
         modified();
@@ -1499,6 +1618,7 @@ public class PhotoInfo {
         if ( !cropBounds.equals( getCropBounds() ) ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
+            purgeInvalidInstances();            
         }
         cropMinX = cropBounds.getMinX();
         cropMinY = cropBounds.getMinY();
@@ -1522,6 +1642,58 @@ public class PhotoInfo {
     double cropMaxX;
     double cropMinY;
     double cropMaxY;
+    
+    /**
+     Raw conversion settings or <code>null</code> if no raw image is available
+     */
+    RawConversionSettings rawSettings = null;
+    
+    /**
+     OJB database identified for the raw settings
+     */
+    int rawSettingsId;
+    
+    /**
+     Set the raw conversion settings for this photo
+     @param s The new raw conversion settings to use. The method makes a clone of 
+     the object.     
+     */
+    public void setRawSettings( RawConversionSettings s ) {
+        log.debug( "entry: setRawSettings()" );
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        if ( !s.equals( rawSettings ) ) {
+            invalidateThumbnail();
+            purgeInvalidInstances();            
+        }
+        RawConversionSettings settings = s.clone();
+        RawConversionSettings oldSettings = rawSettings;
+        txw.lock( settings, Transaction.WRITE );
+        if ( oldSettings != null ) {
+            txw.lock( oldSettings, Transaction.WRITE );
+            Database db = ODMG.getODMGDatabase();
+            db.deletePersistent( oldSettings );
+        } 
+        rawSettings = settings;
+        modified();
+        txw.commit();
+        log.debug( "exit: setRawSettings()" );
+    }
+    
+    /**
+     Get the current raw conversion settings.
+     @return Current settings or <code>null</code> if this is not a raw image.     
+     */
+    public RawConversionSettings getRawSettings() {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.READ );
+        txw.commit();
+        return rawSettings;
+    }
+
+    public int getRawSettingsId() {
+        return rawSettingsId;
+    }
     
     String description;
     
@@ -1740,7 +1912,9 @@ public class PhotoInfo {
                 && p.focalLength == this.focalLength
                 && p.FStop == this.FStop
                 && p.uid == this.uid
-                && p.quality == this.quality );
+                && p.quality == this.quality
+                && (( p.rawSettings == null && this.rawSettings == null ) || 
+                    ( p.rawSettings != null && p.rawSettings.equals( this.rawSettings ) )));
     }
     
     public int hashCode() {

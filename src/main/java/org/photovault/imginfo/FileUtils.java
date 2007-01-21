@@ -21,6 +21,8 @@
 package org.photovault.imginfo;
 
 import java.io.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
    FileUtils is a static class that implements common file handling operations that are often needed.
@@ -28,6 +30,8 @@ import java.io.*;
 
 public class FileUtils {
 
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
+    
     /**
        Copies a file
        @param src Source file
@@ -69,6 +73,41 @@ public class FileUtils {
             }
         }
     }
+    
+    /**
+     Utility function to calculate the hash of a specific file
+     @param f The file
+     @return Hash of f
+     */
+    public static byte[] calcHash( File f ) {
+        FileInputStream is = null;
+        byte hash[] = null;
+        try {
+            is = new FileInputStream( f );
+            byte readBuffer[] = new byte[4096];
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            int bytesRead = -1;
+            while( ( bytesRead = is.read( readBuffer ) ) > 0 ) {
+                md.update( readBuffer, 0, bytesRead );
+            }
+            hash = md.digest();   
+        } catch (NoSuchAlgorithmException ex) {
+            log.error( "MD5 algorithm not found" );
+        } catch (FileNotFoundException ex) {
+            log.error( f.getAbsolutePath() + "not found" );
+        } catch (IOException ex) {
+            log.error( "IOException while calculating hash: " + ex.getMessage() );
+        }  finally {
+            try {
+                if ( is != null ) {
+                    is.close();
+                }
+            } catch (IOException ex) {
+                log.error( "Cannot close stream after calculating hash" );
+            }
+        }
+        return hash;
+    }    
 
     /**
        Deleter a directory tree and all files stored in it.

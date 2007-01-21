@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,6 +20,7 @@
 
 package org.photovault.common;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.sql.DriverManager;
@@ -100,11 +101,11 @@ public class PVDatabase {
         return this.name;
     }
     
-    public String getDbHost() {
+    public String getHost() {
         return dbHost;
     }
 
-    public void setDbHost(String dbHost) {
+    public void setHost(String dbHost) {
         if ( dbHost != null ) {
             this.dbHost = dbHost;
         } else {
@@ -189,7 +190,7 @@ public class PVDatabase {
         this.embeddedDirectory = embeddedDirectory;
     }
     
-    public String getInstancePath() {
+    public String getInstanceDir() {
         String res = "";
         if ( embeddedDirectory != null ) {
             res = embeddedDirectory.getAbsolutePath();
@@ -197,7 +198,7 @@ public class PVDatabase {
         return res;
     }
 
-    public void setInstancePath( String path ) {
+    public void setInstanceDir( String path ) {
         embeddedDirectory = new File( path );
     }
     
@@ -282,7 +283,7 @@ public class PVDatabase {
         // Create the datasource for accessing this database
         
         String driverName = "com.mysql.jdbc.Driver";
-        String dbUrl = "jdbc:mysql://" + getDbHost() + "/" + getDbName();
+        String dbUrl = "jdbc:mysql://" + getHost() + "/" + getDbName();
         
         DataSource ds = null;
         if ( instanceType == TYPE_EMBEDDED ) {
@@ -384,11 +385,32 @@ public class PVDatabase {
         return info.getVersion();
     }
 
+    /**
+     Write this object as an XML element
+     @param outputWriter The writer into which the object is written
+     @param indent Number of spaces to indent each line
+     */
+    void writeXml(BufferedWriter outputWriter, int indent ) throws IOException {
+        String s = "                                ".substring( 0, indent );
+        outputWriter.write( s+ "<database name=\"" + name + 
+                "\" instanceType=\"" + getInstanceType() +
+                "\" instanceDir=\"" + getInstanceDir() +
+                "\">\n" );
+        Iterator iter = volumes.iterator();
+        outputWriter.write( s + "  " + "<volumes>\n" );
+        while( iter.hasNext() ) {
+            VolumeBase v = (VolumeBase) iter.next();
+            v.writeXml( outputWriter, indent+4 );            
+        }
+        outputWriter.write( s + "  " + "</volumes>\n" );
+        outputWriter.write( s + "</database>\n" );
+    }
+
 
 
     /**
      The latest schema version which should be used with this version of 
      Photovault
      */
-    static public final int CURRENT_SCHEMA_VERSION = 6;
+    static public final int CURRENT_SCHEMA_VERSION = 7;
 }

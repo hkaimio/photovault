@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -284,5 +285,13 @@ public abstract class VolumeBase {
         return isInVolume;
         
     }
+
+    /**
+     The derived classes must overload this method to write the value of the object as an 
+     XML element.
+     @param outputWriter The writer into which the object is written
+     @param indent Number of spaces to indent each line
+     */
+    public abstract void writeXml(BufferedWriter outputWriter, int indent ) throws IOException;
     protected File volumeBaseDir;    
 }

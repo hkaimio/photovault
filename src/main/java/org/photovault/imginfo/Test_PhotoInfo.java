@@ -30,6 +30,7 @@ import javax.imageio.stream.*;
 import org.photovault.dbhelper.ImageDb;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.common.JUnitOJBManager;
+import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoInfo extends PhotovaultTestCase {
@@ -755,6 +756,24 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         assertTrue( "Photo not found by original hash", found );
     }
 
+    public void testRawSettings() {
+        PhotoInfo p = PhotoInfo.create();
+        double chanMul[] = { 
+            1., .7, .5, .7
+        };
+        
+        double daylightMul[] = {
+            .3, .5, .7
+        };
+        RawConversionSettings rs = RawConversionSettings.create( chanMul, daylightMul, 
+                16000, 0, -.5, 0., RawConversionSettings.WB_MANUAL, false );
+        p.setRawSettings( rs );
+        RawConversionSettings rs2 = p.getRawSettings();
+        assertTrue( rs.equals( rs2 ) );
+        assertEquals( 16000, rs2.getWhite() );
+    }
+    
+    
     public void testRetrievalByHashNoPhoto() {
 
         byte[] hash = new byte[16];

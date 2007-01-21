@@ -52,7 +52,7 @@
       <column name="instance_type" primaryKey="false" required="true" type="VARCHAR" size="9" default="original" autoIncrement="false"/>
 
       <column name="hash" primaryKey="false" required="false" type="VARBINARY" size="16" autoIncrement="false"/>
-      
+      <column name="rawconv_id" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>      
       <!-- size of the file -->
       <column name="file_size" primaryKey="false" required="false" type="BIGINT" autoIncrement="false"/>
       <!-- last modification time of the file -->
@@ -213,6 +213,8 @@
       <column name="last_modified" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
       <column name="tech_notes" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
       
+      <column name="rawconv_id" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>      
+      
       <!-- MD5 hash code of the original image file -->
       <column name="hash" primaryKey="false" required="false" type="VARBINARY" size="16" autoIncrement="false"/>
       
@@ -240,6 +242,83 @@
         <unique-column name="volume_id"/>
       </unique-->
     </table>
+    
+    <table name="dcraw_settings" 
+           description="Settings used to convert a raw image using dcraw" >
+        <column name="rawconv_id" primaryKey="true" required="true" type="INTEGER" 
+                size="11" autoIncrement="false"
+                description="ID of this conversion"/>
+        <column name="whitepoint" primaryKey="false" required="true" type="INTEGER" 
+                size="11" autoIncrement="false"
+                description="Pixel value that is considered white if no EV correction is applied"/>
+        <column name="blackpoint" primaryKey="false" required="true" type="INTEGER" 
+                default="0" size="11" autoIncrement="false"
+                description="Pixel value that is considered black"/>
+        <column name="ev_corr" primaryKey="false" required="true" type="FLOAT" 
+                size="12" autoIncrement="false"
+                description="Exposure correction in f-stops"/>
+        <column name="hlight_corr" primaryKey="false" required="true" type="FLOAT" 
+                size="12" autoIncrement="false"
+                description="Highlight compression, how many f-stops actul white point will differ from linear"/>
+        <column name="embedded_profile" primaryKey="false" required="true" type="BIT"
+                size="1" autoIncrement="false"
+                description="Whether conversion uses ICC profile embedded to the raw file"/>
+        <column name="profile_id" primaryKey="false" required="false" type="INTEGER" 
+                size="11" autoIncrement="false"
+                description="ID of the matching ICC profile (in table icc_profiles)"/>        
+        <column name="wb_type" primaryKey="false" required="true" type="INTEGER" 
+                size="11" autoIncrement="false"
+                description="White balance setting type. See Javadoc for RawConversionSettings for details"/>
+        <column name="r_g_ratio" primaryKey="false" required="true" type="FLOAT" 
+                size="12" autoIncrement="false"
+                description="Ratio of red and green channel multipliers"/>
+        <column name="b_g_ratio" primaryKey="false" required="true" type="FLOAT" 
+                size="12" autoIncrement="false"
+                description="Ratio of blue and green channel multipliers"/>
+        <column name="dl_r_g_ratio" primaryKey="false" required="true" type="FLOAT" 
+                size="12" autoIncrement="false"
+                description="Ratio of red and green channel multipliers for daylight"/>
+        <column name="dl_b_g_ratio" primaryKey="false" required="true" type="FLOAT" 
+                size="12" autoIncrement="false"
+                description="Ratio of blue and green channel multipliers for daylight"/>
+        <!-- Columns reserved for future use, to avoid disrupting schema changes -->
+        <column name="raw_string1" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+        <column name="raw_string2" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+        <column name="raw_string3" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+        <column name="raw_string4" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>
+        <column name="raw_float1" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+        <column name="raw_float2" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+        <column name="raw_float3" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+        <column name="raw_float4" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
+        
+    </table>
+    
+    <table name="icc_profiles" description="Known ICC profiles">
+        <column name="profile_id" primaryKey="true" required="true" 
+                type="INTEGER" size="11" autoIncrement="false"/>
+        <column name="profile_name" primaryKey="false" required="true"
+                type="VARCHAR" size="50" autoIncrement="false"/>
+        <column name="profile_desc" primaryKey="false" required="false"
+                type="LONGVARCHAR"/>
+        <column name="src_type" primaryKey="false" required="false"
+                type="INTEGER" size="11"/>
+        <column name="target_type" primaryKey="false" required="false"
+                type="INTEGER" size="11"/>
+        <column name="gamma" primaryKey="false" required="false"
+                type="FLOAT" size="12"/>
+        <column name="hash" primaryKey="false"  type="VARBINARY" size="16" 
+                required="false"/>
+    </table>
+    
+    <table name="icc_instances" description="ICC profile files">
+        <column name="profile_id" primaryKey="true" required="true"
+                type="INTEGER" size="11" autoIncrement="false"/>
+        <column name="volume_id" primaryKey="true" required="true" type="VARCHAR" 
+                size="30" autoIncrement="false"/>
+        <column name="fname" description="Name of the volume file"
+                type="VARCHAR" size="255" required="false"/>
+    </table>
+    
     <!--
     Information about the database instance. This table is assumed to contain only 1 row
     that describes this database

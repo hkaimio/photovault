@@ -292,6 +292,12 @@ public class PhotoCollectionThumbView
                 "Edit properties of the selected photos",
                 KeyEvent.VK_P );
         JMenuItem propsItem = new JMenuItem( editSelectionPropsAction );
+        ImageIcon colorsIcon = getIcon( "colors.png" );
+        editSelectionColorsAction =
+                new EditSelectionColorsAction( this, null, "Adjust colors...", colorsIcon,
+                "Adjust colors of the selected photos",
+                KeyEvent.VK_C );
+        JMenuItem colorsItem = new JMenuItem( editSelectionColorsAction );
         ImageIcon showIcon = getIcon( "show_new_window.png" );
         showSelectedPhotoAction =
                 new ShowSelectedPhotoAction( this, "Show image", showIcon,
@@ -355,6 +361,7 @@ public class PhotoCollectionThumbView
         
         popup.add( showItem );
         popup.add( propsItem );
+        popup.add( colorsItem );
         popup.add( rotateCW );
         popup.add( rotateCCW );
         popup.add( rotate180deg );
@@ -429,6 +436,7 @@ public class PhotoCollectionThumbView
     private static final String PHOTO_ADD_TO_FOLDER_CMD = "addToFolder";
     private AbstractAction exportSelectedAction;
     private AbstractAction editSelectionPropsAction;
+    private AbstractAction editSelectionColorsAction;
     private AbstractAction showSelectedPhotoAction;
     private AbstractAction rotateCWAction;
     private AbstractAction rotateCCWAction;
@@ -445,6 +453,10 @@ public class PhotoCollectionThumbView
 	return editSelectionPropsAction;
     }
 
+    public AbstractAction getEditSelectionColorsAction() {
+	return editSelectionColorsAction;
+    }
+    
     public AbstractAction getShowSelectedPhotoAction() {
 	return showSelectedPhotoAction;
     }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -91,7 +91,7 @@ public class ODMG {
             }
         } else {
             // This is a MySQL database
-            String dbhost = dbDesc.getDbHost();
+            String dbhost = dbDesc.getHost();
             String dbname = dbDesc.getDbName();
             connDesc.setDbAlias( "//" + dbhost + "/" + dbname );
             connDesc.setUserName( user );

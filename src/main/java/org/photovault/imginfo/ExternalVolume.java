@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,7 +20,9 @@
 
 package org.photovault.imginfo;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 
 /**
  Extenal volume is a volume that resides outside Photovault repository, i.e. a
@@ -83,6 +85,13 @@ public class ExternalVolume extends VolumeBase {
      */
     public void setFolderId( int id ) {
         folderId = id;
+    }
+
+    public void writeXml(BufferedWriter outputWriter, int indent ) throws IOException {
+        String s = "                                ".substring( 0, indent );
+        outputWriter.write( s+ "<external-volume name=\"" + getName() +
+                "\" basedir=\"" + getBaseDir() +
+                "\" folder=\"" + getFolderId() + "\"/>\n" );
     }
     
 }
