@@ -20,7 +20,9 @@
 
 package org.photovault.swingui;
 
+import java.text.Collator;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Vector;
 import javax.swing.*;
@@ -181,6 +183,7 @@ public class LoginDlg extends JDialog {
             PVDatabase db = (PVDatabase) iter.next();
             dbNames.add( db.getName() );
         }
+        Collections.sort( dbNames, Collator.getInstance() );
         Object[] dbs = dbNames.toArray();
 	JLabel dbLabel = new JLabel( "Database" );
 	gb.setConstraints( dbLabel, labelConstraints );
