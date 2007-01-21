@@ -85,23 +85,23 @@ public class IndexerStatusDlg extends javax.swing.JDialog implements ExtVolIndex
         setTitle("Indexing...");
         jLabel1.setText("Files indexed:");
 
-        indexedFilesLabel.setText("jLabel2");
+        indexedFilesLabel.setText("0");
 
         jLabel2.setText("New photos:");
 
-        newPhotosLabel.setText("jLabel3");
+        newPhotosLabel.setText("0");
 
         jLabel3.setText("New instances:");
 
-        newInstancesLabel.setText("jLabel4");
+        newInstancesLabel.setText("0");
 
         jLabel4.setText("New folders:");
 
-        newFoldersLabel.setText("jLabel5");
+        newFoldersLabel.setText("0");
 
         thumbPanel.setLayout(new java.awt.BorderLayout());
 
-        thumbPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Last indexed photo"));
+        thumbPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Last indexed photo"));
         thumbPanel.setPreferredSize(new java.awt.Dimension(110, 110));
 
         closeBtn.setText("Close");
@@ -123,10 +123,10 @@ public class IndexerStatusDlg extends javax.swing.JDialog implements ExtVolIndex
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(progressBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE)
+                    .add(progressBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 309, Short.MAX_VALUE)
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                         .add(thumbPanel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 136, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 29, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 35, Short.MAX_VALUE)
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
