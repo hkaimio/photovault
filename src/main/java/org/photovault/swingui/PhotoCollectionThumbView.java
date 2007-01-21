@@ -241,7 +241,12 @@ public class PhotoCollectionThumbView
     /**
      Array of icons used to represent different quality settings in thumbnails
      */
-    ImageIcon qualityIcons[] = null;    
+    ImageIcon qualityIcons[] = null;
+    
+    /**
+     Icon to indicate that this image is stored in raw format.
+     */
+    ImageIcon rawIcon = null;
     JPopupMenu popup = null;
 
     /**
@@ -357,6 +362,8 @@ public class PhotoCollectionThumbView
             JMenuItem qualityMenuItem = new JMenuItem( qualityAction );
             qualityMenu.add( qualityMenuItem );
         }
+        
+        rawIcon = getIcon( "raw_icon.png" );
         
         
         popup.add( showItem );
@@ -640,6 +647,14 @@ public class PhotoCollectionThumbView
             qualityIcon.paintIcon( this, g2, qx, qy );
         }
         
+        if ( photo.getRawSettings() != null ) {
+            // Draw the "RAW" icon
+            int rx = startx 
+                    + (columnWidth+img.getWidth()-rawIcon.getIconWidth())/(int)2 - 5;
+            int ry = starty 
+                    + (columnWidth-img.getHeight()-rawIcon.getIconHeight())/(int)2 + 5;
+            rawIcon.paintIcon( this, g2, rx, ry );
+        }
         Color prevBkg = g2.getBackground();
         if ( isSelected ) {
             g2.setBackground( Color.BLUE );
