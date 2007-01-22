@@ -1667,11 +1667,12 @@ public class PhotoInfo {
             purgeInvalidInstances();            
         }
         RawConversionSettings settings = s.clone();
+        Database db = ODMG.getODMGDatabase();
+        db.makePersistent( settings );
         RawConversionSettings oldSettings = rawSettings;
         txw.lock( settings, Transaction.WRITE );
         if ( oldSettings != null ) {
             txw.lock( oldSettings, Transaction.WRITE );
-            Database db = ODMG.getODMGDatabase();
             db.deletePersistent( oldSettings );
         } 
         rawSettings = settings;

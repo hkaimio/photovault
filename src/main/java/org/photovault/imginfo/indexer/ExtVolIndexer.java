@@ -248,7 +248,8 @@ public class ExtVolIndexer implements Runnable {
         } else {
             photo = PhotoInfo.create();
             photo.addInstance( instance );
-             photo.updateFromOriginalFile();
+            photo.updateFromOriginalFile();
+            txw.flush();
             // Create a thumbnail for this photo
             photo.getThumbnail();
             currentEvent.setResult( ExtVolIndexerEvent.RESULT_NEW_PHOTO );
