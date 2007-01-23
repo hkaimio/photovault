@@ -162,7 +162,7 @@ public class FieldSliderCombo extends javax.swing.JPanel {
      */
     public double getValue() {
         double ret = minVal;
-        Double v = (Double) valueField.getValue();
+        Number v = (Number) valueField.getValue();
         if ( v != null ) {
             ret = v.doubleValue();
         }
