@@ -23,6 +23,7 @@ package org.photovault.swingui.color;
 import java.awt.Color;
 import java.awt.Graphics;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
    Component for showing a simple histogram + superimposed graph.
@@ -69,6 +70,8 @@ public class HistogramPane extends JPanel {
      */
     public void setHistogram( int[][] histogramBins ) {
         histBins = histogramBins;
+        histogram = null;
+        repaint();
     }
     
     /**
@@ -78,6 +81,7 @@ public class HistogramPane extends JPanel {
     public void setTransferGraph( byte[] lut ) {
         graph = null;
         graphData = lut;
+        repaint();
     }
     
     /**
@@ -118,7 +122,8 @@ public class HistogramPane extends JPanel {
     /**
      Paint the histogram & graph
      */
-    public void paint( Graphics g ) {
+    public void paintComponent( Graphics g ) {
+        super.paintComponent( g );
         int w = getWidth();
         int h = getHeight();
         Graphics g2 = g.create();
@@ -127,7 +132,7 @@ public class HistogramPane extends JPanel {
         g2.drawLine( 9, h-10, w-10, h-10 );
         // Y axis
         g2.drawLine( 9, 10, 9, h-10 );
-        if ( histBins != null ) {
+        if (  histBins != null ) {
             if ( histogram == null || histogram.length != w-20 ) {
                 createHistogram();
             }
@@ -145,7 +150,7 @@ public class HistogramPane extends JPanel {
             }
             int lastY = graph[0] * (h-20) / 256;
             g2.setColor( Color.BLACK );
-            for ( int n = 1; n < histogram.length; n++ ) {
+            for ( int n = 1; n < graph.length; n++ ) {
                 int y = graph[n]* (h-20) / 256;
                 g2.drawLine( 9+n, h-10-lastY, 10+n, h-10-y );
                 lastY = y;

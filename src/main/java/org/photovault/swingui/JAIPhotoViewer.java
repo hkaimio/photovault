@@ -206,6 +206,8 @@ public class JAIPhotoViewer extends JPanel implements
      The function tries to search for a suitable instance of the photo to display.
      If none  are found the Photo is set to <code>null</code> and an exception 
      is reported to application.
+     TODO: This function is currently messy, refactor it at the same time as 
+     RawImage/image handling is refactored.
      @param photo The photo to be displayed.
      @throws FileNotFoundException if the instance file cannot be found. This can
      happen if e.g. user has deleted an image file from directory indexed as an 
@@ -218,6 +220,7 @@ public class JAIPhotoViewer extends JPanel implements
 	this.photo = photo;
 	if ( photo == null ) {
 	    setImage( null );
+            fireViewChangeEvent();
 	    return;
 	}
 
@@ -239,6 +242,7 @@ public class JAIPhotoViewer extends JPanel implements
                     if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
                         // TODO: error handling needs thinking!!!!
                         // throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
+                        fireViewChangeEvent();
                         return;
                     }
                     String suffix = fname.substring( lastDotPos+1 );
@@ -255,6 +259,7 @@ public class JAIPhotoViewer extends JPanel implements
                         } catch (IOException ex) {
                             log.warn( ex.getMessage() );
                             ex.printStackTrace();
+                            fireViewChangeEvent();
                             return;
                         }
                         rawImage = null;
@@ -282,6 +287,7 @@ public class JAIPhotoViewer extends JPanel implements
                     double rot = photo.getPrefRotation() - instanceRotation;
                     imageView.setRotation( rot );
                     imageView.setCrop( photo.getCropBounds() );
+                    fireViewChangeEvent();
                     return;
                 }
             }
@@ -298,7 +304,27 @@ public class JAIPhotoViewer extends JPanel implements
     public PhotoInfo  getPhoto() {
 	return photo;
     }
+    
+    /**
+     Get the lookup table used in raw conversion
+     @return The lookup table if current image in a raw image, <code>null</code>
+     otherwise.
+     @deprecated This function will be replaced with a more sphisticated histogram 
+     data access API in next Photovault version.
+     */
+    public byte[] getRawConversionLut() {
+        return ( rawImage != null ) ? rawImage.getGammaLut() : null;
+    }
 
+    /**
+     Get the raw image histogram data
+     @deprecated This function will be replaced with a more sphisticated histogram 
+     data access API in next Photovault version.
+     */
+    public int[][] getRawImageHistogram() {
+        return (rawImage != null ) ? rawImage.getHistogramBins() : null;
+    }
+    
     CropPhotoAction cropPhotoAction;
     
     public CropPhotoAction getCropAction() {
@@ -372,7 +398,36 @@ public class JAIPhotoViewer extends JPanel implements
      displayed changes.
      */
     
-    Vector previewListeners = new Vector();
+    Vector viewChangeListeners = new Vector();
+    
+    /**
+     Adds a listener that will be notified when the image in this view changes.
+     @param l The new listener.
+     */
+    public void addViewChangeListener( PhotoViewChangeListener l ) {
+        viewChangeListeners.add( l );
+    }
+    
+    /**
+     Removes a listener from list of liteners that will be notified of changes 
+     of this view.
+     @param l The listener to remove
+     */
+    public void removeViewChangeListener( PhotoViewChangeListener l ) {
+        viewChangeListeners.remove( l );
+    }
+    
+    /**
+     Send info to all registered listeners that this view has been changed.
+     */
+    void fireViewChangeEvent() {
+        Iterator iter = viewChangeListeners.iterator();
+        PhotoViewChangeEvent e = new PhotoViewChangeEvent( this, photo );
+        while ( iter.hasNext() ) {
+            PhotoViewChangeListener l = (PhotoViewChangeListener) iter.next();
+            l.photoViewChanged( e );
+        }
+    }
     
     /**
      Called when raw settings in another control that user this control as 

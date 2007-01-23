@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -473,6 +473,8 @@ public class RawImage {
             rawImage = new BufferedImage( targetCM, r, true, null );
             reader.getImageMetadata( 0 );
             rawIsHalfSized = dcraw.ishalfSize();
+            
+            createHistogram();
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {
@@ -484,6 +486,21 @@ public class RawImage {
         if ( autoExposeRequested ) {
             doAutoExpose();
         }
+    }
+    
+    /**
+     Recalculate image histogram (histBin structure).
+     */
+    private void createHistogram() {
+        int numBins[] = {65536};
+        double lowVal[] = {0.};
+        double highVal[] = {65535.};
+        RenderedOp histOp = HistogramDescriptor.create( rawImage, null,
+                new Integer(1), new Integer(1),
+                numBins, lowVal, highVal, null );
+        
+        Histogram hist = (Histogram) histOp.getProperty( "histogram" );
+        histBins = hist.getBins();        
     }
     
     /**
@@ -533,7 +550,7 @@ public class RawImage {
                 numBins, lowVal, highVal, null );
         
         Histogram hist = (Histogram) histOp.getProperty( "histogram" );
-        int [][] histBins = hist.getBins();
+        int[][] histBins = hist.getBins();
         
         double logSum = 0.0;
         int pixelCount = 0;

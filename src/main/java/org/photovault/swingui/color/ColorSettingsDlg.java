@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -50,6 +50,8 @@ import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.JAIPhotoViewer;
 import org.photovault.swingui.PhotoInfoController;
 import org.photovault.swingui.PhotoInfoView;
+import org.photovault.swingui.PhotoViewChangeEvent;
+import org.photovault.swingui.PhotoViewChangeListener;
 import org.photovault.swingui.RawPhotoView;
 
 /**
@@ -59,7 +61,7 @@ import org.photovault.swingui.RawPhotoView;
  * @author Harri Kaimio
  */
 public class ColorSettingsDlg extends javax.swing.JDialog 
-        implements RawImageChangeListener, RawPhotoView {
+        implements RawImageChangeListener, RawPhotoView, PhotoViewChangeListener {
 
     static org.apache.log4j.Logger log = 
             org.apache.log4j.Logger.getLogger( ColorSettingsDlg.class.getName() );
@@ -422,6 +424,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 }
                 firePreviewChangeEvent( new RawSettingsPreviewEvent(
                         this, ctrl.getPhotos(), rawSettings ) );
+                reloadHistogram();
             }
         }
 
@@ -442,6 +445,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 }
                 firePreviewChangeEvent( new RawSettingsPreviewEvent(
                         this, ctrl.getPhotos(), rawSettings ) );
+                reloadHistogram();
             }
         }
     }//GEN-LAST:event_ctempSliderStateChanged
@@ -461,6 +465,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 }
                 firePreviewChangeEvent( new RawSettingsPreviewEvent(
                         this, ctrl.getPhotos(), rawSettings ) );
+                reloadHistogram();
             }
         }
 
@@ -481,6 +486,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 }
                 firePreviewChangeEvent( new RawSettingsPreviewEvent(
                         this, ctrl.getPhotos(), rawSettings ) );
+                reloadHistogram();
             }
         }
     }//GEN-LAST:event_evCorrSliderStateChanged
@@ -500,6 +506,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 }
                 firePreviewChangeEvent( new RawSettingsPreviewEvent(
                         this, ctrl.getPhotos(), rawSettings ) );
+                reloadHistogram();
             }
         }
         
@@ -618,30 +625,43 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         
     }
     
+    /**
+     Reload the histogram data from RawImage displayed in preview control if
+     the image matches to current model. If this is not the case, disable 
+     histogram.
+     */
+    void reloadHistogram() {
+        if ( previewCtrl == null ) {
+            return;
+        }
+        PhotoInfo[] model = ctrl.getPhotos();
+        PhotoInfo photo = previewCtrl.getPhoto();
+        if ( photo != null &&
+                model != null &&
+                model.length == 1 &&
+                model[0] == photo) {
+            byte[] lut = previewCtrl.getRawConversionLut();
+            ((HistogramPane)rawHistogramPane).setTransferGraph( lut );
+            ((HistogramPane)rawHistogramPane).setHistogram(
+                    previewCtrl.getRawImageHistogram() );
+        } else {
+            /* Preview control is not displaying image that matches to the current
+               model, so we do not have histogram data available.
+             */
+            ((HistogramPane)rawHistogramPane).setTransferGraph( null );
+            ((HistogramPane)rawHistogramPane).setHistogram( null );
+            
+        }
+    }
+    
     JAIPhotoViewer previewCtrl = null;
     
     public void setPreviewControl( JAIPhotoViewer viewer ) {
         previewCtrl = viewer;
+        previewCtrl.addViewChangeListener( this );
+        reloadHistogram();
     }
-    
-    /**
-     This is called by JAIPhotoViewer when the photo displayed in it is changed
-     
-     @param photo The photo that is displayed in the preview control or <code>
-     null</code> if no photo is displayed
-     @param img The actual image used or <code>null</code> if the image is not
-     a raw image.
-     */
-    public void previewControlChanged( PhotoInfo photo, RawImage img ) {
-        PhotoInfo[] model = ctrl.getPhotos();
-        if ( photo != null && 
-                model != null && 
-                model.length == 1 && 
-                model[0] == photo) {
-            setPreview( img );
-        }
-    }
-    
+
     /**
      Set the photo whose settings will be changed
      */
@@ -658,6 +678,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ctrl.setPhotos( p );        
         rawPreviewImage = null;
         checkIsRawPhoto();
+        reloadHistogram();
+        
     }
     
     
@@ -1081,6 +1103,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             annotations[n] = ((Number)values[n]).doubleValue();
         }
         slider.setAnnotations( annotations );
+    }
+
+    /**
+     This callback is called by JAIPhotoViewer when the image displayed in the 
+     control is changed.
+     */
+    public void photoViewChanged(PhotoViewChangeEvent e) {
+        reloadHistogram();
     }
 
     
