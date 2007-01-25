@@ -427,9 +427,13 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 reloadHistogram();
             }
         }
-
+        
     }//GEN-LAST:event_greenGainSliderStateChanged
-
+    
+    /**
+     * Color temperature slider value was changed
+     * @param evt Event describing the change
+     */
     private void ctempSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ctempSliderStateChanged
         double newCTemp = ctempSlider.getValue();
         if ( Math.abs( newCTemp - this.colorTemp ) > 10 ) {
@@ -555,10 +559,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
     }//GEN-LAST:event_newProfileBtnActionPerformed
 
-    /**
-     * Color temperature slider value was changed
-     * @param evt Event describing the change
-     */
+
     /**
      * Close button was pressed. Close the window
      * @param evt The ButtonEvent
