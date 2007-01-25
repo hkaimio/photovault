@@ -564,6 +564,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      * @param evt The ButtonEvent
      */
     private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
+        discardChanges();
         setVisible( false );
     }//GEN-LAST:event_closeBtnActionPerformed
 
