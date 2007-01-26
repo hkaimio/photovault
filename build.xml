@@ -442,7 +442,9 @@
       <property name="tardir" value="photovault-${build.major}.${build.minor}.${build.patch}${build.version_shorttag}"/>
       <tar destfile="${dist}/photovault-${version}.tar.gz" compression="gzip">
           <tarfileset dir="${dist}/photovault-latest" prefix="${tardir}/lib">
-              <exclude name="**/jai_*.jar"/>
+              <!-- Exclude JAI libraries since their license is not GPL compatible -->
+              <exclude name="**/jai_core.jar"/>
+              <exclude name="**/jai_codec.jar"/>
           </tarfileset>
           <tarfileset dir="." prefix="${tardir}">
               <include name="relnotes.txt"/>

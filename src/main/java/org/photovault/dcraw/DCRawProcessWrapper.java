@@ -42,7 +42,7 @@ import org.photovault.common.PhotovaultSettings;
 public class DCRawProcessWrapper {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( DCRawProcessWrapper.class.getName() );
     
-    final static String DEFAULT_DCRAW_CMD = "/home/harri/tmp/dcraw";
+    final static String DCRAW_CMD = getDcrawCmd();
     
     /** Creates a new instance of DCRawProcessWrapper */
     public DCRawProcessWrapper() {
@@ -57,8 +57,7 @@ public class DCRawProcessWrapper {
             throws PhotovaultException, IOException {
         ArrayList cmd = new ArrayList();
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        String dcrawCmd = settings.getProperty( "dcraw.cmd", DEFAULT_DCRAW_CMD );
-        cmd.add( dcrawCmd );
+        cmd.add( DCRAW_CMD );
         // Output to stdout
         cmd.add( "-c" );
         // As a 16-bit linear tiff
@@ -101,7 +100,7 @@ public class DCRawProcessWrapper {
     }
     
     Map getFileInfo( File rawFile ) throws IOException {
-        ProcessBuilder pb = new ProcessBuilder( "/home/harri/tmp/dcraw", "-i", "-v",
+        ProcessBuilder pb = new ProcessBuilder( DCRAW_CMD, "-i", "-v",
                 rawFile.getAbsolutePath() );
         Process p = pb.start();
         InputStream is = p.getInputStream();
@@ -175,6 +174,41 @@ public class DCRawProcessWrapper {
         return halfSize;
     }
     
+    /**
+     Figure out the dcraw executable path. If configuration parameter <code>
+     dcraw.cmd</code>  has been defined Photovault uses that. Otherwise it tries
+     to find the program under lib directory of current folder in subdirectory
+     <os>-<arch> where os is the operating system (linux, win32, mac, ...) and 
+     arch is the processor architecture (i386, ...).
+     @return Absolute path to dcraw or <code>null</code> if no suitable executable 
+     is found.
+     */
+    static private String getDcrawCmd() {
+        PhotovaultSettings settings = PhotovaultSettings.getSettings();
+        String dcrawCmd = settings.getProperty( "dcraw.cmd" );
+        if ( dcrawCmd == null ) {
+            // Try to find dcraw in standard location
+            String os = System.getProperty( "os.name" ).toLowerCase();
+            String arch = System.getProperty( "os.arch" ).toLowerCase();
+            
+            String nativedir = "";
+            String dcraw = "dcraw";
+            if ( os.startsWith( "linux" ) ) {
+                nativedir = "linux-" + arch;
+            } else if ( os.startsWith( "windows" ) ) {
+                nativedir = "win32" + arch;
+                dcraw = "dcraw.exe";
+            }
+            
+            File dir = new File( "lib", nativedir );
+            File f = new File( dir, dcraw );
+            if ( f.exists() ) {
+                dcrawCmd = f.getAbsolutePath();
+            }
+        }
+        return dcrawCmd;
+    }
+
     /**
      R, G, B multipliers to use with WB_MANUAL
      */
