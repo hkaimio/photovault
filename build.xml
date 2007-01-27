@@ -156,6 +156,7 @@
     <copy todir="${dist}/photovault-latest">
         <fileset refid="runtime.fileset"/>   
     </copy>
+    
   </target>
 
   <target name="win32-installer" depends="dist"
@@ -452,6 +453,11 @@
           </tarfileset>
           <tarfileset dir="." fullpath="${tardir}/photovault" mode="755">
               <include name="photovault.sh"/>
+          </tarfileset>
+          <!-- Copy dcraw executables for all supported platforms to distribution 
+               directory -->
+          <tarfileset dir="${build.lib.dir}/linux-i386" prefix="${tardir}/lib/linux-i386" mode="755">
+              <include name="dcraw*"/>
           </tarfileset>
       </tar>
   </target>

@@ -344,8 +344,9 @@ public class RawImage {
     
     /** Creates a new instance of RawImage
      @param f The raw file to open
+     @throws PhotovaultException if dcraw has not been initialized properly
      */
-    public RawImage( File f ) {
+    public RawImage( File f ) throws PhotovaultException {
         this.f = f;
         readFileInfo();
         // XXX debug
@@ -582,8 +583,9 @@ public class RawImage {
     /**
      * Read the metadata of the raw file (using dcraw) and set fields of
      * this objecta based on that.
+     @throws PhotovaultException if dcraw is not initialized properly.
      */
-    private void readFileInfo() {
+    private void readFileInfo() throws PhotovaultException {
         if ( dcraw == null ) {
             dcraw = new DCRawProcessWrapper();
         }
@@ -591,8 +593,7 @@ public class RawImage {
         try {
             values = dcraw.getFileInfo(f);
         } catch (IOException ex) {
-            ex.printStackTrace();
-            return;
+            throw new PhotovaultException( ex.getMessage(), ex );
         }
         
         if ( values.containsKey( "Decodable with dcraw" ) ) {

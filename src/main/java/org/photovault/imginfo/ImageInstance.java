@@ -30,6 +30,7 @@ import java.util.*;
 import javax.imageio.*;
 import javax.imageio.stream.*;
 import java.io.*;
+import org.photovault.common.PhotovaultException;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
@@ -76,7 +77,7 @@ public class ImageInstance {
         // Read the rest of fields from the image file
 	try {
 	    i.readImageFile();
-	} catch (IOException e ) {
+	} catch (Exception e ) {
 	    txw.abort();
 	    log.warn( "Error opening image file: " + e.getMessage() );
 	    // The image does not exist, so it cannot be read!!!
@@ -122,7 +123,7 @@ public class ImageInstance {
 	// Read the rest of fields from the image file
 	try {
 	    f.readImageFile();
-	} catch (IOException e ) {
+	} catch (Exception  e ) {
 	    txw.abort();
 	    log.warn( "Error opening image file: " + e.getMessage() );
 	    // The image does not exist, so it cannot be read!!!
@@ -203,14 +204,14 @@ public class ImageInstance {
        Opens the image file specified by fname & dirname properties and reads the rest of fields from that
        @throws IOException if the image cannot be read.
     */	    
-    protected void readImageFile() throws IOException {
+    protected void readImageFile() throws PhotovaultException, IOException {
 
 	// Find the JPEG image reader
 	// TODO: THis shoud decode also other readers from fname
         String fname = imageFile.getName();
         int lastDotPos = fname.lastIndexOf( "." );
         if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
-            throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
+            throw new PhotovaultException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
         }
         String suffix = fname.substring( lastDotPos+1 );
         Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
@@ -245,7 +246,7 @@ public class ImageInstance {
                 width = ri.getWidth();
                 height = ri.getHeight();
             } else {
-                throw new IOException( "Unknown image file extension " + suffix +
+                throw new PhotovaultException( "Unknown image file extension " + suffix +
                         "\nwhile reading " + imageFile.getAbsolutePath() );
             }
         }

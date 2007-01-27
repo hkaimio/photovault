@@ -67,7 +67,12 @@ public class Test_DCRawProcessWrapper extends TestCase {
         try {
             File outf = new File( "/tmp/test.jpg" );
             OutputStream os = new FileOutputStream( outf );
-            RawImage ri = new RawImage( f );
+            RawImage ri = null;
+            try {
+                ri = new RawImage(f);
+            } catch (PhotovaultException ex) {
+                fail( ex.getMessage() );
+            }
             PlanarImage img = ri.getCorrectedImage();
             AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( 200, 200,
                     0,

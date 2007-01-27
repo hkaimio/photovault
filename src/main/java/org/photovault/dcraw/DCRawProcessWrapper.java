@@ -55,6 +55,10 @@ public class DCRawProcessWrapper {
      */
     InputStream getRawImageAsTiff( File rawFile ) 
             throws PhotovaultException, IOException {
+        if ( DCRAW_CMD == null ) {
+            throw new PhotovaultException( "Cannot find suitable dcraw executable\n" +
+                    "for this architecture" );
+        }
         ArrayList cmd = new ArrayList();
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         cmd.add( DCRAW_CMD );
@@ -99,7 +103,20 @@ public class DCRawProcessWrapper {
         return p.getInputStream();
     }
     
-    Map getFileInfo( File rawFile ) throws IOException {
+    /**
+     Get information about a raw image file
+     @param rawFile The file to be inspected
+     @return Map containing the keyword-value pairs reported by dcraw
+     @throws PhotovaultException if dcraw was not found
+     @throws IOException if there was an error while reading the data.
+     */
+    Map getFileInfo( File rawFile )
+    throws IOException, PhotovaultException {
+        if ( DCRAW_CMD == null ) {
+            throw new PhotovaultException( "Cannot find suitable dcraw executable\n" +
+                    "for this architecture" );
+        }
+        
         ProcessBuilder pb = new ProcessBuilder( DCRAW_CMD, "-i", "-v",
                 rawFile.getAbsolutePath() );
         Process p = pb.start();
@@ -200,8 +217,15 @@ public class DCRawProcessWrapper {
                 dcraw = "dcraw.exe";
             }
             
-            File dir = new File( "lib", nativedir );
-            File f = new File( dir, dcraw );
+            /*
+             If system property pv.basedir is set, search under that directory.
+             Otherwise, search from current directory.
+             */
+            String basepath = System.getProperty( "pv.basedir", "." );
+            File basedir = new File( basepath );
+            File libdir = new File( basedir, "lib" );
+            File ndir = new File( libdir , nativedir );
+            File f = new File( ndir, dcraw );
             if ( f.exists() ) {
                 dcrawCmd = f.getAbsolutePath();
             }

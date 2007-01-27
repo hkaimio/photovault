@@ -23,6 +23,7 @@ package org.photovault.swingui;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.RenderedOp;
+import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.dcraw.RawImageChangeEvent;
@@ -212,6 +213,7 @@ public class JAIPhotoViewer extends JPanel implements
      @throws FileNotFoundException if the instance file cannot be found. This can
      happen if e.g. user has deleted an image file from directory indexed as an 
      external volume.
+
      */
     public void setPhoto( PhotoInfo photo ) throws FileNotFoundException {
 	if ( this.photo != null ) {
@@ -265,9 +267,21 @@ public class JAIPhotoViewer extends JPanel implements
                         rawImage = null;
                         rawConvScaling = 1.0f;
                     } else {
-                        // JAI could not read the image, check if it is a raw file
-                        RawImage tmpRaw = new RawImage( original.getImageFile() );
-                        if ( tmpRaw.isValidRawFile() ) {
+                        RawImage tmpRaw = null;
+                        try {
+                            tmpRaw = new RawImage(original.getImageFile());
+                        } catch (PhotovaultException ex) {
+                            final JAIPhotoViewer component = this;
+                            final String msg = ex.getMessage();
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    JOptionPane.showMessageDialog( component,
+                                            msg, "Error loading file",
+                                            JOptionPane.ERROR_MESSAGE );
+                                }
+                            });
+                        }
+                        if ( tmpRaw != null && tmpRaw.isValidRawFile() ) {
                             if ( rawImage != null ) {
                                 rawImage.removeChangeListener( this );
                             }

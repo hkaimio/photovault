@@ -343,7 +343,12 @@ public class PhotoInfo {
      otherwise (e.g. if f was not a raw image file.
      */
     private boolean updateFromRawFileMetadata( File f ) {
-        RawImage ri = new RawImage( f );
+        RawImage ri;
+        try {
+            ri = new RawImage(f);
+        } catch (PhotovaultException ex) {
+            return false;
+        }
         if ( !ri.isValidRawFile() ) {
             return false;
         }
@@ -835,9 +840,13 @@ public class PhotoInfo {
                     }
                     iis.close();
                 } else {
-                    // JAI failed to read the file, check if it is a raw file
-                    RawImage ri = new RawImage( imageFile );
-                    if ( ri.isValidRawFile() ) {
+                    RawImage ri = null;
+                    try {
+                        ri = new RawImage(imageFile);
+                    } catch (PhotovaultException ex) {
+                        log.error( ex.getMessage() );
+                    }
+                    if ( ri != null && ri.isValidRawFile() ) {
                         if ( rawSettings != null ) {
                             ri.setRawSettings( rawSettings );
                         }
@@ -1065,9 +1074,13 @@ public class PhotoInfo {
             if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
                 throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
             }
-            
-            RawImage ri = new RawImage( imageFile );
-            if ( ri.isValidRawFile() ) {
+            RawImage ri = null;
+            try {
+                ri = new RawImage(imageFile);
+            } catch (PhotovaultException ex) {
+                log.error( ex.getMessage() );
+            }
+            if ( ri != null && ri.isValidRawFile() ) {
                 if ( rawSettings != null ) {
                     ri.setRawSettings( rawSettings );
                 }
@@ -1090,7 +1103,7 @@ public class PhotoInfo {
                 log.debug( "Export: reading image " + original.getImageFile() );
                 origImage = ImageIO.read( original.getImageFile() );
             }
-        } catch ( IOException e ) {
+        } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
             txw.abort();
             return;

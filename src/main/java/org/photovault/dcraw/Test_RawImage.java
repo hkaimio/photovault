@@ -24,6 +24,7 @@ import java.io.File;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.photovault.common.PhotovaultException;
 
 /**
  *
@@ -36,15 +37,20 @@ public class Test_RawImage extends TestCase {
     }
     
     File f = new File( "/tmp/img_2434.cr2" );
-
-    public void testColorTempConversion() {
-        RawImage img = new RawImage( f );
-        img.setColorTemp( 5500 );
-        img.setColorTemp( 2000 );
-        img.setColorTemp( 8000 );
-        img.setColorTemp( 10000 );
-    }
     
+    public void testColorTempConversion() {
+        RawImage img;
+        try {
+            img = new RawImage(f);
+            img.setColorTemp( 5500 );
+            img.setColorTemp( 2000 );
+            img.setColorTemp( 8000 );
+            img.setColorTemp( 10000 );
+        } catch (PhotovaultException ex) {
+            fail( ex.getMessage() );
+        }
+    }
+
     
     public static void main( String[] args ) {
 	junit.textui.TestRunner.run( suite() );
