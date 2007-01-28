@@ -459,7 +459,7 @@
           <tarfileset dir="${build.lib.dir}/linux-i386" prefix="${tardir}/lib/linux-i386" mode="755">
               <include name="dcraw*"/>
           </tarfileset>
-          <tarfileset dir="${build.lib.dir}/win32-x86" prefix="${tardir}/lib/linux-i386" mode="755">
+          <tarfileset dir="${build.lib.dir}/win32-x86" prefix="${tardir}/lib/win32-x86">
               <include name="dcraw*"/>
           </tarfileset>
       </tar>
