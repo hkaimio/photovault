@@ -83,7 +83,7 @@
     <mkdir dir="${build}"/>
 
     <!-- Get SCM information & store it into buildinfo.properties -->
-    <exec executable="svnversion" outputproperty="svnrevision"> 
+    <exec executable="svnversion" outputproperty="svnrevision" failifexecutionfails="no"> 
         <arg line="."/>
     </exec>
     <svninfoproperties dir="." verbose="true"/> 
@@ -457,6 +457,9 @@
           <!-- Copy dcraw executables for all supported platforms to distribution 
                directory -->
           <tarfileset dir="${build.lib.dir}/linux-i386" prefix="${tardir}/lib/linux-i386" mode="755">
+              <include name="dcraw*"/>
+          </tarfileset>
+          <tarfileset dir="${build.lib.dir}/win32-x86" prefix="${tardir}/lib/linux-i386" mode="755">
               <include name="dcraw*"/>
           </tarfileset>
       </tar>

@@ -352,18 +352,6 @@ public class RawImage {
         // XXX debug
     }
     
-    private ColorProfileDesc debugGetDefaultColorProfile() {
-        Collection c = ColorProfileDesc.getAllProfiles();
-        if ( c != null && c.size() > 0 ) {
-            return (ColorProfileDesc) c.toArray()[0];
-        }
-        ColorProfileDesc.CreateProfile f = new ColorProfileDesc.CreateProfile(
-                new File( "/usr/share/color/icc/Canon EOS-30D generic.icm" ),
-                "Test",
-                "Test profile" );
-        return f.execute();
-    }
-    
     /**
      List of {@linkto RawImageChangeListener}s that should be notified about
      changes to this image.
@@ -924,9 +912,6 @@ public class RawImage {
         f.setEvCorr( evCorr );
         f.setHlightComp( highlightCompression );
         f.setUseEmbeddedProfile( hasICCProfile );
-        if ( colorProfile == null ) {
-            colorProfile = debugGetDefaultColorProfile();
-        }
         f.setColorProfile( colorProfile );
         RawConversionSettings s = null;
         try {

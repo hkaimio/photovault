@@ -213,7 +213,7 @@ public class DCRawProcessWrapper {
             if ( os.startsWith( "linux" ) ) {
                 nativedir = "linux-" + arch;
             } else if ( os.startsWith( "windows" ) ) {
-                nativedir = "win32" + arch;
+                nativedir = "win32-" + arch;
                 dcraw = "dcraw.exe";
             }
             
