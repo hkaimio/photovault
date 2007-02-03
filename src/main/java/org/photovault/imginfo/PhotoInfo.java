@@ -128,7 +128,7 @@ public class PhotoInfo {
             PersistenceBroker broker = ((HasBroker) tx).getBroker();
             
             Criteria crit = new Criteria();
-            crit.addEqualTo( "hash", hash );
+            crit.addEqualTo( "origInstanceHash", hash );
             
             QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
             Collection result = broker.getCollectionByQuery( q );
@@ -141,7 +141,7 @@ public class PhotoInfo {
             e.printStackTrace( System.out );
             txw.abort();
         }
-        return photos;
+        return photos;  
     }
     
     /**
@@ -153,6 +153,8 @@ public class PhotoInfo {
         PhotoInfo photo = new PhotoInfo();
         
         ODMGXAWrapper txw = new ODMGXAWrapper();
+        Database db = ODMG.getODMGDatabase();        
+        db.makePersistent( photo );
         txw.lock( photo, Transaction.WRITE );
         txw.commit();
         return photo;
@@ -498,8 +500,7 @@ public class PhotoInfo {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         // Vector origInstances = getInstances();
-        ImageInstance instance = ImageInstance.create( volume, instanceFile, this );
-        instance.setInstanceType( instanceType );
+        ImageInstance instance = ImageInstance.create( volume, instanceFile, this, instanceType );
         instances.add( instance );
         
         // If this is the first instance or we are adding original image we need to invalidate
@@ -1675,25 +1676,35 @@ public class PhotoInfo {
         log.debug( "entry: setRawSettings()" );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
-        if ( !s.equals( rawSettings ) ) {
-            invalidateThumbnail();
-            purgeInvalidInstances();            
+        RawConversionSettings settings = null;
+        if ( s != null ) {
+            if ( !s.equals( rawSettings ) ) {
+                invalidateThumbnail();
+                purgeInvalidInstances();
+            }
+            settings =  s.clone();
+            Database db = ODMG.getODMGDatabase();
+            db.makePersistent( settings );
+            RawConversionSettings oldSettings = rawSettings;
+            txw.lock( settings, Transaction.WRITE );
+            if ( oldSettings != null ) {
+                txw.lock( oldSettings, Transaction.WRITE );
+                db.deletePersistent( oldSettings );
+            }
+        } else {
+            // s is null so this should not be raw image
+            if ( rawSettings != null ) {
+                log.error( "Setting raw conversion settings of an raw image to null!!!" );
+                invalidateThumbnail();
+                purgeInvalidInstances();                
+            }
         }
-        RawConversionSettings settings = s.clone();
-        Database db = ODMG.getODMGDatabase();
-        db.makePersistent( settings );
-        RawConversionSettings oldSettings = rawSettings;
-        txw.lock( settings, Transaction.WRITE );
-        if ( oldSettings != null ) {
-            txw.lock( oldSettings, Transaction.WRITE );
-            db.deletePersistent( oldSettings );
-        } 
         rawSettings = settings;
         modified();
         txw.commit();
         log.debug( "exit: setRawSettings()" );
     }
-    
+
     /**
      Get the current raw conversion settings.
      @return Current settings or <code>null</code> if this is not a raw image.     

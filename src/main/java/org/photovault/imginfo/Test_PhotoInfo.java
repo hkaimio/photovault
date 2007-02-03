@@ -690,10 +690,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     /**
        Test exporting an image to a file name that cannot be created
     */
-    public void testExportWriteNotAllowed() {
+/*    public void testExportWriteNotAllowed() {
 	fail ("Test case not implemented" );
     }
-    
+ */   
     /**
      
      */

@@ -203,6 +203,16 @@ public class Test_ThumbnailView extends PhotovaultTestCase {
 	}
 	return (diffCount < 10) ? true : false;
     }
-	
+
+    
+    public static Test suite() {
+	return new TestSuite( Test_ThumbnailView.class );
+    }
+    
+    public static void main( String[] args ) {
+	//	org.apache.log4j.BasicConfigurator.configure();
+	org.apache.log4j.Logger folderLog = org.apache.log4j.Logger.getLogger( Test_ThumbnailView.class.getName() );
+	junit.textui.TestRunner.run( suite() );
+    }	
     
 }

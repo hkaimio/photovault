@@ -98,10 +98,12 @@ public class ImageInstance {
        file
        @param photo PhotoInfo object that represents the content of
        the image file
+       @param instanceType Type of the instance (original, copy, thumbnail, ...)
        @return A ImageInstance object
 
     */
-    public static ImageInstance create( VolumeBase volume, File imageFile, PhotoInfo photo ) {
+    public static ImageInstance create( VolumeBase volume, File imageFile, 
+            PhotoInfo photo, int instanceType ) {
 
 	log.debug( "Creating instance, volume = " + volume.getName() + " photo = " + photo.getUid()
 		   + " image file = " + imageFile.getName() );
@@ -116,6 +118,7 @@ public class ImageInstance {
         f.fileSize = imageFile.length();
         f.mtime = imageFile.lastModified();
         f.fname = volume.mapFileToVolumeRelativeName( imageFile );
+        f.instanceType = instanceType;
 	txw.lock( f, Transaction.WRITE );
 	log.debug( "locked instance" );
 	

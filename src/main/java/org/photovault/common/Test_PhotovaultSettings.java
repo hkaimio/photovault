@@ -155,11 +155,11 @@ public class Test_PhotovaultSettings extends TestCase {
         assertTrue( "Adding another database with same name must throw exception",
                 throwsException );
         
-        db.createDatabase( "harri", "" );
+        db.createDatabase( "", "" );
         try {
             
             // Verify that the database can be used by importing a file
-            ODMG.initODMG( "harri", "", db );
+            ODMG.initODMG( "", "", db );
         } catch (PhotovaultException ex) {
             fail( ex.getMessage() );
         }

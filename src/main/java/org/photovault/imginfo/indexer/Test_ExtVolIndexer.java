@@ -23,6 +23,7 @@ package org.photovault.imginfo.indexer;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collection;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -197,6 +198,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
             fail( "Still in transaction" );
         }
+        assertNotNull( "photos1 = null", photos1 );
         assertEquals( "Only 1 photo per picture should be found", 1, photos1.length );
         PhotoInfo p1 = photos1[0];
         assertEquals( "2 instances should be found in photo 1", 2, p1.getNumInstances() );
@@ -207,11 +209,8 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         assertEquals( "1 photo per picture should be found", 1, photos2.length );
         PhotoInfo p2 = photos2[0];
         assertEquals( "3 instances should be found in photo 2", 3, p2.getNumInstances() );
-//
-//        ImageInstance i1 = p1.getInstance( 0 );
-//        assertEquals( i1.getImageFile(), photo1 );
 
-        // CHeck that both instrances of p2 can be found
+        // Check that both instances of p2 can be found
         boolean found[] = {false, false};
         File files[] = {photo2inst1, photo2inst2};
         for ( n = 0; n < p2.getNumInstances(); n++ ) {
@@ -324,8 +323,8 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
     
     
     public static void main( String[] args ) {
-	//	org.apache.log4j.BasicConfigurator.configure();
-	// log.setLevel( org.apache.log4j.Level.DEBUG );
+        URL log4jPropertyURL = Test_ExtVolIndexer.class.getClassLoader().getResource( "photovault_log4j.properties");
+        org.apache.log4j.PropertyConfigurator.configure( log4jPropertyURL );	        
 	org.apache.log4j.Logger instLog = org.apache.log4j.Logger.getLogger( ExtVolIndexer.class.getName() );
 	instLog.setLevel( org.apache.log4j.Level.DEBUG );
 	junit.textui.TestRunner.run( suite() );

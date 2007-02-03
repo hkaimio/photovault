@@ -169,12 +169,14 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected3 );
     }
 
+    /*
     public void testFulltext() {
 	PhotoQuery q = new PhotoQuery();
 	q.setFulltextCriteria( "Lassi" );
 	boolean[] expected3 = { true, true, false, false };
 	checkResults( q, expected3 );
     }
+    */
     
     public void testLike() {
 	PhotoQuery q = new PhotoQuery();

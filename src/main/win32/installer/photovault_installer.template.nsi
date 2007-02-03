@@ -69,6 +69,8 @@ Section "MainSection" SEC01
   SetOverwrite ifnewer
   File /r "dist\photovault-latest\*.*"
   File "dist\win32\photovault.exe"
+  SetOutPath "$INSTDIR\win32-x86"
+  File "lib\win32-x86\*.*"
 
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -110,6 +112,8 @@ FunctionEnd
 
 Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
+  Delete "$INSTDIR\win32-x86\*.*"
+  RmDir  "$INSTDIR\win32-x86"
   Delete "$INSTDIR\*.*"
   
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"

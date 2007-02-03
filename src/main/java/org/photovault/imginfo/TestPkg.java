@@ -44,7 +44,6 @@ public class TestPkg extends TestCase {
 	s.addTestSuite( Test_PhotoInfo.class );
 	s.addTestSuite( Test_ImageInstance.class );
 	s.addTestSuite( Test_Volume.class );
-	s.addTestSuite( Test_DateRangeQuery.class );
 	return s;
     }
 }

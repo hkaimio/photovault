@@ -69,7 +69,8 @@ public class Test_ImageInstance extends PhotovaultTestCase {
 	} catch ( IOException e ) {
 	    fail( e.getMessage() );
 	}
-	ImageInstance f = ImageInstance.create( volume, instanceFile, photo );
+	ImageInstance f = ImageInstance.create( volume, instanceFile, photo, 
+                ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	assertNotNull( "Image instance is null", f );
 	assertMatchesDb( f );
 	f.delete();
@@ -84,7 +85,8 @@ public class Test_ImageInstance extends PhotovaultTestCase {
 	} catch ( IOException e ) {
 	    fail( e.getMessage() );
 	}
-	ImageInstance f = ImageInstance.create( volume, instanceFile, photo );
+	ImageInstance f = ImageInstance.create( volume, instanceFile, photo, 
+                ImageInstance.INSTANCE_TYPE_ORIGINAL  );
 	assertNotNull( "Image instance is null", f );
 	int width = f.getWidth();
 	int height = f.getHeight();
@@ -121,7 +123,8 @@ public class Test_ImageInstance extends PhotovaultTestCase {
 	} catch ( IOException e ) {
 	    fail( e.getMessage() );
 	}
-	ImageInstance f = ImageInstance.create( volume, instanceFile, photo );
+	ImageInstance f = ImageInstance.create( volume, instanceFile, photo, 
+                ImageInstance.INSTANCE_TYPE_ORIGINAL  );
 	assertNotNull( f );
 	f.delete();
 
