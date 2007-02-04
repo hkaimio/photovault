@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -40,14 +40,25 @@ import java.awt.*;
 import org.photovault.swingui.PhotoFolderSelectionDlg;
 import org.photovault.folder.PhotoFolder;
 
-public class FolderTreePane extends JPanel implements TreeModelListener, ActionListener  {
+/**
+ * Implements the folder pane for PhotoInfoEditor. This In practice, this control 
+ * displays the folder tree and folder into which selected photos belong.
+ */
+public class FolderTreePane extends JPanel implements TreeModelListener  {
 
+    /**
+     * Constructs a new FolderPreePane
+     * @param ctrl FolderController whose state is displayed
+     */
     public FolderTreePane( FolderController ctrl ) {
 	super();
 	createUI();
 	this.ctrl = ctrl;
     }
     
+    /**
+     * Create the UI for this control. Called by constructor.
+     */
     void createUI() {
 	GridBagLayout layout = new GridBagLayout();
         setLayout( layout );
@@ -72,43 +83,13 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
         c.anchor = GridBagConstraints.SOUTHEAST;
 	add( scrollPane );
         layout.setConstraints( scrollPane, c );
-	
-	popup = new JPopupMenu();
-	JMenuItem addAllItem = new JMenuItem( "Add photos" );
-	addAllItem.addActionListener( this );
-	addAllItem.setActionCommand( ADD_ALL_TO_THIS_FOLDER_CMD );
-	JMenuItem removeAllItem = new JMenuItem( "Remove photos" );
-	removeAllItem.addActionListener( this );
-	removeAllItem.setActionCommand( REMOVE_ALL_FROM_THIS_FOLDER_CMD );
-	popup.add( addAllItem );
-	popup.add( removeAllItem );
-
-	MouseListener popupListener = new PopupListener();
-	folderTree.addMouseListener( popupListener );
-	
     }
+	
 
     /**
-       This helper class from Java Tutorial handles displaying of popup menu on correct mouse events
-    */
-    class PopupListener extends MouseAdapter {
-	public void mousePressed(MouseEvent e) {
-	    maybeShowPopup(e);
-	}
-	
-	public void mouseReleased(MouseEvent e) {
-	    maybeShowPopup(e);
-	}
-	
-	private void maybeShowPopup(MouseEvent e) {
-	    if (e.isPopupTrigger()) {
-		popup.show(e.getComponent(),
-			   e.getX(), e.getY());
-	    }
-	}
-    }
-	
-
+     * 
+     * @param model 
+     */
     public void setFolderTreeModel( TreeModel model ) {
 	TreeModel oldModel = folderTree.getModel();
 	if ( oldModel != null ) {
@@ -143,38 +124,6 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 
     }
 
-    public void actionPerformed(ActionEvent e) {
-        String cmd = e.getActionCommand();
-	if ( cmd == ADD_ALL_TO_FOLDER_CMD ) {
-            queryForNewFolder();
-        } else if ( cmd == ADD_ALL_TO_THIS_FOLDER_CMD ) {
-	    addAllToSelectedFolder();
-	} else if ( cmd == REMOVE_ALL_FROM_THIS_FOLDER_CMD ) {
-	    removeAllFromSelectedFolder();
-	    
-	}
-    }
-
-
-    /**
-       Queries the user for a new folder into which the photo will be added.
-    */
-    public void queryForNewFolder() {
-        // Try to find the frame in which this component is in
-        Frame frame = null;
-        Container c = getTopLevelAncestor();
-        if ( c instanceof Frame ) {
-            frame = (Frame) c;
-        }
-
-        PhotoFolderSelectionDlg dlg = new PhotoFolderSelectionDlg( frame, true );
-        if ( dlg.showDialog() ) {
-            PhotoFolder folder = dlg.getSelectedFolder();
-            // A folder was selected, so add the selected photo to this folder
-	    ctrl.addAllToFolder( folder );
-        }
-    }
-
     /** returns the selected folder or null if none selected
      */
     PhotoFolder getSelectedFolder() {
@@ -188,6 +137,9 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 	return selected;
     }
 
+    /**
+     * Add all photos in the model to currently selected folder.
+     */
     protected void addAllToSelectedFolder() {
 	PhotoFolder selected = getSelectedFolder();
 	if ( selected != null ) {
@@ -195,6 +147,9 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 	}
     }
 
+    /**
+     * Remove all photos in current model from the selected folder.
+     */
     protected void removeAllFromSelectedFolder() {
 	PhotoFolder selected = getSelectedFolder();
 	if ( selected != null ) {
@@ -209,7 +164,7 @@ public class FolderTreePane extends JPanel implements TreeModelListener, ActionL
 
     
     JTree folderTree = null;
-    JPopupMenu popup;
+//    JPopupMenu popup;
     FolderController ctrl = null;
 
     private static final String ADD_ALL_TO_FOLDER_CMD = "addAllToFolder";

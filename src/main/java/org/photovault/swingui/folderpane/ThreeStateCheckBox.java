@@ -26,7 +26,7 @@ import javax.swing.JCheckBox;
 
 /**
   This is an <strong>extremely</strong> simple implementation of a checkbox
- that can have a special "undefined" state in addition to the normap selected 
+ that can have a special "undefined" state in addition to the normal selected 
  and non-selected states. Although the logic is very simple compared to the 
  more complete implementations available, it fits perfectly into the puropose of
  folder trees. In most of those, the component traverses the states always in same 
