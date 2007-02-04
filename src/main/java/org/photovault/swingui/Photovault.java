@@ -130,6 +130,7 @@ public class Photovault implements SchemaUpdateListener {
                         login( login ); 
                         loginOK = true;
                         BrowserWindow wnd = new BrowserWindow();
+                        wnd.setTitle( "Photovault - " + login.getDb() );
                     } catch( PhotovaultException e ) {
                         JOptionPane.showMessageDialog( null, e.getMessage(), 
                                 "Login error", JOptionPane.ERROR_MESSAGE );

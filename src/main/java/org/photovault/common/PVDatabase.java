@@ -394,8 +394,12 @@ public class PVDatabase {
         String s = "                                ".substring( 0, indent );
         outputWriter.write( s+ "<database name=\"" + name + 
                 "\" instanceType=\"" + getInstanceType() +
-                "\" instanceDir=\"" + getInstanceDir() +
-                "\">\n" );
+                "\" instanceDir=\"" + getInstanceDir() + "\"" );
+        if ( instanceType == PVDatabase.TYPE_SERVER ) {
+            outputWriter.write( " host=\"" + dbHost + 
+                    "\" dbName=\"" + dbName + "\"");
+        }        
+        outputWriter.write( ">\n" );
         Iterator iter = volumes.iterator();
         outputWriter.write( s + "  " + "<volumes>\n" );
         while( iter.hasNext() ) {
