@@ -109,9 +109,10 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 
 	// Set up the popup menu
 	popup = new JPopupMenu();
-	JMenuItem propsItem = new JMenuItem( "Properties" );
-	propsItem.addActionListener( this );
-	propsItem.setActionCommand( FOLDER_PROPS_CMD );
+        // TODO: implement folder properties
+//	JMenuItem propsItem = new JMenuItem( "Properties" );
+//	propsItem.addActionListener( this );
+//s	propsItem.setActionCommand( FOLDER_PROPS_CMD );
 	JMenuItem renameItem = new JMenuItem( "Rename" );
 	renameItem.addActionListener( this );
 	renameItem.setActionCommand( FOLDER_RENAME_CMD );
@@ -124,7 +125,7 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	popup.add( newFolderItem );
 	popup.add( renameItem );
 	popup.add( deleteItem );
-	popup.add( propsItem );
+//	popup.add( propsItem );
 
 	MouseListener popupListener = new PopupListener();
 	tree.addMouseListener( popupListener );
