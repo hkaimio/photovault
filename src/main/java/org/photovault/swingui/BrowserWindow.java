@@ -254,6 +254,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         sortMenu.add( byQualityItem );
         viewMenu.add( sortMenu );
         
+        // Set default ordering by date
+        byDateItem.getAction().actionPerformed( new ActionEvent( this, 0, "Setting default" ) );
 	JMenu imageMenu = new JMenu( "Image" );
 	imageMenu.setMnemonic(KeyEvent.VK_I);
 	menuBar.add( imageMenu );

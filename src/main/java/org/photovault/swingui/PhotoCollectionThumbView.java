@@ -151,7 +151,9 @@ public class PhotoCollectionThumbView
      */
     public void setPhotoOrderComparator( Comparator c ) {
         photoOrderComparator = c;
-        photoCollection.setComparator( c );
+        if ( photoCollection != null ) {
+            photoCollection.setComparator( c );
+        }
     }
     
     /**
