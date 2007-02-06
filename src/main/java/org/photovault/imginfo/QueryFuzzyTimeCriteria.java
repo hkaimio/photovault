@@ -70,6 +70,12 @@ public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {
      */
     public final void setupQuery(final Criteria crit) {
 	log.debug( "Entry: SetupQuery" );
+
+        if ( date == null ) {
+            log.warn( "null query date" );
+            return;
+        }
+        
 	switch ( strictness ) {
 	case INCLUDE_CERTAIN:
 	    log.debug( "INCLUDE_CERTAIN" );
