@@ -1561,8 +1561,8 @@ public class PhotoInfo {
     double prefRotation;
     
     /**
-     Get the preferred rotation for this image in degrees. Positive values indicate that the image should be
-     rotated clockwise.
+     Get the preferred rotation for this image in degrees. Positive values 
+     indicate that the image should be rotated clockwise.
      @return value of prefRotation.
      */
     public double getPrefRotation() {
@@ -1573,10 +1573,19 @@ public class PhotoInfo {
     }
     
     /**
-     * Set the value of prefRotation.
-     * @param v  Value to assign to prefRotation.
+     Set the value of prefRotation.
+     @param v  New preferred rotation in degrees. The value should be in range 
+     0.0 <= v < 360, otherwise v is normalized to be between these values.
      */
     public void setPrefRotation(double  v) {
+        // Normalize rotation
+        while ( v < 0.0 ) {
+            v += 360.0;
+        }
+        while ( v >= 360.0 ) {
+            v -= 360.0;
+        }
+        
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         if ( v != prefRotation ) {
@@ -1595,12 +1604,11 @@ public class PhotoInfo {
      */
     
     private void checkCropBounds() {
-        if ( cropMinX < 0.0 ) {
-            cropMinX = 0.0;
-        }
-        if ( cropMinY < 0.0 ) {
-            cropMinY = 0.0;
-        }
+        cropMinX = Math.min( 1.0, Math.max( 0.0, cropMinX ) );
+        cropMinY = Math.min( 1.0, Math.max( 0.0, cropMinY ) );
+        cropMaxX = Math.min( 1.0, Math.max( 0.0, cropMaxX ) );
+        cropMaxY = Math.min( 1.0, Math.max( 0.0, cropMaxY ) );
+
         if ( cropMaxX - cropMinX <= 0.0) {
             cropMaxX = 1.0 - cropMinX;
         }
@@ -1648,7 +1656,7 @@ public class PhotoInfo {
     /**
      CropBounds describes the desired crop rectange from original image. It is
      defined as proportional coordinates that are applied after rotating the
-     original image so that top left corner is (0.0, 0.0) and bottong right
+     original image so that top left corner is (0.0, 0.0) and bottom right
      (1.0, 1.0)
      */
     
