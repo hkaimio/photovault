@@ -69,6 +69,7 @@ public class PhotovaultSettings {
     protected PhotovaultSettings() {
         // Load XML configuration file
         String confFileName = System.getProperty( "photovault.configfile" );
+        File oldConfigFile = null;
         if ( confFileName != null ) {
             log.debug( "photovault.configfile " + confFileName );
             configFile = new File( confFileName );
@@ -81,18 +82,25 @@ public class PhotovaultSettings {
             if ( !photovaultDir.exists() ) {
                 photovaultDir.mkdir();
             }
-            configFile = new File( photovaultDir, "photovault.xml" );
+            configFile = new File( photovaultDir, "photovault_config.xml" );
+            if ( !configFile.exists() ) {
+                // check if there is a config file in the old (pre-0.4.0) format 
+                // and read it if it exists.
+                oldConfigFile = new File( photovaultDir, "photovault.xml" );
+            }
         }
         if ( configFile.exists() ) {
             log.debug( "Using config file " + configFile.getAbsolutePath() );
-            loadConfig();
+            loadConfig( configFile );
 //            databases = PhotovaultDatabases.loadDatabases( configFile );
-        } else {
-            try {
-                configFile.createNewFile();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+        } else if ( oldConfigFile.exists() ) {
+            loadConfig( oldConfigFile );
+            saveConfig();
+//            try {
+//                configFile.createNewFile();
+//            } catch (IOException ex) {
+//                ex.printStackTrace();
+//            }
         }
         if ( databases == null ) {
             databases = new PhotovaultDatabases();
@@ -120,13 +128,23 @@ public class PhotovaultSettings {
      * Saves the configuration to the current configuration file.
      */
     public void saveConfig() {
+        URL buildPropertyURL = PhotovaultSettings.class.getClassLoader().getResource( "buildinfo.properties");
+        String version = "unknown";
+        try {
+            InputStream is = buildPropertyURL.openStream();
+            Properties prop = new Properties();
+            prop.load( is );
+            version = prop.getProperty( "build.version", "unknown" );
+        } catch (IOException e ) {
+        }
+        
         try {
             BufferedWriter outputWriter = new BufferedWriter( new FileWriter( configFile ));
             outputWriter.write("<?xml version='1.0' ?>\n");
             outputWriter.write( "<!--\n" +
                     "This is configuration file for Photovault image organizing application\n" +
                     "-->\n");
-            outputWriter.write( "<photovault-config>\n" );
+            outputWriter.write( "<photovault-config version=\"" + version + "\">\n" );
             String indent = "  ";
             outputWriter.write( indent + "<!-- Installation specific properties -->\n" );
             Iterator iter = properties.entrySet().iterator();
@@ -143,12 +161,15 @@ public class PhotovaultSettings {
         }
     }
 
-    private void loadConfig() {
+    
+    private void loadConfig( File f ) {
         Digester digester = new Digester();
         digester.push(this); // Push controller servlet onto the stack
         digester.setValidating(true);
         
         // Digester rules for parsing the file
+        digester.addCallMethod( "photovault-config", "setConfigFileVersion", 1 );
+        digester.addCallParam( "photovault-config", 0,"version" );
         digester.addObjectCreate( "databases/databases", PhotovaultDatabases.class );
         digester.addSetNext( "databases/databases", "setDatabases" );
         digester.addObjectCreate( "photovault-config/databases", PhotovaultDatabases.class );
@@ -186,7 +207,7 @@ public class PhotovaultSettings {
         digester.addSetNext( "*/database/volumes/external-volume", "addVolume" );
         try {
             
-            digester.parse( configFile );
+            digester.parse( f );
         } catch (SAXException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {
@@ -230,6 +251,11 @@ public class PhotovaultSettings {
         return ret;
     }
 
+    String configFileVersion = "unknown";
+    
+    public void setConfigFileVersion( String version ) {
+        configFileVersion = version;
+    }
     /**
      * Add a new database to the configuration.Note that the configuration is not 
      * saved before calling saveConfiguration().

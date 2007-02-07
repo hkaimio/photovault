@@ -43,16 +43,24 @@ MAIN CHANGES IN PHOTOVAULT 0.2
 - Use launch4j for starting Photovault (instead if NSIS)
 
 BACKWARDS COMPATIBILITY
-Photovault 0.3.0 database format is compatible with 0.2.0. However,
-Photovault 0.2 cannot correctly display cropped or rotated images.
 
-Photovault converts automatically databases created with versions prior to
-0.2.0 to the new format. Using Photovault 0.1.x after the conversion is
-not recommended.
+In 0.4.0, Photovault configuration file format has changed. The new configuration 
+file is saved in <HOME_DIRECTORY>/-photovault/photovault_config.xml by default. 
+If this file is not found Photovault will search for the old configuration file 
+named photovault.xml in the same directory and if it exists it will use information
+in it to create the new configuration file. The old confugration file is preserved
+to allow usage of older versions, however, the old file is not updated with changes 
+in configuration.
+
+Photovault 0.4.0 adds new data structures to the database. If you open a database
+created with earlier version of Photovault, the program converts the database
+automatically to new format. The new database structure is backwards compatible 
+with 0.2.0 and 0.3.0. However,  the earlier versions cannot display raw images, 
+but it is possible to edit meta data and see icons of these photos.
 
 SUPPORTED OPERATING SYSTEMS
 Photovault has been tested in Linux and Windows XP and it should work
-in all environments supported by Java SE.Specifically, there are some 
+in all environments supported by Java SE. Specifically, there are some 
 compatibility problems in MacOS X (e.g. importing images form network
 drive does not work) - these will be addressed in future release.
 
