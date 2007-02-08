@@ -50,7 +50,7 @@ public class Test_SortedCollection extends PhotovaultTestCase {
         
         photo1.setShootTime( new Date( 2000, 1, 1 ));
         photo1.setShootingPlace( "TESTPLACE B" );
-        photo2.setShootTime( new Date( 2001, 1, 1 ));
+        photo2.setShootTime( null );
         photo2.setShootingPlace( "TESTPLACE A" );
         photo3.setShootTime( new Date( 2001, 1, 1 ));
         photo3.setShootingPlace( "TESTPLACE B" );
@@ -75,8 +75,8 @@ public class Test_SortedCollection extends PhotovaultTestCase {
         // Change listeners must be notified
         assertTrue( "Change listener not called after comparator change", l.isNotified );
         assertTrue( "Photo1 must be 1st in collection", collection.getPhoto( 0 ) == photo1 );
-        assertTrue( "Photo2 must be 2nd in collection", 
-                (collection.getPhoto( 2 ) == photo2) || (collection.getPhoto( 2 ) == photo3) );
+        assertTrue( "Photo2 must be 3nd in collection", 
+                (collection.getPhoto( 2 ) == photo2) );
         
         l.isNotified = false;
         collection.setComparator( new ShootingPlaceComparator() );
