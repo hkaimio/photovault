@@ -267,5 +267,5 @@ public class PhotovaultSettings {
     }
 	
     String confName;
-
+    
 }

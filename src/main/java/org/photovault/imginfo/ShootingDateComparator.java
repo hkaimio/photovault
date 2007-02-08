@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -25,7 +25,7 @@ import java.util.Comparator;
 import java.util.Date;
     
 /**
- * Comparator that orders the photos based on their uid.
+ * Comparator that orders the photos based on their shooting date.
  */
 public class ShootingDateComparator implements Comparator {
     public int compare( Object o1, Object o2 ) {
@@ -34,11 +34,14 @@ public class ShootingDateComparator implements Comparator {
         Date d1 = p1.getShootTime();
         Date d2 = p2.getShootTime();
         int res = 0;
-        if ( d1 != null ) {
-            res = d1.compareTo( d2 );
-        } else {
-            throw new ClassCastException();
+        if ( d1 == null ) {
+            d1 = new Date( Long.MAX_VALUE );
         }
+        if ( d2 == null ) {
+            d2 = new Date( Long.MAX_VALUE );
+        }
+        res = d1.compareTo( d2 );
+        
         return res;
     }
 }
