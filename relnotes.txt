@@ -1,11 +1,25 @@
 PHOTOVAULT 0.4.0-dev
 RELEASE NOTES
 
-This is release 0.3.0 of Photovault, a cross-platform Java based image 
-archiving application for photographers. 0.3.0 is a feature release that
-adds lots of new functionality to Photovault, including support for
-arbitrary rotation and cropping of images, improved export functionality
-as well as speed and usability improvements.
+This is release 0.4.0 of Photovault, a cross-platform Java based image 
+archiving application for photographers. 0.4.0 adds support for camera raw
+files to Photovault and fixes several importat bugs.
+
+MAIN CHANGES IN PHOTOVAULT 0.4.0
+
+New features
+- Support for importing raw camera files
+- Color correction for raw images
+- Support for additional image file firmats
+
+Bug fixes
+- Disabled username & password fields when using Derby database (#61)
+- Failing crop operation when exporting (#89)
+- Exporting hangs up with erronneus format string (#83)
+- NullPointerException when sorting images with no shooting date (#96)
+
+For full list of changes, see
+http://www.photovault.org/cgi-bin/trac.cgi/query?status=closed&milestone=0.4.0
 
 MAIN CHANGES IN PHOTOVAULT 0.3.1
 
