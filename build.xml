@@ -181,7 +181,7 @@
         <filterset> 
             <filtersfile file="conf/buildinfo.properties"/>
             <!-- TODO: This should not be hard coded 
-            <filter token="version" value="0.2.alpha1"/>
+            <filter token="version" value="0.5.0-dev"/>
             <filter token="svnrevision" value="${svnrevision}"/> -->
             <filter token="basedir" value="${basedir}"/> 
         </filterset>
