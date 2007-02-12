@@ -192,11 +192,24 @@ public class DCRawProcessWrapper {
     }
     
     /**
-     Figure out the dcraw executable path. If configuration parameter <code>
-     dcraw.cmd</code>  has been defined Photovault uses that. Otherwise it tries
-     to find the program under lib directory of current folder in subdirectory
-     <os>-<arch> where os is the operating system (linux, win32, mac, ...) and 
-     arch is the processor architecture (i386, ...).
+     Figure out the dcraw executable path in the following order:
+     <ul>
+     <li>
+     If configuration parameter <code>
+     dcraw.cmd</code>  has been defined Photovault uses that. 
+     </li>
+     <li>
+     Otherwise it tries
+     to find the program under current folder or folder specified in java 
+     property pv.basedir. dcraw is searched in subdirectory lib/&lt;os&gt;-&lt;arch
+     &gt; where os is the operating system (linux, win32, mac, ...) and 
+     arch is the processor architecture (i386, ...). 
+     </li>
+     <li>
+     If dcraw is still not found, the &lt;os&gt;-&lt;arch&gt; directories are 
+     searched directly under the current directory of pv.basedir.
+     </li>
+     </ul>
      @return Absolute path to dcraw or <code>null</code> if no suitable executable 
      is found.
      */
@@ -224,10 +237,14 @@ public class DCRawProcessWrapper {
             String basepath = System.getProperty( "pv.basedir", "." );
             File basedir = new File( basepath );
             File libdir = new File( basedir, "lib" );
-            File ndir = new File( libdir , nativedir );
-            File f = new File( ndir, dcraw );
-            if ( f.exists() ) {
-                dcrawCmd = f.getAbsolutePath();
+            File dcrawSearchPath[] = { libdir, basedir };
+            for ( int n = 0; n < dcrawSearchPath.length; n++ ) {
+            File ndir = new File( dcrawSearchPath[n], nativedir );
+                File f = new File( ndir, dcraw );
+                if ( f.exists() ) {
+                    dcrawCmd = f.getAbsolutePath();
+                    break;
+                }
             }
         }
         return dcrawCmd;
