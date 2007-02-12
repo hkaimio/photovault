@@ -12,10 +12,9 @@
   <jre>
     <path></path>
     <minVersion>1.4.2</minVersion>
-    <maxVersion>1.5.0_06</maxVersion>
     <initialHeapSize>256</initialHeapSize>
     <maxHeapSize>512</maxHeapSize>
-    <args></args>
+    <args>-Dpv.basedir="%EXEDIR%"</args>
   </jre>
   <versionInfo>
     <fileVersion>@build.major@.@build.minor@.@build.patch@.0</fileVersion>
@@ -23,7 +22,7 @@
     <fileDescription>Photovault @build.version@ (@build.version_tag@)</fileDescription>
     <copyright>(c) 2006 Harri Kaimio</copyright>
     <productVersion>@build.major@.@build.minor@.@build.patch@.0</productVersion>
-    <txtProductVersion>Photovault 0.2-dev</txtProductVersion>
+    <txtProductVersion>Photovault @build.version@-@build.version_shorttag@</txtProductVersion>
     <productName>Photovault</productName>
     <companyName>Harri Kaimio</companyName>
     <internalName>photovault</internalName>
