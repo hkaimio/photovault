@@ -165,7 +165,7 @@ public class PhotovaultSettings {
     private void loadConfig( File f ) {
         Digester digester = new Digester();
         digester.push(this); // Push controller servlet onto the stack
-        digester.setValidating(true);
+        digester.setValidating(false);
         
         // Digester rules for parsing the file
         digester.addCallMethod( "photovault-config", "setConfigFileVersion", 1 );
