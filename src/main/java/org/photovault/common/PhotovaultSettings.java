@@ -93,7 +93,7 @@ public class PhotovaultSettings {
             log.debug( "Using config file " + configFile.getAbsolutePath() );
             loadConfig( configFile );
 //            databases = PhotovaultDatabases.loadDatabases( configFile );
-        } else if ( oldConfigFile.exists() ) {
+        } else if ( oldConfigFile != null && oldConfigFile.exists() ) {
             loadConfig( oldConfigFile );
             saveConfig();
 //            try {

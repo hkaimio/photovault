@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<databases>
+<photovault-config>
     <databases>
         <database name="testdb" dbName="habadabaduu" host="">
             <volumes>
@@ -7,4 +7,4 @@
             </volumes>
         </database>
     </databases>	
-</databases>
+</photovault-config>
