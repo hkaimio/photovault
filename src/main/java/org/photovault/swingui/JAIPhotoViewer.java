@@ -258,9 +258,18 @@ public class JAIPhotoViewer extends JPanel implements
                             iis = ImageIO.createImageInputStream(original.getImageFile());
                             reader.setInput( iis, false, false );
                             origImage = reader.readAsRenderedImage( 0, null );
-                        } catch (IOException ex) {
+                        } catch (Exception ex) {
                             log.warn( ex.getMessage() );
                             ex.printStackTrace();
+                            final JAIPhotoViewer component = this;
+                            final String msg = ex.getMessage();
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    JOptionPane.showMessageDialog( component,
+                                            msg, "Error loading file",
+                                            JOptionPane.ERROR_MESSAGE );
+                                }
+                            });
                             fireViewChangeEvent();
                             return;
                         }
