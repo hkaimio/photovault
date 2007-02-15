@@ -676,22 +676,6 @@ public class RawImage {
                 }
             }
         }
-        if ( values.containsKey("Camera multipliers" ) ) {
-                /*
-                 Camera multipliers are 4 floats separated by spaces
-                 */
-            String value = (String) values.get( "Camera multipliers" );
-            String mstr[] = value.split( " " );
-            cameraMultipliers = new double[mstr.length];
-            for ( int n = 0; n < mstr.length ; n++ ) {
-                try {
-                    cameraMultipliers[n] = Double.parseDouble( mstr[n] );
-                } catch (NumberFormatException ex) {
-                    log.error( ex.getMessage() );
-                    ex.printStackTrace();
-                }
-            }
-        }
         if ( values.containsKey("Daylight multipliers" ) ) {
                 /*
                  daylight multipliers are 3 floats separated by spaces
@@ -708,7 +692,38 @@ public class RawImage {
                 }
             }
         }
-        
+        if ( values.containsKey("Camera multipliers" ) ) {
+                /*
+                 Camera multipliers are 4 floats separated by spaces
+                 */
+            String value = (String) values.get( "Camera multipliers" );
+            String mstr[] = value.split( " " );
+            cameraMultipliers = new double[mstr.length];
+            for ( int n = 0; n < mstr.length ; n++ ) {
+                try {
+                    cameraMultipliers[n] = Double.parseDouble( mstr[n] );
+                } catch (NumberFormatException ex) {
+                    log.error( ex.getMessage() );
+                    ex.printStackTrace();
+                }
+            }
+        } else if ( daylightMultipliers != null ) {
+            /*
+             No camera multipliers in raw file -> use daylight settings as 
+             default color balance 
+             */
+            cameraMultipliers = new double[4];
+            cameraMultipliers[0] = daylightMultipliers[0];
+            cameraMultipliers[1] = daylightMultipliers[1];
+            cameraMultipliers[2] = daylightMultipliers[2];
+            cameraMultipliers[3] = daylightMultipliers[1];
+        } else {
+            /*
+             If there is no daylight balance in the file we cannot set color
+             temperature.
+             */
+            validRawFile = false;
+        }        
     }
     
     /**
