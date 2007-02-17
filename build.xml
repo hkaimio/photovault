@@ -48,8 +48,8 @@
       <fileset id="runtime.fileset" dir="${build.lib.dir}">
           <include name="db-ojb-1.0.4.jar"/>
           <include name="exif_extract.jar"/>
-          <include name="jai_codec.jar"/>
-          <include name="jai_core.jar"/>
+          <!-- <include name="jai_codec.jar"/>
+          <include name="jai_core.jar"/>-->
           <include name="jai_imageio.jar"/>
           <include name="clibwrapper_jiio.jar"/>
           <include name="mysql-connector-java.jar"/>
