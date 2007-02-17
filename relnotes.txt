@@ -1,9 +1,9 @@
-PHOTOVAULT 0.4.0-dev
+PHOTOVAULT 0.5.0-dev
 RELEASE NOTES
 
 This is release 0.4.0 of Photovault, a cross-platform Java based image 
 archiving application for photographers. 0.4.0 adds support for camera raw
-files to Photovault and fixes several importat bugs.
+files and fixes several importat bugs.
 
 MAIN CHANGES IN PHOTOVAULT 0.4.0
 
@@ -59,7 +59,7 @@ MAIN CHANGES IN PHOTOVAULT 0.2
 BACKWARDS COMPATIBILITY
 
 In 0.4.0, Photovault configuration file format has changed. The new configuration 
-file is saved in <HOME_DIRECTORY>/-photovault/photovault_config.xml by default. 
+file is saved in <HOME_DIRECTORY>/.photovault/photovault_config.xml by default. 
 If this file is not found Photovault will search for the old configuration file 
 named photovault.xml in the same directory and if it exists it will use information
 in it to create the new configuration file. The old confugration file is preserved
@@ -77,6 +77,10 @@ Photovault has been tested in Linux and Windows XP and it should work
 in all environments supported by Java SE. Specifically, there are some 
 compatibility problems in MacOS X (e.g. importing images form network
 drive does not work) - these will be addressed in future release.
+
+Also, raw conversion support works out-of-the-box only in Winodws and x86 based
+Linux machines. It is possible to use raw conversion in other architectures by 
+supplying your own dcraw executable.
 
 REQUIRED SOFTWARE
 Photovault needs Sun Java JRE 1.4.2 or newer and Java Advanced Imaging 
