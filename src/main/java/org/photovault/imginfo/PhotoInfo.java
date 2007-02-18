@@ -248,7 +248,8 @@ public class PhotoInfo {
                     if ( suffixStart >= 0 &&  suffixStart < f.getName().length() -1 ) {
                         suffix = f.getName().substring( suffixStart+1 );
                     }
-                    if ( suffix.equalsIgnoreCase( "jpg" ) || suffix.equalsIgnoreCase( "jpeg" ) ) {
+                    Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
+                    if ( readers.hasNext() ) {
                         updateFromFileMetadata( f );
                         success = true;
                     } else {

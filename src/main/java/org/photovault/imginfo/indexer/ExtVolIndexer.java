@@ -490,7 +490,8 @@ public class ExtVolIndexer implements Runnable {
             strw.write( "Error indexing " + volume.getBaseDir().getAbsolutePath() );
             strw.write( "\n" );
             t.printStackTrace( new PrintWriter( strw ) );
-            log.error( strw.toString() );                   
+            log.error( strw.toString() );   
+            log.error( t );
             notifyListenersIndexingError( t.getMessage() );
         }
     }

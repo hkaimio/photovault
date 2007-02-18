@@ -548,10 +548,12 @@ public class RawImage {
             logSum += l * histBins[0][n];
             pixelCount += histBins[0][n];
         }
-        logAvg = Math.exp( logSum / pixelCount );
-        // Set the average to 18% grey
-        double dw = logAvg / 0.18;
-        
+        double dw = 65536.;
+        if ( pixelCount > 0 ) {
+            logAvg = Math.exp( logSum / pixelCount );
+            // Set the average to 18% grey
+            dw = logAvg / 0.18;
+        }
         // Set the white point  so that 1 % of pixels will be white
         int whitePixels = pixelCount/100;
         int brighterPixels = 0;
