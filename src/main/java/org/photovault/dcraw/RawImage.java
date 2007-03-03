@@ -56,12 +56,13 @@ import javax.media.jai.RenderedOp;
 import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
 import org.photovault.common.PhotovaultException;
+import org.photovault.image.PhotovaultImage;
 
 /**
  Class to represent a raw camera image and set the parameters related to
  processing it.
  */
-public class RawImage {
+public class RawImage extends PhotovaultImage {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( RawImage.class.getName() );
     
     
@@ -385,6 +386,11 @@ public class RawImage {
             l.rawImageSettingsChanged( ev );
         }
     }
+    
+
+    public RenderedImage getImage() {
+        return null;
+    }    
     
     /**
      *     Get a 8 bit gamma corrected version of the image.
@@ -985,4 +991,5 @@ public class RawImage {
         autoExposeRequested = false;
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
+
 }

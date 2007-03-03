@@ -28,6 +28,9 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.dcraw.RawImageChangeEvent;
 import org.photovault.dcraw.RawImageChangeListener;
+import org.photovault.image.ImageIOImage;
+import org.photovault.image.PhotovaultImage;
+import org.photovault.image.PhotovaultImageFactory;
 import org.photovault.imginfo.*;
 import javax.swing.*;
 import java.awt.*;
@@ -250,17 +253,15 @@ public class JAIPhotoViewer extends JPanel implements
                     String suffix = fname.substring( lastDotPos+1 );
                     Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
                     RenderedImage origImage = null;
-                    if ( readers.hasNext() ) {
-                        ImageReader reader = (ImageReader)readers.next();
-                        log.debug( "Creating stream" );
-                        ImageInputStream iis = null;
-                        try {
-                            iis = ImageIO.createImageInputStream(original.getImageFile());
-                            reader.setInput( iis, false, false );
-                            origImage = reader.readAsRenderedImage( 0, null );
-                        } catch (Exception ex) {
-                            log.warn( ex.getMessage() );
-                            ex.printStackTrace();
+                    PhotovaultImageFactory imageFactory = new PhotovaultImageFactory();
+                    PhotovaultImage img = null;
+                    try {
+                        /*
+                         Do not read the image yet since setting raw conversion 
+                         parameters later may force a re-read.
+                         */
+                        img = imageFactory.create(imageFile, false, false);
+                    } catch (PhotovaultException ex) {
                             final JAIPhotoViewer component = this;
                             final String msg = ex.getMessage();
                             SwingUtilities.invokeLater( new Runnable() {
@@ -270,41 +271,40 @@ public class JAIPhotoViewer extends JPanel implements
                                             JOptionPane.ERROR_MESSAGE );
                                 }
                             });
-                            fireViewChangeEvent();
-                            return;
+                    }
+                    if ( img != null ) {
+                        if ( rawImage != null ) {
+                            rawImage.removeChangeListener( this );
                         }
-                        rawImage = null;
-                        rawConvScaling = 1.0f;
-                    } else {
-                        RawImage tmpRaw = null;
-                        try {
-                            tmpRaw = new RawImage(original.getImageFile());
-                        } catch (PhotovaultException ex) {
-                            final JAIPhotoViewer component = this;
-                            final String msg = ex.getMessage();
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    JOptionPane.showMessageDialog( component,
-                                            msg, "Error loading file",
-                                            JOptionPane.ERROR_MESSAGE );
-                                }
-                            });
-                        }
-                        if ( tmpRaw != null && tmpRaw.isValidRawFile() ) {
-                            if ( rawImage != null ) {
-                                rawImage.removeChangeListener( this );
-                            }
-                            rawImage = tmpRaw;
+                        if ( img instanceof RawImage ) {
+                            rawImage = (RawImage) img;
                             rawImage.setRawSettings( photo.getRawSettings() );
                             rawImage.addChangeListener( this );
                             // Check the correct resolution for this image
                             if ( !isFit ) {
                                 setScale( getScale() );
-                            }                            
-                            origImage = rawImage.getCorrectedImage();
+                            }                                                        
+                        } else {
+                            rawImage = null;
+                            rawConvScaling = 1.0f;                            
                         }
+                        origImage = img.getCorrectedImage();
+//                        } catch (Exception ex) {
+//                            log.warn( ex.getMessage() );
+//                            ex.printStackTrace();
+//                            final JAIPhotoViewer component = this;
+//                            final String msg = ex.getMessage();
+//                            SwingUtilities.invokeLater( new Runnable() {
+//                                public void run() {
+//                                    JOptionPane.showMessageDialog( component,
+//                                            msg, "Error loading file",
+//                                            JOptionPane.ERROR_MESSAGE );
+//                                }
+//                            });
+//                            fireViewChangeEvent();
+//                            return;
+//                        }
                     }
-                    final String imageFilePath = original.getImageFile().getAbsolutePath();
                     setImage( origImage );
                     instanceRotation = original.getRotated();
                     double rot = photo.getPrefRotation() - instanceRotation;

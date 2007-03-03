@@ -19,6 +19,9 @@
  */
 
 package org.photovault.imginfo;
+import com.sun.media.imageio.plugins.tiff.BaselineTIFFTagSet;
+import com.sun.media.imageio.plugins.tiff.EXIFTIFFTagSet;
+import com.sun.org.apache.xerces.internal.impl.dtd.models.DFAContentModel;
 import java.awt.image.renderable.ParameterBlock;
 import java.util.*;
 import java.sql.*;
@@ -46,6 +49,7 @@ import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
+import org.photovault.image.ImageIOImage;
 
 /**
  PhotoInfo represents information about a single photograph
@@ -269,70 +273,23 @@ public class PhotoInfo {
      @param f The file to read
      */
     void updateFromFileMetadata( File f ) {
-        ExifDirectory exif = null;
-        try {
-            Metadata metadata = JpegMetadataReader.readMetadata(f);
-            if ( metadata.containsDirectory( ExifDirectory.class ) ) {
-                try {
-                    exif = (ExifDirectory) metadata.getDirectory( ExifDirectory.class );
-                } catch ( MetadataException e ) {
-                }
-            } else {
-                // No known directory was found no reason to continue
-                return;
-            }
-        } catch (FileNotFoundException e) {
-            // If error, just return - this is just an additional 'nice-if-succesful' operation.
-            // If there is no metadata this will happen...
+        ImageIOImage img = ImageIOImage.getImage( f, false, true );
+        if ( img == null ) {
             return;
         }
-        // Shooting date
-        try {
-            java.util.Date origDate = exif.getDate( exif.TAG_DATETIME_ORIGINAL );
-            setShootTime( origDate );
-            log.debug( "TAG_DATETIME_ORIGINAL: " + origDate.toString() );
-        } catch ( MetadataException e ) {
-            log.info( "Error reading origDate: " + e.getMessage() );
-        }
         
+        
+        setShootTime( img.getTimestamp() );
+
         // Exposure
-        try {
-            double fstop = exif.getDouble( exif.TAG_FNUMBER );
-            log.debug( "TAG_FNUMBER: " + fstop );
-            setFStop( fstop );
-        } catch ( MetadataException e ) {
-            log.info( "Error reading origDate: " + e.getMessage() );
-        }
-        try {
-            double sspeed = exif.getDouble( exif.TAG_EXPOSURE_TIME );
-            setShutterSpeed( sspeed );
-            log.debug( "TAG_EXPOSURE_TIME: " + sspeed );
-        } catch ( MetadataException e ) {
-            log.info( "Error reading origDate: " + e.getMessage() );
-        }
-        try {
-            double flen = exif.getDouble( exif.TAG_FOCAL_LENGTH );
-            setFocalLength( flen );
-        } catch ( MetadataException e ) {
-            log.info( "Error reading origDate: " + e.getMessage() );
-        }
-        try {
-            int filmSpeed = exif.getInt( exif.TAG_ISO_EQUIVALENT );
-            setFilmSpeed( filmSpeed );
-        } catch ( MetadataException e ) {
-            log.info( "Error reading origDate: " + e.getMessage() );
-        }
+        setFStop( img.getAperture() );
         
-        // Camera name. Put here both camera manufacturer and model
-        String maker = exif.getString( exif.TAG_MAKE );
-        String model = exif.getString( exif.TAG_MODEL );
-        StringBuffer cameraBuf = new StringBuffer( maker != null ? maker : "" );
-        if ( model != null ) {
-            cameraBuf.append( " "). append( model );
-        }
-        String camera = cameraBuf.toString();
-        if ( cameraBuf.length() > CAMERA_LENGTH ) {
-            camera = cameraBuf.substring( 0, CAMERA_LENGTH );
+        setShutterSpeed( img.getShutterSpeed() );
+        setFocalLength( img.getFocalLength() );
+        setFilmSpeed( img.getFilmSpeed() );
+        String camera = img.getCamera();
+        if ( camera.length() > CAMERA_LENGTH ) {
+            camera = camera.substring( 0, CAMERA_LENGTH );
         }
         setCamera( camera );
         
