@@ -50,6 +50,8 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
 import org.photovault.image.ImageIOImage;
+import org.photovault.image.PhotovaultImage;
+import org.photovault.image.PhotovaultImageFactory;
 
 /**
  PhotoInfo represents information about a single photograph
@@ -738,98 +740,22 @@ public class PhotoInfo {
         double aspectAccuracy = 0.01;
         
         // First, check if there is a thumbnail in image header
-        BufferedImage origImage = readExifThumbnail( original.getImageFile() );
+        RenderedImage origImage = null;
         
-        if ( origImage == null
-                || !isOkForThumbCreation( origImage.getWidth(),
-                origImage.getHeight(), minInstanceWidth, minInstanceHeight, origAspect, aspectAccuracy ) ) {
-            // Read the image
-            try {
-                File imageFile = original.getImageFile();
-                String fname = imageFile.getName();
-                int lastDotPos = fname.lastIndexOf( "." );
-                if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
-                    throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
-                }
-                String suffix = fname.substring( lastDotPos+1 );
-                Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
-                if ( readers.hasNext() ) {
-                    ImageReader reader = (ImageReader)readers.next();
-                    log.debug( "Creating stream" );
-                    ImageInputStream iis = ImageIO.createImageInputStream( original.getImageFile() );
-                    reader.setInput( iis, false, false );
-                    int numThumbs = 0;
-                    try {
-                        int numImages = reader.getNumImages( true );
-                        numThumbs = reader.getNumThumbnails(0);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    if ( numThumbs > 0
-                            && isOkForThumbCreation( reader.getThumbnailWidth( 0, 0 ),
-                            reader.getThumbnailHeight( 0, 0 ) , minInstanceWidth, minInstanceHeight, origAspect, aspectAccuracy )   ) {
-                        // There is a thumbanil that is big enough - use it
-                        
-                        log.debug( "Original has thumbnail, size "
-                                + reader.getThumbnailWidth( 0, 0 ) + " x "
-                                + reader.getThumbnailHeight( 0, 0 ) );
-                        origImage = reader.readThumbnail( 0, 0 );
-                        log.debug( "Read thumbnail" );
-                    } else {
-                        log.debug( "No thumbnail in original" );
-                        ImageReadParam param = reader.getDefaultReadParam();
-                        
-                        // Find the maximum subsampling rate we can still use for creating
-                        // a quality thumbnail. Some image format readers seem to have 
-                        // problems with subsampling values (e.g. PNG sometimes crashed
-                        // the whole virtual machine, to for now let's do this only
-                        // with JPG.
-                        int subsampling = 1;
-                        if ( suffix.toLowerCase().equals( "jpg" ) ) {
-                            int minDim = Math.min( reader.getWidth( 0 ),reader.getHeight( 0 ) );
-                            while ( 2 * minInstanceSide * subsampling < minDim ) {
-                                subsampling *= 2;
-                            }
-                        }
-                        param.setSourceSubsampling( subsampling, subsampling, 0, 0 );
-                        
-                        origImage = reader.read( 0, param );
-                        // Image image = JAI.create( "fileload", original.getImageFile() );
-                        log.debug( "Read original" );
-                    }
-                    iis.close();
-                } else {
-                    RawImage ri = null;
-                    try {
-                        ri = new RawImage(imageFile);
-                    } catch (PhotovaultException ex) {
-                        log.error( ex.getMessage() );
-                    }
-                    if ( ri != null && ri.isValidRawFile() ) {
-                        if ( rawSettings != null ) {
-                            ri.setRawSettings( rawSettings );
-                        }
-                        origImage = ri.getCorrectedImage().getAsBufferedImage();
-                        if ( rawSettings == null ) {
-                            // No raw settings for this photo yet, let's use
-                            // the thumbnail settings
-                            rawSettings = ri.getRawSettings();
-                            txw.lock( rawSettings, Transaction.WRITE );
-                        }
-                    } else {
-                        throw new IOException( "Unknown image file extension " + suffix +
-                                "\nwhile reading " + imageFile.getAbsolutePath() );
-                    }
-                }
-            } catch ( Exception e ) {
-                log.warn( "Error reading image: " + e.getMessage() );
-                // TODO: If we abort here due to image writing problem we will have
-                // problems later with non-existing transaction. We should really
-                // rethink the error handling login in the whole function. Anyway, we
-                // haven't changed anything yet so we can safely commit the tx.
-                txw.commit();
-                return;
-            }
+        // Read the image
+        try {
+            File imageFile = original.getImageFile();
+            PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
+            PhotovaultImage img = imgFactory.create( imageFile, false, false );
+            origImage = img.getCorrectedImage( minInstanceWidth, minInstanceHeight, true );
+        } catch ( Exception e ) {
+            log.warn( "Error reading image: " + e.getMessage() );
+            // TODO: If we aborted here due to image writing problem we would have
+            // problems later with non-existing transaction. We should really
+            // rethink the error handling logic in the whole function. Anyway, we
+            // haven't changed anything yet so we can safely commit the tx.
+            txw.commit();
+            return;
         }
         log.debug( "Done, finding name" );
         
@@ -1025,7 +951,7 @@ public class PhotoInfo {
         }
         
         // Read the image
-        BufferedImage origImage = null;
+        RenderedImage origImage = null;
         try {
             File imageFile = original.getImageFile();
             String fname = imageFile.getName();
@@ -1033,13 +959,20 @@ public class PhotoInfo {
             if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
                 throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
             }
-            RawImage ri = null;
+            PhotovaultImageFactory imageFactory = new PhotovaultImageFactory();
+            PhotovaultImage img = null;
             try {
-                ri = new RawImage(imageFile);
+                /*
+                 Do not read the image yet since setting raw conversion
+                 parameters later may force a re-read.
+                 */
+                img = imageFactory.create(imageFile, false, false);
             } catch (PhotovaultException ex) {
                 log.error( ex.getMessage() );
             }
-            if ( ri != null && ri.isValidRawFile() ) {
+            
+            if ( img instanceof RawImage ) {
+                RawImage ri = (RawImage) img;
                 if ( rawSettings != null ) {
                     ri.setRawSettings( rawSettings );
                 }
@@ -1051,17 +984,14 @@ public class PhotoInfo {
                     // Original resolution requested
                     ri.setMinimumPreferredSize( ri.getWidth(), ri.getHeight() );
                 }
-                origImage =ri.getCorrectedImage().getAsBufferedImage();
                 if ( rawSettings == null ) {
                     // No raw settings for this photo yet, let's use
                     // the thumbnail settings
                     rawSettings = ri.getRawSettings();
                     txw.lock( rawSettings, Transaction.WRITE );
                 }
-            } else {
-                log.debug( "Export: reading image " + original.getImageFile() );
-                origImage = ImageIO.read( original.getImageFile() );
             }
+            origImage =img.getCorrectedImage();
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
             txw.abort();

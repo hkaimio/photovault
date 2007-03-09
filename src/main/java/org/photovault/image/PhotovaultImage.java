@@ -51,8 +51,14 @@ public abstract class PhotovaultImage {
      */
     public abstract String getCamera();
 
-    public abstract RenderedImage getCorrectedImage();
+    public abstract RenderedImage getCorrectedImage( int minWidth, 
+            int minHeight, boolean isLowQualityAllowed );
 
+    public RenderedImage getCorrectedImage() {
+        return getCorrectedImage( Integer.MAX_VALUE, Integer.MAX_VALUE, false );
+    }
+
+    
     /**
      * Get the film speed setting used when shooting the image
      * 

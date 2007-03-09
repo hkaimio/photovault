@@ -396,7 +396,8 @@ public class RawImage extends PhotovaultImage {
      *     Get a 8 bit gamma corrected version of the image.
      * @return The corrected image
      */
-    public PlanarImage getCorrectedImage() {
+    public RenderedImage getCorrectedImage( int minWidth, int minHeight, 
+            boolean isLowQualityAcceptable ) {
         if ( rawImage == null ) {
             loadRawImage();
         }

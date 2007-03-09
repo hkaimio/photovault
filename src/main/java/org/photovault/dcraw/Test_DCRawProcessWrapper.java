@@ -27,6 +27,7 @@ import com.sun.media.jai.codec.JPEGEncodeParam;
 import com.sun.media.jai.codec.SeekableStream;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -73,7 +74,7 @@ public class Test_DCRawProcessWrapper extends TestCase {
             } catch (PhotovaultException ex) {
                 fail( ex.getMessage() );
             }
-            PlanarImage img = ri.getCorrectedImage();
+            RenderedImage img = ri.getCorrectedImage();
             AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( 200, 200,
                     0,
                     img.getWidth(), img.getHeight() );

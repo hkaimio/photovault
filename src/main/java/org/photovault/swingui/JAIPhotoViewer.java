@@ -170,7 +170,7 @@ public class JAIPhotoViewer extends JPanel implements
             int minHeight = (int) (rawImage.getHeight() * scale);
             boolean needsReload = rawImage.setMinimumPreferredSize( 
                     minWidth, minHeight ); 
-            PlanarImage img = rawImage.getCorrectedImage();
+            RenderedImage img = rawImage.getCorrectedImage();
             rawConvScaling = img.getWidth() / (float) rawImage.getWidth();
             imageView.setScale( scale/rawConvScaling );
             if ( needsReload ) {
@@ -412,7 +412,7 @@ public class JAIPhotoViewer extends JPanel implements
          probably be faster to just modify the parameters in image chain & 
          redraw.
          */
-        PlanarImage origImage = rawImage.getCorrectedImage();
+        RenderedImage origImage = rawImage.getCorrectedImage();
         setImage( origImage );
     }
 
