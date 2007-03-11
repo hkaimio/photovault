@@ -50,6 +50,7 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.PlanarImage;
+import javax.media.jai.RenderedImageAdapter;
 import org.photovault.imginfo.ImageInstance;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -60,6 +61,10 @@ import org.w3c.dom.NodeList;
  */
 public class ImageIOImage extends PhotovaultImage {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ImageIOImage.class.getName() );
+
+    private int width = 0;
+
+    private int height = 0;
     
     /**
      * Creates a new instance of ImageIOImage. Note that you should not normally use
@@ -78,7 +83,7 @@ public class ImageIOImage extends PhotovaultImage {
         return i;
     }
     
-    RenderedImage image = null;
+    PlanarImage image = null;
     
     /**
      Get the image pixel data. If the iamge has not been read earlier, this method
@@ -90,7 +95,7 @@ public class ImageIOImage extends PhotovaultImage {
      (like increase subsampling)
      @return The image data as an RenderedImage.
      */
-    public RenderedImage getCorrectedImage( int minWidth, int minHeight, boolean isLowQualityAllowed ) {
+    public PlanarImage getCorrectedImage( int minWidth, int minHeight, boolean isLowQualityAllowed ) {
         if ( image == null ) {
             load( true, (metadata == null), minWidth, minHeight, isLowQualityAllowed );
         }
@@ -224,27 +229,6 @@ public class ImageIOImage extends PhotovaultImage {
         return ret;
     }
     
-    
-    Rectangle2D cropBounds = null;
-    
-    public void setCropBounds( Rectangle2D newCrop ) {
-        cropBounds = newCrop;
-    }
-    
-    public Rectangle2D getCropBounds() {
-        return cropBounds;
-    }
-    
-    double rot = 0.0;
-    
-    public void setRotation( double newRot ) {
-        rot = newRot;
-    }
-    
-    public double getRotation() {
-        return rot;
-    }
-    
     public RenderedImage getImage() {
         return null;
     }
@@ -293,93 +277,6 @@ public class ImageIOImage extends PhotovaultImage {
         return scalingOp;
     }
 
-    
-//    private void buildXformImage() {
-//        try {
-//            
-//            float scale = 1.0f;
-//            
-//            if ( fitSize ) {
-//                log.debug( "fitSize" );
-//                float widthScale = ((float)maxWidth)/origImage.getWidth();
-//                float heightScale = ((float)maxHeight)/origImage.getHeight();
-//                
-//                scale = widthScale;
-//                if ( heightScale < scale ) {
-//                    scale = heightScale;
-//                }
-//                log.debug( "scale: " + scale );
-//            } else {
-//                scale = (float) imgScale;
-//                log.debug( "scale: " + scale );
-//            }
-//            
-//            
-//            // Create the zoom xform
-//            AffineTransform at = null;
-//            if ( fitSize ) {
-//                at = org.photovault.image.ImageXform.getFittingXform(
-//                        (int)maxWidth, (int)maxHeight, imgRot,
-//                        (int)( origImage.getWidth() * cropUsed.getWidth() ),
-//                        (int)(( cropUsed.getHeight()* origImage.getHeight() ) ) );
-//            } else {
-//                at = org.photovault.image.ImageXform.getScaleXform( imgScale, imgRot,
-//                        (int)( origImage.getWidth() * cropUsed.getWidth() ),
-//                        (int)(( cropUsed.getHeight()* origImage.getHeight() ) ) );
-//            }
-//            
-//            
-//            // Create a ParameterBlock and specify the source and
-//            // parameters
-//            ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
-//            scaleParams.addSource( origImage );
-//            scaleParams.setParameter( "transform", at );
-//            scaleParams.setParameter( "interpolation", new InterpolationBilinear());
-//            
-//            // Create the scale operation
-//            RenderedOp tmp = JAI.create( "affine", scaleParams, null );
-//            
-//            ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
-//            cropParams.addSource( tmp );
-//            float cropX = (float)( Math.rint( tmp.getMinX() + cropUsed.getMinX() *  tmp.getWidth() ));
-//            float cropY = (float)( Math.rint( tmp.getMinY() + cropUsed.getMinY() *  tmp.getHeight() ));
-//            float cropW = (float)( Math.rint( cropUsed.getWidth() * tmp.getWidth() ));
-//            float cropH = (float) ( Math.rint( cropUsed.getHeight() * tmp.getHeight() ));
-//            cropParams.setParameter( "x", cropX );
-//            cropParams.setParameter( "y", cropY );
-//            cropParams.setParameter( "width", cropW );
-//            cropParams.setParameter( "height", cropH );
-//            RenderedOp cropped = JAI.create("crop", cropParams, null);
-//            // Translate the image so that it begins in origo
-//            ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
-//            pbXlate.addSource( cropped );
-//            pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
-//            pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
-//            xformImage = JAI.create( "translate", pbXlate );
-//            
-//        } catch ( Exception ex ) {
-//                /*
-//                 There was some kind of error when constructing the image to show.
-//                 Most likely the image file was corrupted.
-//                 */
-//            final String exMsg = ex.getMessage();
-//            final JAIPhotoView staticThis = this;
-//            staticThis.origImage = null;
-//            SwingUtilities.invokeLater( new Runnable() {
-//                public void run() {
-//                    JOptionPane.showMessageDialog( staticThis,
-//                            "Error while showing an image\n" +
-//                            exMsg +
-//                            "\nMost likely the image file in Photovault database is corrupted.",
-//                            "Error displaying image",
-//                            JOptionPane.ERROR_MESSAGE );
-//                }
-//            });
-//            
-//        }
-//        setCursor( oldCursor );
-//    }    
-    
     
     /**
      * Parse JPEG metadata structure and store the data in metadata and exifData fields
@@ -455,18 +352,26 @@ public class ImageIOImage extends PhotovaultImage {
                 try {
                     iis = ImageIO.createImageInputStream( f );
                     reader.setInput( iis, false, false );
+                    width = reader.getWidth( 0 );
+                    height = reader.getHeight( 0 );
                     if ( loadImage ) {
+                        RenderedImage ri = null;
                         if ( isLowQualityAllowed ) {
-                            image = readExifThumbnail( f );
-                            if ( image == null
-                                    || !isOkForThumbCreation( image.getWidth(),
-                                    image.getHeight(), minWidth, minHeight, 
-                                    reader.getAspectRatio( 0 ), 0.01 ) ) {      
-                                 image = readSubsampled( reader, minWidth, minHeight );
+                            ri = readExifThumbnail( f );
+                            if ( ri == null || !isOkForThumbCreation( ri.getWidth(),
+                                    ri.getHeight(), minWidth, minHeight,
+                                    reader.getAspectRatio( 0 ), 0.01 ) ) {
+                                /*
+                                 EXIF thumbnail either didi not exist or was unusable,
+                                 tru to read subsampled version of original
+                                 */
+                                ri = readSubsampled( reader, minWidth, minHeight );
                             }
                         } else {
-                            image = reader.readAsRenderedImage( 0, null );
+                            ri = reader.read( 0, null );
                         }
+                        image = (ri == null) ?
+                            null : new RenderedImageAdapter( ri );
                     }
                     if ( loadMetadata ) {
                         Set<String> nodes = new HashSet<String>();
@@ -517,7 +422,9 @@ public class ImageIOImage extends PhotovaultImage {
         RenderedImage image = null;
         try {
             int numImages = reader.getNumImages( true );
-            numThumbs = reader.getNumThumbnails(0);
+            if ( numImages > 0 ) {
+                numThumbs = reader.getNumThumbnails(0);
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -622,6 +529,14 @@ public class ImageIOImage extends PhotovaultImage {
     private double getAspect( int width, int height, double pixelAspect ) {
         return height > 0
                 ? pixelAspect*(((double) width) / ((double) height )) : -1.0;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
         
 }

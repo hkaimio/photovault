@@ -174,7 +174,7 @@ public class JAIPhotoViewer extends JPanel implements
             rawConvScaling = img.getWidth() / (float) rawImage.getWidth();
             imageView.setScale( scale/rawConvScaling );
             if ( needsReload ) {
-                setImage( img );
+                setImage( rawImage );
             }
         } else {
             imageView.setScale(scale);
@@ -242,6 +242,7 @@ public class JAIPhotoViewer extends JPanel implements
                 original = instance;
                 File imageFile = original.getImageFile();
                 if ( imageFile != null && imageFile.canRead() ) {
+                    // TODO: is this really needed?
                     String fname = imageFile.getName();
                     int lastDotPos = fname.lastIndexOf( "." );
                     if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
@@ -250,9 +251,6 @@ public class JAIPhotoViewer extends JPanel implements
                         fireViewChangeEvent();
                         return;
                     }
-                    String suffix = fname.substring( lastDotPos+1 );
-                    Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
-                    RenderedImage origImage = null;
                     PhotovaultImageFactory imageFactory = new PhotovaultImageFactory();
                     PhotovaultImage img = null;
                     try {
@@ -288,7 +286,6 @@ public class JAIPhotoViewer extends JPanel implements
                             rawImage = null;
                             rawConvScaling = 1.0f;                            
                         }
-                        origImage = img.getCorrectedImage();
 //                        } catch (Exception ex) {
 //                            log.warn( ex.getMessage() );
 //                            ex.printStackTrace();
@@ -305,7 +302,7 @@ public class JAIPhotoViewer extends JPanel implements
 //                            return;
 //                        }
                     }
-                    setImage( origImage );
+                    setImage( img );
                     instanceRotation = original.getRotated();
                     double rot = photo.getPrefRotation() - instanceRotation;
                     imageView.setRotation( rot );
@@ -396,8 +393,8 @@ public class JAIPhotoViewer extends JPanel implements
         imageView.setCrop( photo.getCropBounds() );
     }
     
-    void setImage( RenderedImage bi ) {
-	imageView.setImage( bi );
+    void setImage( PhotovaultImage img ) {
+	imageView.setImage( img );
     }
 
     public void cropAreaChanged(CropAreaChangeEvent evt) {
@@ -412,8 +409,8 @@ public class JAIPhotoViewer extends JPanel implements
          probably be faster to just modify the parameters in image chain & 
          redraw.
          */
-        RenderedImage origImage = rawImage.getCorrectedImage();
-        setImage( origImage );
+        // RenderedImage origImage = rawImage.getCorrectedImage();
+        setImage( imageView.getImage() );
     }
 
     /**

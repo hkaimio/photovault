@@ -20,13 +20,20 @@
 
 package org.photovault.image;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.util.Date;
+import javax.media.jai.Interpolation;
+import javax.media.jai.JAI;
+import javax.media.jai.ParameterBlockJAI;
+import javax.media.jai.PlanarImage;
+import javax.media.jai.RenderedOp;
 
 /**
- *
- * @author harri
+ PhotovaultImage is a facade fro Photovault imaging pipeline. It is abstract 
+ class, different image providers must derive their own classes from it.
  */
 public abstract class PhotovaultImage {
     
@@ -51,13 +58,191 @@ public abstract class PhotovaultImage {
      */
     public abstract String getCamera();
 
-    public abstract RenderedImage getCorrectedImage( int minWidth, 
+    /**
+     Get the original image
+     @deprecated USe getRenderedImage instead
+     */
+    public abstract PlanarImage getCorrectedImage( int minWidth, 
             int minHeight, boolean isLowQualityAllowed );
 
+    /**
+     Get the original image
+     @deprecated USe getRenderedImage instead
+     */    
     public RenderedImage getCorrectedImage() {
         return getCorrectedImage( Integer.MAX_VALUE, Integer.MAX_VALUE, false );
     }
+    
+    /**
+     Get the image, adjusted according to current parameters and scaled to a 
+     specified resolution.
+     @param maxWidth Maximum width of the image in pixels. Image aspect ratio is
+     preserved so actual width can be smaller than this.
+     @param maxHeight Maximum height of the image in pixels. Image aspect ratio is
+     preserved so actual height can be smaller than this.
+     @param isLowQualityAllowed Specifies whether image quality can be traded off 
+     for speed/memory consumpltion optimizations.
+     @return The image as RenderedImage
+     */
+    
+    public RenderedImage getRenderedImage( int maxWidth, int maxHeight, boolean isLowQualityAllowed ) {
+        PlanarImage original = getCorrectedImage( maxWidth, maxHeight, isLowQualityAllowed );
+        PlanarImage cropped = getCropped( original);
+        RenderedImage scaled = getScaled( (RenderedOp) cropped, maxWidth, maxHeight );
+        return scaled;
+    }
 
+    /**
+     Get the image, adjusted according to current parameters and scaled to a 
+     specified resolution.
+     @param scale Scaling compared to original image file.
+     @param isLowQualityAllowed Specifies whether image quality can be traded off 
+     for speed/memory consumpltion optimizations.
+     @return The image as RenderedImage
+     */
+    
+    public RenderedImage getRenderedImage( double scale, boolean isLowQualityAllowed ) {
+        PlanarImage original = getCorrectedImage( (int)(getWidth()*scale), 
+                (int)(getHeight()*scale), isLowQualityAllowed );
+        PlanarImage cropped = getCropped( original);
+        RenderedImage scaled = getScaled( (RenderedOp) cropped, scale );
+        return scaled;
+    }
+    
+    
+    /**
+     Get width of the original image
+     @return width in pixels
+     */
+    public abstract int getWidth();
+
+    /**
+     Get height of the original image
+     @return height in pixels
+     */
+    public abstract int getHeight();
+    
+    /**
+     Amount of rotation that is applied to the image.
+     */
+    double rot = 0.0;
+    
+    /**
+     Set the rotation applied to original image
+     @param r Rotation in degrees. The image is rotated clockwise
+     */
+    public void setRotation( double r ) {
+        rot = r;
+    }
+    
+    /**
+     Get current rotation
+     @return Rotation in degrees, clockwise.
+     */
+    public double getRotation() {
+        return rot;
+    }
+    
+    double cropMinX = 0.0;
+    double cropMinY = 0.0;
+    double cropMaxX = 1.0;
+    double cropMaxY = 1.0;
+    
+    /**
+     Set new crop bounds for the image. Crop bounds are applied after rotation,
+     so that top left corner is (0, 0) and bottom right corner (1, 1)
+     @param c New crop bounds
+     */
+    public void setCropBounds( Rectangle2D c ) {
+        cropMinX = Math.min( 1.0, Math.max( 0.0, c.getMinX() ) );
+        cropMinY = Math.min( 1.0, Math.max( 0.0, c.getMinY() ) );
+        cropMaxX = Math.min( 1.0, Math.max( 0.0, c.getMaxX() ) );
+        cropMaxY = Math.min( 1.0, Math.max( 0.0, c.getMaxY() ) );
+
+        if ( cropMaxX - cropMinX <= 0.0) {
+            double tmp = cropMaxX;
+            cropMaxX = cropMinX;
+            cropMinX = tmp;
+        }
+        if ( cropMaxY - cropMinY <= 0.0) {
+            double tmp = cropMaxY;
+            cropMaxY = cropMinY;
+            cropMinY = tmp;
+        }        
+    }
+    
+    /**
+     Get the current crop bounds
+     @return Crop bounds
+     */
+    public Rectangle2D getCropBounds() {
+        return new Rectangle2D.Double( cropMinX, cropMinY, 
+                cropMaxX-cropMinX, cropMaxY-cropMinY );
+    }
+
+    protected PlanarImage getCropped( PlanarImage uncroppedImage ) {
+        int origWidth = uncroppedImage.getWidth();
+        int origHeight = uncroppedImage.getHeight();
+        
+        AffineTransform xform = org.photovault.image.ImageXform.getRotateXform(
+                rot, origWidth, origHeight );
+        
+        ParameterBlockJAI rotParams = new ParameterBlockJAI( "affine" );
+        rotParams.addSource( uncroppedImage );
+        rotParams.setParameter( "transform", xform );
+        rotParams.setParameter( "interpolation",
+                Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
+        RenderedOp rotatedImage = JAI.create( "affine", rotParams );
+        
+        ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
+        cropParams.addSource( rotatedImage );
+        float cropWidth = (float) (cropMaxX - cropMinX);
+        cropWidth = ( cropWidth > 0.000001 ) ? cropWidth : 0.000001f;
+        float cropHeight = (float) (cropMaxY - cropMinY);
+        cropHeight = ( cropHeight > 0.000001 ) ? cropHeight : 0.000001f;        
+        float cropX = (float)( Math.rint( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
+        float cropY = (float)( Math.rint( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight()));
+        float cropW = (float)( Math.rint((cropWidth) * rotatedImage.getWidth() ) );
+        float cropH = (float) ( Math.rint((cropHeight) * rotatedImage.getHeight() ));
+        cropParams.setParameter( "x", cropX );
+        cropParams.setParameter( "y", cropY );
+        cropParams.setParameter( "width", cropW );
+        cropParams.setParameter( "height", cropH );
+        RenderedOp cropped = JAI.create("crop", cropParams, null);
+        // Translate the image so that it begins in origo
+        ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
+        pbXlate.addSource( cropped );
+        pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
+        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
+        RenderedOp xformImage = JAI.create( "translate", pbXlate );
+        return xformImage;
+    }
+    
+    protected PlanarImage getScaled( PlanarImage unscaledImage, int maxWidth, int maxHeight ) {
+        AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( maxWidth, maxHeight,
+                0, unscaledImage.getWidth(), unscaledImage.getHeight() );
+        ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
+        scaleParams.addSource( unscaledImage );
+        scaleParams.setParameter( "transform", thumbScale );
+        scaleParams.setParameter( "interpolation",
+                Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
+        
+        RenderedOp scaledImage = JAI.create( "affine", scaleParams );
+        return scaledImage;        
+    }
+    
+    protected PlanarImage getScaled( PlanarImage unscaledImage, double scale ) {
+        AffineTransform thumbScale = org.photovault.image.ImageXform.getScaleXform( scale,
+                0, unscaledImage.getWidth(), unscaledImage.getHeight() );
+        ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
+        scaleParams.addSource( unscaledImage );
+        scaleParams.setParameter( "transform", thumbScale );
+        scaleParams.setParameter( "interpolation",
+                Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
+        
+        RenderedOp scaledImage = JAI.create( "affine", scaleParams );
+        return scaledImage;        
+    }    
     
     /**
      * Get the film speed setting used when shooting the image

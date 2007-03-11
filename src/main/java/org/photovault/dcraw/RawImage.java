@@ -52,6 +52,7 @@ import javax.media.jai.Histogram;
 import javax.media.jai.JAI;
 import javax.media.jai.LookupTableJAI;
 import javax.media.jai.PlanarImage;
+import javax.media.jai.RenderedImageAdapter;
 import javax.media.jai.RenderedOp;
 import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
@@ -86,7 +87,7 @@ public class RawImage extends PhotovaultImage {
      has not been read or the conversion settings have been changed after
      reading.
      */
-    RenderedImage rawImage = null;
+    PlanarImage rawImage = null;
     
     /**
      Is the raw image loaded only half of the actual resolution?
@@ -396,7 +397,7 @@ public class RawImage extends PhotovaultImage {
      *     Get a 8 bit gamma corrected version of the image.
      * @return The corrected image
      */
-    public RenderedImage getCorrectedImage( int minWidth, int minHeight, 
+    public PlanarImage getCorrectedImage( int minWidth, int minHeight, 
             boolean isLowQualityAcceptable ) {
         if ( rawImage == null ) {
             loadRawImage();
@@ -466,7 +467,7 @@ public class RawImage extends PhotovaultImage {
             ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_LINEAR_RGB );
             ColorModel targetCM = new ComponentColorModel( cs, new int[]{16,16,16},
                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_USHORT );
-            rawImage = new BufferedImage( targetCM, r, true, null );
+            rawImage = new RenderedImageAdapter( new BufferedImage( targetCM, r, true, null ) );
             reader.getImageMetadata( 0 );
             rawIsHalfSized = dcraw.ishalfSize();
             
