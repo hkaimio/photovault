@@ -743,11 +743,18 @@ public class PhotoInfo {
         RenderedImage origImage = null;
         
         // Read the image
+        RenderedImage thumbImage = null;
         try {
             File imageFile = original.getImageFile();
             PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
             PhotovaultImage img = imgFactory.create( imageFile, false, false );
-            origImage = img.getCorrectedImage( minInstanceWidth, minInstanceHeight, true );
+            img.setCropBounds( this.getCropBounds() );
+            img.setRotation( prefRotation - original.getRotated() );
+            if ( img instanceof RawImage ) {
+                RawImage ri = (RawImage) img;
+                ri.setRawSettings( rawSettings );
+            }
+            thumbImage = img.getRenderedImage( maxThumbWidth, maxThumbHeight, true );
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
             // TODO: If we aborted here due to image writing problem we would have
@@ -763,49 +770,6 @@ public class PhotoInfo {
         File thumbnailFile = volume.getInstanceName( this, "jpg" );
         log.debug( "name = " + thumbnailFile.getName() );
         
-        // Shrink the image to desired state and save it
-        // Find first the correct transformation for doing this
-        
-        int origWidth = origImage.getWidth();
-        int origHeight = origImage.getHeight();
-        
-        AffineTransform xform = org.photovault.image.ImageXform.getRotateXform(
-                prefRotation -original.getRotated(), origWidth, origHeight );
-        
-        ParameterBlockJAI rotParams = new ParameterBlockJAI( "affine" );
-        rotParams.addSource( origImage );
-        rotParams.setParameter( "transform", xform );
-        rotParams.setParameter( "interpolation",
-                Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
-        RenderedOp rotatedImage = JAI.create( "affine", rotParams );
-        
-        ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
-        cropParams.addSource( rotatedImage );
-        float cropX = (float)( Math.rint( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
-        float cropY = (float)( Math.rint( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight()));
-        float cropW = (float)( Math.rint((cropWidth) * rotatedImage.getWidth() ) );
-        float cropH = (float) ( Math.rint((cropHeight) * rotatedImage.getHeight() ));
-        cropParams.setParameter( "x", cropX );
-        cropParams.setParameter( "y", cropY );
-        cropParams.setParameter( "width", cropW );
-        cropParams.setParameter( "height", cropH );
-        RenderedOp cropped = JAI.create("crop", cropParams, null);
-        // Translate the image so that it begins in origo
-        ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
-        pbXlate.addSource( cropped );
-        pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
-        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
-        RenderedOp xformImage = JAI.create( "translate", pbXlate );
-        // Finally, scale this to thumbnail
-        AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( maxThumbWidth, maxThumbHeight,
-                0, xformImage.getWidth(), xformImage.getHeight() );
-        ParameterBlockJAI thumbScaleParams = new ParameterBlockJAI( "affine" );
-        thumbScaleParams.addSource( xformImage );
-        thumbScaleParams.setParameter( "transform", thumbScale );
-        thumbScaleParams.setParameter( "interpolation",
-                Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
-        
-        PlanarImage thumbImage = JAI.create( "affine", thumbScaleParams );
         try {
             saveInstance( thumbnailFile, thumbImage );
         } catch (PhotovaultException ex) {
@@ -839,7 +803,7 @@ public class PhotoInfo {
      @img Image that willb e saved
      @throws PhotovaultException if saving does not succeed
      */
-    protected void saveInstance( File instanceFile, PlanarImage img ) throws PhotovaultException {
+    protected void saveInstance( File instanceFile, RenderedImage img ) throws PhotovaultException {
         OutputStream out = null;
         try {
             out = new FileOutputStream( instanceFile.getAbsolutePath());
@@ -951,7 +915,7 @@ public class PhotoInfo {
         }
         
         // Read the image
-        RenderedImage origImage = null;
+        RenderedImage exportImage = null;
         try {
             File imageFile = original.getImageFile();
             String fname = imageFile.getName();
@@ -970,82 +934,30 @@ public class PhotoInfo {
             } catch (PhotovaultException ex) {
                 log.error( ex.getMessage() );
             }
-            
+            img.setCropBounds( this.getCropBounds() );
+            img.setRotation( prefRotation - original.getRotated() );
             if ( img instanceof RawImage ) {
                 RawImage ri = (RawImage) img;
                 if ( rawSettings != null ) {
                     ri.setRawSettings( rawSettings );
-                }
-                if ( width > 0 ) {
-                    int minWidth = (int) (width / (cropMaxX-cropMinX));
-                    int minHeight = (int) (height / (cropMaxY-cropMinY));
-                    ri.setMinimumPreferredSize( minWidth, minHeight );
-                } else {
-                    // Original resolution requested
-                    ri.setMinimumPreferredSize( ri.getWidth(), ri.getHeight() );
-                }
-                if ( rawSettings == null ) {
+                } else if ( rawSettings == null ) {
                     // No raw settings for this photo yet, let's use
                     // the thumbnail settings
                     rawSettings = ri.getRawSettings();
                     txw.lock( rawSettings, Transaction.WRITE );
                 }
             }
-            origImage =img.getCorrectedImage();
+            if ( width > 0 ) {
+                exportImage =img.getRenderedImage( width, height, false );
+            } else {
+                exportImage =img.getRenderedImage( 1.0, false );
+            }
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
             txw.abort();
             return;
         }
-        
-        
-        // Shrink the image to desired state and save it
-        // Find first the correct transformation for doing this
-        int origWidth = origImage.getWidth();
-        int origHeight = origImage.getHeight();
-        
-        AffineTransform xform = org.photovault.image.ImageXform.getRotateXform(
-                prefRotation -original.getRotated(), origWidth, origHeight );
-        
-        ParameterBlockJAI rotParams = new ParameterBlockJAI( "affine" );
-        rotParams.addSource( origImage );
-        rotParams.setParameter( "transform", xform );
-        rotParams.setParameter( "interpolation",
-                Interpolation.getInstance( Interpolation.INTERP_BICUBIC ) );
-        RenderedOp rotatedImage = JAI.create( "affine", rotParams );
-        
-        ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
-        cropParams.addSource( rotatedImage );
-        cropParams.setParameter( "x",
-                (float)( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
-        cropParams.setParameter( "y",
-                (float)( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight() ) );
-        cropParams.setParameter( "width",
-                (float)( (cropMaxX - cropMinX) * rotatedImage.getWidth() ) );
-        cropParams.setParameter( "height",
-                (float) ( (cropMaxY - cropMinY) * rotatedImage.getHeight() ) );
-        RenderedOp cropped = JAI.create("crop", cropParams, null);
-        // Translate the image so that it begins in origo
-        ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
-        pbXlate.addSource( cropped );
-        pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
-        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
-        RenderedOp xformImage = JAI.create( "translate", pbXlate );
-        // Finally, scale this to thumbnail
-        PlanarImage exportImage = xformImage;
-        if ( width > 0 ) {
-            AffineTransform scale = org.photovault.image.ImageXform.getFittingXform( width, height,
-                    0,
-                    xformImage.getWidth(), xformImage.getHeight() );
-            ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
-            scaleParams.addSource( xformImage );
-            scaleParams.setParameter( "transform", scale );
-            scaleParams.setParameter( "interpolation",
-                    Interpolation.getInstance( Interpolation.INTERP_BICUBIC ) );
-            
-            exportImage = JAI.create( "affine", scaleParams );
-        }
-        
+                
         // Reduce to 8 bit samples if we have more...
         if ( exportImage.getSampleModel().getSampleSize( 0 ) == 16 ) {
             double[] subtract = new double[1]; subtract[0] = 0;
