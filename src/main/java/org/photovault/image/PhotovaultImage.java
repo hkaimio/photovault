@@ -86,15 +86,37 @@ public abstract class PhotovaultImage {
      */
     
     public RenderedImage getRenderedImage( int maxWidth, int maxHeight, boolean isLowQualityAllowed ) {
-        PlanarImage original = getCorrectedImage( maxWidth, maxHeight, isLowQualityAllowed );
+        /*
+         Calculate the resolution we need for the original image based on crop
+         & rotation information
+         */
+        
+        // First, calculate the size of whole inage after rotation
+        double rotRad = rot * Math.PI/180.0;
+        double rotSin = Math.abs( Math.sin( rotRad ) );
+        double rotCos = Math.abs( Math.cos( rotRad ) );
+        double rotW = rotCos * getWidth() + rotSin * getHeight();
+        double rotH = rotSin * getWidth() + rotCos * getHeight();
+        // Size if full image was cropped
+        double cropW = rotW * (cropMaxX-cropMinX);
+        double cropH = rotH * (cropMaxY-cropMinY);    
+        double scaleW = maxWidth / cropW;
+        double scaleH = maxHeight / cropH;
+        // We are fitting cropped area to max{width x height} so we must use the 
+        // scale from dimension needing smallest scale.
+        double scale = Math.min( scaleW, scaleH );
+        double needW = getWidth() * scale;
+        double needH = getHeight() * scale;
+        
+        PlanarImage original = getCorrectedImage( (int)needW, (int)needH, isLowQualityAllowed );
         PlanarImage cropped = getCropped( original);
         RenderedImage scaled = getScaled( (RenderedOp) cropped, maxWidth, maxHeight );
         return scaled;
     }
 
     /**
-     Get the image, adjusted according to current parameters and scaled to a 
-     specified resolution.
+     Get the image, adjusted according to current parameters and scaled with a 
+     specified factor.
      @param scale Scaling compared to original image file.
      @param isLowQualityAllowed Specifies whether image quality can be traded off 
      for speed/memory consumpltion optimizations.

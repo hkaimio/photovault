@@ -164,21 +164,7 @@ public class JAIPhotoViewer extends JPanel implements
     float rawConvScaling = 1.0f;
     
     public void setScale( float scale ) {
-        if ( rawImage != null ) {
-            // Check if the raw image needs to be refiltered
-            int minWidth = (int) (rawImage.getWidth() * scale);
-            int minHeight = (int) (rawImage.getHeight() * scale);
-            boolean needsReload = rawImage.setMinimumPreferredSize( 
-                    minWidth, minHeight ); 
-            RenderedImage img = rawImage.getCorrectedImage();
-            rawConvScaling = img.getWidth() / (float) rawImage.getWidth();
-            imageView.setScale( scale/rawConvScaling );
-            if ( needsReload ) {
-                setImage( rawImage );
-            }
-        } else {
-            imageView.setScale(scale);
-        }
+        imageView.setScale(scale);
     }
 
     public float getScale() {

@@ -83,7 +83,15 @@ public class ImageIOImage extends PhotovaultImage {
         return i;
     }
     
+    /**
+     The loaded image file
+     */
     PlanarImage image = null;
+    
+    /**
+     If true, the loaded image stored in {@see image} is loaded with low quality.
+     */
+    boolean imageIsLowQuality = false;
     
     /**
      Get the image pixel data. If the iamge has not been read earlier, this method
@@ -96,7 +104,9 @@ public class ImageIOImage extends PhotovaultImage {
      @return The image data as an RenderedImage.
      */
     public PlanarImage getCorrectedImage( int minWidth, int minHeight, boolean isLowQualityAllowed ) {
-        if ( image == null ) {
+        if ( image == null ||
+                (minWidth > image.getWidth() || minHeight > image.getHeight() ) ||
+                ( imageIsLowQuality && !isLowQualityAllowed ) ) {
             load( true, (metadata == null), minWidth, minHeight, isLowQualityAllowed );
         }
         return image;
@@ -372,6 +382,7 @@ public class ImageIOImage extends PhotovaultImage {
                         }
                         image = (ri == null) ?
                             null : new RenderedImageAdapter( ri );
+                        imageIsLowQuality = isLowQualityAllowed;
                     }
                     if ( loadMetadata ) {
                         Set<String> nodes = new HashSet<String>();

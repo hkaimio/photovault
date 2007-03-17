@@ -399,8 +399,13 @@ public class RawImage extends PhotovaultImage {
      */
     public PlanarImage getCorrectedImage( int minWidth, int minHeight, 
             boolean isLowQualityAcceptable ) {
-        if ( rawImage == null ) {
+
+        boolean isHalfSizeEnough = 
+                (minWidth * 2 <= width) && ( minHeight * 2 <= height );
+        if ( rawImage == null || ( rawIsHalfSized && !isHalfSizeEnough ) ) {
+            dcraw.setHalfSize( isHalfSizeEnough );
             loadRawImage();
+            correctedImage = null;
         }
         if ( correctedImage == null ) {
             createGammaLut();
@@ -419,6 +424,7 @@ public class RawImage extends PhotovaultImage {
      @return <code>True</code> if given minimum size was larger than the already 
      loaded version. In this case the caller should reload image using 
      {@link getCorrectedImage()}.
+     @deprecated Use scaling paremeters in getRenderedImage instead.
      */
     public boolean setMinimumPreferredSize( int minWidth, int minHeight ) {
         boolean needsReload = ( correctedImage == null );
