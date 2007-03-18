@@ -77,16 +77,16 @@ public abstract class PhotovaultImage {
      Get the original image
      @deprecated USe getRenderedImage instead
      */
-    public abstract PlanarImage getCorrectedImage( int minWidth, 
+    public abstract RenderableOp getCorrectedImage( int minWidth, 
             int minHeight, boolean isLowQualityAllowed );
 
-    PlanarImage previousCorrectedImage = null;
+    RenderableOp previousCorrectedImage = null;
     
     /**
      Get the original image
      @deprecated USe getRenderedImage instead
      */    
-    public RenderedImage getCorrectedImage() {
+    public RenderableOp getCorrectedImage() {
         return getCorrectedImage( Integer.MAX_VALUE, Integer.MAX_VALUE, false );
     }
 
@@ -98,13 +98,11 @@ public abstract class PhotovaultImage {
      */
     RenderableOp saturatedIhsImage = null;
     
-    private void buildPipeline(RenderedImage original) {
-        origRenderable = RenderableDescriptor.createRenderable( original, null, new Integer(64), 
-                new Float(0.0f), new Float(0.0f), new Float(1.0f), null );
-        cropped = getCropped( origRenderable );
+    protected void buildPipeline(RenderableOp original) {
+        cropped = getCropped( original );
 //        RenderableOp scaled = getScaled( cropped, maxWidth, maxHeight );
         saturated = getSaturated( cropped );    
-        previousCorrectedImage = (PlanarImage) original;
+        previousCorrectedImage = original;
     }
         
     /**
@@ -142,7 +140,7 @@ public abstract class PhotovaultImage {
         double needW = getWidth() * scale;
         double needH = getHeight() * scale;
         
-        RenderedImage original = getCorrectedImage( (int)needW, (int)needH, isLowQualityAllowed );
+        RenderableOp original = getCorrectedImage( (int)needW, (int)needH, isLowQualityAllowed );
         if ( previousCorrectedImage != original ) {
             buildPipeline( original );
         }
@@ -167,7 +165,7 @@ public abstract class PhotovaultImage {
      */
     
     public RenderedImage getRenderedImage( double scale, boolean isLowQualityAllowed ) {
-        PlanarImage original = getCorrectedImage( (int)(getWidth()*scale),
+        RenderableOp original = getCorrectedImage( (int)(getWidth()*scale),
                 (int)(getHeight()*scale), isLowQualityAllowed );
         if ( previousCorrectedImage != original ) {
             buildPipeline( original );

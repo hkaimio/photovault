@@ -20,28 +20,22 @@
 
 package org.photovault.dcraw;
 
-import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
-import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
-import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
@@ -50,8 +44,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.Histogram;
-import javax.media.jai.ImageLayout;
-import javax.media.jai.JAI;
 import javax.media.jai.LookupTableJAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
@@ -93,6 +85,11 @@ public class RawImage extends PhotovaultImage {
      reading.
      */
     PlanarImage rawImage = null;
+
+    /**
+     Raw image with WB correction applied
+     */              
+    RenderableOp wbAdjustedRawImage = null;
     
     /**
      Is the raw image loaded only half of the actual resolution?
@@ -104,7 +101,7 @@ public class RawImage extends PhotovaultImage {
      has not been converted or the conversion settings have been changed after
      reading.
      */
-    PlanarImage correctedImage = null;
+    RenderableOp correctedImage = null;
     
     /**
      Is this file really a raw image?
@@ -304,8 +301,7 @@ public class RawImage extends PhotovaultImage {
      */
     public void setEvCorr( double evCorr ) {
         this.evCorr = evCorr;
-        correctedImage = null;
-        rawSettings = null;
+        applyGammaLut();
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
     
@@ -331,8 +327,7 @@ public class RawImage extends PhotovaultImage {
      */
     public void setHighlightCompression( double c ) {
         highlightCompression = c;
-        correctedImage = null;
-        rawSettings = null;
+        applyGammaLut();
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
     
@@ -402,7 +397,7 @@ public class RawImage extends PhotovaultImage {
      *     Get a 8 bit gamma corrected version of the image.
      * @return The corrected image
      */
-    public PlanarImage getCorrectedImage( int minWidth, int minHeight, 
+    public RenderableOp getCorrectedImage( int minWidth, int minHeight, 
             boolean isLowQualityAcceptable ) {
 
         boolean isHalfSizeEnough = 
@@ -415,16 +410,9 @@ public class RawImage extends PhotovaultImage {
         if ( correctedImage == null ) {
             createGammaLut();
             LookupTableJAI jailut = new LookupTableJAI( gammaLut );
-            correctedImage = JAI.create( "lookup", rawImage, jailut );
-            ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_sRGB );
-            ColorModel targetCM = new ComponentColorModel( cs, new int[]{8,8,8},
-                    false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE );
-	    ImageLayout imageLayout = new ImageLayout();  
-            imageLayout.setColorModel(targetCM);
-            RenderingHints rendHints =
-                    new RenderingHints(JAI.KEY_IMAGE_LAYOUT,imageLayout);
             
-            correctedImage = LookupDescriptor.create( rawImage, jailut, rendHints );
+            // TODO: Why setting color model as a rendering hint produces black image???
+            correctedImage  = LookupDescriptor.createRenderable( wbAdjustedRawImage, jailut, null );
             
         }
         return correctedImage;
@@ -474,7 +462,21 @@ public class RawImage extends PhotovaultImage {
                 chanMultipliers = cameraMultipliers.clone();
                 calcCTemp();
             }
-            dcraw.setWbCoeffs( chanMultipliers );
+            /*
+             The actual raw conversion is done with the moltipliers recommended
+             by camera for daylight. This is done for 2 reasons:
+             - to ensure that the (potentially non-linear) camera ICC profile
+               will be applied in similar way regardless of white balance settings
+             - To speed up interactive color adjustment (no need to caal dcraw every
+               time wb is adjusted
+             */
+            double dl[] = new double[4];
+            dl[0] = daylightMultipliers[0];
+            dl[1] = daylightMultipliers[1];
+            dl[2] = daylightMultipliers[2];
+            dl[3] = daylightMultipliers[1];
+            dcraw.setWbCoeffs( dl );
+            
             InputStream is = dcraw.getRawImageAsTiff( f );
             Iterator readers = ImageIO.getImageReadersByFormatName( "TIFF" );
             ImageReader reader = (ImageReader)readers.next();
@@ -490,7 +492,21 @@ public class RawImage extends PhotovaultImage {
                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_USHORT );
             
             
-            rawImage = new RenderedImageAdapter( new BufferedImage( targetCM, r, true, null ) );
+            rawImage = new RenderedImageAdapter( new BufferedImage( targetCM, r, 
+                    true, null ) );
+            RenderableOp rawImageRenderable = 
+                    RenderableDescriptor.createRenderable( rawImage, 
+                    null, null, null, null, null, null );
+            double colorCorrMat[][] = new double[][] {
+                {colorCorr[0], 0.0, 0.0, 0.0 },
+                {0.0, colorCorr[1], 0.0, 0.0 },
+                {0.0, 0.0, colorCorr[2], 0.0 }
+            };
+            
+            wbAdjustedRawImage = 
+                    BandCombineDescriptor.createRenderable( rawImageRenderable, 
+                    colorCorrMat, null );
+            
             reader.getImageMetadata( 0 );
             rawIsHalfSized = dcraw.ishalfSize();
             
@@ -515,7 +531,8 @@ public class RawImage extends PhotovaultImage {
         int numBins[] = {65536};
         double lowVal[] = {0.};
         double highVal[] = {65535.};
-        RenderedOp histOp = HistogramDescriptor.create( rawImage, null,
+        RenderedOp histOp = 
+                HistogramDescriptor.create( rawImage, null,
                 new Integer(1), new Integer(1),
                 numBins, lowVal, highVal, null );
         
@@ -553,6 +570,7 @@ public class RawImage extends PhotovaultImage {
     
     static double MAX_AUTO_HLIGHT_COMP = 1.0;
     static double MIN_AUTO_HLIGHT_COMP = 0.0;
+
     /**
      * Calculate the auto exposure settings
      */
@@ -785,6 +803,14 @@ public class RawImage extends PhotovaultImage {
         }
     }
     
+    private void applyGammaLut() {
+        createGammaLut();
+        LookupTableJAI jailut = new LookupTableJAI( gammaLut );
+        if ( correctedImage != null ) {
+            correctedImage.setParameter( jailut, 0 );
+        }
+    }
+    
     /**
      * Get the width of corrected image
      * @return Width in pixels
@@ -875,13 +901,16 @@ public class RawImage extends PhotovaultImage {
         return result;
     }
     
+    double colorCorr[] = new double[] {1.0, 1.0, 1.0};
+    
     /**
      * Set the color temperature to use when converting the image
      * @param T Color temperature (in Kelvin)
      */
     public void setColorTemp( double T ) {
         ctemp = T;
-        
+
+        applyWbCorrection();
         double rgb[] = colorTempToRGB( T );
         
         // Update the multipliers
@@ -890,10 +919,7 @@ public class RawImage extends PhotovaultImage {
         chanMultipliers[1] = daylightMultipliers[1]/rgb[1] / greenGain;
         chanMultipliers[2] = daylightMultipliers[2]/rgb[2];
         chanMultipliers[3] = chanMultipliers[1] / greenGain;
-        dcraw.setWbCoeffs( chanMultipliers );
-        correctedImage = null;
-        rawImage = null;
-        rawSettings = null;
+
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
     
@@ -903,22 +929,29 @@ public class RawImage extends PhotovaultImage {
      */
     public void setGreenGain( double g ) {
         greenGain = g;
+        applyWbCorrection();
         
         double rgb[] = colorTempToRGB( ctemp );
         
-        // Update the multipliers
-        chanMultipliers = new double[4];
-        chanMultipliers[0] = daylightMultipliers[0]/rgb[0];
-        chanMultipliers[1] = daylightMultipliers[1]/rgb[1] / greenGain;
-        chanMultipliers[2] = daylightMultipliers[2]/rgb[2];
-        chanMultipliers[3] = chanMultipliers[1] / greenGain;
-        dcraw.setWbCoeffs( chanMultipliers );
-        correctedImage = null;
-        rawImage = null;
         rawSettings = null;
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
     
+    private void applyWbCorrection() {
+        double rgb[] = colorTempToRGB( ctemp );
+        colorCorr = new double[3];
+        colorCorr[0] = 1.0/rgb[0];
+        colorCorr[1] = 1.0/rgb[1] / greenGain;
+        colorCorr[2] = 1.0/rgb[2];
+        double colorCorrMat[][] = new double[][] {
+            {colorCorr[0], 0.0, 0.0, 0.0 },
+            {0.0, colorCorr[1], 0.0, 0.0 },
+            {0.0, 0.0, colorCorr[2], 0.0 }
+        };
+        if ( wbAdjustedRawImage != null ) {
+            wbAdjustedRawImage.setParameter( colorCorrMat, 0 );
+        }
+    }
     
     /**
      * Get color temperature of the image
@@ -991,28 +1024,34 @@ public class RawImage extends PhotovaultImage {
         }
         rawSettings = s;
         
+        if ( chanMultipliers == null ||
+                Math.abs( daylightMultipliers[0] - s.getDaylightRedGreenRatio() ) > 0.001 ||
+                Math.abs( daylightMultipliers[2] - s.getDaylightBlueGreenRatio() ) > 0.001 ) {
+            // Daylight settings have changed,  image must be reloaded
+            daylightMultipliers = new double[3];
+            daylightMultipliers[0] = s.getDaylightRedGreenRatio();
+            daylightMultipliers[1] = 1.;
+            daylightMultipliers[2] = s.getDaylightBlueGreenRatio();
+            correctedImage = null;
+            rawImage = null;
+        }
+        
         chanMultipliers = new double[4];
         chanMultipliers[0] = s.getRedGreenRatio();
         chanMultipliers[1] = 1.;
         chanMultipliers[2] = s.getBlueGreenRatio();
         chanMultipliers[3] = 1.;
-        dcraw.setWbCoeffs( chanMultipliers );
-        
-        daylightMultipliers = new double[3];
-        daylightMultipliers[0] = s.getDaylightRedGreenRatio();
-        daylightMultipliers[1] = 1.;
-        daylightMultipliers[2] = s.getDaylightBlueGreenRatio();
         calcCTemp();
+        applyWbCorrection();
         
         evCorr = s.getEvCorr();
         highlightCompression = s.getHighlightCompression();
         white = s.getWhite();
         black = s.getBlack();
+        applyGammaLut();
         hasICCProfile = s.getUseEmbeddedICCProfile();
-        colorProfile = s.getColorProfile();
+        colorProfile = s.getColorProfile();        
         
-        correctedImage = null;
-        rawImage = null;
         autoExposeRequested = false;
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }

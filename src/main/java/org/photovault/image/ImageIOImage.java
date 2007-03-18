@@ -50,7 +50,9 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.PlanarImage;
+import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedImageAdapter;
+import javax.media.jai.operator.RenderableDescriptor;
 import org.photovault.imginfo.ImageInstance;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -87,6 +89,7 @@ public class ImageIOImage extends PhotovaultImage {
      The loaded image file
      */
     PlanarImage image = null;
+    RenderableOp renderableImage = null;
     
     /**
      If true, the loaded image stored in {@see image} is loaded with low quality.
@@ -103,13 +106,13 @@ public class ImageIOImage extends PhotovaultImage {
      (like increase subsampling)
      @return The image data as an RenderedImage.
      */
-    public PlanarImage getCorrectedImage( int minWidth, int minHeight, boolean isLowQualityAllowed ) {
+    public RenderableOp getCorrectedImage( int minWidth, int minHeight, boolean isLowQualityAllowed ) {
         if ( image == null ||
                 (minWidth > image.getWidth() || minHeight > image.getHeight() ) ||
                 ( imageIsLowQuality && !isLowQualityAllowed ) ) {
             load( true, (metadata == null), minWidth, minHeight, isLowQualityAllowed );
         }
-        return image;
+        return renderableImage;
     }
     
 
@@ -380,11 +383,18 @@ public class ImageIOImage extends PhotovaultImage {
                         } else {
                             ri = reader.read( 0, null );
                         }
-                        image = (ri == null) ?
-                            null : new RenderedImageAdapter( ri );
+                        if ( ri != null ) {
+                            image =  new RenderedImageAdapter( ri );
+                            renderableImage =
+                                    RenderableDescriptor.createRenderable(
+                                    image, null, null, null, null, null, null );
+                        } else {
+                            image = null;
+                            renderableImage = null;
+                        }
                         imageIsLowQuality = isLowQualityAllowed;
                     }
-                    if ( loadMetadata ) {
+                    if (loadMetadata ) {
                         Set<String> nodes = new HashSet<String>();
                         nodes.add( "unknown" );
                         IIOMetadata metadata = reader.getImageMetadata( 0,
