@@ -450,6 +450,10 @@ public class JAIPhotoViewer extends JPanel implements
             }
         }
     }
+
+    public void setSaturation(double newSat) {
+        imageView.setSaturation( newSat );
+    }
     
     JAIPhotoView imageView = null;
     JScrollPane scrollPane = null;

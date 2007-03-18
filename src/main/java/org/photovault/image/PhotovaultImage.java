@@ -20,16 +20,26 @@
 
 package org.photovault.image;
 
+import java.awt.RenderingHints;
+import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
+import java.awt.image.SampleModel;
+import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
 import java.util.Date;
+import javax.media.jai.IHSColorSpace;
+import javax.media.jai.ImageLayout;
 import javax.media.jai.Interpolation;
 import javax.media.jai.JAI;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderedOp;
+import javax.media.jai.operator.MultiplyConstDescriptor;
 
 /**
  PhotovaultImage is a facade fro Photovault imaging pipeline. It is abstract 
@@ -111,7 +121,8 @@ public abstract class PhotovaultImage {
         PlanarImage original = getCorrectedImage( (int)needW, (int)needH, isLowQualityAllowed );
         PlanarImage cropped = getCropped( original);
         RenderedImage scaled = getScaled( (RenderedOp) cropped, maxWidth, maxHeight );
-        return scaled;
+        RenderedImage saturated = getSaturated( (PlanarImage) scaled, saturation );
+        return saturated;
     }
 
     /**
@@ -128,6 +139,7 @@ public abstract class PhotovaultImage {
                 (int)(getHeight()*scale), isLowQualityAllowed );
         PlanarImage cropped = getCropped( original);
         RenderedImage scaled = getScaled( (RenderedOp) cropped, scale );
+        RenderedImage saturated = getSaturated( (PlanarImage) scaled, saturation );
         return scaled;
     }
     
@@ -163,6 +175,16 @@ public abstract class PhotovaultImage {
      */
     public double getRotation() {
         return rot;
+    }
+    
+    double saturation = 1.0;
+    
+    public void setSaturation( double s ) {
+        saturation = s;
+    }
+    
+    public double getSaturation() {
+        return saturation;
     }
     
     double cropMinX = 0.0;
@@ -265,6 +287,48 @@ public abstract class PhotovaultImage {
         RenderedOp scaledImage = JAI.create( "affine", scaleParams );
         return scaledImage;        
     }    
+    
+    protected PlanarImage getSaturated( PlanarImage src, double saturation ) {
+        IHSColorSpace ihs = IHSColorSpace.getInstance();
+        SampleModel origSampleModel = src.getSampleModel();
+        ColorModel ihsColorModel =
+                new ComponentColorModel(ihs,
+                origSampleModel.getSampleSize().clone(),
+                false,false,
+                Transparency.OPAQUE,
+                origSampleModel.getDataType() );
+        // Create a ParameterBlock for the conversion.
+        ParameterBlock pb = new ParameterBlock();
+        pb.addSource( src );
+        pb.add(ihsColorModel);
+        // Do the conversion.
+        RenderedImage ihsImage  = JAI.create("colorconvert", pb );
+        RenderedImage[] bands = new RenderedImage[3];
+        for(int band=0;band<3;band++) {
+            pb = new ParameterBlock();
+            pb.addSource(ihsImage);
+            pb.add(new int[]{band});
+            bands[band] = JAI.create("bandselect",pb);
+        }
+        RenderedOp saturatedChan =
+                MultiplyConstDescriptor.create( bands[2], new double[] {saturation}, null );
+         pb = new ParameterBlock();
+        pb.addSource(bands[0]);
+        pb.addSource(bands[1]);
+        pb.addSource( saturatedChan );
+        ImageLayout imageLayout = new ImageLayout();
+        imageLayout.setColorModel(ihsColorModel);
+        imageLayout.setSampleModel(ihsImage.getSampleModel());
+        RenderingHints rendHints =
+                new RenderingHints(JAI.KEY_IMAGE_LAYOUT,imageLayout);        
+        PlanarImage saturatedIhsImage = JAI.create("bandmerge", pb, rendHints );
+        pb = new ParameterBlock();
+        pb.addSource(saturatedIhsImage);
+        pb.add(src.getColorModel()); // RGB color model!        
+        PlanarImage saturatedImage = JAI.create("colorconvert", pb );
+        
+        return saturatedImage;
+    }
     
     /**
      * Get the film speed setting used when shooting the image

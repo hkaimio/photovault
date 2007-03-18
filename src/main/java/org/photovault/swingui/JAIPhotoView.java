@@ -596,6 +596,15 @@ public class JAIPhotoView extends JPanel
         return (Rectangle2D) crop.clone();
     }
     
+    
+    void setSaturation(double newSat) {
+        if ( origImage != null ) {
+            origImage.setSaturation( newSat );
+            xformImage = null;
+            repaint();
+        }
+    }
+    
     private double imgRot;
     private Rectangle2D crop;
     
@@ -824,6 +833,7 @@ public class JAIPhotoView extends JPanel
         paramEditor.setYmax( newCrop.getY() + newCrop.getHeight() );
         paramEditor.setRot( this.newRotDegrees );
     }
+
     
     // The image that is viewed
     PhotovaultImage origImage = null;

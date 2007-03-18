@@ -186,6 +186,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         greenGainLabels.put( new Double( 0.0 ), new JLabel("0") );
         greenGainLabels.put( new Double( 1.0 ), new JLabel("+1") );
         greenGainSlider.setLabelTable( greenGainLabels );
+        saturationSlider = new org.photovault.swingui.color.FieldSliderCombo();
+        label1 = new java.awt.Label();
         rawHistogramPane = rawHistogramPane = new HistogramPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -296,6 +298,16 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
 
+        saturationSlider.setMaximum(2.0);
+        saturationSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                saturationSliderStateChanged(evt);
+            }
+        });
+
+        label1.setFont(new java.awt.Font("Dialog", 1, 12));
+        label1.setText("Saturation");
+
         org.jdesktop.layout.GroupLayout rawSettingsPaneLayout = new org.jdesktop.layout.GroupLayout(rawSettingsPane);
         rawSettingsPane.setLayout(rawSettingsPaneLayout);
         rawSettingsPaneLayout.setHorizontalGroup(
@@ -314,9 +326,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                             .add(jLabel5)
                             .add(jLabel2)
                             .add(jLabel4)
-                            .add(jLabel6))
+                            .add(jLabel6)
+                            .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, saturationSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
                             .add(org.jdesktop.layout.GroupLayout.TRAILING, greenGainSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
                             .add(org.jdesktop.layout.GroupLayout.TRAILING, blackLevelSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
                             .add(hlightCompSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
@@ -353,8 +367,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(colorProfileCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(newProfileBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 24, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel6))
+                    .add(jLabel6)
+                    .add(newProfileBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 24, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(saturationSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -395,9 +413,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .add(rawSettingsPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 17, Short.MAX_VALUE)
                 .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 7, Short.MAX_VALUE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(closeBtn)
                     .add(discardBtn)
@@ -407,6 +425,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         );
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void saturationSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_saturationSliderStateChanged
+        double saturation = saturationSlider.getValue();
+        notifyPreviewSaturationChange( saturation );
+    }//GEN-LAST:event_saturationSliderStateChanged
 
     private void greenGainSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_greenGainSliderStateChanged
         double greenEv = greenGainSlider.getValue();
@@ -625,6 +648,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             previewCtrl.previewRawSettingsChanged( e );
         }
         
+    }
+    
+    void notifyPreviewSaturationChange( double newSat ) {
+        if ( previewCtrl != null ) {
+            previewCtrl.setSaturation( newSat );
+        }        
     }
     
     /**
@@ -1133,10 +1162,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private java.awt.Label label1;
     private javax.swing.JButton newProfileBtn;
     private javax.swing.JButton okBtn;
     private javax.swing.JPanel rawHistogramPane;
     private javax.swing.JPanel rawSettingsPane;
+    private org.photovault.swingui.color.FieldSliderCombo saturationSlider;
     // End of variables declaration//GEN-END:variables
     
 }
