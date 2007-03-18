@@ -22,10 +22,12 @@ package org.photovault.image;
 
 import java.awt.RenderingHints;
 import java.awt.Transparency;
+import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
+import java.awt.image.ComponentSampleModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
@@ -38,8 +40,11 @@ import javax.media.jai.Interpolation;
 import javax.media.jai.JAI;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
+import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedOp;
+import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.MultiplyConstDescriptor;
+import javax.media.jai.operator.RenderableDescriptor;
 
 /**
  PhotovaultImage is a facade fro Photovault imaging pipeline. It is abstract 
@@ -75,6 +80,8 @@ public abstract class PhotovaultImage {
     public abstract PlanarImage getCorrectedImage( int minWidth, 
             int minHeight, boolean isLowQualityAllowed );
 
+    PlanarImage previousCorrectedImage = null;
+    
     /**
      Get the original image
      @deprecated USe getRenderedImage instead
@@ -82,7 +89,24 @@ public abstract class PhotovaultImage {
     public RenderedImage getCorrectedImage() {
         return getCorrectedImage( Integer.MAX_VALUE, Integer.MAX_VALUE, false );
     }
+
+    RenderableOp origRenderable = null;
+    RenderableOp cropped = null;
+    RenderableOp saturated = null;
+    /**
+     The multiplyChan operation used to adjust saturation
+     */
+    RenderableOp saturatedIhsImage = null;
     
+    private void buildPipeline(RenderedImage original) {
+        origRenderable = RenderableDescriptor.createRenderable( original, null, new Integer(64), 
+                new Float(0.0f), new Float(0.0f), new Float(1.0f), null );
+        cropped = getCropped( origRenderable );
+//        RenderableOp scaled = getScaled( cropped, maxWidth, maxHeight );
+        saturated = getSaturated( cropped );    
+        previousCorrectedImage = (PlanarImage) original;
+    }
+        
     /**
      Get the image, adjusted according to current parameters and scaled to a 
      specified resolution.
@@ -118,11 +142,19 @@ public abstract class PhotovaultImage {
         double needW = getWidth() * scale;
         double needH = getHeight() * scale;
         
-        PlanarImage original = getCorrectedImage( (int)needW, (int)needH, isLowQualityAllowed );
-        PlanarImage cropped = getCropped( original);
-        RenderedImage scaled = getScaled( (RenderedOp) cropped, maxWidth, maxHeight );
-        RenderedImage saturated = getSaturated( (PlanarImage) scaled, saturation );
-        return saturated;
+        RenderedImage original = getCorrectedImage( (int)needW, (int)needH, isLowQualityAllowed );
+        if ( previousCorrectedImage != original ) {
+            buildPipeline( original );
+        }
+
+        int renderingWidth = maxWidth;
+        int renderingHeight = (int) (renderingWidth * cropH / cropW);
+        if ( renderingHeight > maxHeight ) {
+            renderingHeight = maxHeight;
+            renderingWidth = (int) (renderingHeight * cropW / cropH);
+        }
+        RenderedImage rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, null );
+        return rendered;
     }
 
     /**
@@ -135,12 +167,15 @@ public abstract class PhotovaultImage {
      */
     
     public RenderedImage getRenderedImage( double scale, boolean isLowQualityAllowed ) {
-        PlanarImage original = getCorrectedImage( (int)(getWidth()*scale), 
+        PlanarImage original = getCorrectedImage( (int)(getWidth()*scale),
                 (int)(getHeight()*scale), isLowQualityAllowed );
-        PlanarImage cropped = getCropped( original);
-        RenderedImage scaled = getScaled( (RenderedOp) cropped, scale );
-        RenderedImage saturated = getSaturated( (PlanarImage) scaled, saturation );
-        return scaled;
+        if ( previousCorrectedImage != original ) {
+            buildPipeline( original );
+        }
+        int renderingWidth = (int)( getWidth() * scale );
+        int renderingHeight = (int)( getHeight() * scale );
+        RenderedImage rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, null );
+        return rendered;
     }
     
     
@@ -181,6 +216,7 @@ public abstract class PhotovaultImage {
     
     public void setSaturation( double s ) {
         saturation = s;
+        saturatedIhsImage.setParameter( new double[]{1.0, 1.0, s}, 0 );
     }
     
     public double getSaturation() {
@@ -214,7 +250,7 @@ public abstract class PhotovaultImage {
             cropMinY = tmp;
         }        
     }
-    
+
     /**
      Get the current crop bounds
      @return Crop bounds
@@ -224,9 +260,9 @@ public abstract class PhotovaultImage {
                 cropMaxX-cropMinX, cropMaxY-cropMinY );
     }
 
-    protected PlanarImage getCropped( PlanarImage uncroppedImage ) {
-        int origWidth = uncroppedImage.getWidth();
-        int origHeight = uncroppedImage.getHeight();
+    protected RenderableOp getCropped( RenderableOp uncroppedImage ) {
+        float origWidth = uncroppedImage.getWidth();
+        float origHeight = uncroppedImage.getHeight();
         
         AffineTransform xform = org.photovault.image.ImageXform.getRotateXform(
                 rot, origWidth, origHeight );
@@ -236,7 +272,7 @@ public abstract class PhotovaultImage {
         rotParams.setParameter( "transform", xform );
         rotParams.setParameter( "interpolation",
                 Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
-        RenderedOp rotatedImage = JAI.create( "affine", rotParams );
+        RenderableOp rotatedImage = JAI.createRenderable( "affine", rotParams );
         
         ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
         cropParams.addSource( rotatedImage );
@@ -244,25 +280,25 @@ public abstract class PhotovaultImage {
         cropWidth = ( cropWidth > 0.000001 ) ? cropWidth : 0.000001f;
         float cropHeight = (float) (cropMaxY - cropMinY);
         cropHeight = ( cropHeight > 0.000001 ) ? cropHeight : 0.000001f;        
-        float cropX = (float)( Math.rint( rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth() ) );
-        float cropY = (float)( Math.rint( rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight()));
-        float cropW = (float)( Math.rint((cropWidth) * rotatedImage.getWidth() ) );
-        float cropH = (float) ( Math.rint((cropHeight) * rotatedImage.getHeight() ));
+        float cropX = (float)(rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth());
+        float cropY = (float)(rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight());
+        float cropW = cropWidth * rotatedImage.getWidth();
+        float cropH = cropHeight * rotatedImage.getHeight();
         cropParams.setParameter( "x", cropX );
         cropParams.setParameter( "y", cropY );
         cropParams.setParameter( "width", cropW );
         cropParams.setParameter( "height", cropH );
-        RenderedOp cropped = JAI.create("crop", cropParams, null);
+        RenderableOp cropped = JAI.createRenderable("crop", cropParams, null);
         // Translate the image so that it begins in origo
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
         pbXlate.addSource( cropped );
         pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
         pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
-        RenderedOp xformImage = JAI.create( "translate", pbXlate );
+        RenderableOp xformImage = JAI.createRenderable( "translate", pbXlate );
         return xformImage;
     }
     
-    protected PlanarImage getScaled( PlanarImage unscaledImage, int maxWidth, int maxHeight ) {
+    protected PlanarImage getScaled( RenderableOp unscaledImage, int maxWidth, int maxHeight ) {
         AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( maxWidth, maxHeight,
                 0, unscaledImage.getWidth(), unscaledImage.getHeight() );
         ParameterBlockJAI scaleParams = new ParameterBlockJAI( "affine" );
@@ -288,44 +324,33 @@ public abstract class PhotovaultImage {
         return scaledImage;        
     }    
     
-    protected PlanarImage getSaturated( PlanarImage src, double saturation ) {
+    protected RenderableOp getSaturated( RenderableOp src ) {
         IHSColorSpace ihs = IHSColorSpace.getInstance();
-        SampleModel origSampleModel = src.getSampleModel();
         ColorModel ihsColorModel =
                 new ComponentColorModel(ihs,
-                origSampleModel.getSampleSize().clone(),
+                new int[]{8,8,8},
                 false,false,
                 Transparency.OPAQUE,
-                origSampleModel.getDataType() );
+                DataBuffer.TYPE_BYTE );
         // Create a ParameterBlock for the conversion.
         ParameterBlock pb = new ParameterBlock();
         pb.addSource( src );
         pb.add(ihsColorModel);
         // Do the conversion.
-        RenderedImage ihsImage  = JAI.create("colorconvert", pb );
-        RenderedImage[] bands = new RenderedImage[3];
-        for(int band=0;band<3;band++) {
-            pb = new ParameterBlock();
-            pb.addSource(ihsImage);
-            pb.add(new int[]{band});
-            bands[band] = JAI.create("bandselect",pb);
-        }
-        RenderedOp saturatedChan =
-                MultiplyConstDescriptor.create( bands[2], new double[] {saturation}, null );
-         pb = new ParameterBlock();
-        pb.addSource(bands[0]);
-        pb.addSource(bands[1]);
-        pb.addSource( saturatedChan );
-        ImageLayout imageLayout = new ImageLayout();
-        imageLayout.setColorModel(ihsColorModel);
-        imageLayout.setSampleModel(ihsImage.getSampleModel());
-        RenderingHints rendHints =
-                new RenderingHints(JAI.KEY_IMAGE_LAYOUT,imageLayout);        
-        PlanarImage saturatedIhsImage = JAI.create("bandmerge", pb, rendHints );
+        RenderableOp ihsImage  = JAI.createRenderable("colorconvert", pb );
+        saturatedIhsImage =
+                MultiplyConstDescriptor.createRenderable( ihsImage, new double[] {1.0, 1.0, saturation}, null );
         pb = new ParameterBlock();
         pb.addSource(saturatedIhsImage);
-        pb.add(src.getColorModel()); // RGB color model!        
-        PlanarImage saturatedImage = JAI.create("colorconvert", pb );
+        ColorSpace sRGB = ColorSpace.getInstance( ColorSpace.CS_sRGB );
+        ColorModel srgbColorModel =
+                new ComponentColorModel(sRGB,
+                new int[]{8,8,8},
+                false,false,
+                Transparency.OPAQUE,
+                DataBuffer.TYPE_BYTE );
+        pb.add(srgbColorModel); // RGB color model!        
+        RenderableOp saturatedImage = JAI.createRenderable("colorconvert", pb );
         
         return saturatedImage;
     }
@@ -365,5 +390,6 @@ public abstract class PhotovaultImage {
      * not available
      */
     public abstract Date getTimestamp();
-    
+
+
 }

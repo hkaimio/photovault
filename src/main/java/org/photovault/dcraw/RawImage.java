@@ -20,6 +20,7 @@
 
 package org.photovault.dcraw;
 
+import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
@@ -49,13 +50,17 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.Histogram;
+import javax.media.jai.ImageLayout;
 import javax.media.jai.JAI;
 import javax.media.jai.LookupTableJAI;
 import javax.media.jai.PlanarImage;
+import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedImageAdapter;
 import javax.media.jai.RenderedOp;
 import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
+import javax.media.jai.operator.LookupDescriptor;
+import javax.media.jai.operator.RenderableDescriptor;
 import org.photovault.common.PhotovaultException;
 import org.photovault.image.PhotovaultImage;
 
@@ -200,7 +205,7 @@ public class RawImage extends PhotovaultImage {
     private int height;
     
     private int histBins[][];
-    
+
     /**
      Returns true if this file is really a raw image file that can be decoded.
      */
@@ -411,6 +416,16 @@ public class RawImage extends PhotovaultImage {
             createGammaLut();
             LookupTableJAI jailut = new LookupTableJAI( gammaLut );
             correctedImage = JAI.create( "lookup", rawImage, jailut );
+            ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_sRGB );
+            ColorModel targetCM = new ComponentColorModel( cs, new int[]{8,8,8},
+                    false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE );
+	    ImageLayout imageLayout = new ImageLayout();  
+            imageLayout.setColorModel(targetCM);
+            RenderingHints rendHints =
+                    new RenderingHints(JAI.KEY_IMAGE_LAYOUT,imageLayout);
+            
+            correctedImage = LookupDescriptor.create( rawImage, jailut, rendHints );
+            
         }
         return correctedImage;
     }
@@ -473,6 +488,8 @@ public class RawImage extends PhotovaultImage {
             ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_LINEAR_RGB );
             ColorModel targetCM = new ComponentColorModel( cs, new int[]{16,16,16},
                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_USHORT );
+            
+            
             rawImage = new RenderedImageAdapter( new BufferedImage( targetCM, r, true, null ) );
             reader.getImageMetadata( 0 );
             rawIsHalfSized = dcraw.ishalfSize();

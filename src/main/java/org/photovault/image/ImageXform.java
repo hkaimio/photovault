@@ -39,7 +39,7 @@ public class ImageXform {
        @param width Width of the image in pixels - used to calculate the needed translation after the roation
        @param height Heighjt of the image
     */
-    public static AffineTransform getScaleXform( double scale, double rot, int width, int height ) {
+    public static AffineTransform getScaleXform( double scale, double rot, double width, double height ) {
 	AffineTransform at = new AffineTransform();
  	at.rotate( rot*Math.PI/180.0 );
 	
@@ -50,7 +50,7 @@ public class ImageXform {
 	return at;
     }
 
-    public static AffineTransform getFittingXform( int newWidth, int newHeight, double rot, int curWidth, int curHeight ) {
+    public static AffineTransform getFittingXform( double newWidth, double newHeight, double rot, double curWidth, double curHeight ) {
 	AffineTransform at = new AffineTransform();
  	at.rotate( rot*Math.PI/180.0 );
 	
@@ -76,7 +76,7 @@ public class ImageXform {
      @param curHeight The current height of the image
      */
     
-    public static AffineTransform getRotateXform( double rot, int curWidth, int curHeight ) {
+    public static AffineTransform getRotateXform( double rot, double curWidth, double curHeight ) {
 	AffineTransform at = new AffineTransform();
  	at.rotate( rot*Math.PI/180.0 );
 	
@@ -87,7 +87,7 @@ public class ImageXform {
     }
 
     
-    private static Rectangle2D getBounds( AffineTransform xform, int w, int h ) {
+    private static Rectangle2D getBounds( AffineTransform xform, double w, double h ) {
 	double[] corners = {0.0f,              0.0f,
 			   0.0f,              (double) h,
 			   (double) w, (double) h,
