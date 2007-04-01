@@ -199,7 +199,7 @@ public class PhotoCollectionThumbView
     public Collection getSelection( ) {
         return new HashSet( selection );
     }
-
+    
     /**
        Returns the number of photos that are selected in this view
     */
@@ -207,6 +207,18 @@ public class PhotoCollectionThumbView
 	return selection.size();
     }
 	
+    /**
+     Removes given photo from selection if it currently is selected. If photo is 
+     removed, a selection change event is sent to all listeners.
+     @param p The photo that is removed from selection
+     */
+    
+    public void removeFromSelection( PhotoInfo p ) {
+        if ( selection.contains( p ) ) {
+            selection.remove( p );
+            fireSelectionChangeEvent();
+        }
+    }
 
     HashSet selection = new HashSet();
 
@@ -342,8 +354,9 @@ public class PhotoCollectionThumbView
                 KeyEvent.VK_X );
         JMenuItem exportSelected = new JMenuItem( exportSelectedAction );
         
+        ImageIcon deleteSelectedIcon = getIcon( "delete_image.png" );
         deleteSelectedAction 
-                = new DeletePhotoAction( this, "Delete", null, 
+                = new DeletePhotoAction( this, "Delete", deleteSelectedIcon, 
                 "Delete selected photos including all of their instances",
                 KeyEvent.VK_D );
         JMenuItem deleteSelected = new JMenuItem( deleteSelectedAction );

@@ -212,6 +212,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         exportAction.addStatusChangeListener( statusBar );
 	fileMenu.add( exportItem );
         
+        fileMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
+        
 	JMenuItem exitItem = new JMenuItem( "Exit", KeyEvent.VK_X );
 	exitItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
@@ -292,6 +294,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         updateBtn.setText( "" );
         JButton exportBtn = new JButton( viewPane.getExportSelectedAction() );
         exportBtn.setText( "" );
+        JButton deleteBtn = new JButton( viewPane.getDeleteSelectedAction() );
+        deleteBtn.setText( "" );
         
         JButton rotCWBtn = new JButton( viewPane.getRotateCWActionAction() );
         rotCWBtn.setText( "" );
@@ -319,6 +323,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         tb.add( indexBtn );
         tb.add( updateBtn );
         tb.add( exportBtn );
+        tb.add( deleteBtn );
         tb.addSeparator();
         tb.add( prevBtn );
         tb.add( nextBtn );

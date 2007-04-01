@@ -69,24 +69,29 @@ public class DeletePhotoAction extends AbstractAction implements SelectionChange
      Execute the action & delete photos.
      */
     public void actionPerformed(ActionEvent actionEvent) {
-        if ( JOptionPane.showConfirmDialog( view, 
-                "Are you sure that you want to permanently delete these photos?",
+        Collection photosToDelete = view.getSelection();
+        String warning = "All instances of selected photo" 
+                + ((photosToDelete.size() > 1) ? "s" : "")
+                + "\nwill be permanently deleted."
+                + "\n Do you want to proceed?";
+        if ( JOptionPane.showConfirmDialog( null, 
+                warning,
                 "Deleting " + view.getSelectedCount() + " photos", 
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE )
                 == JOptionPane.YES_OPTION ) {
-            Collection photosToDelete = view.getSelection();
             Iterator iter = photosToDelete.iterator();
             boolean allDeleted = true;
             while ( iter.hasNext() ) {
                 PhotoInfo photo = (PhotoInfo) iter.next();
                 try {
                     photo.delete( true );
+                    view.removeFromSelection( photo );
                 } catch (PhotovaultException ex) {
                     allDeleted = false;
                 }
             }
             if ( !allDeleted ) {
-                JOptionPane.showMessageDialog( view, 
+                JOptionPane.showMessageDialog( null, 
                         "Photovault was not able to delete all instances of photos",
                         "Some photos not deleted", JOptionPane.INFORMATION_MESSAGE );
             }
