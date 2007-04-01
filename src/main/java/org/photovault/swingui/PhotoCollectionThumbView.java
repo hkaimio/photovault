@@ -342,6 +342,12 @@ public class PhotoCollectionThumbView
                 KeyEvent.VK_X );
         JMenuItem exportSelected = new JMenuItem( exportSelectedAction );
         
+        deleteSelectedAction 
+                = new DeletePhotoAction( this, "Delete", null, 
+                "Delete selected photos including all of their instances",
+                KeyEvent.VK_D );
+        JMenuItem deleteSelected = new JMenuItem( deleteSelectedAction );
+        
         // Create the Quality submenu
         JMenu qualityMenu = new JMenu( "Quality" );
         String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
@@ -377,6 +383,7 @@ public class PhotoCollectionThumbView
         popup.add( qualityMenu );
         popup.add( addToFolder );
         popup.add( exportSelected );
+        popup.add( deleteSelected );
         MouseListener popupListener = new PopupListener();
         addMouseListener( popupListener );
         
@@ -452,6 +459,7 @@ public class PhotoCollectionThumbView
     private AbstractAction rotate180degAction;
     private AbstractAction selectNextAction;
     private AbstractAction selectPrevAction;
+    private AbstractAction deleteSelectedAction;
     
 
     public AbstractAction getExportSelectedAction() {
@@ -490,6 +498,9 @@ public class PhotoCollectionThumbView
 	return selectPrevAction;
     }
         
+    public AbstractAction getDeleteSelectedAction() {
+        return deleteSelectedAction;
+    }
     
     public void paint( Graphics g ) {
         super.paint( g );

@@ -333,7 +333,12 @@ public class PhotoInfo {
     
     
     /**
-     Deletes the PhotoInfo and all related instances from database
+     Deletes the PhotoInfo and all related instances from database. 
+     
+     @deprecated This method does not do any error checking whether the instances
+     are actually deleted. This is sometimes useful for e.g. cleaning up a test
+     environment but production code should use 
+     {@see delete( boolean deleteExternalInstances )} instead.
      */
     public void delete() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
@@ -358,7 +363,58 @@ public class PhotoInfo {
         txw.commit();
     }
     
-    
+    /**
+     Tries to delete a this photo, including all of its instances. If some
+     instances cannot be deleted, other instances are deleted anyway but the actual
+     PhotoInfo and its associations to folders are preserved.
+     
+     @param deleteExternalInstances Tries to delete also instances on external 
+     volumes
+     
+     @throws PhotovaultException if some instances of the photo cannot be deleted
+     */
+    public void delete( boolean deleteExternalInstances ) throws PhotovaultException {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        Database db = ODMG.getODMGDatabase();
+
+        // First delete all instances
+        Vector deletedInstances = new Vector();
+        Vector notDeletedInstances = new Vector();
+        for ( int i = 0; i < instances.size(); i++ ) {
+            ImageInstance f = (ImageInstance) instances.get( i );
+            if ( f.delete( deleteExternalInstances ) ) {
+                deletedInstances.add( f );
+            } else {
+                notDeletedInstances.add( f );
+            }
+        }
+        
+        // Remove all instances we were able to delete
+        for ( int i = 0 ; i < deletedInstances.size(); i++ ) {
+            instances.remove( deletedInstances.elementAt( i ) );
+        }
+        
+        if ( notDeletedInstances.size() > 0 ) {
+            txw.commit();
+            throw new PhotovaultException( "Unable to delete some instances of the photo" );
+        }
+
+        /*
+         All instances were succesfully deleted, so we can delete metadata as well.
+         First, delete the photo from all folders it belongs to
+         */
+        if ( folders != null ) {
+            Object[] foldersArray = folders.toArray();
+            for ( int n = 0; n < foldersArray.length; n++ ) {
+                ((PhotoFolder)foldersArray[n]).removePhoto( this );
+            }
+        }
+        
+        // Then delete the PhotoInfo object itself
+        db.deletePersistent( this );
+        txw.commit();        
+    }
+        
     
     /**
      Adds a new listener to the list that will be notified of modifications to this object

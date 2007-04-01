@@ -189,6 +189,7 @@ public class ImageInstance {
 
     /**
        Deletes the ImageInstance object from database.
+     @deprecated Ise delete( boolean deleteFromExtVol ) instead.
     */
     public void delete() {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
@@ -203,6 +204,26 @@ public class ImageInstance {
 	txw.commit();
     }
 
+    /**
+     Attempts to delete the instance
+     @param deleteFromExtVol If true, the instance is deleted even if it resides
+     on external volume. 
+     @return True if deletion was successful
+     */ 
+    public boolean delete( boolean deleteFromExtVol ) {
+        boolean success = false;
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	Database db = ODMG.getODMGDatabase();	
+        if ( !(volume instanceof ExternalVolume) || deleteFromExtVol ) {
+            if ( imageFile ==  null || imageFile.delete() ) {
+        	db.deletePersistent( this );
+                success = true;
+            }
+        }
+	txw.commit();
+        return success;
+    }
+    
     /**
        Opens the image file specified by fname & dirname properties and reads the rest of fields from that
        @throws IOException if the image cannot be read.
