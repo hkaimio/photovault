@@ -23,7 +23,7 @@
 <templates>
     <template name="smoke">
         <testcases>
-            <testcase>TestPhotoDelete</testcase>
+            <testcase>test_delete</testcase>
         </testcases>
     </template>
 </templates>
