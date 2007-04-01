@@ -25,7 +25,7 @@ Test case for verifying basic delete functionality
 -->
 
 <testcase>
-    <id>TestPhotoDelete</id>
+    <id>test_delete</id>
     <component>imginfo</component>
     <summary>
         Verify that photos are deleted correctly from UI
