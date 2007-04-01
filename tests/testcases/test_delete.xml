@@ -34,10 +34,10 @@ Test case for verifying basic delete functionality
         1. Create external volume with 1 subdirectory. Add 3 images to the 
         external volume: 1 only to main directory, 1 to subdirectory, 1 to both. 
         Remove write access from the subdirectory. Index the volume.
-        2. Switch to main folder of external volume, select both images & delete.
+        2. Switch to main folder of external volume, select both images and delete.
         Make sure that the one that is only in main directory disappears from view.
         3. Check that the other image is still visible in subdirectory
-        4. Restart Photovault & check that changes are persisted correctly.
+        4. Restart Photovault, check that changes are persisted correctly.
         5. Check from raw database data that deleted PhotoInfo does not exist.
         
     </description>
