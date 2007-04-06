@@ -31,7 +31,10 @@ import com.sun.media.imageio.plugins.tiff.TIFFDirectory;
 import com.sun.media.imageio.plugins.tiff.TIFFField;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
+import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -52,6 +55,7 @@ import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedImageAdapter;
+import javax.media.jai.TiledImage;
 import javax.media.jai.operator.RenderableDescriptor;
 import org.photovault.imginfo.ImageInstance;
 import org.w3c.dom.NamedNodeMap;
@@ -372,7 +376,7 @@ public class ImageIOImage extends PhotovaultImage {
                         if ( isLowQualityAllowed ) {
                             ri = readExifThumbnail( f );
                             if ( ri == null || !isOkForThumbCreation( ri.getWidth(),
-                                    ri.getHeight(), minWidth, minHeight,
+                                ri.getHeight(), minWidth, minHeight,
                                     reader.getAspectRatio( 0 ), 0.01 ) ) {
                                 /*
                                  EXIF thumbnail either didi not exist or was unusable,
@@ -382,8 +386,15 @@ public class ImageIOImage extends PhotovaultImage {
                             }
                         } else {
                             ri = reader.read( 0, null );
+                            
+                            /*
+                             TODO: JAI seems to have problems in doing convolutions
+                             for large image tiles. Split image to reasonably sized
+                             tiles as a workaround for this.
+                             */
+                            ri = new TiledImage( ri, 1024, 1024 );
                         }
-                        if ( ri != null ) {
+                        if ( ri != null ) {                            
                             image =  new RenderedImageAdapter( ri );
                             renderableImage =
                                     RenderableDescriptor.createRenderable(

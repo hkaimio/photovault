@@ -93,12 +93,31 @@ public abstract class PhotovaultImage {
     RenderableOp origRenderable = null;
     RenderableOp cropped = null;
     RenderableOp saturated = null;
+    
+    /*
+    Operation that applies rotation to original image
+     */
+    RenderableOp rotatedImage = null;
+    
+    /*
+     Operation that crops rotatedImage
+     */
+    RenderableOp croppedImage = null;
+    
+    /*
+     Operation that transforms croppedImage so that it begins in origo
+     */
+    RenderableOp xformCroppedImage = null;
+
     /**
      The multiplyChan operation used to adjust saturation
      */
     RenderableOp saturatedIhsImage = null;
+            
+    RenderableOp originalImage = null;
     
     protected void buildPipeline(RenderableOp original) {
+        originalImage = original;
         cropped = getCropped( original );
 //        RenderableOp scaled = getScaled( cropped, maxWidth, maxHeight );
         saturated = getSaturated( cropped );    
@@ -200,6 +219,7 @@ public abstract class PhotovaultImage {
      */
     public void setRotation( double r ) {
         rot = r;
+        applyRotCrop();
     }
     
     /**
@@ -247,6 +267,7 @@ public abstract class PhotovaultImage {
             cropMaxY = cropMinY;
             cropMinY = tmp;
         }        
+        applyRotCrop();
     }
 
     /**
@@ -270,7 +291,7 @@ public abstract class PhotovaultImage {
         rotParams.setParameter( "transform", xform );
         rotParams.setParameter( "interpolation",
                 Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
-        RenderableOp rotatedImage = JAI.createRenderable( "affine", rotParams );
+        rotatedImage = JAI.createRenderable( "affine", rotParams );
         
         ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
         cropParams.addSource( rotatedImage );
@@ -286,14 +307,54 @@ public abstract class PhotovaultImage {
         cropParams.setParameter( "y", cropY );
         cropParams.setParameter( "width", cropW );
         cropParams.setParameter( "height", cropH );
-        RenderableOp cropped = JAI.createRenderable("crop", cropParams, null);
+        croppedImage = JAI.createRenderable("crop", cropParams, null);
         // Translate the image so that it begins in origo
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
-        pbXlate.addSource( cropped );
-        pbXlate.setParameter( "xTrans", (float) (-cropped.getMinX() ) );
-        pbXlate.setParameter( "yTrans", (float) (-cropped.getMinY() ) );
-        RenderableOp xformImage = JAI.createRenderable( "translate", pbXlate );
-        return xformImage;
+        pbXlate.addSource( croppedImage );
+        pbXlate.setParameter( "xTrans", (float) (-croppedImage.getMinX() ) );
+        pbXlate.setParameter( "yTrans", (float) (-croppedImage.getMinY() ) );
+        xformCroppedImage = JAI.createRenderable( "translate", pbXlate );
+        return xformCroppedImage;
+    }
+    
+    protected void applyRotCrop( ) {
+        if ( originalImage == null ) {
+            return;
+        }
+        
+        float origWidth = originalImage.getWidth();
+        float origHeight = originalImage.getHeight();
+        
+        AffineTransform xform = org.photovault.image.ImageXform.getRotateXform(
+                rot, origWidth, origHeight );
+
+        ParameterBlockJAI rotParams = (ParameterBlockJAI) rotatedImage.getParameterBlock();
+        rotParams.setParameter( "transform", xform );
+        rotParams.setParameter( "interpolation",
+                Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
+        rotatedImage.setParameterBlock( rotParams ); 
+        
+        ParameterBlockJAI cropParams = (ParameterBlockJAI) croppedImage.getParameterBlock();
+        float cropWidth = (float) (cropMaxX - cropMinX);
+        cropWidth = ( cropWidth > 0.000001 ) ? cropWidth : 0.000001f;
+        float cropHeight = (float) (cropMaxY - cropMinY);
+        cropHeight = ( cropHeight > 0.000001 ) ? cropHeight : 0.000001f;        
+        float cropX = (float)(rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth());
+        float cropY = (float)(rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight());
+        float cropW = cropWidth * rotatedImage.getWidth();
+        float cropH = cropHeight * rotatedImage.getHeight();
+        cropParams.setParameter( "x", cropX );
+        cropParams.setParameter( "y", cropY );
+        cropParams.setParameter( "width", cropW );
+        cropParams.setParameter( "height", cropH );
+        croppedImage.setParameterBlock( cropParams );
+        
+        // Translate the image so that it begins in origo
+        ParameterBlockJAI pbXlate = (ParameterBlockJAI) xformCroppedImage.getParameterBlock();
+        pbXlate.addSource( croppedImage );
+        pbXlate.setParameter( "xTrans", (float) (-croppedImage.getMinX() ) );
+        pbXlate.setParameter( "yTrans", (float) (-croppedImage.getMinY() ) );
+        xformCroppedImage.setParameterBlock( pbXlate );
     }
     
     protected PlanarImage getScaled( RenderableOp unscaledImage, int maxWidth, int maxHeight ) {
