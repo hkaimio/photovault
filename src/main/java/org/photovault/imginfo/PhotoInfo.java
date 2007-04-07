@@ -861,6 +861,7 @@ public class PhotoInfo {
      */
     protected void saveInstance( File instanceFile, RenderedImage img ) throws PhotovaultException {
         OutputStream out = null;
+        log.debug( "Entry: saveInstance, file = " + instanceFile.getAbsolutePath() );
         try {
             out = new FileOutputStream( instanceFile.getAbsolutePath());
         } catch(IOException e) {
@@ -868,6 +869,7 @@ public class PhotoInfo {
             throw new PhotovaultException( e.getMessage() );
         }
         if ( img.getSampleModel().getSampleSize( 0 ) == 16 ) {
+            log.debug( "16 bit image, converting to 8 bits");
             double[] subtract = new double[1]; subtract[0] = 0;
             double[] divide   = new double[1]; divide[0]   = 1./256.;
             // Now we can rescale the pixels gray levels:
@@ -886,14 +888,18 @@ public class PhotoInfo {
         ImageEncoder encoder = ImageCodec.createImageEncoder("JPEG", out,
                 encodeParam);
         try {
+            log.debug( "starting JPEG enconde" );
             encoder.encode( img );
+            log.debug( "done JPEG encode" );
             out.close();
             // origImage.dispose();
         } catch (Exception e) {
+            log.warn( "Exception while encoding" + e.getMessage() );
             throw new PhotovaultException( "Error writing instance " + 
                     instanceFile.getAbsolutePath()+ ": " + 
                     e.getMessage() );
         }
+        log.debug( "Exit: saveInstance" );
     }
     
     /**

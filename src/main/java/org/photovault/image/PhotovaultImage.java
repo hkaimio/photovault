@@ -317,6 +317,9 @@ public abstract class PhotovaultImage {
         return xformCroppedImage;
     }
     
+    /**
+     Apply the current rotation & cropping settings to JAi image pipeline.
+     */
     protected void applyRotCrop( ) {
         if ( originalImage == null ) {
             return;

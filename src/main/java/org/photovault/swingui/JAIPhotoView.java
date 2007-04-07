@@ -20,6 +20,7 @@
 
 package org.photovault.swingui;
 
+import com.sun.media.jai.util.SunTileCache;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
@@ -111,9 +112,18 @@ public class JAIPhotoView extends JPanel
             if ( !drawCropped ) {
                 paintCropBorder( g2, imgX, imgY, imgWidth, imgHeight );
             }
+            log.debug( "JAI cache info: " + getJAICacheDebugInfo() ); 
 	}
     }
     
+    public String getJAICacheDebugInfo() {
+        StringBuffer buf = new StringBuffer();
+        SunTileCache tileCache = (SunTileCache) JAI.getDefaultInstance().getTileCache();
+        buf.append( "cmiss=" + tileCache.getCacheMissCount() + ", chits=" + tileCache.getCacheHitCount() + 
+                ", ctiles=" + tileCache.getCacheTileCount() + "cache used=" + tileCache.getCacheMemoryUsed() );
+        return buf.toString();
+    }
+        
     /** Image top left X coordinate in the component */
     int imgX;
     /** Image top left Y coordinate in the component */

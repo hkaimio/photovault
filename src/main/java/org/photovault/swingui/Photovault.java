@@ -20,6 +20,7 @@
 
 package org.photovault.swingui;
 
+import com.sun.media.jai.util.SunTileCache;
 import java.util.Collection;
 import javax.media.jai.JAI;
 import org.odmg.*;
@@ -102,6 +103,8 @@ public class Photovault implements SchemaUpdateListener {
     
     void run() {
         checkSystem();
+        // 100 MB tile cache
+        JAI.getDefaultInstance().setTileCache( new SunTileCache( 100*1024*1024 ) );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         Collection databases = settings.getDatabases();
         if ( databases.size() == 0 ) {

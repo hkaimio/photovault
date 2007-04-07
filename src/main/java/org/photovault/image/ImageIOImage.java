@@ -387,14 +387,14 @@ public class ImageIOImage extends PhotovaultImage {
                         } else {
                             ri = reader.read( 0, null );
                             
+                        }
+                        if ( ri != null ) {                            
                             /*
                              TODO: JAI seems to have problems in doing convolutions
                              for large image tiles. Split image to reasonably sized
                              tiles as a workaround for this.
                              */
                             ri = new TiledImage( ri, 1024, 1024 );
-                        }
-                        if ( ri != null ) {                            
                             image =  new RenderedImageAdapter( ri );
                             renderableImage =
                                     RenderableDescriptor.createRenderable(
@@ -486,8 +486,8 @@ public class ImageIOImage extends PhotovaultImage {
                     subsampling *= 2;
                 }
             }
-            param.setSourceSubsampling( subsampling, subsampling, 0, 0 );            
-            image = reader.read( 0 );
+            param.setSourceSubsampling( subsampling, subsampling, 0, 0 );
+            image = reader.read( 0, param );
         }
         return image;
     }   
