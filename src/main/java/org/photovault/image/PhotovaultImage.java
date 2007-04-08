@@ -37,6 +37,7 @@ import java.util.Date;
 import javax.media.jai.IHSColorSpace;
 import javax.media.jai.ImageLayout;
 import javax.media.jai.Interpolation;
+import javax.media.jai.InterpolationBilinear;
 import javax.media.jai.JAI;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
@@ -170,7 +171,10 @@ public abstract class PhotovaultImage {
             renderingHeight = maxHeight;
             renderingWidth = (int) (renderingHeight * cropW / cropH);
         }
-        RenderedImage rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, null );
+        RenderingHints hints = new RenderingHints( null );
+        hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
+        
+        RenderedImage rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, hints );
         return rendered;
     }
 
@@ -291,7 +295,16 @@ public abstract class PhotovaultImage {
         rotParams.setParameter( "transform", xform );
         rotParams.setParameter( "interpolation",
                 Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
-        rotatedImage = JAI.createRenderable( "affine", rotParams );
+        RenderingHints hints = new RenderingHints( null );
+        /* 
+         In practice, JAI optimizes the pipeline so that this trasnformation is
+         concatenated with scaling from MultiresolutionImage to desired resolution.
+         This transformation obeys KYE_INTERPOLATION hint so we must set it here,
+         otherwise nearest neighborough interpolation will be used regardless of
+         the settings on parameter block.
+         */
+        hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
+        rotatedImage = JAI.createRenderable( "affine", rotParams, hints );
         
         ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
         cropParams.addSource( rotatedImage );
@@ -307,7 +320,7 @@ public abstract class PhotovaultImage {
         cropParams.setParameter( "y", cropY );
         cropParams.setParameter( "width", cropW );
         cropParams.setParameter( "height", cropH );
-        croppedImage = JAI.createRenderable("crop", cropParams, null);
+        croppedImage = JAI.createRenderable("crop", cropParams, hints );
         // Translate the image so that it begins in origo
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
         pbXlate.addSource( croppedImage );
@@ -380,7 +393,7 @@ public abstract class PhotovaultImage {
         scaleParams.addSource( unscaledImage );
         scaleParams.setParameter( "transform", thumbScale );
         scaleParams.setParameter( "interpolation",
-                Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
+                Interpolation.getInstance( Interpolation.INTERP_BILINEAR ) );
         
         RenderedOp scaledImage = JAI.create( "affine", scaleParams );
         return scaledImage;        
