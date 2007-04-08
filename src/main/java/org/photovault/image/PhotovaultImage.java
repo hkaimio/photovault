@@ -76,21 +76,22 @@ public abstract class PhotovaultImage {
 
     /**
      Get the original image
-     @deprecated USe getRenderedImage instead
+     @deprecated Use getRenderedImage instead
      */
     public abstract RenderableOp getCorrectedImage( int minWidth, 
             int minHeight, boolean isLowQualityAllowed );
 
-    RenderableOp previousCorrectedImage = null;
     
     /**
      Get the original image
-     @deprecated USe getRenderedImage instead
+     @deprecated Use getRenderedImage instead. TODO: This should be changed to 
+     private, but some test cases depend on this.
      */    
     public RenderableOp getCorrectedImage() {
         return getCorrectedImage( Integer.MAX_VALUE, Integer.MAX_VALUE, false );
     }
 
+    RenderableOp previousCorrectedImage = null;
     RenderableOp origRenderable = null;
     RenderableOp cropped = null;
     RenderableOp saturated = null;
@@ -121,7 +122,8 @@ public abstract class PhotovaultImage {
         originalImage = original;
         cropped = getCropped( original );
 //        RenderableOp scaled = getScaled( cropped, maxWidth, maxHeight );
-        saturated = getSaturated( cropped );    
+        saturated = getSaturated( cropped );
+        
         previousCorrectedImage = original;
     }
         
@@ -177,7 +179,7 @@ public abstract class PhotovaultImage {
         RenderedImage rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, hints );
         return rendered;
     }
-
+    
     /**
      Get the image, adjusted according to current parameters and scaled with a 
      specified factor.
@@ -188,14 +190,31 @@ public abstract class PhotovaultImage {
      */
     
     public RenderedImage getRenderedImage( double scale, boolean isLowQualityAllowed ) {
+        /*
+         Calculate the resolution we need for the original image based on crop
+         & rotation information
+         */
+        
+        // First, calculate the size of whole inage after rotation
+        double rotRad = rot * Math.PI/180.0;
+        double rotSin = Math.abs( Math.sin( rotRad ) );
+        double rotCos = Math.abs( Math.cos( rotRad ) );
+        double rotW = rotCos * getWidth() + rotSin * getHeight();
+        double rotH = rotSin * getWidth() + rotCos * getHeight();
+        // Size if full image was cropped
+        double cropW = rotW * (cropMaxX-cropMinX);
+        double cropH = rotH * (cropMaxY-cropMinY);    
+
         RenderableOp original = getCorrectedImage( (int)(getWidth()*scale),
                 (int)(getHeight()*scale), isLowQualityAllowed );
         if ( previousCorrectedImage != original ) {
             buildPipeline( original );
         }
-        int renderingWidth = (int)( getWidth() * scale );
-        int renderingHeight = (int)( getHeight() * scale );
-        RenderedImage rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, null );
+        RenderingHints hints = new RenderingHints( null );
+        hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
+        RenderedImage rendered = 
+                saturated.createScaledRendering( (int) (scale*cropW), 
+                (int) (scale*cropH), hints );
         return rendered;
     }
     
