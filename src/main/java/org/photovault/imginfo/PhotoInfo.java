@@ -118,6 +118,41 @@ public class PhotoInfo {
     }
     
     /**
+     Static method to load photo info from database by its globally unique id
+     @param uuid UUID of the photo to be retrieved 
+     @return PhotoInfo onject with the given uuid or <code>null<code> if 
+     such object is not found.
+     */
+    public static PhotoInfo retrievePhotoInfo( UUID uuid ) throws PhotoNotFoundException {
+        log.debug( "Fetching PhotoInfo with UUID " + uuid );
+        String oql = "select photos from " + PhotoInfo.class.getName() + " where uuid=\"" + uuid.toString() + "\"";
+        List photos = null;
+        
+        // Get transaction context
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        Implementation odmg = ODMG.getODMGImplementation();
+        
+        try {
+            OQLQuery query = odmg.newOQLQuery();
+            query.create( oql );
+            photos = (List) query.execute();
+            txw.commit();
+        } catch (Exception e ) {
+            log.warn( "Error fetching record: " + e.getMessage() );
+            txw.abort();
+            throw new PhotoNotFoundException();
+        }
+        PhotoInfo photo = null;
+        if ( photos.size() > 0 ) {
+            if ( photos.size() > 1 ) {
+                log.warn( "" + photos.size() + " photos with UUID " + uuid );
+            }
+            photo = (PhotoInfo) photos.get(0);
+        }
+        return photo;
+    }
+    
+    /**
      Retrieves the PhotoInfo objects whose original instance has a specific hash code
      @param hash The hash code we are looking for
      @return An array of matching PhotoInfo objects or <code>null</code>
@@ -152,11 +187,12 @@ public class PhotoInfo {
     
     /**
      Creates a new persistent PhotoInfo object and stores it in database
-     (just a dummy onject with no meaningful field values)
+     (just a dummy one with no meaningful field values)
      @return A new PhotoInfo object
      */
     public static PhotoInfo create() {
         PhotoInfo photo = new PhotoInfo();
+        photo.uuid = UUID.randomUUID();
         
         ODMGXAWrapper txw = new ODMGXAWrapper();
         Database db = ODMG.getODMGDatabase();        
@@ -166,6 +202,22 @@ public class PhotoInfo {
         return photo;
     }
     
+    /**
+     Creates a new PhotoInfo object with a given UUID
+     @param uuid UUID for the new object
+     @return A new PhotoInfo object
+     */
+    public static PhotoInfo create(UUID uuid) {
+        PhotoInfo photo = new PhotoInfo();
+        photo.uuid = uuid;
+        
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        Database db = ODMG.getODMGDatabase();        
+        db.makePersistent( photo );
+        txw.lock( photo, Transaction.WRITE );
+        txw.commit();
+        return photo;
+    }
     
     /**
      Add a new image to the database. Unless the image resides in an external
@@ -232,6 +284,26 @@ public class PhotoInfo {
         photo.updateFromFileMetadata( instanceFile );
         txw.commit();
         return photo;
+    }
+    
+    UUID uuid = null;
+    
+    /**
+     Get the globally unique ID for this photo;
+     */
+    public UUID getUUID() {
+        if ( uuid == null ) {
+            setUUID( UUID.randomUUID() );
+        }
+        return uuid;
+    }    
+    
+    public void setUUID( UUID uuid ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	this.uuid = uuid;
+	modified();
+	txw.commit();
     }
     
     /**
@@ -1152,6 +1224,14 @@ public class PhotoInfo {
         txw.commit();
     }
     
+    public void setShootTime( FuzzyDate v ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        this.shootTime = (java.util.Date) v.getDate().clone();
+        this.timeAccuracy = v.getAccuracy();
+        modified();
+        txw.commit();        
+    }
     
     /**
      
@@ -1815,4 +1895,7 @@ public class PhotoInfo {
     public int hashCode() {
         return uid;
     }
+
+
+
 }

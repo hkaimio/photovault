@@ -45,6 +45,7 @@
     <table name="image_instances">
       <column name="volume_id" primaryKey="true" required="true" type="VARCHAR" size="30" autoIncrement="false"/>
       <column name="fname" primaryKey="true" required="true" type="VARCHAR" size="255" autoIncrement="false"/>
+      <column name="instance_uuid" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>      
       <column name="photo_id" primaryKey="false" required="true" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="width" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="height" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
@@ -163,6 +164,7 @@
     </table>
     <table name="photo_collections">
       <column name="collection_id" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
+      <column name="collection_uuid" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>
       <column name="parent" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="collection_name" primaryKey="false" required="true" type="VARCHAR" size="30" autoIncrement="false"/>
       <column name="collection_desc" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
@@ -188,6 +190,7 @@
     </table>
     <table name="photos">
       <column name="photo_id" primaryKey="true" required="true" type="INTEGER" size="11" autoIncrement="false"/>
+      <column name="photo_uuid" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>      
       <column name="shoot_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
       <column name="time_accuracy" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
       <column name="shooting_place" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>
@@ -296,6 +299,8 @@
     <table name="icc_profiles" description="Known ICC profiles">
         <column name="profile_id" primaryKey="true" required="true" 
                 type="INTEGER" size="11" autoIncrement="false"/>
+        <column name="profile_uuid" primaryKey="false" required="false" 
+                type="VARCHAR" size="36" autoIncrement="false"/>
         <column name="profile_name" primaryKey="false" required="true"
                 type="VARCHAR" size="50" autoIncrement="false"/>
         <column name="profile_desc" primaryKey="false" required="false"

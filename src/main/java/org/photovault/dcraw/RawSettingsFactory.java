@@ -51,6 +51,13 @@ public class RawSettingsFactory {
         }
     }
     
+    /**
+     Defatult constructor
+     */
+    public RawSettingsFactory() {
+        
+    }
+    
     double ctemp;
     double greenGain = 1.0;
     double redGreenRatio;

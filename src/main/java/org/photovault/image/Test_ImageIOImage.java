@@ -12,6 +12,7 @@ package org.photovault.image;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import javax.media.jai.RenderableOp;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -43,7 +44,7 @@ public class Test_ImageIOImage extends TestCase {
         assertEquals( img.getCamera(), "Minolta Co., Ltd. DiMAGE 7i" );
         assertEquals( img.getAperture(), 3.5 );
         assertEquals( img.getShutterSpeed(), 0.1 );
-        RenderedImage ri = img.getCorrectedImage();
+        RenderableOp ri = img.getCorrectedImage();
         assertEquals( 2560, ri.getWidth() );
         assertEquals( 1920, ri.getHeight() );
     }

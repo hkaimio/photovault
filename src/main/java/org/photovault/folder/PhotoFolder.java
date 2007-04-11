@@ -21,12 +21,15 @@
 package org.photovault.folder;
 
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
-import org.photovault.imginfo.*;
 import org.odmg.*;
-import org.apache.ojb.odmg.*;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
+import java.util.Vector;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
@@ -49,7 +52,23 @@ public class PhotoFolder implements PhotoCollection {
 	//	subfolders = new Vector();
 	changeListeners = new Vector();
     }
+
+    UUID uuid = null;
     
+    public UUID getUUID() {
+        if ( uuid == null ) {
+            setUUID( UUID.randomUUID() );
+        }
+        return uuid;
+    }    
+    
+    public void setUUID( UUID uuid ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	this.uuid = uuid;
+	modified();
+	txw.commit();
+    }
     /**
        Persistent ID for this folder
     */
@@ -417,6 +436,7 @@ public class PhotoFolder implements PhotoCollection {
         PhotoFolder folder = new PhotoFolder();
         try {
             folder.setName( name );
+            folder.uuid = UUID.randomUUID();
             folder.setParentFolder( parent );
             txw.lock( folder, Transaction.WRITE );
         } catch (IllegalArgumentException e ) {
@@ -426,6 +446,28 @@ public class PhotoFolder implements PhotoCollection {
         }
         return folder;
     }
+
+
+    /**
+       Creates & returns a new persistent PhotoFolder object
+       @param uuid UUID for the created folder
+       @param parent Parent folder of the new folder
+    */
+    public static PhotoFolder create(UUID uuid, PhotoFolder parent) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        PhotoFolder folder = new PhotoFolder();
+        try {
+            folder.uuid = uuid;
+            folder.name = "";
+            folder.setParentFolder( parent );
+            txw.lock( folder, Transaction.WRITE );
+        } catch (IllegalArgumentException e ) {
+            throw e;
+        } finally {
+            txw.commit();
+        }
+        return folder;
+    }    
 
     /**
        Returns the root folder for the PhotoFolder hierarchy, i.e. the folder with id 1.
@@ -457,6 +499,35 @@ public class PhotoFolder implements PhotoCollection {
             txw.commit();
         }
 	return rootFolder;
+    }
+    
+    /**
+     Get folder by its UUID.
+     @param uuid UUID for t6he folder to retrieve
+     @return The given folder or <code>null</code> if not found     
+     */
+    public static PhotoFolder getFolderByUUID(UUID uuid) {
+        PhotoFolder f = null;
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        Implementation odmg = ODMG.getODMGImplementation();
+        
+        List folders = null;
+        boolean mustCommit = false;
+        try {
+            OQLQuery query = odmg.newOQLQuery();
+            query.create( "select folders from " + PhotoFolder.class.getName() 
+                        + " where uuid = \"" + uuid.toString() + "\"" );
+            folders = (List) query.execute();
+        } catch ( Exception e ) {
+            txw.abort();
+            return null;
+        }
+        if ( folders.size() > 0 ) {
+            f = (PhotoFolder) folders.get( 0 );
+        }
+        // If a new transaction was created, commit it
+        txw.commit();
+        return f;
     }
 
     /**
@@ -524,4 +595,7 @@ public class PhotoFolder implements PhotoCollection {
     public String toString() {
 	return name;
     }
+
+
+
 }    

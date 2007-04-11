@@ -56,7 +56,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 		public void run() {
 		    createUI();
 		}
-	    });
+        });
 	
     }
 
@@ -211,6 +211,16 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	JMenuItem exportItem = new JMenuItem( exportAction );
         exportAction.addStatusChangeListener( statusBar );
 	fileMenu.add( exportItem );
+        
+        ExportMetadataAction exportMetadata = 
+                new ExportMetadataAction( "Export as XML...", null, 
+                "Export whole database as XML file", KeyEvent.VK_T );
+        fileMenu.add( new JMenuItem( exportMetadata ) );
+        
+        ImportXMLAction importMetadata = 
+                new ImportXMLAction( "Import XML data...", null, 
+                "Import data from other Photovault database as XML", KeyEvent.VK_T );
+        fileMenu.add( new JMenuItem( importMetadata ) );
         
         fileMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
         

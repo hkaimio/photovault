@@ -44,6 +44,7 @@ import javax.media.jai.JAI;
 import javax.media.jai.LookupTableJAI;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
+import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedOp;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -74,7 +75,7 @@ public class Test_DCRawProcessWrapper extends TestCase {
             } catch (PhotovaultException ex) {
                 fail( ex.getMessage() );
             }
-            RenderedImage img = ri.getCorrectedImage();
+            RenderableOp img = ri.getCorrectedImage();
             AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( 200, 200,
                     0,
                     img.getWidth(), img.getHeight() );

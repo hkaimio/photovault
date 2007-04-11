@@ -172,6 +172,27 @@ public class ImageInstance {
 	return instance;
     }
 
+    
+    UUID uuid = null;
+    
+    /**
+     Get the globally unique ID for this photo;
+     */
+    public UUID getUUID() {
+        if ( uuid == null ) {
+            setUUID( UUID.randomUUID() );
+        }
+        return uuid;
+    }    
+    
+    public void setUUID( UUID uuid ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	this.uuid = uuid;
+	txw.commit();
+    }
+        
+    
     /**
        Inits the complex attributes volume and imageFile. Since these
        are not mapped directly to database columns, this function will

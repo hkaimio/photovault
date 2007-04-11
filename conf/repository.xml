@@ -46,6 +46,9 @@
     <!-- one of (field-descriptor extent-class) -->
     <field-descriptor name="folderId" column="collection_id" jdbc-type="INTEGER" primarykey="true" autoincrement="true">
     </field-descriptor>
+    <field-descriptor name="uuid" column="collection_uuid" jdbc-type="VARCHAR"
+        conversion="org.photovault.imginfo.String2UUIDConversion">
+    </field-descriptor>
     <field-descriptor name="name" column="collection_name" jdbc-type="VARCHAR">
     </field-descriptor>
     <field-descriptor name="description" column="COLLECTION_DESC" jdbc-type="VARCHAR">
@@ -88,6 +91,9 @@
     <field-descriptor name="volumeId" column="volume_id" jdbc-type="VARCHAR" primarykey="true" nullable="false">
       <documentation></documentation>
     </field-descriptor>
+    <field-descriptor name="uuid" column="instance_uuid" jdbc-type="VARCHAR"
+        conversion="org.photovault.imginfo.String2UUIDConversion">
+    </field-descriptor>
     <field-descriptor name="fname" column="fname" jdbc-type="VARCHAR" primarykey="true" nullable="false">
     </field-descriptor>
     <field-descriptor name="photoUid" column="photo_id" jdbc-type="INTEGER">
@@ -129,6 +135,9 @@
   <!-- PhotoInfo mappings -->
   <class-descriptor class="org.photovault.imginfo.PhotoInfo" table="photos">
     <field-descriptor name="uid" column="photo_id" jdbc-type="INTEGER" primarykey="true" autoincrement="true">
+    </field-descriptor>
+    <field-descriptor name="uuid" column="photo_uuid" jdbc-type="VARCHAR"
+        conversion="org.photovault.imginfo.String2UUIDConversion">
     </field-descriptor>
     <field-descriptor name="shootingPlace" column="shooting_place" jdbc-type="VARCHAR">
     </field-descriptor>

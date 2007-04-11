@@ -27,6 +27,7 @@ import org.apache.derby.impl.jdbc.EmbedSQLException;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
+import org.photovault.common.DbInfo;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
@@ -150,8 +151,10 @@ public class ODMG {
 
 	// Test the connection by fetching something
 	try {
-	    PhotoFolder folder = PhotoFolder.getRoot();
-	    if ( folder != null ) {
+            DbInfo dbinfo = DbInfo.getDbInfo();
+            if ( dbinfo != null ) {
+//            PhotoFolder folder = PhotoFolder.getRoot();
+//	    if ( folder != null ) {
 		success = true;
 	    } else {
 		log.error( "Could not open database connection" );

@@ -59,7 +59,7 @@ public class JUnitOJBManager {
         } catch (PhotovaultException e ) {
             log.error( "Error logging into Photovault: " + e.getMessage() );
             System.exit( 1 );
-        }
+        } 
         
         if ( db.getSchemaVersion() < PVDatabase.CURRENT_SCHEMA_VERSION ) {
             SchemaUpdateAction updater = new SchemaUpdateAction( db );
