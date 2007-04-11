@@ -67,6 +67,7 @@ public class ImageInstance {
 	log.debug( "Creating instance " + imgFile.getAbsolutePath() );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         ImageInstance i = new ImageInstance();
+	i.uuid = UUID.randomUUID();
 	i.volume = vol;
 	i.volumeId = vol.getName();
 	i.imageFile = imgFile;
@@ -111,7 +112,8 @@ public class ImageInstance {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	
 	ImageInstance f = new ImageInstance();
-	// Set up the primary key fields before locking the object
+	f.uuid = UUID.randomUUID();
+        // Set up the primary key fields before locking the object
 	f.volume = volume;
 	f.volumeId = volume.getName();
 	f.imageFile = imageFile;
@@ -136,6 +138,32 @@ public class ImageInstance {
 	f.checkTime = new java.util.Date();
         txw.commit();
 	return f;
+    }
+    
+    /**
+     Creates a new ImageInstance with a give UUID. This method should only be
+     used when importing data from other database, since the attributes of the
+     image are not set to legal (even those that form primary key in database!)
+     @param uuid UUID of the created instance
+     @return New ImageInstance object
+     */
+    
+    public static ImageInstance create( UUID uuid ) {
+        ImageInstance i = new ImageInstance();
+        i.uuid = uuid;
+        i.volume = null;
+        /*
+         volumeId & fname form the primary key in persistent DB so we must set 
+         them to some value. These values indicate that the instance is just a 
+         "placeholder" and no file is available.
+         */
+        i.volumeId = "##nonexistingfiles##";
+        i.fname = uuid.toString();
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+        Database db = ODMG.getODMGDatabase();        
+        db.makePersistent( i );
+        txw.commit();
+        return i;
     }
 
     /**
@@ -172,6 +200,37 @@ public class ImageInstance {
 	return instance;
     }
 
+
+    public static ImageInstance retrieveByUuid(UUID uuid) {
+	String oql = "select instance from " + ImageInstance.class.getName()
+        + " where instance_uuid = \"" + uuid.toString() + "\"";
+
+	List instances = null;
+
+	// Get transaction context
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	Implementation odmg = ODMG.getODMGImplementation();
+	try {
+	    OQLQuery query = odmg.newOQLQuery();
+	    query.create( oql );
+	    instances = (List) query.execute();
+	    txw.commit();
+	} catch ( Exception e ) {
+	    txw.abort();
+	    return null;
+	}
+        
+	ImageInstance instance = null;
+        if ( instances != null && instances.size() > 0 ) {
+            if ( instances.size() > 1 ) {
+                log.error( "ERROR: " + instances.size() + 
+                        " records for ImageInstance with uuid=" + uuid.toString() );
+            }
+            instance = (ImageInstance) instances.get( 0 );
+        }
+	return instance;
+    }
+    
     
     UUID uuid = null;
     
@@ -363,6 +422,13 @@ public class ImageInstance {
         return  (hash != null) ? (byte[]) hash.clone() : null;
     }
     
+    public void setHash( byte[] hash ) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+	this.hash = hash;
+	txw.commit();        
+    }
+    
     /**
        Id of the volume (for OJB)
     */
@@ -466,6 +532,16 @@ public class ImageInstance {
 	txw.lock( this, Transaction.READ );
 	txw.commit();
 	return fileSize;        
+    }
+    
+    /**
+     Set the file size. NOTE!!! This method should only be used by XmlImporter.
+     */
+    public void setFileSize( long s ) {
+	ODMGXAWrapper txw = new ODMGXAWrapper();
+	txw.lock( this, Transaction.WRITE );
+        this.fileSize = s;
+        txw.commit();
     }
     
     private long mtime;
@@ -784,4 +860,5 @@ public class ImageInstance {
     public int getPhotoUid() {
         return photoUid;
     }
+
 }

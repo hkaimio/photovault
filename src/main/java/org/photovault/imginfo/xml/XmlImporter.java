@@ -32,6 +32,7 @@ import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.FuzzyDate;
+import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.xml.sax.Attributes;
@@ -147,6 +148,42 @@ public class XmlImporter {
     }
 
     /**
+     Factory used for creating and fetching ImageInstance in Digester rule. It
+     first tries to find a photo with the uuid specified in XML. If no such 
+     photo is found, a new folder is created.
+     */
+    public class InstanceFactory extends AbstractObjectCreationFactory {
+        public InstanceFactory() {
+            
+        }
+        
+        public Object createObject( Attributes attrs ) {
+            String uuidStr = attrs.getValue( "id" );
+            UUID uuid = UUID.fromString( uuidStr );
+            ImageInstance i = null;
+            i = ImageInstance.retrieveByUuid(uuid);
+            if ( i == null ) {
+                i = ImageInstance.create( uuid );
+            } 
+            String type = attrs.getValue( "type" );
+            if ( type != null ) {
+                if ( type.equals( "original" ) ) {
+                    i.setInstanceType( ImageInstance.INSTANCE_TYPE_ORIGINAL );
+                } else if ( type.equals( "thumbnail" ) ) {
+                    i.setInstanceType( ImageInstance.INSTANCE_TYPE_THUMBNAIL );
+                } else if ( type.equals( "modified" ) ) {
+                    i.setInstanceType( ImageInstance.INSTANCE_TYPE_MODIFIED );
+                } else {
+                    log.error( "ERROR: Unknown instance type \"" + type + 
+                            "\" for instance with uuid " + uuid );
+                }
+                
+            }
+            return i;
+        }
+    }
+
+    /**
      Factory object for creating a rectangle2D object based on crop element.
      */
     public class RectangleFactory extends AbstractObjectCreationFactory {
@@ -237,8 +274,8 @@ public class XmlImporter {
             public void begin( String namespace, String name, Attributes attrs ) {
                 String rgStr = attrs.getValue( "red-green-ratio" );
                 String bgStr = attrs.getValue( "blue-green-ratio" );
-                double bg;
-                double rg;
+                double bg = 1.0;
+                double rg = 1.0;
                 try {
                     bg = Double.parseDouble( bgStr );
                     rg = Double.parseDouble(rgStr);
@@ -254,20 +291,20 @@ public class XmlImporter {
             public void begin( String namespace, String name, Attributes attrs ) {
                 String rgStr = attrs.getValue( "red-green-ratio" );
                 String bgStr = attrs.getValue( "blue-green-ratio" );
-                double bg;
-                double rg;
+                double bg = 1.0;
+                double rg = 1.0;
                 
                 try {
                     bg = Double.parseDouble( bgStr );
                     rg = Double.parseDouble(rgStr);
                 } catch (NumberFormatException ex) {
-                    ex.printStackTrace();
+                    digester.createSAXException( ex );
                 }
                 RawSettingsFactory f = (RawSettingsFactory) digester.peek();
                 f.setDaylightMultipliers( new double[] {rg, 1.0, bg} );
             } 
         });
-        digester.addRule( "*/raw-conversion", new Rule() {
+        digester.addRule( "*photo/raw-conversion", new Rule() {
             public void end( String namespace, String name ) {
                 PhotoInfo p = (PhotoInfo)digester.peek(1);
                 RawSettingsFactory f = (RawSettingsFactory) digester.peek();
@@ -280,11 +317,28 @@ public class XmlImporter {
         });  
         
         // TODO instance handling
+        digester.addFactoryCreate( "*/photo/instances/instance", new InstanceFactory() );
+        digester.addCallMethod( "*/instance/file-size", "setFileSize", 0, new Class[] {Long.class} );
+        digester.addCallMethod( "*/instance/width", "setWidth", 0, new Class[] {Integer.class} );
+        digester.addCallMethod( "*/instance/height", "setHeight", 0, new Class[] {Integer.class} );
+        
         
         
         // folder handling
         digester.addFactoryCreate( "*/photos/photo/folders/folder-ref", new FolderFactory( false ) );
         digester.addSetTop( "*/photos/photo/folders/folder-ref", "addPhoto" );
+        digester.addCallMethod( "*/instance/crop", "setRotated", 1, new Class[] {Double.class} );
+        digester.addCallParam( "*/instance/crop", 0, "rot" );
+        digester.addFactoryCreate( "*/instance/crop", new RectangleFactory() );
+        digester.addSetNext( "*/instance/crop", "setCropBounds" );
+        digester.addRule( "*/instance/hash", new Rule() {
+            public void body( String namespace, String name, String text ) {
+                byte[] hash = Base64.decode( text );
+                ImageInstance i = (ImageInstance) digester.peek();
+                i.setHash( hash );
+            }
+        } );
+        digester.addSetNext( "*/photo/instances/instance", "addInstance" );
         
         try {
             digester.parse( reader );
