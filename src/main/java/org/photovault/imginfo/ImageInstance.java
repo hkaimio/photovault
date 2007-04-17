@@ -141,7 +141,7 @@ public class ImageInstance {
     }
     
     /**
-     Creates a new ImageInstance with a give UUID. This method should only be
+     Creates a new ImageInstance with a given UUID. This method should only be
      used when importing data from other database, since the attributes of the
      image are not set to legal (even those that form primary key in database!)
      @param uuid UUID of the created instance

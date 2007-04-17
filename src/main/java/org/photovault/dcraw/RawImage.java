@@ -20,6 +20,7 @@
 
 package org.photovault.dcraw;
 
+import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
@@ -28,6 +29,7 @@ import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
+import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -43,7 +45,11 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.media.jai.BorderExtender;
 import javax.media.jai.Histogram;
+import javax.media.jai.Interpolation;
+import javax.media.jai.JAI;
+import javax.media.jai.KernelJAI;
 import javax.media.jai.LookupTableJAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
@@ -53,6 +59,7 @@ import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
 import javax.media.jai.operator.RenderableDescriptor;
+import javax.media.jai.operator.ScaleDescriptor;
 import org.photovault.common.PhotovaultException;
 import org.photovault.image.PhotovaultImage;
 
@@ -494,9 +501,39 @@ public class RawImage extends PhotovaultImage {
             
             rawImage = new RenderedImageAdapter( new BufferedImage( targetCM, r, 
                     true, null ) );
+            
+            final float[] DEFAULT_KERNEL_1D = {0.25f,0.5f,0.25f};
+            ParameterBlock pb = new ParameterBlock();
+            KernelJAI kernel = new KernelJAI(DEFAULT_KERNEL_1D.length,
+                                             DEFAULT_KERNEL_1D.length,
+                                             DEFAULT_KERNEL_1D.length/2,
+                                             DEFAULT_KERNEL_1D.length/2,
+                                             DEFAULT_KERNEL_1D,
+                                             DEFAULT_KERNEL_1D);
+            pb.add(kernel);
+            BorderExtender extender =
+                BorderExtender.createInstance(BorderExtender.BORDER_COPY);
+            RenderingHints hints =
+                JAI.getDefaultInstance().getRenderingHints();
+            if(hints == null) {
+                hints = new RenderingHints(JAI.KEY_BORDER_EXTENDER, extender);
+            } else {
+                hints.put(JAI.KEY_BORDER_EXTENDER, extender);
+            }
+                                   
+            RenderedOp filter = new RenderedOp("convolve", pb, hints);
+
+            // Add the subsampling operation.
+            pb = new ParameterBlock();
+            pb.addSource(filter);
+            pb.add(new Float(0.5F)).add(new Float(0.5F));
+            pb.add(new Float(0.0F)).add(new Float(0.0F));
+            pb.add(Interpolation.getInstance(Interpolation.INTERP_NEAREST));
+            RenderedOp downSampler = new RenderedOp("scale", pb, null);            
+            
             RenderableOp rawImageRenderable = 
                     RenderableDescriptor.createRenderable( rawImage, 
-                    null, null, null, null, null, null );
+                    downSampler, null, null, null, null, null );
             double colorCorrMat[][] = new double[][] {
                 {colorCorr[0], 0.0, 0.0, 0.0 },
                 {0.0, colorCorr[1], 0.0, 0.0 },
