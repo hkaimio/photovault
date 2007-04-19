@@ -264,7 +264,13 @@ public class XmlImporter {
         digester.addFactoryCreate( "*/photos/photo/crop", new RectangleFactory() );
         digester.addSetNext( "*/photos/photo/crop", "setCropBounds" );
         
-        // Raw conversion settings
+        /* 
+         Raw conversion setting mappings. All of these expect that a RawSettingsFactory
+         is the topmost object in Digester stack. Note that in practice there must be 
+         and explicit rule for each raw setting field since the rule that
+         instantates the raw setting object & assign it to the parent object will 
+         override this.
+         */
         digester.addObjectCreate( "*/raw-conversion", RawSettingsFactory.class );
         digester.addCallMethod( "*/raw-conversion/whitepoint", "setWhite", 0, new Class[] {Integer.class} );
         digester.addCallMethod( "*/raw-conversion/blackpoint", "setBlack", 0, new Class[] {Integer.class} );
@@ -304,7 +310,8 @@ public class XmlImporter {
                 f.setDaylightMultipliers( new double[] {rg, 1.0, bg} );
             } 
         });
-        digester.addRule( "*photo/raw-conversion", new Rule() {
+        digester.addObjectCreate( "*/photo/raw-conversion", RawSettingsFactory.class );
+        digester.addRule( "*/photo/raw-conversion", new Rule() {
             public void end( String namespace, String name ) {
                 PhotoInfo p = (PhotoInfo)digester.peek(1);
                 RawSettingsFactory f = (RawSettingsFactory) digester.peek();
@@ -316,17 +323,11 @@ public class XmlImporter {
             }
         });  
         
-        // TODO instance handling
+        // Instance mappings
         digester.addFactoryCreate( "*/photo/instances/instance", new InstanceFactory() );
         digester.addCallMethod( "*/instance/file-size", "setFileSize", 0, new Class[] {Long.class} );
         digester.addCallMethod( "*/instance/width", "setWidth", 0, new Class[] {Integer.class} );
         digester.addCallMethod( "*/instance/height", "setHeight", 0, new Class[] {Integer.class} );
-        
-        
-        
-        // folder handling
-        digester.addFactoryCreate( "*/photos/photo/folders/folder-ref", new FolderFactory( false ) );
-        digester.addSetTop( "*/photos/photo/folders/folder-ref", "addPhoto" );
         digester.addCallMethod( "*/instance/crop", "setRotated", 1, new Class[] {Double.class} );
         digester.addCallParam( "*/instance/crop", 0, "rot" );
         digester.addFactoryCreate( "*/instance/crop", new RectangleFactory() );
@@ -338,7 +339,31 @@ public class XmlImporter {
                 i.setHash( hash );
             }
         } );
+        // Raw conversion parsing was already specified earlier. We just need a 
+        // method for binding the RawConversionSettings object to instance
+        digester.addObjectCreate( "*/instance/raw-conversion", RawSettingsFactory.class );
+        digester.addRule( "*/instance/raw-conversion", new Rule() {
+            public void end( String namespace, String name ) {
+                ImageInstance i = (ImageInstance)digester.peek(1);
+                RawSettingsFactory f = (RawSettingsFactory) digester.peek();
+                try {
+                    i.setRawSettings( f.create() );
+                } catch (PhotovaultException ex) {
+                    digester.createSAXException( ex );
+                }
+            }
+        });  
+        /*
+         TODO: import information about image locations. In first phase, this
+         can be done by indexing images as an external volume...
+        */
+        
+
         digester.addSetNext( "*/photo/instances/instance", "addInstance" );
+        
+        // folder handling
+        digester.addFactoryCreate( "*/photos/photo/folders/folder-ref", new FolderFactory( false ) );
+        digester.addSetTop( "*/photos/photo/folders/folder-ref", "addPhoto" );
         
         try {
             digester.parse( reader );

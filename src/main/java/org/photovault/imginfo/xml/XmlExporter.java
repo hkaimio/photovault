@@ -237,28 +237,7 @@ public class XmlExporter {
         writer.newLine();
         RawConversionSettings rs = p.getRawSettings();
         if ( rs != null ) {
-            writer.write( getIndent() + "<raw-conversion> " );
-            writer.newLine();
-            indent += 2;
-            writer.write( getIndent() + "<whitepoint>" + rs.getWhite() + "</whitepoint>" );
-            writer.newLine();
-            writer.write( getIndent() + "<blackpoint>" + rs.getBlack() + "</blackpoint>" );
-            writer.newLine();
-            writer.write( getIndent() + "<ev-corr>" + rs.getEvCorr() + "</ev-corr>" );
-            writer.newLine();
-            writer.write( getIndent() + "<hlight-corr>" + rs.getHighlightCompression() + "</hlight-corr>" );
-            writer.newLine();            
-            writer.write( getIndent() + "<wb-type>" + rs.getWhiteBalanceType() + "</wb-type>" );
-            writer.newLine();            
-            writer.write( getIndent() + "<color-balance red-green-ratio=\"" + rs.getRedGreenRatio() );
-            writer.write( "\" blue-green-ratio=\"" + rs.getBlueGreenRatio() + "\"/>" );
-            writer.newLine();            
-            writer.write( getIndent() + "<daylight-color-balance red-green-ratio=\"" + rs.getDaylightRedGreenRatio() );
-            writer.write( "\" blue-green-ratio=\"" + rs.getDaylightBlueGreenRatio() + "\"/>" );
-            writer.newLine();     
-            indent -= 2;
-            writer.write( getIndent() + "</raw-conversion>" );
-            writer.newLine();     
+            writeRawSettings( rs );
         }
         // Write instances
         writer.write( getIndent() + "<instances>" );
@@ -327,6 +306,10 @@ public class XmlExporter {
         writer.write( "ymin=\"" + c.getMinY() + "\" " );
         writer.write( "ymax=\"" + c.getMaxY() + "\"/>" );
         writer.newLine();
+        RawConversionSettings rs = i.getRawSettings();
+        if ( rs != null ) {
+            writeRawSettings( rs );
+        }
         File f = i.getImageFile();
         if ( f != null ) {
             writer.write( getIndent() + "<location file=\"" + f.getPath() + "\"/>" );
@@ -335,5 +318,35 @@ public class XmlExporter {
         indent -= 2;
         writer.write( getIndent() + "</instance>" );
         writer.newLine();        
+    }
+    
+    /**
+     Writes a RawConversionSettings object into XML file
+     @param rs The raw settings object to write
+     @throws IOException if an error occurs during writing.
+     */
+    private void writeRawSettings( RawConversionSettings rs ) throws IOException {
+        writer.write( getIndent() + "<raw-conversion> " );
+        writer.newLine();
+        indent += 2;
+        writer.write( getIndent() + "<whitepoint>" + rs.getWhite() + "</whitepoint>" );
+        writer.newLine();
+        writer.write( getIndent() + "<blackpoint>" + rs.getBlack() + "</blackpoint>" );
+        writer.newLine();
+        writer.write( getIndent() + "<ev-corr>" + rs.getEvCorr() + "</ev-corr>" );
+        writer.newLine();
+        writer.write( getIndent() + "<hlight-corr>" + rs.getHighlightCompression() + "</hlight-corr>" );
+        writer.newLine();
+        writer.write( getIndent() + "<wb-type>" + rs.getWhiteBalanceType() + "</wb-type>" );
+        writer.newLine();
+        writer.write( getIndent() + "<color-balance red-green-ratio=\"" + rs.getRedGreenRatio() );
+        writer.write( "\" blue-green-ratio=\"" + rs.getBlueGreenRatio() + "\"/>" );
+        writer.newLine();
+        writer.write( getIndent() + "<daylight-color-balance red-green-ratio=\"" + rs.getDaylightRedGreenRatio() );
+        writer.write( "\" blue-green-ratio=\"" + rs.getDaylightBlueGreenRatio() + "\"/>" );
+        writer.newLine();
+        indent -= 2;
+        writer.write( getIndent() + "</raw-conversion>" );
+        writer.newLine();
     }
 }
