@@ -34,6 +34,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
+import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -96,6 +97,15 @@ public class ImageIOImage extends PhotovaultImage {
     RenderableOp renderableImage = null;
     
     /**
+     Sample model of the loaded file
+     */
+    SampleModel originalSampleModel = null;
+    /**
+     Color model of the loaded file
+     */
+    ColorModel originalColorModel = null;
+    
+    /**
      If true, the loaded image stored in {@see image} is loaded with low quality.
      */
     boolean imageIsLowQuality = false;
@@ -117,6 +127,20 @@ public class ImageIOImage extends PhotovaultImage {
             load( true, (metadata == null), minWidth, minHeight, isLowQualityAllowed );
         }
         return renderableImage;
+    }
+    
+    /**
+     Get the sample model of the loaded image
+     */
+    public SampleModel getCorrectedImageSampleModel() {
+        return originalSampleModel;
+    }
+
+    /**
+     Get the color model of the loaded image
+     */    
+    public ColorModel getCorrectedImageColorModel() {
+        return originalColorModel;
     }
     
 
@@ -379,14 +403,13 @@ public class ImageIOImage extends PhotovaultImage {
                                 ri.getHeight(), minWidth, minHeight,
                                     reader.getAspectRatio( 0 ), 0.01 ) ) {
                                 /*
-                                 EXIF thumbnail either didi not exist or was unusable,
-                                 tru to read subsampled version of original
+                                 EXIF thumbnail either did not exist or was unusable,
+                                 try to read subsampled version of original
                                  */
                                 ri = readSubsampled( reader, minWidth, minHeight );
                             }
                         } else {
                             ri = reader.read( 0, null );
-                            
                         }
                         if ( ri != null ) {                            
                             /*
@@ -396,6 +419,8 @@ public class ImageIOImage extends PhotovaultImage {
                              */
                             ri = new TiledImage( ri, 1024, 1024 );
                             image =  new RenderedImageAdapter( ri );
+                            originalSampleModel = image.getSampleModel();
+                            originalColorModel = image.getColorModel();
                             renderableImage =
                                     RenderableDescriptor.createRenderable(
                                     image, null, null, null, null, null, null );

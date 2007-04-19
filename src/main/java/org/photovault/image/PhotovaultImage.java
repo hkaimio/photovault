@@ -91,6 +91,18 @@ public abstract class PhotovaultImage {
         return getCorrectedImage( Integer.MAX_VALUE, Integer.MAX_VALUE, false );
     }
 
+    /**
+     Get the sample model of the corrected image. This must be overriden by 
+     derived classes
+     */
+    public abstract SampleModel getCorrectedImageSampleModel();
+
+    /**
+     Get the color model of the corrected image. This must be overriden by 
+     derived classes
+     */
+    public abstract ColorModel getCorrectedImageColorModel();
+    
     RenderableOp previousCorrectedImage = null;
     RenderableOp origRenderable = null;
     RenderableOp cropped = null;
@@ -176,7 +188,16 @@ public abstract class PhotovaultImage {
         RenderingHints hints = new RenderingHints( null );
         hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
         
-        RenderedImage rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, hints );
+        RenderedImage rendered = null;
+        if ( saturated != null ) {
+            rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, hints );
+        } else {
+            /*
+             The image color model does not support saturation (e.g. b/w image),
+             show the previous step instead.
+             */
+            rendered = cropped.createScaledRendering( renderingWidth, renderingHeight, hints );
+        }
         return rendered;
     }
     
@@ -257,7 +278,10 @@ public abstract class PhotovaultImage {
     
     public void setSaturation( double s ) {
         saturation = s;
-        saturatedIhsImage.setParameter( new double[]{1.0, 1.0, s}, 0 );
+        // Check that this image has a color model that supports saturation change
+        if ( saturatedIhsImage != null ) {
+            saturatedIhsImage.setParameter( new double[]{1.0, 1.0, s}, 0 );
+        }
     }
     
     public double getSaturation() {
@@ -420,12 +444,20 @@ public abstract class PhotovaultImage {
     
     protected RenderableOp getSaturated( RenderableOp src ) {
         IHSColorSpace ihs = IHSColorSpace.getInstance();
+        ColorModel srcCm = getCorrectedImageColorModel();
+        int[] componentSizes = srcCm.getComponentSize();
+        if ( componentSizes.length != 3 ) {
+            // This is not an RGB image
+            // TODO: handle also images with alpha channel
+            return null;
+        }
         ColorModel ihsColorModel =
                 new ComponentColorModel(ihs,
-                new int[]{8,8,8},
+                componentSizes,
                 false,false,
                 Transparency.OPAQUE,
-                DataBuffer.TYPE_BYTE );
+                srcCm.getTransferType() );
+        
         // Create a ParameterBlock for the conversion.
         ParameterBlock pb = new ParameterBlock();
         pb.addSource( src );
@@ -439,10 +471,10 @@ public abstract class PhotovaultImage {
         ColorSpace sRGB = ColorSpace.getInstance( ColorSpace.CS_sRGB );
         ColorModel srgbColorModel =
                 new ComponentColorModel(sRGB,
-                new int[]{8,8,8},
+                componentSizes,
                 false,false,
                 Transparency.OPAQUE,
-                DataBuffer.TYPE_BYTE );
+                srcCm.getTransferType() );
         pb.add(srgbColorModel); // RGB color model!        
         RenderableOp saturatedImage = JAI.createRenderable("colorconvert", pb );
         

@@ -28,6 +28,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
+import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
@@ -421,6 +422,10 @@ public class RawImage extends PhotovaultImage {
             // TODO: Why setting color model as a rendering hint produces black image???
             correctedImage  = LookupDescriptor.createRenderable( wbAdjustedRawImage, jailut, null );
             
+            // Store the color model of the image
+            ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_sRGB );
+            cm = new ComponentColorModel( cs, new int[]{8,8,8},
+                    false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE );            
         }
         return correctedImage;
     }
@@ -450,6 +455,31 @@ public class RawImage extends PhotovaultImage {
         }
         return needsReload;
     }
+    
+    /**
+     Color model of the image after raw conversion
+     */
+    ColorModel cm = null;
+
+    /**
+     Sample model of the image after raw conversion
+     */
+    SampleModel sm = null;
+
+
+    /**
+     Get the sample model of the image after raw conversion.
+     */
+    public SampleModel getCorrectedImageSampleModel() {
+        return sm;
+    }
+
+    /**
+     Get the color model of the image after raw conversion.
+     */    
+    public ColorModel getCorrectedImageColorModel() {
+        return cm;
+    }    
     
     /**
      * Load the raw image using dcraw. No processing is yet done for the image,
@@ -1092,5 +1122,6 @@ public class RawImage extends PhotovaultImage {
         autoExposeRequested = false;
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
+
 
 }
