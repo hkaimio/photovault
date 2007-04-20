@@ -673,7 +673,7 @@ public class PhotoInfo {
         if ( thumbnail == null ) {
             // Thumbnail was not successful created, most probably because there
             // is no available instance
-            thumbnail = Thumbnail.getDefaultThumbnail();
+            thumbnail = Thumbnail.getErrorThumbnail();
             oldThumbnail = null;
         }
         
@@ -683,8 +683,8 @@ public class PhotoInfo {
     
     /**
      Returns an existing thumbnail for this photo but do not try to contruct a new
-     one if there is no thumbnail already created
-     @return Thumbnail for this photo or null if none created
+     one if there is no thumbnail already created.
+     @return Thumbnail for this photo or null if none is found.
      */
     
     public Thumbnail getExistingThumbnail() {
@@ -696,10 +696,13 @@ public class PhotoInfo {
                 ImageInstance instance = (ImageInstance) instances.get( n );
                 if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
                         && matchesCurrentSettings( instance ) ) {
-                    log.debug( "Found thumbnail from database" );
-                    thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
-                    oldThumbnail = null;
-                    break;
+                    File f = instance.getImageFile();
+                    if ( f != null ) {
+                        log.debug( "Found thumbnail from database" );
+                        thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
+                        oldThumbnail = null;
+                        break;
+                    }
                 }
             }
         }
@@ -842,14 +845,16 @@ public class PhotoInfo {
         ImageInstance original = null;
         for ( int n = 0; n < instances.size(); n++ ) {
             ImageInstance instance = (ImageInstance) instances.get( n );
-            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL
+                    && instance.getImageFile() != null 
+                    && instance.getImageFile().exists() ) {
                 original = instance;
                 txw.lock( original, Transaction.READ );
                 break;
             }
         }
-        if ( original == null || original.getImageFile() == null || !original.getImageFile().exists() ) {
-            // If there are uncorrupted instances, no thumbnail can be created
+        if ( original == null ) {
+            // If there are no uncorrupted instances, no thumbnail can be created
             log.warn( "Error - no original image was found!!!" );
             txw.commit();
             return;

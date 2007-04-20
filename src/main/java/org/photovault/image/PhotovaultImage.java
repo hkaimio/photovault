@@ -233,9 +233,14 @@ public abstract class PhotovaultImage {
         }
         RenderingHints hints = new RenderingHints( null );
         hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
-        RenderedImage rendered = 
-                saturated.createScaledRendering( (int) (scale*cropW), 
+        RenderedImage rendered = null;
+        if ( saturated != null ) {
+                rendered = saturated.createScaledRendering( (int) (scale*cropW), 
                 (int) (scale*cropH), hints );
+        } else {
+                rendered = cropped.createScaledRendering( (int) (scale*cropW), 
+                (int) (scale*cropH), hints );
+        }
         return rendered;
     }
     

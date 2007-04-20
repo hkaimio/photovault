@@ -481,7 +481,6 @@ public class ImageInstance {
 	ODMGXAWrapper txw = new ODMGXAWrapper();
 	txw.lock( this, Transaction.READ );
 	txw.commit();
-        log.debug( "ImageFile = " + imageFile + " volume = " + volume.getName() + " base dir = " + volume.getBaseDir() );
 	return imageFile;
     }
     

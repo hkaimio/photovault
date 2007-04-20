@@ -107,5 +107,31 @@ public class Thumbnail {
 	return defaultThumbnail;
     }
 
+    /**
+     Returns the thumbnail image that is used if thumbnail for a specific 
+     is broken
+    */
+    public static Thumbnail getErrorThumbnail() {
+	if ( errorThumbnail == null ) {
+	    errorThumbnail = new Thumbnail();
+            try {
+                URL errThumbURL = Thumbnail.class.getClassLoader().getResource( "defthumb.png" );
+                errorThumbnail.image = ImageIO.read( errThumbURL );
+            } catch (IOException ex) {
+                log.error( "Error loading error thumbnail: " + ex.getMessage() );
+                errorThumbnail.image = new BufferedImage( 100, 75, BufferedImage.TYPE_INT_RGB );
+            }
+	}
+	return errorThumbnail;
+    }
+
+    /**
+     Default thumbnail.
+     */
     static Thumbnail defaultThumbnail = null;
+    
+    /**
+     Error thumbnail
+     */
+    static Thumbnail errorThumbnail = null;
 }
