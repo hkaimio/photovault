@@ -40,12 +40,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.xml.XmlExportListener;
 import org.photovault.imginfo.xml.XmlExporter;
 import org.photovault.swingui.export.ExportDlg;
 
 /**
  */
-class ExportMetadataAction extends AbstractAction {
+class ExportMetadataAction extends AbstractAction implements XmlExportListener {
     
     /**
      Constructor.
@@ -63,15 +64,64 @@ class ExportMetadataAction extends AbstractAction {
         JFileChooser saveDlg = new JFileChooser();
         int retval = saveDlg.showDialog( null, "Export database to XML" );
         if ( retval == JFileChooser.APPROVE_OPTION ) {
-            File f = saveDlg.getSelectedFile();
-            try {
-                BufferedWriter writer = new BufferedWriter( new FileWriter( f ) );
-                XmlExporter exporter = new XmlExporter( writer );
-                exporter.write();
-                writer.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            final File f = saveDlg.getSelectedFile();
+            progressDlg = new ProgressDlg( null, true );
+            progressDlg.setTitle( "Exporting..." );
+            progressDlg.setStatus( "Gathering photos...");
+            progressDlg.setProgressPercent( 0 );
+            final ExportMetadataAction tthis = this;
+            Thread importThread = new Thread() {
+                public void run() {
+                    try {
+                        BufferedWriter writer = new BufferedWriter( new FileWriter( f ) );
+                        XmlExporter exporter = new XmlExporter( writer );
+                        exporter.addListener( tthis );
+                        exporter.write();
+                        writer.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    
+                }
+            };
+            
+            importThread.start();
+            progressDlg.setVisible( true );
+        }
+    }
+
+    ProgressDlg progressDlg;
+    
+    public void xmlExportStatus(XmlExporter exporter, int status) {
+        switch ( status ) {
+            case XmlExporter.EXPORTER_STATE_EXPORTING_FOLDERS:
+                progressDlg.setStatus( "Exporting folder hierarchy..." );
+                break;
+            case XmlExporter.EXPORTER_STATE_EXPORTING_PHOTOS:
+                progressDlg.setStatus( "Exporting photos..." );
+                break;
+            case XmlExporter.EXPORTER_STATE_COMPLETED:
+                progressDlg.completed();
+                break;
+            default:
+                JOptionPane.showMessageDialog( null, 
+                        "Invalid state for exporter: " + status, 
+                        "Exporting error", JOptionPane.ERROR_MESSAGE );
+        }
+    }
+
+    public void xmlExportError(XmlExporter exporter, String message) {
+                JOptionPane.showMessageDialog( null, 
+                        message, 
+                        "Exporting error", JOptionPane.ERROR_MESSAGE );
+    }
+
+    public void xmlExportObjectExported(XmlExporter exporter, Object obj) {
+        int totalPhotoCount = exporter.getTotalPhotoCount();
+        int exportedPhotoCount = exporter.getExportedPhotoCount();
+        if ( totalPhotoCount > 0 ) {
+            int percentage = (exportedPhotoCount * 100 ) / totalPhotoCount;
+            progressDlg.setProgressPercent( percentage );
         }
     }
 }

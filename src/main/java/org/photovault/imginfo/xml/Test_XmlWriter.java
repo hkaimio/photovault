@@ -16,6 +16,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -65,6 +66,24 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
 //        db.removeVolume( volume );
 //	deleteTree( volume.getBaseDir() );
     }
+
+    static class TestExportListener implements XmlExportListener {
+        public int status;
+        public boolean error = false;
+        public Set objects = new HashSet();
+        
+        public void xmlExportStatus(XmlExporter exporter, int status) {
+            this.status = status;
+        }
+
+        public void xmlExportError(XmlExporter exporter, String message) {
+            error = true;
+        }
+
+        public void xmlExportObjectExported(XmlExporter exporter, Object obj) {
+            objects.add( obj );
+        }
+    }
     
     public void testFolderWriting() throws IOException {
         PhotoFolder root = PhotoFolder.getRoot();
@@ -84,10 +103,16 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         FileWriter fw = new FileWriter( outfile );
         BufferedWriter writer = new BufferedWriter( fw );
         XmlExporter exporter = new XmlExporter( writer );
+        TestExportListener l = new TestExportListener();
+        exporter.addListener( l );
         exporter.write();
         writer.close();
-        
+        assertEquals( XmlExporter.EXPORTER_STATE_COMPLETED, l.status );
+        assertTrue( l.objects.contains( subfolder3 ) );
+        assertFalse( l.error );        
     }
+    
+
     
     public void testImport() throws IOException, PhotoNotFoundException {
         File f = new File( "testfiles/test_import.xml" );

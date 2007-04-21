@@ -256,7 +256,7 @@ public class XmlImporter {
         digester.addCallMethod( "*/photos/photo/film-speed", "setFilmSpeed", 0, new Class[] {Integer.class} );
         
         digester.addFactoryCreate( "*/photos/photo/shoot-time", new FuzzyDateFactory() );
-        digester.addSetNext( "*/photos/photo/shoot-time", "setShootTime" );
+        digester.addSetNext( "*/photos/photo/shoot-time", "setFuzzyShootTime" );
         
         // Crop settings
         digester.addCallMethod( "*/photos/photo/crop", "setPrefRotation", 1, new Class[] {Double.class} );

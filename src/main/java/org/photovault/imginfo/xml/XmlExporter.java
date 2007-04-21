@@ -60,6 +60,140 @@ public class XmlExporter {
      */
     BufferedWriter writer = null;
     
+    
+    /**
+     Number of photos exported
+     */
+    int photoCount = 0;
+
+    /**
+     Number of folders exported
+     */
+    int folderCount = 0;
+
+    /**
+     Number of instances exported
+     */
+    int instanceCount = 0;
+    
+    int totalPhotoCount = 0;
+    
+    /**
+     Get the number of exported folders
+     @return Number of folders exported during the ongoing operation
+     */
+    public int getExportedFolderCount() {
+        return folderCount;
+    }
+    
+    /**
+     Get the number of exported photos
+     @return Number of photos exported during the ongoing operation
+     */
+    public int getExportedPhotoCount() {
+        return photoCount;
+    }
+    
+    /**
+     Get the total number of photos to export
+     @return While export operation is ongoing, the total number of photos to 
+     export. In other situations, return value is undefined.
+     */
+    
+    public int getTotalPhotoCount() {
+        return totalPhotoCount;
+    }
+    
+    Set listeners = new HashSet();
+    
+    // State values
+    
+    /**
+     Invalid state
+     */
+    public final static int EXPORTER_STATE_INVALID = 0;
+
+    /**
+     This object is currently exporting folder hierarchy
+     */
+    public final static int EXPORTER_STATE_EXPORTING_FOLDERS = 1;
+
+    /**
+     This object is currently exporting photos
+     */
+    public final static int EXPORTER_STATE_EXPORTING_PHOTOS = 2;
+
+    /**
+     The export operation has completed
+     */
+    public final static int EXPORTER_STATE_COMPLETED = 3;
+
+    /**
+     No export operation has started.
+     */
+    public final static int EXPORTER_STATE_NOT_STARTED = 4;
+        
+    /**
+     Ask that a {@link XmlExportListener} should be notified of events in this 
+     exporter.
+     @param l The object that should be notified of events
+     */
+    public void addListener( XmlExportListener l ) {
+        listeners.add( l );
+    }
+    
+    /**
+     Ask that a {@link XmlExportListener} should not anymore be notified of events in this 
+     exporter.
+     @param l The object that should be removed form listeners.
+     */    
+    public void removeListener( XmlExportListener l ) {
+        listeners.remove( l );
+    }
+    
+    /**
+     Inform listeners about status change to this listener
+     */
+    private void fireStatusChangeEvent( int status ) {
+        Iterator iter = listeners.iterator();
+        while ( iter.hasNext() ) {
+            XmlExportListener l = ( XmlExportListener ) iter.next();
+            l.xmlExportStatus( this, status );
+        }
+    }
+    
+    /**
+     Inform listeners about error in exporting
+     @param errorMsg The error message that is sent to listeners
+     */
+    private void fireErrorEvent( String errorMsg ) {
+        Iterator iter = listeners.iterator();
+        while ( iter.hasNext() ) {
+            XmlExportListener l = ( XmlExportListener ) iter.next();
+            l.xmlExportError( this, errorMsg );
+        }
+    }
+    
+    /**
+     Inform listeners that an object has been exported
+     @param obj the exported object
+     */
+    private void fireObjectExportedEvent( Object obj ) {
+        Iterator iter = listeners.iterator();
+        while ( iter.hasNext() ) {
+            XmlExportListener l = ( XmlExportListener ) iter.next();
+            l.xmlExportObjectExported( this, obj );
+        }
+    }
+
+    /**
+     Get the number of exported instances
+     @return Number of instances exported during the ongoing operation
+     */
+    public int getExportedInstanceCount() {
+        return instanceCount;
+    }
+    
     /**
      Get the indentation that should be used
      @return String consisting of {@link indent} spaces
@@ -75,6 +209,7 @@ public class XmlExporter {
      @throws IOException if error occurs during writing
      */
     public void writeFolders( Set folders ) throws IOException {
+        fireStatusChangeEvent( EXPORTER_STATE_EXPORTING_FOLDERS );
         Set remainingFolders = new HashSet( folders );
         PhotoFolder rootFolder = PhotoFolder.getRoot();
         writer.write( getIndent() + "<folders root-uuid=\"" + 
@@ -109,10 +244,12 @@ public class XmlExporter {
         for ( int n = 0; n < query.getPhotoCount(); n++ ) {
             photos.add( query.getPhoto( n ) );
         }
+        totalPhotoCount = query.getPhotoCount();
         writePhotos( photos );
         indent -= 2;
         writer.write( getIndent() + "</photovault-data>" );
         writer.newLine();
+        fireStatusChangeEvent( EXPORTER_STATE_COMPLETED );
     }
     
     /**
@@ -167,9 +304,12 @@ public class XmlExporter {
         }
         indent -= 2;
         writer.write( getIndent() + "</folder>\n" );
+        folderCount++;
+        fireObjectExportedEvent( folder );
     }
     
     private void writePhotos( Collection photos ) throws IOException {
+        fireStatusChangeEvent( EXPORTER_STATE_EXPORTING_PHOTOS );
         Iterator iter = photos.iterator();
         writer.write( getIndent() + "<photos>" );
         writer.newLine();
@@ -184,7 +324,7 @@ public class XmlExporter {
     }
     
     /**
-     Writes an XM? element that describes a single photo
+     Writes an XML element that describes a single photo
      @param p The photo to write
      @throws IOException if error occurs during writing     
      */
@@ -268,6 +408,8 @@ public class XmlExporter {
         indent -= 2;
         writer.write( getIndent() + "</photo>" );
         writer.newLine();
+        photoCount++;
+        fireObjectExportedEvent( p );
     }
     
     /**
@@ -317,7 +459,8 @@ public class XmlExporter {
         }
         indent -= 2;
         writer.write( getIndent() + "</instance>" );
-        writer.newLine();        
+        writer.newLine(); 
+        instanceCount++;
     }
     
     /**
