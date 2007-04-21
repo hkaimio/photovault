@@ -27,6 +27,7 @@ import java.sql.*;
 import java.awt.image.*;
 import javax.imageio.*;
 import javax.imageio.stream.*;
+import org.photovault.common.PhotovaultException;
 import org.photovault.dbhelper.ImageDb;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.common.JUnitOJBManager;
@@ -668,8 +669,11 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 // 	} catch ( IOException e ) {
 // 	    fail( "could not create export file: " + e.getMessage() );
 // 	}
-	photo.exportPhoto( exportFile, 400, 400 );
-
+        try {
+            photo.exportPhoto( exportFile, 400, 400 );
+        } catch (PhotovaultException e ) {
+            fail( e.getMessage() );
+        }
 	// Read the exported image
 	BufferedImage exportedImage = null;
 	try {

@@ -34,6 +34,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
+import org.photovault.common.PhotovaultException;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.export.ExportDlg;
@@ -103,8 +104,15 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                     Iterator iter = selection.iterator();
                     if ( iter.hasNext() ) {
                         PhotoInfo photo = (PhotoInfo) iter.next();
-                        photo.exportPhoto( new File( exportFileTmpl ),
-                                exportWidth, exportHeight );
+                        try {
+                            photo.exportPhoto( new File( exportFileTmpl ),
+                                    exportWidth, exportHeight );
+                        } catch (PhotovaultException ex) {
+                            JOptionPane.showMessageDialog( view.getRootPane(),
+                                    ex.getMessage(),
+                                    "Error exporting image",
+                                    JOptionPane.ERROR_MESSAGE );
+                        }
                     }
                 }
             }
@@ -146,7 +154,11 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                 owner.exportingPhoto( this, fname, percent );
                 File f = new File( fname );
                 PhotoInfo photo = exportPhotos[n];
-                photo.exportPhoto( f, exportWidth, exportHeight );
+                try {
+                    photo.exportPhoto( f, exportWidth, exportHeight );
+                } catch ( PhotovaultException e ) {
+                    owner.exportError( e.getMessage() );
+                }
             }
             owner.exportDone( this );
         }
@@ -240,10 +252,14 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
      @param msg Error message that is displayed to user
      */
     private void exportError( final String msg ) {
-        JOptionPane.showMessageDialog( view.getRootPane(),
-                msg,
-                "Error exporting images",
-                JOptionPane.ERROR_MESSAGE );
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                JOptionPane.showMessageDialog( view.getRootPane(),
+                        msg,
+                        "Error exporting images",
+                        JOptionPane.ERROR_MESSAGE );
+            }
+        } );
     }
     
     /**

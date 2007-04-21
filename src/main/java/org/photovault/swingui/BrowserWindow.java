@@ -567,29 +567,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         }
     }
     
-    /**
-       Exports the selected images to folder outside the database.
-    */
-    protected void exportSelected() {
-	// Show the file chooser dialog
-	JFileChooser fc = new JFileChooser();
-	fc.addChoosableFileFilter( new ImageFilter() );
-	fc.setAccessory( new ImagePreview( fc ) );
-	
-	int retval = fc.showDialog( this, "Export image" );
-	if ( retval == JFileChooser.APPROVE_OPTION ) {
-	    File exportFile = fc.getSelectedFile();
-	    Collection selection = viewPane.getSelection();
-	    if ( selection != null ) {
-		Iterator iter = selection.iterator();
-		if ( iter.hasNext() ) {
-		    PhotoInfo photo = (PhotoInfo) iter.next();
-		    photo.exportPhoto( exportFile, 400, 400 );
-		}
-	    }
-	}
-    }
-    
+
     /**
      *Selection in Thumb view has changed. Is a single photo is selected, show 
      * it in preview pane, otherwise set preview empty.

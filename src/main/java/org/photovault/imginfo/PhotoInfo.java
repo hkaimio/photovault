@@ -1031,8 +1031,9 @@ public class PhotoInfo {
      @param width Width of the exported image in pixels. If negative the image is
      exported in its "natural" resolution (i.e. not scaled)
      @param height Height of the exported image in pixels
+     @throws PhotovaultException if exporting the photo fails for some reason.
      */
-    public void exportPhoto( File file, int width, int height ) {
+    public void exportPhoto( File file, int width, int height ) throws PhotovaultException {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         
@@ -1040,17 +1041,19 @@ public class PhotoInfo {
         ImageInstance original = null;
         for ( int n = 0; n < instances.size(); n++ ) {
             ImageInstance instance = (ImageInstance) instances.get( n );
-            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL
+                    && instance.getImageFile() != null 
+                    && instance.getImageFile().exists() ) {
                 original = instance;
                 txw.lock( original, Transaction.READ );
                 break;
             }
         }
-        if ( original == null || original.getImageFile() == null || !original.getImageFile().exists() ) {
+        if ( original == null ) {
             // If there are no instances, nothing can be exported
             log.warn( "Error - no original image was found!!!" );
             txw.commit();
-            return;
+            throw new PhotovaultException( "No image file found to export photo" );
         }
         
         // Read the image
@@ -1094,7 +1097,7 @@ public class PhotoInfo {
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
             txw.abort();
-            return;
+            throw new PhotovaultException( "Error reading image: " + e.getMessage(), e );
         }
                 
         // Reduce to 8 bit samples if we have more...
@@ -1172,7 +1175,7 @@ public class PhotoInfo {
         } catch ( IOException e ) {
             log.warn( "Error writing exported image: " + e.getMessage() );
             txw.abort();
-            return;
+            throw new PhotovaultException( "Error writing exported image: " + e.getMessage(), e );
         }
         
         txw.commit();
@@ -1229,7 +1232,11 @@ public class PhotoInfo {
         txw.commit();
     }
     
-    public void setShootTime( FuzzyDate v ) {
+    /**
+     Set both shooting time & accuracy directly using a FuzzyTime object
+     @param v FuzzyTime containing new values.
+     */
+    public void setFuzzyShootTime( FuzzyDate v ) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.shootTime = (java.util.Date) v.getDate().clone();
