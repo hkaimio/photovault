@@ -70,7 +70,7 @@ class ExportMetadataAction extends AbstractAction implements XmlExportListener {
             progressDlg.setStatus( "Gathering photos...");
             progressDlg.setProgressPercent( 0 );
             final ExportMetadataAction tthis = this;
-            Thread importThread = new Thread() {
+            Thread exportThread = new Thread() {
                 public void run() {
                     try {
                         BufferedWriter writer = new BufferedWriter( new FileWriter( f ) );
@@ -85,7 +85,7 @@ class ExportMetadataAction extends AbstractAction implements XmlExportListener {
                 }
             };
             
-            importThread.start();
+            exportThread.start();
             progressDlg.setVisible( true );
         }
     }

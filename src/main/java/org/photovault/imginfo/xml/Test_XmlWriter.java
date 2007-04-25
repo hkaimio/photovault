@@ -1,11 +1,22 @@
 /*
- * Test_XmlWriter.java
- *
- * Created on April 9, 2007, 8:17 AM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
+  Copyright (c) 2007 Harri Kaimio
+  
+  This file is part of Photovault.
+
+  Photovault is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  Photovault is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Photovault; if not, write to the Free Software Foundation,
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+*/
 
 package org.photovault.imginfo.xml;
 
@@ -112,21 +123,43 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         assertFalse( l.error );        
     }
     
+    static class TestImportListener implements XmlImportListener {
+        public int status;
+        public boolean error = false;
+        public Set objects = new HashSet();
+        
+        public void xmlImportStatus(XmlImporter importer, int status) {
+            this.status = status;
+        }
 
+        public void xmlImportError(XmlImporter importer, String message) {
+            error = true;
+        }
+
+        public void xmlImportObjectImported(XmlImporter importer, Object obj) {
+            objects.add( obj );
+        }
+    }
+    
     
     public void testImport() throws IOException, PhotoNotFoundException {
         File f = new File( "testfiles/test_import.xml" );
         BufferedReader reader = new BufferedReader( new FileReader( f ) );
         XmlImporter importer = new XmlImporter( reader );
+        TestImportListener l = new TestImportListener();
+        importer.addListener( l );
         importer.importData();
         reader.close();
-        
+
+        assertFalse( l.error );
+        assertEquals( XmlImporter.IMPORTING_COMPLETED, l.status );
         PhotoInfo p = PhotoInfo.retrievePhotoInfo( UUID.fromString( "65bd68f7-79f4-463b-9e37-0a91182e6499") );
         assertEquals( "NIKON D200", p.getCamera() );
         assertEquals( 8.0, p.getFStop() );
         assertEquals( "Digital", p.getFilm() );
         assertEquals( 100, p.getFilmSpeed() );
         assertEquals( 0, p.getQuality() );
+        assertTrue( l.objects.contains( p ) );
         PhotoFolder folder = PhotoFolder.getFolderByUUID( UUID.fromString( "06499cc6-d421-4262-8fa2-30a060982619" ) );
         assertEquals( "test", folder.getName() );
         PhotoFolder parent = folder.getParentFolder();

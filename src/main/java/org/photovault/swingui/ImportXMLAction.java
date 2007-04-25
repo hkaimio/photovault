@@ -26,6 +26,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -43,13 +44,14 @@ import java.util.Iterator;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.xml.XmlExporter;
+import org.photovault.imginfo.xml.XmlImportListener;
 import org.photovault.imginfo.xml.XmlImporter;
 import org.photovault.swingui.export.ExportDlg;
 
 /**
  Import metadata from XML file to database
  */
-class ImportXMLAction extends AbstractAction {
+class ImportXMLAction extends AbstractAction implements XmlImportListener {
     
     /**
      Constructor.
@@ -65,17 +67,93 @@ class ImportXMLAction extends AbstractAction {
     public void actionPerformed( ActionEvent ev ) {    
         File importFile = null;
         JFileChooser importDlg = new JFileChooser();
-        int retval = importDlg.showDialog( null, "Export database to XML" );
+        int retval = importDlg.showDialog( null, "Import from XML" );
         if ( retval == JFileChooser.APPROVE_OPTION ) {
-            File f = importDlg.getSelectedFile();
-            try {
-                BufferedReader reader = new BufferedReader( new FileReader( f ) );
-                XmlImporter importer = new XmlImporter( reader );
-                importer.importData();
-                reader.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+            final File f = importDlg.getSelectedFile();
+            final ImportXMLAction staticThis = this;
+            Thread importThread = new Thread() {
+                public void run() {
+                    try {
+                        BufferedReader reader = new BufferedReader( new FileReader( f ) );
+                        XmlImporter importer = new XmlImporter( reader );
+                        importer.addListener( staticThis );
+                        importer.importData();
+                        reader.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            };
+            importThread.start();            
+        }
+    }
+    
+    /**
+     List of @see StatusChangeListener interested in changes in this object
+     */
+    private Vector listeners = new Vector();
+    
+    public void addStatusChangeListener( StatusChangeListener l ) {
+        synchronized( listeners ) {
+            listeners.add( l );
+        }
+    }
+    
+    public void removeStatusChangeListener( StatusChangeListener l ) {
+        synchronized( listeners ) {
+            listeners.remove( l );
+        }
+    }
+    
+    void fireStatusChangeEvent( String msg ) {
+        StatusChangeEvent e = new StatusChangeEvent( this, msg );
+        synchronized( listeners ) {
+            Iterator iter = listeners.iterator();
+            while ( iter.hasNext() ) {
+                StatusChangeListener l = (StatusChangeListener) iter.next();
+                l.statusChanged( e );
             }
+        }
+    }    
+
+    public void xmlImportStatus(XmlImporter exporter, int status) {
+        switch ( status ) {
+            case XmlImporter.IMPORTING_STARTED:
+                fireStatusChangeEvent( "Importing started" );
+                break;
+            case XmlImporter.IMPORTING_COMPLETED:
+                fireStatusChangeEvent( "Importing completed" );
+                break;
+            default:
+                showError( "Invalid importer status: " + status );
+        }
+    }
+
+    public void xmlImportError(XmlImporter exporter, String message) {
+        showError( message );
+    }
+
+    public void xmlImportObjectImported(XmlImporter xmlImporter, Object obj) {
+        if ( obj instanceof PhotoInfo ) {
+            fireStatusChangeEvent( "Imported " + xmlImporter.getImportedPhotoCount() + " photos." );
+        }
+    }
+    
+    private void showError( String error ) {
+        final String errorMsg = error;
+        try {
+            SwingUtilities.invokeAndWait( new Runnable() {
+               public void run() {
+                   JOptionPane.showMessageDialog( null, errorMsg, "Error importing photos", 
+                           JOptionPane.ERROR_MESSAGE );
+               } 
+            });
+        } catch (HeadlessException ex) {
+            ex.printStackTrace();
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
         }
     }
 }

@@ -24,6 +24,9 @@ import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
@@ -58,6 +61,106 @@ public class XmlImporter {
     public XmlImporter( BufferedReader reader ) {
         this.reader = reader;
     }
+
+    /**
+     Status code sent to listeners when import operation starts
+     */
+    public static final int IMPORTING_STARTED = 1;
+    
+
+    /**
+     Status code sent to listener when import operation completes
+     */    
+    public static final int IMPORTING_COMPLETED = 2;        
+
+    /**
+     Number of photos imported
+     */
+    int photoCount = 0;
+
+    /**
+     Number of folders imported
+     */
+    int folderCount = 0;
+
+    /**
+     Number of instances imported
+     */
+    int instanceCount = 0;
+    
+    
+    /**
+     Get the number of imported new folders
+     @return Number of new folders imported during the ongoing operation
+     */
+    public int getImportedFolderCount() {
+        return folderCount;
+    }
+    
+    /**
+     Get the number of imported photos
+     @return Number of previously unknown photos imported during the ongoing operation
+     */
+    public int getImportedPhotoCount() {
+        return photoCount;
+    }
+    
+    Set listeners = new HashSet();
+    
+    /**
+     Ask that a {@link XmlImportListener} should be notified of events in this 
+     importer.
+     @param l The object that should be notified of events
+     */
+    public void addListener( XmlImportListener l ) {
+        listeners.add( l );
+    }
+    
+    /**
+     Ask that a {@link XmlImportListener} should not anymore be notified of events in this 
+     importer.
+     @param l The object that should be removed form listeners.
+     */    
+    public void removeListener( XmlImportListener l ) {
+        listeners.remove( l );
+    }
+    
+    /**
+     Inform listeners about status change to this importer
+     */
+    private void fireStatusChangeEvent( int status ) {
+        Iterator iter = listeners.iterator();
+        while ( iter.hasNext() ) {
+            XmlImportListener l = ( XmlImportListener ) iter.next();
+            l.xmlImportStatus( this, status );
+        }
+    }
+    
+    /**
+     Inform listeners about error in importing
+     @param errorMsg The error message that is sent to listeners
+     */
+    private void fireErrorEvent( String errorMsg ) {
+        Iterator iter = listeners.iterator();
+        while ( iter.hasNext() ) {
+            XmlImportListener l = ( XmlImportListener ) iter.next();
+            l.xmlImportError( this, errorMsg );
+        }
+    }
+    
+    /**
+     Inform listeners that an object has been imported
+     @param obj the exported object
+     */
+    private void fireObjectImportedEvent( Object obj ) {
+        Iterator iter = listeners.iterator();
+        while ( iter.hasNext() ) {
+            XmlImportListener l = ( XmlImportListener ) iter.next();
+            l.xmlImportObjectImported( this, obj );
+        }
+    }
+    
+    
     
     /**
      Factory used for creating and fetching PhotoFolder in Digester rule. It
@@ -119,13 +222,20 @@ public class XmlImporter {
     }
 
     /**
+     Name for a stack that is used to communicate from begin tag to end tag 
+     whether importer is constructing a new object (Boolean(true) pushed to stack) 
+     or not.
+     */
+    final static String STACK_CREATING_NEW = "org.photovault.imginfo.xml.isCreatingNewObject";
+    
+    /**
      Factory used for creating and fetching PhotoInfo in Digester rule. It
      first tries to find a photo with the uuid specified in XML. If no such 
      photo is found, a new folder is created.
      */
     public class PhotoFactory extends AbstractObjectCreationFactory {
-        public PhotoFactory() {
-            
+        public PhotoFactory( ) {
+
         }
         
         public Object createObject( Attributes attrs ) {
@@ -142,7 +252,10 @@ public class XmlImporter {
             
             if ( p == null ) {
                 p = PhotoInfo.create( uuid );
-            } 
+                digester.push( STACK_CREATING_NEW, new Boolean( true ) );
+            } else {
+                digester.push( STACK_CREATING_NEW, new Boolean( false ) );                
+            }
             return p;
         }
     }
@@ -229,6 +342,7 @@ public class XmlImporter {
      Import data from XML file according to current settings in this object.
      */
     public void importData() {
+        final XmlImporter tthis = this;
         Digester digester = new Digester();
         digester.push(this); // Push controller servlet onto the stack
         digester.setValidating(false);
@@ -241,6 +355,16 @@ public class XmlImporter {
         
         // PhotoInfo mappings
         digester.addFactoryCreate( "*/photos/photo", new PhotoFactory() );
+        // After the photo  is ready, inform listeners  if a new photo was created.
+        digester.addRule( "*/photos/photo", new Rule() {
+            public void end( String namespace, String name ) {
+                Boolean isCreatingNew = (Boolean) digester.pop( STACK_CREATING_NEW );
+                if ( isCreatingNew.booleanValue() ) {
+                    photoCount++;
+                    fireObjectImportedEvent( digester.peek() );
+                }
+            }
+        });
         digester.addCallMethod( "*/photos/photo/shooting-place", "setShootingPlace", 0 );
         digester.addCallMethod( "*/photos/photo/photographer", "setPhotographer", 0 );
         digester.addCallMethod( "*/photos/photo/camera", "setCamera", 0 );
@@ -365,12 +489,16 @@ public class XmlImporter {
         digester.addFactoryCreate( "*/photos/photo/folders/folder-ref", new FolderFactory( false ) );
         digester.addSetTop( "*/photos/photo/folders/folder-ref", "addPhoto" );
         
+        fireStatusChangeEvent( IMPORTING_STARTED );
         try {
             digester.parse( reader );
         } catch (SAXException ex) {
+            fireErrorEvent( ex.getMessage() );
             ex.printStackTrace();
         } catch (IOException ex) {
+            fireErrorEvent( ex.getMessage() );
             ex.printStackTrace();
         }
+        fireStatusChangeEvent( IMPORTING_COMPLETED );
     }  
 }

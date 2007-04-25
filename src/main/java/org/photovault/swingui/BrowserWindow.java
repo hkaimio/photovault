@@ -220,6 +220,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         ImportXMLAction importMetadata = 
                 new ImportXMLAction( "Import XML data...", null, 
                 "Import data from other Photovault database as XML", KeyEvent.VK_T );
+        importMetadata.addStatusChangeListener( statusBar );
         fileMenu.add( new JMenuItem( importMetadata ) );
         
         fileMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
