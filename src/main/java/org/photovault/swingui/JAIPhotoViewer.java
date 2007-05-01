@@ -28,6 +28,9 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.dcraw.RawImageChangeEvent;
 import org.photovault.dcraw.RawImageChangeListener;
+import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ColorCurve;
 import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
@@ -48,6 +51,7 @@ import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
 import org.photovault.swingui.color.ColorSettingsDlg;
+import org.photovault.swingui.color.PhotoInfoViewAdapter;
 import org.photovault.swingui.color.RawSettingsPreviewEvent;
 
 public class JAIPhotoViewer extends JPanel implements 
@@ -436,7 +440,7 @@ public class JAIPhotoViewer extends JPanel implements
     }
     
     /**
-     Called when raw settings in another control that user this control as 
+     Called when raw settings in another control that uses this control as 
      a preview image are changed.
      @param e Event that describes the change.
      */
@@ -448,6 +452,18 @@ public class JAIPhotoViewer extends JPanel implements
                 rawImage.setRawSettings( r );
                 
             }
+        }
+    }
+    
+    /**
+     Called when color settings in another control that uses this control as 
+     a preview image are changed.
+     @param e Event that describes the change.
+     */
+    public void colorCurveChanged( PhotoInfoViewAdapter v, String name, ColorCurve c ) {
+        PhotoInfo[] model = v.getController().getPhotos();
+        if ( model != null && model.length == 1 && model[0] == photo ) {
+            imageView.setColorCurve( name, c );
         }
     }
 

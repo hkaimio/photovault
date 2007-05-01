@@ -26,6 +26,9 @@ import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
+import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import java.io.*;
@@ -55,6 +58,10 @@ public class PhotoInfoController {
         initModelFields();
     }
     
+    /**
+     Special field controller for handling UI fields that are stored as part of
+     RawConversionSettings.
+     */
     abstract class RawSettingFieldCtrl extends FieldController {
         /**
          * Constructs a new RawSettingsFieldCtrl
@@ -134,6 +141,59 @@ public class PhotoInfoController {
             if ( view instanceof RawPhotoView ) {
                 RawPhotoView obj = (RawPhotoView) view;
                 value = doGetViewValue( obj );
+            }
+        }
+    };
+
+    /**
+     Special field controller for handling Color curves.
+     */
+    class ColorCurveCtrl extends FieldController {
+        /**
+         * Constructs a new ColorCurveCtrl
+         * @param model PhotoInfo objects that form the model
+         * @param curveName Name of the generated curve
+         */
+        public ColorCurveCtrl( Object model, String curveName ) {
+            super( model );
+            this.name = curveName;
+        }
+        
+        final String name;        
+        
+        protected void setModelValue( Object model ) {
+            PhotoInfo obj = (PhotoInfo) model;
+            ChannelMapOperationFactory f = getColorMappingFactory( obj );
+            if ( f != null ) {
+                f.setChannelCurve( name, (ColorCurve) value );
+            }
+        }
+        protected Object getModelValue( Object model ) {
+            PhotoInfo obj = (PhotoInfo) model;
+            ChannelMapOperation cm = obj.getColorChannelMapping();
+            ColorCurve ret = null;
+            if ( cm != null ) {
+                ret = cm.getChannelCurve( name );
+            }
+            return ret;
+        }
+        
+        protected void updateView( Object view ) {
+            if ( view instanceof PhotoInfoView ) {
+                PhotoInfoView obj = (PhotoInfoView) view;
+                obj.setColorChannelCurve( name, (ColorCurve) value );
+            }
+        }
+        protected void updateViewMultivalueState( Object view ) {
+            if ( view instanceof PhotoInfoView ) {
+                PhotoInfoView obj = (PhotoInfoView) view;
+                obj.setColorChannelMultivalued( name, isMultiValued );
+            }
+        }
+        protected void updateValue( Object view ) {
+            if ( view instanceof PhotoInfoView ) {
+                PhotoInfoView obj = (PhotoInfoView) view;
+                value = obj.getColorChannelCurve( name );
             }
         }
     };
@@ -675,6 +735,36 @@ public class PhotoInfoController {
             }
         });
         
+        modelFields.put( COLOR_MAPPING, new FieldController( photos ) {
+            protected void setModelValue( Object model ) {
+                PhotoInfo obj = (PhotoInfo) model;
+                obj.setColorChannelMapping( (ChannelMapOperation) value );
+            }
+            protected Object getModelValue( Object model ) {
+                PhotoInfo obj = (PhotoInfo) model;
+                return obj.getColorChannelMapping();
+            }
+            protected void updateView( Object view ) {
+                PhotoInfoView obj = (PhotoInfoView) view;
+                obj.setColorChannelMapping( (ChannelMapOperation) value );
+            }
+            protected void updateViewMultivalueState( Object view ) {
+                PhotoInfoView obj = (PhotoInfoView) view;
+                obj.setColorChannelMappingMultivalued( isMultiValued );
+                
+            }
+            protected void updateValue( Object view ) {
+                PhotoInfoView obj = (PhotoInfoView) view;
+                value = obj.getColorChannelMapping();
+            }
+        });
+        
+        
+        modelFields.put( COLOR_CURVE_VALUE, new ColorCurveCtrl( photos, "value" ) );
+        modelFields.put( COLOR_CURVE_RED, new ColorCurveCtrl( photos, "red" ) );
+        modelFields.put( COLOR_CURVE_GREEN, new ColorCurveCtrl( photos, "green" ) );
+        modelFields.put( COLOR_CURVE_BLUE, new ColorCurveCtrl( photos, "blue" ) );
+        
         folderCtrl = new FolderController( photos );
         modelFields.put( PHOTO_FOLDERS, folderCtrl );
         
@@ -728,6 +818,15 @@ public class PhotoInfoController {
      */
     public void setView( PhotoInfoView view ) {
         views.clear();
+        addView( view );
+    }
+    
+    /**
+     Add a new view to those that are controlled by this object.
+     TODO: Only the new view should be set to match the model.
+     @param view The view to add.
+     */
+    public void addView( PhotoInfoView view ) {
         views.add( view );
         // Inform all field controllers that the views collection has changed
         Iterator iter = modelFields.values().iterator();
@@ -886,6 +985,12 @@ public class PhotoInfoController {
     public final static String RAW_CTEMP = "Raw conversion color temperature";
     public final static String RAW_GREEN = "Raw conversion green gain";
     public final static String RAW_COLOR_PROFILE = "Raw conversion ICC profile";
+    
+    public final static String COLOR_MAPPING = "Color channel mapping";
+    public final static String COLOR_CURVE_VALUE = "Value color curve";
+    public final static String COLOR_CURVE_RED = "Red color curve";
+    public final static String COLOR_CURVE_GREEN = "Green color curve";
+    public final static String COLOR_CURVE_BLUE = "Blue color curve";
     protected HashMap modelFields = null;
     
     // The original file that is to be added to database (if we are creating a new PhotoInfo object)
@@ -961,6 +1066,22 @@ public class PhotoInfoController {
             }
         }
         return f;
+    }
+    
+    HashMap colorMappingFactories = new HashMap();
+    
+    private ChannelMapOperationFactory getColorMappingFactory( PhotoInfo p ) {
+        ChannelMapOperationFactory f = null;
+        if ( colorMappingFactories.containsKey( p ) ) {
+            f = (ChannelMapOperationFactory) colorMappingFactories.get( p );
+        } else {
+            ChannelMapOperation r = p.getColorChannelMapping();
+            f = new ChannelMapOperationFactory( r );
+            if ( r != null ) {
+                colorMappingFactories.put( p, f );
+            }
+        }
+        return f;        
     }
     
     boolean isRawSettingsChanged = false;

@@ -44,6 +44,8 @@ import org.photovault.dcraw.RawImage;
 import org.photovault.dcraw.RawImageChangeEvent;
 import org.photovault.dcraw.RawImageChangeListener;
 import org.photovault.dcraw.RawSettingsFactory;
+import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
@@ -78,6 +80,15 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ctrl = new PhotoInfoController();
         ctrl.setPhotos( photos );
         ctrl.setView( this );
+        final ColorSettingsDlg staticThis = this;
+        this.colorCurvePanel1.addListener( new ColorCurveChangeListener() {
+            public void colorCurveChanging(ColorCurvePanel p, ColorCurve c) {
+            }
+
+            public void colorCurveChangeCompleted(ColorCurvePanel p, ColorCurve c) {
+                staticThis.colorCurveChanged( c );
+            }
+        });
     }
     
     /**
@@ -99,6 +110,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      */
     PhotoInfoController ctrl = null;
     RawConversionSettings rawSettings = null;
+    
+    ChannelMapOperation colorMapping = null;
     
     /**
      Saves all changes made in the dialog to model.
@@ -189,6 +202,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         saturationSlider = new org.photovault.swingui.color.FieldSliderCombo();
         label1 = new java.awt.Label();
         rawHistogramPane = rawHistogramPane = new HistogramPane();
+        colorCurvePanel1 = new org.photovault.swingui.color.ColorCurvePanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Colors");
@@ -388,6 +402,17 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             .add(0, 139, Short.MAX_VALUE)
         );
 
+        org.jdesktop.layout.GroupLayout colorCurvePanel1Layout = new org.jdesktop.layout.GroupLayout(colorCurvePanel1);
+        colorCurvePanel1.setLayout(colorCurvePanel1Layout);
+        colorCurvePanel1Layout.setHorizontalGroup(
+            colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 541, Short.MAX_VALUE)
+        );
+        colorCurvePanel1Layout.setVerticalGroup(
+            colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 231, Short.MAX_VALUE)
+        );
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -395,17 +420,17 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                        .add(rawSettingsPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                            .add(okBtn)
-                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                            .add(applyBtn)
-                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                            .add(discardBtn)
-                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                            .add(closeBtn)))
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .add(rawSettingsPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                        .add(okBtn)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(applyBtn)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(discardBtn)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(closeBtn))
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -413,7 +438,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .add(rawSettingsPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 17, Short.MAX_VALUE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
@@ -617,6 +644,10 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         setVisible( false );
     }//GEN-LAST:event_okBtnActionPerformed
 
+    private void colorCurveChanged( ColorCurve c ) {
+        ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_VALUE );
+    }
+    
     /**
      * Exposure slider value was changed
      * @param evt The event
@@ -646,15 +677,19 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     void firePreviewChangeEvent( RawSettingsPreviewEvent e ) {
         if ( previewCtrl != null ) {
             previewCtrl.previewRawSettingsChanged( e );
-        }
-        
+        }        
     }
     
+    /**
+     Inform preview control that saturation has changed
+     @param newSat New saturation value
+     */
     void notifyPreviewSaturationChange( double newSat ) {
         if ( previewCtrl != null ) {
             previewCtrl.setSaturation( newSat );
         }        
     }
+    
     
     /**
      Reload the histogram data from RawImage displayed in preview control if
@@ -690,6 +725,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public void setPreviewControl( JAIPhotoViewer viewer ) {
         previewCtrl = viewer;
         previewCtrl.addViewChangeListener( this );
+        ctrl.addView( new PhotoInfoViewAdapter( ctrl ) {
+           public void setColorChannelCurve( String name, ColorCurve c ) {
+               previewCtrl.colorCurveChanged( this, name, c );
+           }
+        });
+        
         reloadHistogram();
     }
 
@@ -995,6 +1036,20 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         return rawSettings;
     }
 
+    public void setColorChannelMapping( ChannelMapOperation cm ) {
+//        colorMapping = cm;
+//        notifyPreviewColorMapChange( new ColorMapPreviewEvent(
+//                this, ctrl.getPhotos(), cm ) );
+    }
+    
+    public void setColorChannelMappingMultivalued( boolean mv ) {
+        
+    }
+    
+    public ChannelMapOperation getColorChannelMapping() {
+        return colorMapping;
+    }
+    
     public void expandFolderTreePath(TreePath path) {
     }
 
@@ -1127,6 +1182,21 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public ColorProfileDesc getRawProfile() {
         return profile;
     }
+    
+
+    public void setColorChannelCurve(String name, ColorCurve curve) {
+        // TODO: set the curve.
+    }    
+    
+    public void setColorChannelMultivalued(String name, boolean isMultivalued) {
+    }
+
+    public ColorCurve getColorChannelCurve(String name) {
+        if ( name.equals( "value" ) ) {
+            return colorCurvePanel1.getCurve();
+        }
+        return null;
+    }    
 
     private void annotateSlider( FieldSliderCombo slider, Object [] values ) {
         double[] annotations = new double[values.length];
@@ -1143,12 +1213,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public void photoViewChanged(PhotoViewChangeEvent e) {
         reloadHistogram();
     }
-
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton applyBtn;
     private org.photovault.swingui.color.FieldSliderCombo blackLevelSlider;
     private javax.swing.JButton closeBtn;
+    private org.photovault.swingui.color.ColorCurvePanel colorCurvePanel1;
     private javax.swing.JComboBox colorProfileCombo;
     private org.photovault.swingui.color.FieldSliderCombo ctempSlider;
     private javax.swing.JButton discardBtn;

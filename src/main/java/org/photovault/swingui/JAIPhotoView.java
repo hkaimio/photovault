@@ -35,6 +35,9 @@ import javax.media.jai.JAI;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.InterpolationBilinear;
 import javax.media.jai.widget.ScrollingImagePanel;
+import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ColorCurve;
 import org.photovault.image.PhotovaultImage;
 
 
@@ -615,6 +618,22 @@ public class JAIPhotoView extends JPanel
         }
     }
     
+    /**
+     Set color mapping curve for a color channel
+     @param name Name of the color channel
+     @param c The new mapping curve
+     */
+    void setColorCurve(String name, ColorCurve c) {
+        if ( origImage != null && c != null ) {
+            ChannelMapOperation cm = origImage.getColorAdjustment();
+            ChannelMapOperationFactory f = new ChannelMapOperationFactory( cm );
+            f.setChannelCurve( name, c );
+            origImage.setColorAdjustment( f.create() );
+            xformImage = null;
+            repaint();
+        }
+    }
+    
     private double imgRot;
     private Rectangle2D crop;
     
@@ -843,7 +862,6 @@ public class JAIPhotoView extends JPanel
         paramEditor.setYmax( newCrop.getY() + newCrop.getHeight() );
         paramEditor.setRot( this.newRotDegrees );
     }
-
     
     // The image that is viewed
     PhotovaultImage origImage = null;

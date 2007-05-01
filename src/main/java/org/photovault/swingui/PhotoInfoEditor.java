@@ -24,6 +24,8 @@ package org.photovault.swingui;
 
 import javax.swing.tree.TreePath;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.FuzzyDate;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -657,6 +659,26 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     public RawConversionSettings getRawSettings() {
         return rawSettings;
+    }
+
+    public void setColorChannelCurve(String name, ColorCurve curve) {
+    }
+
+    public void setColorChannelMultivalued(String name, boolean isMultivalued) {
+    }
+
+    public ColorCurve getColorChannelCurve(String name) {
+        return null;
+    }
+
+    public void setColorChannelMapping(ChannelMapOperation cm) {
+    }
+
+    public ChannelMapOperation getColorChannelMapping() {
+        return null;
+    }
+
+    public void setColorChannelMappingMultivalued(boolean mv) {
     }
 
     private PhotoInfoController ctrl = null;

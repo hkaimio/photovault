@@ -22,6 +22,8 @@ package org.photovault.swingui;
 
 import javax.swing.tree.TreePath;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import javax.swing.tree.TreeModel;
@@ -77,5 +79,19 @@ public interface PhotoInfoView {
      */
     public void expandFolderTreePath( TreePath path );
 
+    /**
+     Set the mapping curve for a given color channel
+     @param name Name of the color channel
+     @param curve Curve for mapping 
+     */
+    void setColorChannelCurve(String name, ColorCurve curve);
+    
+    void setColorChannelMultivalued( String name, boolean isMultivalued );
+        
+    ColorCurve getColorChannelCurve( String name );
+    
+    void setColorChannelMapping( ChannelMapOperation cm );
+    ChannelMapOperation getColorChannelMapping();
+    void setColorChannelMappingMultivalued( boolean mv );
 }
     

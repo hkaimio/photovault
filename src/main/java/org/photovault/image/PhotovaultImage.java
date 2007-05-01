@@ -28,7 +28,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.ComponentSampleModel;
-import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.renderable.ParameterBlock;
@@ -39,11 +38,13 @@ import javax.media.jai.ImageLayout;
 import javax.media.jai.Interpolation;
 import javax.media.jai.InterpolationBilinear;
 import javax.media.jai.JAI;
+import javax.media.jai.LookupTableJAI;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedOp;
 import javax.media.jai.operator.BandCombineDescriptor;
+import javax.media.jai.operator.LookupDescriptor;
 import javax.media.jai.operator.MultiplyConstDescriptor;
 import javax.media.jai.operator.RenderableDescriptor;
 
@@ -52,6 +53,8 @@ import javax.media.jai.operator.RenderableDescriptor;
  class, different image providers must derive their own classes from it.
  */
 public abstract class PhotovaultImage {
+
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultImage.class.getName() );
     
     /** Creates a new instance of PhotovaultImage */
     public PhotovaultImage() {
@@ -108,6 +111,8 @@ public abstract class PhotovaultImage {
     RenderableOp cropped = null;
     RenderableOp saturated = null;
     
+    RenderableOp colorCorrected = null;
+    
     /*
     Operation that applies rotation to original image
      */
@@ -133,8 +138,10 @@ public abstract class PhotovaultImage {
     protected void buildPipeline(RenderableOp original) {
         originalImage = original;
         cropped = getCropped( original );
+        
+        colorCorrected = getColorCorrected( cropped );
 //        RenderableOp scaled = getScaled( cropped, maxWidth, maxHeight );
-        saturated = getSaturated( cropped );
+        saturated = getSaturated( colorCorrected );
         
         previousCorrectedImage = original;
     }
@@ -281,6 +288,10 @@ public abstract class PhotovaultImage {
     
     double saturation = 1.0;
     
+    /**
+     Set saturation for the image
+     @param s New saturation
+     */
     public void setSaturation( double s ) {
         saturation = s;
         // Check that this image has a color model that supports saturation change
@@ -289,8 +300,66 @@ public abstract class PhotovaultImage {
         }
     }
     
+    /**
+     Get current saturation multiplier for the image
+     @return saturation
+     */
     public double getSaturation() {
         return saturation;
+    }
+    
+    /**
+     Mapping of color channels
+     */
+    ChannelMapOperation cm = null;
+    
+    /**
+     Set color channel mapping
+     @param cm New mapping of color channels
+     */
+    public void setColorAdjustment( ChannelMapOperation cm ) {
+        this.cm = cm;
+        setupColorAdjustment();
+    }
+
+    /**
+     Get current color channel mapping
+     */
+    public ChannelMapOperation getColorAdjustment() {
+        return cm;
+    }
+    
+    /**
+     Set the lookup tables in JAI pipeline to match color adjustment
+     */
+    protected void setupColorAdjustment() {
+        if ( cm == null ) {
+            return;
+        }
+        ColorCurve c = cm.getChannelCurve( "value" );
+        ColorModel cm = this.getCorrectedImageColorModel();
+        int[] componentSizes = cm.getComponentSize();
+        LookupTableJAI jailut = null;
+        if ( componentSizes[0] == 8 ) {
+            byte[] lut = new byte[256];
+            double dx = 1.0/256.0;
+            for ( int n = 0 ; n < lut.length; n++ ) {
+                double val = c.getValue( dx * n );
+                lut[n] = (byte) (lut.length * val);
+            }
+            jailut = new LookupTableJAI( lut );
+        } else if ( componentSizes[0] == 16 ) {
+            short[] lut = new short[0x10000];
+            double dx = 1.0/65536.0;
+            for ( int n = 0 ; n < lut.length; n++ ) {
+                double val = c.getValue( dx * n );
+                lut[n] = (short) (lut.length * val);
+            }
+            jailut = new LookupTableJAI( lut, true );
+        } else {
+            log.error( "Unsupported data type with with = " + componentSizes[0] );
+        }
+        colorCorrected.setParameter( jailut, 0 );
     }
     
     double cropMinX = 0.0;
@@ -446,6 +515,34 @@ public abstract class PhotovaultImage {
         RenderedOp scaledImage = JAI.create( "affine", scaleParams );
         return scaledImage;        
     }    
+    
+    /**
+     Get the JAI graph node for color correction
+     @param src Node to use as input for color correction.
+     */
+    
+    protected RenderableOp getColorCorrected( RenderableOp src ) {
+        // Initialize lookup table based on original image color model
+        ColorModel cm = this.getCorrectedImageColorModel();
+        int[] componentSizes = cm.getComponentSize();
+        LookupTableJAI jailut = null;
+        if ( componentSizes[0] == 8 ) {
+            byte[] lut = new byte[256];
+            for ( int n = 0 ; n < lut.length; n++ ) {
+                lut[n] = (byte) n;
+            }
+            jailut = new LookupTableJAI( lut );
+        } else if ( componentSizes[0] == 16 ) {
+            short[] lut = new short[0x10000];
+            for ( int n = 0 ; n < lut.length; n++ ) {
+                lut[n] = (short) n;
+            }
+            jailut = new LookupTableJAI( lut, true );
+        } else {
+            log.error( "Unsupported data type with with = " + componentSizes[0] );
+        }
+        return LookupDescriptor.createRenderable( src, jailut, null );        
+    }
     
     protected RenderableOp getSaturated( RenderableOp src ) {
         IHSColorSpace ihs = IHSColorSpace.getInstance();

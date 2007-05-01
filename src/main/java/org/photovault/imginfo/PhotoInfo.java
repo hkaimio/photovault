@@ -49,6 +49,7 @@ import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
+import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
@@ -1618,6 +1619,28 @@ public class PhotoInfo {
     double cropMaxX;
     double cropMinY;
     double cropMaxY;
+
+    /**
+     Mapping of the original color channels to preferred ones.
+     */
+    ChannelMapOperation colorMapping = null;
+    
+    /**
+     Set the preferred color channel mapping
+     @param cm the new color channel mapping
+     */
+    public void setColorChannelMapping( ChannelMapOperation cm ) {
+        colorMapping = cm;
+    }
+
+    /**
+     Get currently preferred color channe?l mapping.
+     @return Rhe current color channel mapping
+     */
+    public ChannelMapOperation getColorChannelMapping() {
+        return colorMapping;
+    }
+    
     
     /**
      Raw conversion settings or <code>null</code> if no raw image is available
@@ -1907,6 +1930,7 @@ public class PhotoInfo {
     public int hashCode() {
         return uid;
     }
+
 
 
 
