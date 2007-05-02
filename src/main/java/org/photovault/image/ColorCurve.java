@@ -41,18 +41,17 @@ public class ColorCurve {
     
     /** Creates a new instance of ColorCurve */
     public ColorCurve() {
-        calcCoeffs();
     }
     
     /**
      X coordinates for control points, in increasing order
      */
-    double[] pointX = {0.0, 1.0};
+    double[] pointX = {};
     
     /**
      Y coordinates for control points.
      */
-    double[] pointY = {0.0, 1.0};
+    double[] pointY = {};
     
     /**
      Bezier coefficiens for each segment. This array contains the Y coordinates, 
@@ -92,9 +91,22 @@ public class ColorCurve {
      @param n Number of the control point to set
      @param x New X coordinate
      @param y New Y coordinate
-     @throws ??? If X is not between control points n-1 and n+1
+     @throws IllegalArgumentException If X is not between control points n-1 and n+1
+     @throws IndexOutOfBoundsException If n has invalid value
      */
     public void setPoint( int n, double x, double y ) {
+        if ( n < 0 || n >= pointX.length ) {
+            throw new IndexOutOfBoundsException( "" + n + 
+                    " not in [0:" + (pointX.length-1) + "]");
+        }
+        if ( n > 0 && x <= pointX[n-1] ) {
+            throw new IllegalArgumentException( "New X for contorl point " + n + 
+                    " (" + x + ") smaller than " + pointX[n-1] );
+        }
+        if ( n < pointX.length -1  && x >= pointX[n+1] ) {
+            throw new IllegalArgumentException( "New X for contorl point " + n + 
+                    " (" + x + ") larger than " + pointX[n+1] );
+        }
         pointX[n] = x;
         pointY[n] = y;
         calcCoeffs();
@@ -132,6 +144,16 @@ public class ColorCurve {
      @return Value of fynction in given point
      */
     public double getValue( double x )  {
+        // Special case: 0 points -> identity transform
+        if ( pointX.length == 0 ) {
+            return x;
+        }
+        
+        // Special case: 1 control poit -> constant
+        if ( pointX.length == 1 ) {
+            return pointY[0];
+        }
+        
         // Find the correct segment
         int n = 0;
         while ( n < pointX.length && x >= pointX[n] ) {
@@ -151,6 +173,31 @@ public class ColorCurve {
                 3 * b[n][2] * t*t*t1 +
                 b[n][3] * t*t*t;
         return y;
+    }
+    
+    
+    /**
+     Test for equality
+     @param o Object to compare this curve with
+     @return true if o is equal to this object, false otherwise
+     */
+    public boolean equals( Object o ) {
+        if ( !(o instanceof ColorCurve) ) {
+            return false;
+        }
+        ColorCurve c = (ColorCurve) o;
+        if ( c.pointX.length != pointX.length ) {
+            return false;
+        }
+        
+        final double delta = 0.00000001;
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            if ( Math.abs( pointX[n]- c.pointX[n] ) > delta ||
+                 Math.abs( pointY[n]- c.pointY[n] ) > delta ) {
+                return false;
+            }
+        }
+        return true;
     }
     
     /**

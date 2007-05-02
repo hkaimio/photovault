@@ -27,7 +27,9 @@ public class ColorCurvePanel extends javax.swing.JPanel {
     /** Creates new form ColorCurvePanel */
     public ColorCurvePanel() {
         initComponents();
+        curve.addPoint( 0.0, 0.0 );
         curve.addPoint( 0.5, 0.5 );
+        curve.addPoint( 1.0, 1.0 );
         initPoints();
     }
     
@@ -268,11 +270,11 @@ public class ColorCurvePanel extends javax.swing.JPanel {
     /**
      X coordinates (in control's coordinate system of the control points.
      */
-    int[] pointX = {0, 100, 150};
+    int[] pointX = {};
     /**
      Y coordinates (in control's coordinate system of the control points.
      */
-    int[] pointY = {0, 100, 150};
+    int[] pointY = {};
 
     /**
      Number of pixels that mouse press position can differ from control point 
