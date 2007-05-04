@@ -144,6 +144,8 @@ public class ColorCurvePanel extends javax.swing.JPanel {
      curve.
      */
     private void movePointWithMouse( int x, int y ) {
+            x = Math.max( 0, Math.min( x, getWidth()-1 ) );
+            y = Math.max( 0, Math.min( y, getHeight()-1 ) );
             int dx = x - mouseStartX;
             int dy = y - mouseStartY;
             if ( (movingPoint == pointX.length-1 || pointStartX + dx < pointX[movingPoint+1] )
@@ -307,7 +309,18 @@ public class ColorCurvePanel extends javax.swing.JPanel {
             mouseStartY = evt.getY();            
             pointStartX = pointX[point];
             pointStartY = pointY[point];
-        }       
+        }  else {
+            // No control point in this location. Check if mouse is on top
+            // of curve & create new control point if it is.
+            double x = ((double) evt.getX())/getWidth();
+            double y = curve.getValue( x );
+            if ( Math.abs( (1.0-y) * getHeight() - evt.getY() ) < 3 ) {
+                curve.addPoint( x, y );
+                initPoints();
+                // Rehandle the event after curve has been updated
+                formMousePressed( evt );
+            }
+        }
     }//GEN-LAST:event_formMousePressed
     
     /**
