@@ -1623,22 +1623,29 @@ public class PhotoInfo {
     /**
      Mapping of the original color channels to preferred ones.
      */
-    ChannelMapOperation colorMapping = null;
+    ChannelMapOperation channelMap = null;
     
     /**
      Set the preferred color channel mapping
      @param cm the new color channel mapping
      */
     public void setColorChannelMapping( ChannelMapOperation cm ) {
-        colorMapping = cm;
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        channelMap = cm;
+        modified();
+        txw.commit();
     }
 
     /**
      Get currently preferred color channe?l mapping.
-     @return Rhe current color channel mapping
+     @return The current color channel mapping
      */
     public ChannelMapOperation getColorChannelMapping() {
-        return colorMapping;
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.READ );
+        txw.commit();
+        return channelMap;
     }
     
     
@@ -1917,6 +1924,7 @@ public class PhotoInfo {
         && isEqual( p.film, this.film )
         && isEqual( p.techNotes, this.techNotes )
         && isEqual( p.origFname, this.origFname )
+        && isEqual( p.channelMap, this.channelMap )
         && p.shutterSpeed == this.shutterSpeed
                 && p.filmSpeed == this.filmSpeed
                 && p.focalLength == this.focalLength

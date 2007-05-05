@@ -1037,9 +1037,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     }
 
     public void setColorChannelMapping( ChannelMapOperation cm ) {
-//        colorMapping = cm;
-//        notifyPreviewColorMapChange( new ColorMapPreviewEvent(
-//                this, ctrl.getPhotos(), cm ) );
+        colorMapping = cm;
+        ColorCurve valueCurve = null;
+        if ( cm != null ) {
+            valueCurve = cm.getChannelCurve( "value" );
+        } else {
+            valueCurve = new ColorCurve();
+        }
+        colorCurvePanel1.setCurve( valueCurve );
     }
     
     public void setColorChannelMappingMultivalued( boolean mv ) {

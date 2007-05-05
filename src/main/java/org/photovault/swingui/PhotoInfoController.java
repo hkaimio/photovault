@@ -167,6 +167,7 @@ public class PhotoInfoController {
             if ( f != null ) {
                 f.setChannelCurve( name, (ColorCurve) value );
             }
+            colorMappingChanged();
         }
         protected Object getModelValue( Object model ) {
             PhotoInfo obj = (PhotoInfo) model;
@@ -847,6 +848,7 @@ public class PhotoInfoController {
         }
         // Model has changed, reset also raw settings
         rawFactories.clear();
+        colorMappingFactories.clear();
     }
     
     /**
@@ -935,6 +937,19 @@ public class PhotoInfoController {
                     p.setRawSettings( r );
                 }
             }
+
+            // Update the color mapping if any field affecting them has been changed
+            if ( isColorMappingChanged ) {
+                Iterator colorIter = colorMappingFactories.entrySet().iterator();
+                while ( colorIter.hasNext() ) {
+                    Map.Entry e = (Map.Entry) colorIter.next();
+                    PhotoInfo p = (PhotoInfo) e.getKey();
+                    ChannelMapOperationFactory f = (ChannelMapOperationFactory) e.getValue();
+                    ChannelMapOperation o = null;
+                    o = f.create();
+                    p.setColorChannelMapping( o );
+                }
+            }
         } catch ( LockNotGrantedException e ) {
             txw.abort();
             throw new PhotovaultException( "Photo locked for other use", e );
@@ -953,6 +968,7 @@ public class PhotoInfoController {
             fieldCtrl.setModel( photos, false );
         }
         rawFactories.clear();
+        colorMappingFactories.clear();
     }
     
     /**
@@ -1077,9 +1093,7 @@ public class PhotoInfoController {
         } else {
             ChannelMapOperation r = p.getColorChannelMapping();
             f = new ChannelMapOperationFactory( r );
-            if ( r != null ) {
-                colorMappingFactories.put( p, f );
-            }
+            colorMappingFactories.put( p, f );
         }
         return f;        
     }
@@ -1088,5 +1102,11 @@ public class PhotoInfoController {
     
     private void rawSettingsChanged() {
         isRawSettingsChanged = true;
+    }
+    
+    boolean isColorMappingChanged = false;
+    
+    private void colorMappingChanged() {
+        isColorMappingChanged = true;
     }
 }

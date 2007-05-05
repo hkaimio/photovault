@@ -54,6 +54,7 @@
 
       <column name="hash" primaryKey="false" required="false" type="VARBINARY" size="16" autoIncrement="false"/>
       <column name="rawconv_id" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>      
+      <column name="channel_map" primaryKey="false" required="false" type="LONGVARBINARY" size="65535" autoIncrement="false"/>      
       <!-- size of the file -->
       <column name="file_size" primaryKey="false" required="false" type="BIGINT" autoIncrement="false"/>
       <!-- last modification time of the file -->
@@ -217,6 +218,7 @@
       <column name="tech_notes" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
       
       <column name="rawconv_id" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>      
+      <column name="channel_map" primaryKey="false" required="false" type="LONGVARBINARY" size="65535" autoIncrement="false"/>      
       
       <!-- MD5 hash code of the original image file -->
       <column name="hash" primaryKey="false" required="false" type="VARBINARY" size="16" autoIncrement="false"/>

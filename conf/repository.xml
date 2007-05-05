@@ -130,6 +130,9 @@
       <foreignkey field-ref="rawSettingsId">
       </foreignkey>
     </reference-descriptor>
+    <field-descriptor name="channelMap" column="channel_map" jdbc-type="LONGVARBINARY" 
+        conversion="org.photovault.image.ChannelMapOJBConversion">
+    </field-descriptor>
   </class-descriptor>
 
   <!-- PhotoInfo mappings -->
@@ -190,6 +193,9 @@
       <foreignkey field-ref="rawSettingsId">
       </foreignkey>
     </reference-descriptor>
+    <field-descriptor name="channelMap" column="channel_map" jdbc-type="LONGVARBINARY" 
+        conversion="org.photovault.image.ChannelMapOJBConversion">
+    </field-descriptor>
  
     <!-- instances collection 
     Instances are aggregates of PhotoInfo object so we can use the default 

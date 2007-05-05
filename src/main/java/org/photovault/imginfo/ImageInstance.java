@@ -35,6 +35,7 @@ import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
+import org.photovault.image.ChannelMapOperation;
 
 /**
    This class abstracts a single instance of a image that is stored in a file.
@@ -839,7 +840,35 @@ public class ImageInstance {
         txw.commit();
         return rawSettings;
     }
+
+
+    /**
+     Mapping from original iamge color channels to those used in this instance.
+     */
+    ChannelMapOperation channelMap = null;
     
+    /**
+     Set the color channel mapping from original to this instance
+     @param cm the new color channel mapping
+     */
+    public void setColorChannelMapping( ChannelMapOperation cm ) {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.WRITE );
+        channelMap = cm;
+        txw.commit();
+    }
+
+    /**
+     Get color channel mapping from original to this instance.
+     @return The current color channel mapping
+     */
+    public ChannelMapOperation getColorChannelMapping() {
+        ODMGXAWrapper txw = new ODMGXAWrapper();
+        txw.lock( this, Transaction.READ );
+        txw.commit();
+        return channelMap;
+    }
+        
     
     /**
      Sets the photo UID of this instance. THis should only be called by 

@@ -292,6 +292,7 @@ public class JAIPhotoViewer extends JPanel implements
 //                            return;
 //                        }
                     }
+                    img.setColorAdjustment( photo.getColorChannelMapping() );
                     setImage( img );
                     instanceRotation = original.getRotated();
                     double rot = photo.getPrefRotation() - instanceRotation;

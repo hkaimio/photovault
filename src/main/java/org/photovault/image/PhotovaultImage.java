@@ -319,7 +319,7 @@ public abstract class PhotovaultImage {
      */
     public void setColorAdjustment( ChannelMapOperation cm ) {
         this.cm = cm;
-        setupColorAdjustment();
+        applyColorMapping();
     }
 
     /**
@@ -332,13 +332,25 @@ public abstract class PhotovaultImage {
     /**
      Set the lookup tables in JAI pipeline to match color adjustment
      */
-    protected void setupColorAdjustment() {
-        if ( cm == null ) {
+    protected void applyColorMapping() {
+        if ( cm == null || colorCorrected == null ) {
             return;
         }
-        ColorCurve c = cm.getChannelCurve( "value" );
-        ColorModel cm = this.getCorrectedImageColorModel();
-        int[] componentSizes = cm.getComponentSize();
+        LookupTableJAI jailut = createColorMappingLUT();
+        colorCorrected.setParameter( jailut, 0 );
+    }
+    
+    private LookupTableJAI createColorMappingLUT() {
+        ColorCurve c = null;
+        if ( cm != null ) {
+            c = cm.getChannelCurve( "value" );
+        }
+        if ( c == null ) {
+            // No color mapping found, use identity mapping
+            c = new ColorCurve();
+        }
+        ColorModel colorModel = this.getCorrectedImageColorModel();
+        int[] componentSizes = colorModel.getComponentSize();
         LookupTableJAI jailut = null;
         if ( componentSizes[0] == 8 ) {
             byte[] lut = new byte[256];
@@ -359,8 +371,9 @@ public abstract class PhotovaultImage {
         } else {
             log.error( "Unsupported data type with with = " + componentSizes[0] );
         }
-        colorCorrected.setParameter( jailut, 0 );
+        return jailut;
     }
+    
     
     double cropMinX = 0.0;
     double cropMinY = 0.0;
@@ -525,22 +538,7 @@ public abstract class PhotovaultImage {
         // Initialize lookup table based on original image color model
         ColorModel cm = this.getCorrectedImageColorModel();
         int[] componentSizes = cm.getComponentSize();
-        LookupTableJAI jailut = null;
-        if ( componentSizes[0] == 8 ) {
-            byte[] lut = new byte[256];
-            for ( int n = 0 ; n < lut.length; n++ ) {
-                lut[n] = (byte) n;
-            }
-            jailut = new LookupTableJAI( lut );
-        } else if ( componentSizes[0] == 16 ) {
-            short[] lut = new short[0x10000];
-            for ( int n = 0 ; n < lut.length; n++ ) {
-                lut[n] = (short) n;
-            }
-            jailut = new LookupTableJAI( lut, true );
-        } else {
-            log.error( "Unsupported data type with with = " + componentSizes[0] );
-        }
+        LookupTableJAI jailut = createColorMappingLUT();
         return LookupDescriptor.createRenderable( src, jailut, null );        
     }
     
