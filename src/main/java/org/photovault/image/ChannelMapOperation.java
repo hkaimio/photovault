@@ -22,6 +22,7 @@ package org.photovault.image;
 
 import java.awt.geom.Point2D;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -71,5 +72,79 @@ public class ChannelMapOperation {
             }
         }
         return c;
+    }
+    
+    /**
+     Helper function to get a string to use as indentation
+     */
+    static private String getIndent( int i ) {
+        return "                                                  ".substring( 0, i );
+    }
+    
+    /**
+     Get XML representation of the object
+     @param i Number of spaces to add as indentation for the top level element
+     @return XML representation of the object
+     */
+    public String getAsXml( int i ) {
+        StringBuffer buf = new StringBuffer();
+        buf.append( getIndent( i ) ).append( "<color-mapping>" ).append( "\n" );
+        i += 2;
+        Iterator iter = channelPoints.entrySet().iterator();
+        while ( iter.hasNext() ) {
+            Map.Entry e = (Map.Entry) iter.next();
+            String name = (String) e.getKey();
+            buf.append( getIndent( i ) ).append( "<channel name=\"" + name + "\">" ).append( "\n" );
+            i+=2;
+            Point2D[] points = (Point2D[]) e.getValue();
+            for ( int n = 0 ; n < points.length ; n++ ) {
+                buf.append( getIndent( i ) ).
+                        append( "<point x=\"" ).append( points[n].getX() ).
+                        append( "\" y=\"" ).append( points[n].getY() ).append("\"/>\n" );
+            }
+            i-=2;
+            buf.append( getIndent( i ) ).append( "</channel>" ).append( "\n" );
+        }
+        i-= 2;
+        buf.append( getIndent( i ) ).append( "</color-mapping>" ).append( "\n" );
+        return buf.toString();
+    }
+
+    /**
+     Get XML representation of the object
+     @return XML representation of the object
+     */
+    public String getAsXml() {
+        return getAsXml( 0 );
+    }
+    
+
+    /**
+     Test for equality
+     @param o The object to compare this object with
+     @return true if o and this object are equal, false otherwise
+     */
+    public boolean equals( Object o ) {
+        if ( !(o instanceof ChannelMapOperation ) ) {
+            return false;
+        }
+        ChannelMapOperation c = (ChannelMapOperation) o;
+        if ( channelPoints.size() != c.channelPoints.size() ) {
+            return false;
+        }
+        String[] channelNames = getChannelNames();
+        for ( int n = 0 ; n < channelNames.length ; n++ ) {
+            Point2D[] p1 = (Point2D[]) channelPoints.get( channelNames[n] );
+            Point2D[] p2 = (Point2D[]) c.channelPoints.get( channelNames[n] );
+            if ( p2 == null || p2.length != p1.length ) {
+                return false;
+            }
+            for ( int i = 0 ; i < p1.length ; i++ ) {
+                if ( !p1[i].equals( p2[i] ) ) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
