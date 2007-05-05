@@ -35,6 +35,7 @@ import java.util.Vector;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.image.ChannelMapOperation;
 import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoQuery;
@@ -375,6 +376,11 @@ public class XmlExporter {
         writer.write( "ymin=\"" + c.getMinY() + "\" " );
         writer.write( "ymax=\"" + c.getMaxY() + "\"/>" );
         writer.newLine();
+        ChannelMapOperation cm = p.getColorChannelMapping();
+        if ( cm != null ) {
+            String chanMapXml = cm.getAsXml( indent );
+            writer.write( chanMapXml );
+        }
         RawConversionSettings rs = p.getRawSettings();
         if ( rs != null ) {
             writeRawSettings( rs );
@@ -448,6 +454,11 @@ public class XmlExporter {
         writer.write( "ymin=\"" + c.getMinY() + "\" " );
         writer.write( "ymax=\"" + c.getMaxY() + "\"/>" );
         writer.newLine();
+        ChannelMapOperation cm = i.getColorChannelMapping();
+        if ( cm != null ) {
+            String chanMapXml = cm.getAsXml( indent );
+            writer.write( chanMapXml );
+        }
         RawConversionSettings rs = i.getRawSettings();
         if ( rs != null ) {
             writeRawSettings( rs );

@@ -340,6 +340,11 @@ public abstract class PhotovaultImage {
         colorCorrected.setParameter( jailut, 0 );
     }
     
+    /**
+     Create a color mapping LUT based on current color channel mapping.
+     @return the created LUT. If not channel mapping is specified, returns an
+     identity mapping.
+     */
     private LookupTableJAI createColorMappingLUT() {
         ColorCurve c = null;
         if ( cm != null ) {

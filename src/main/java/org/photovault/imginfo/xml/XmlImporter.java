@@ -34,6 +34,8 @@ import org.apache.commons.digester.Rule;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ChannelMapRuleSet;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
@@ -434,6 +436,16 @@ public class XmlImporter {
                 f.setDaylightMultipliers( new double[] {rg, 1.0, bg} );
             } 
         });
+        digester.addRuleSet( new ChannelMapRuleSet( "*/photo/") );
+        digester.addRule( "*/photo/color-mapping", new Rule() {
+            public void end( String namespace, String name ) {
+                PhotoInfo p = (PhotoInfo) digester.peek(1);
+                ChannelMapOperationFactory f = 
+                        (ChannelMapOperationFactory) digester.peek();
+                p.setColorChannelMapping( f.create() );                
+            }
+        });
+        
         digester.addObjectCreate( "*/photo/raw-conversion", RawSettingsFactory.class );
         digester.addRule( "*/photo/raw-conversion", new Rule() {
             public void end( String namespace, String name ) {
@@ -463,6 +475,15 @@ public class XmlImporter {
                 i.setHash( hash );
             }
         } );
+        digester.addRuleSet( new ChannelMapRuleSet( "*/instance/") );
+        digester.addRule( "*/instance/color-mapping", new Rule() {
+            public void end( String namespace, String name ) {
+                ImageInstance i = (ImageInstance) digester.peek(1);
+                ChannelMapOperationFactory f = 
+                        (ChannelMapOperationFactory) digester.peek();
+                i.setColorChannelMapping( f.create() );                
+            }
+        });
         // Raw conversion parsing was already specified earlier. We just need a 
         // method for binding the RawConversionSettings object to instance
         digester.addObjectCreate( "*/instance/raw-conversion", RawSettingsFactory.class );

@@ -34,6 +34,9 @@ import junit.framework.TestSuite;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ColorCurve;
+import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.imginfo.Volume;
@@ -159,6 +162,22 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         assertEquals( "Digital", p.getFilm() );
         assertEquals( 100, p.getFilmSpeed() );
         assertEquals( 0, p.getQuality() );
+        ChannelMapOperation cm = p.getColorChannelMapping();
+        ColorCurve c = cm.getChannelCurve( "value" );
+        assertEquals( 0.4, c.getY( 1 ) );
+        assertEquals( 0.5, c.getX( 1 ) );
+        boolean foundOrig = false;
+        for ( int n = 0; n < p.getNumInstances(); n++ ) {
+            ImageInstance i = p.getInstance( n );
+            if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+                cm = i.getColorChannelMapping();
+                c = cm.getChannelCurve( "value" );
+                assertEquals( 0.2, c.getY( 1 ) );
+                assertEquals( 0.6, c.getX( 1 ) );                
+                foundOrig = true;
+            }
+        }
+        assertTrue( foundOrig );
         assertTrue( l.objects.contains( p ) );
         PhotoFolder folder = PhotoFolder.getFolderByUUID( UUID.fromString( "06499cc6-d421-4262-8fa2-30a060982619" ) );
         assertEquals( "test", folder.getName() );

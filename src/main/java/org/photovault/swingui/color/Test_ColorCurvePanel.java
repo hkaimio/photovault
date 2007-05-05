@@ -109,6 +109,7 @@ public class Test_ColorCurvePanel extends TestCase {
         
     }
 
+
     /**
      Test dragging control point outside window.
      */
