@@ -810,6 +810,7 @@ public class PhotoInfo {
     private boolean matchesCurrentSettings( ImageInstance instance ) {
         return Math.abs(instance.getRotated() - prefRotation) < 0.0001
                 && instance.getCropBounds().equals( getCropBounds() )
+                && (channelMap == null || channelMap.equals( instance.getColorChannelMapping()))
                 && ( rawSettings == null || rawSettings.equals( instance.getRawSettings()));            
         }
         
@@ -884,6 +885,9 @@ public class PhotoInfo {
             PhotovaultImage img = imgFactory.create( imageFile, false, false );
             img.setCropBounds( this.getCropBounds() );
             img.setRotation( prefRotation - original.getRotated() );
+            if ( channelMap != null ) {
+                img.setColorAdjustment( channelMap );
+            }
             if ( img instanceof RawImage ) {
                 RawImage ri = (RawImage) img;
                 ri.setRawSettings( rawSettings );
@@ -922,6 +926,7 @@ public class PhotoInfo {
                 ImageInstance.INSTANCE_TYPE_THUMBNAIL );
         thumbInstance.setRotated( prefRotation -original.getRotated() );
         thumbInstance.setCropBounds( getCropBounds() );
+        thumbInstance.setColorChannelMapping( channelMap );
         thumbInstance.setRawSettings( rawSettings );
         log.debug( "Loading thumbnail..." );
         
@@ -1079,6 +1084,9 @@ public class PhotoInfo {
             }
             img.setCropBounds( this.getCropBounds() );
             img.setRotation( prefRotation - original.getRotated() );
+            if ( channelMap != null ) {
+                img.setColorAdjustment( channelMap );
+            }
             if ( img instanceof RawImage ) {
                 RawImage ri = (RawImage) img;
                 if ( rawSettings != null ) {
@@ -1632,6 +1640,13 @@ public class PhotoInfo {
     public void setColorChannelMapping( ChannelMapOperation cm ) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
+        if ( cm != null ) {
+            if ( !cm.equals( channelMap ) ) {
+                // Rotation changes, invalidate the thumbnail
+                invalidateThumbnail();
+                purgeInvalidInstances();
+            }
+        }
         channelMap = cm;
         modified();
         txw.commit();
