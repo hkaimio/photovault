@@ -86,7 +86,7 @@ public interface PhotoInfoView {
      */
     void setColorChannelCurve(String name, ColorCurve curve);
     
-    void setColorChannelMultivalued( String name, boolean isMultivalued );
+    void setColorChannelMultivalued( String name, boolean isMultivalued, ColorCurve[] values );
         
     ColorCurve getColorChannelCurve( String name );
     

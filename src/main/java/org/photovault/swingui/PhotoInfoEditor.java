@@ -664,7 +664,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public void setColorChannelCurve(String name, ColorCurve curve) {
     }
 
-    public void setColorChannelMultivalued(String name, boolean isMultivalued) {
+    public void setColorChannelMultivalued(String name, boolean isMultivalued, ColorCurve[] values ) {
     }
 
     public ColorCurve getColorChannelCurve(String name) {

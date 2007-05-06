@@ -28,6 +28,7 @@ import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -116,6 +117,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      Color curves, in order value, red, green, blue
      */
     ColorCurve[] colorCurves = new ColorCurve[4];
+    
+    /**
+     Curves that will be drawn as references for each channel
+     */
+    ArrayList refCurves[] = new ArrayList[4];
+    
     /**
      Names of the color channels
      */
@@ -856,6 +863,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             c.addPoint( 1.0, 1.0 );
         }
         colorCurvePanel1.setCurve( colorCurves[chan] );
+        colorCurvePanel1.clearReferenceCurves();
+        if ( refCurves[chan] != null ) {
+            for ( Object c : refCurves[chan] ) {
+                if ( c != null ) {
+                    colorCurvePanel1.addReferenceCurve( (ColorCurve) c );
+                }
+            }
+        }
         colorCurveSelectionCombo.setSelectedIndex( chan );
     }
     
@@ -1251,6 +1266,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
             if ( colorCurveNames[n].equals( name ) ) {
                 colorCurves[n] = curve;
+                refCurves[n] = null;
                 if ( currentColorCurve == n ) {
                     showCurve( n );
                 }
@@ -1259,9 +1275,26 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }        
     }    
     
-    public void setColorChannelMultivalued(String name, boolean isMultivalued) {
+    public void setColorChannelMultivalued(String name, boolean isMultivalued, ColorCurve[] values ) {
+        for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
+            if ( colorCurveNames[n].equals( name ) ) {
+                if ( isMultivalued ) {
+                    ArrayList<ColorCurve> curves = new ArrayList<ColorCurve>( values.length );
+                    for ( ColorCurve c : values ) {
+                        curves.add( c );
+                    }
+                    refCurves[n] = curves;
+                    if ( currentColorCurve == n ) {
+                        showCurve( n );
+                    }
+                    
+                }
+                break;
+            }
+        }
+        
     }
-
+    
     public ColorCurve getColorChannelCurve(String name) {
         ColorCurve ret = null;
         for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {

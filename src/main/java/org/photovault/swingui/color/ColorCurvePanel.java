@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -92,6 +93,22 @@ public class ColorCurvePanel extends javax.swing.JPanel {
     public void setCurve( ColorCurve c ) {
         curve = c;
         initPoints();
+        repaint();
+    }
+    
+    /**
+     Add a new reference curve that will be drawn on background, in gray.
+     */
+    public void addReferenceCurve( ColorCurve c ) {
+        refCurves.add( c );
+        repaint();
+    }
+    
+    /**
+     Clear all currently displayed reference curves
+     */
+    public void clearReferenceCurves() {
+        refCurves.clear();
         repaint();
     }
         
@@ -189,6 +206,11 @@ public class ColorCurvePanel extends javax.swing.JPanel {
      Curve that is currently edited.
      */
     ColorCurve curve = new ColorCurve();
+    
+    /**
+     Curves drawn for reference
+     */
+    ArrayList<ColorCurve> refCurves = new ArrayList<ColorCurve>();
 
     /**
      Paint grid for the control
@@ -214,6 +236,26 @@ public class ColorCurvePanel extends javax.swing.JPanel {
     }
     
     /**
+     Paints a given curve
+     @param c The curve to paint
+     @param g Graphics2D object used to paint the curve
+     */
+    private void paintCurve( ColorCurve c, Graphics2D g ) {
+        int w = getWidth();
+        int h = getHeight();
+        double dy = 1.0 / (double)h;
+        double dx = 1.0 / (double)w;
+        int y0 = h - (int)(h * curve.getValue( 0.0 ));
+        int x0 = 0;
+        for ( int x = 0; x < w ; x++ ) {
+            int y = h - (int)(h * c.getValue( dx*x ) );
+            g.drawLine( x0, y0, x, y );
+            x0 = x;
+            y0 = y;
+        }        
+    }
+    
+    /**
      Paint the control
      @param g Java Graphics object
      */
@@ -223,21 +265,20 @@ public class ColorCurvePanel extends javax.swing.JPanel {
         
         paintGrid( g2 );
 
+        if ( refCurves.size() > 0 ) {
+            Graphics2D refCurveGraphics = (Graphics2D) g2.create();
+            refCurveGraphics.setColor( Color.GRAY );
+            for ( ColorCurve c : refCurves ) {
+                if ( c != null ) {
+                    paintCurve( c, refCurveGraphics );
+                }
+            }
+        }
+        
         Stroke curveStroke = new BasicStroke( 2.0f );
         g2.setStroke( curveStroke );
         // Paint the curve
-        int w = getWidth();
-        int h = getHeight();
-        double dy = 1.0 / (double)h;
-        double dx = 1.0 / (double)w;
-        int y0 = h - (int)(h * curve.getValue( 0.0 ));
-        int x0 = 0;
-        for ( int x = 0; x < w ; x++ ) {
-            int y = h - (int)(h * curve.getValue( dx*x ) );
-            g2.drawLine( x0, y0, x, y );
-            x0 = x;
-            y0 = y;
-        }
+        paintCurve( curve, g2 );
         
         // Draw points
         Stroke handleStroke = new BasicStroke( 1.0f );
