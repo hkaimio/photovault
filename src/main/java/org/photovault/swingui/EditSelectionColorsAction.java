@@ -125,10 +125,10 @@ public class EditSelectionColorsAction extends AbstractAction
             int n = 0;
             while ( iter.hasNext() && n < photos.length ) {
                 photos[n] = (PhotoInfo) iter.next();
-                if ( photos[n].getRawSettings() == null ) {
-                    // Only colors of raw photos can be adjusted
-                    enabled = false;
-                }
+//                if ( photos[n].getRawSettings() == null ) {
+//                    // Only colors of raw photos can be adjusted
+//                    enabled = false;
+//                }
                 n++;
             }
             

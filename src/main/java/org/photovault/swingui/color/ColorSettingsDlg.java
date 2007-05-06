@@ -45,6 +45,7 @@ import org.photovault.dcraw.RawImageChangeEvent;
 import org.photovault.dcraw.RawImageChangeListener;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
@@ -111,11 +112,19 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     PhotoInfoController ctrl = null;
     RawConversionSettings rawSettings = null;
     
-    ChannelMapOperation colorMapping = null;
-    
     /**
-     Saves all changes made in the dialog to model.
+     Color curves, in order value, red, green, blue
      */
+    ColorCurve[] colorCurves = new ColorCurve[4];
+    /**
+     Names of the color channels
+     */
+    String[] colorCurveNames = {"value", "red", "green", "blue"};
+    /**
+      Color curve currently displayed
+     */
+    int currentColorCurve = 0;
+    
     protected void applyChanges() {
         try {
             ctrl.save();
@@ -201,8 +210,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         greenGainSlider.setLabelTable( greenGainLabels );
         saturationSlider = new org.photovault.swingui.color.FieldSliderCombo();
         label1 = new java.awt.Label();
-        rawHistogramPane = rawHistogramPane = new HistogramPane();
+        colorCurveSelectionCombo = new javax.swing.JComboBox();
         colorCurvePanel1 = new org.photovault.swingui.color.ColorCurvePanel();
+        rawHistogramPane = rawHistogramPane = new HistogramPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Colors");
@@ -322,6 +332,24 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         label1.setFont(new java.awt.Font("Dialog", 1, 12));
         label1.setText("Saturation");
 
+        colorCurveSelectionCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Value", "Red", "Green", "Blue" }));
+        colorCurveSelectionCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                colorCurveSelectionComboActionPerformed(evt);
+            }
+        });
+
+        org.jdesktop.layout.GroupLayout colorCurvePanel1Layout = new org.jdesktop.layout.GroupLayout(colorCurvePanel1);
+        colorCurvePanel1.setLayout(colorCurvePanel1Layout);
+        colorCurvePanel1Layout.setHorizontalGroup(
+            colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 529, Short.MAX_VALUE)
+        );
+        colorCurvePanel1Layout.setVerticalGroup(
+            colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 217, Short.MAX_VALUE)
+        );
+
         org.jdesktop.layout.GroupLayout rawSettingsPaneLayout = new org.jdesktop.layout.GroupLayout(rawSettingsPane);
         rawSettingsPane.setLayout(rawSettingsPaneLayout);
         rawSettingsPaneLayout.setHorizontalGroup(
@@ -352,8 +380,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                             .add(rawSettingsPaneLayout.createSequentialGroup()
                                 .add(colorProfileCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 317, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 23, Short.MAX_VALUE)
-                                .add(newProfileBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 34, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))))
+                                .add(newProfileBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 34, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                            .add(colorCurveSelectionCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, rawSettingsPaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         rawSettingsPaneLayout.setVerticalGroup(
             rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -387,6 +419,10 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(saturationSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(colorCurveSelectionCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -400,17 +436,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         rawHistogramPaneLayout.setVerticalGroup(
             rawHistogramPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(0, 139, Short.MAX_VALUE)
-        );
-
-        org.jdesktop.layout.GroupLayout colorCurvePanel1Layout = new org.jdesktop.layout.GroupLayout(colorCurvePanel1);
-        colorCurvePanel1.setLayout(colorCurvePanel1Layout);
-        colorCurvePanel1Layout.setHorizontalGroup(
-            colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 541, Short.MAX_VALUE)
-        );
-        colorCurvePanel1Layout.setVerticalGroup(
-            colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 231, Short.MAX_VALUE)
         );
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
@@ -429,8 +454,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                         .add(discardBtn)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(closeBtn))
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -439,10 +463,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 .addContainerGap()
                 .add(rawSettingsPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(closeBtn)
                     .add(discardBtn)
@@ -452,6 +474,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         );
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    /**
+     Called when use selects a different color curve for editing
+     */    
+    private void colorCurveSelectionComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_colorCurveSelectionComboActionPerformed
+        int i = colorCurveSelectionCombo.getSelectedIndex();
+        showCurve( i );
+    }//GEN-LAST:event_colorCurveSelectionComboActionPerformed
 
     private void saturationSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_saturationSliderStateChanged
         double saturation = saturationSlider.getValue();
@@ -644,8 +674,29 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         setVisible( false );
     }//GEN-LAST:event_okBtnActionPerformed
 
+    /**
+     Called by colorCurvePane when use has edited the curve
+     @param c the curve after editing.
+     */
     private void colorCurveChanged( ColorCurve c ) {
-        ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_VALUE );
+        colorCurves[currentColorCurve] = c;
+        switch ( currentColorCurve ) {
+            case 0:
+                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_VALUE );
+                break;
+            case 1:
+                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_RED );
+                break;
+            case 2:
+                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_GREEN );
+                break;
+            case 3:
+                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_BLUE );
+                break;
+            default:
+                // Should never happend
+                break;
+        }
     }
     
     /**
@@ -791,6 +842,21 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         blackLevelSlider.setEnabled( enable );
         colorProfileCombo.setEnabled( enable );
         newProfileBtn.setEnabled( enable );
+    }
+        
+    /**
+     Show a different color curve in colorCurvePane
+     */
+    private void showCurve( int chan ) {
+        currentColorCurve = chan;
+        if ( colorCurves[chan] == null ) {
+            // The curve is not present in current profile
+            ColorCurve c = colorCurves[chan] = new ColorCurve();
+            c.addPoint( 0.0, 0.0 );
+            c.addPoint( 1.0, 1.0 );
+        }
+        colorCurvePanel1.setCurve( colorCurves[chan] );
+        colorCurveSelectionCombo.setSelectedIndex( chan );
     }
     
     /**
@@ -1037,14 +1103,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     }
 
     public void setColorChannelMapping( ChannelMapOperation cm ) {
-        colorMapping = cm;
-        ColorCurve valueCurve = null;
-        if ( cm != null ) {
-            valueCurve = cm.getChannelCurve( "value" );
-        } else {
-            valueCurve = new ColorCurve();
-        }
-        colorCurvePanel1.setCurve( valueCurve );
     }
     
     public void setColorChannelMappingMultivalued( boolean mv ) {
@@ -1052,7 +1110,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     }
     
     public ChannelMapOperation getColorChannelMapping() {
-        return colorMapping;
+        return null;
     }
     
     public void expandFolderTreePath(TreePath path) {
@@ -1190,17 +1248,29 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     
 
     public void setColorChannelCurve(String name, ColorCurve curve) {
-        // TODO: set the curve.
+        for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
+            if ( colorCurveNames[n].equals( name ) ) {
+                colorCurves[n] = curve;
+                if ( currentColorCurve == n ) {
+                    showCurve( n );
+                }
+                break;
+            }
+        }        
     }    
     
     public void setColorChannelMultivalued(String name, boolean isMultivalued) {
     }
 
     public ColorCurve getColorChannelCurve(String name) {
-        if ( name.equals( "value" ) ) {
-            return colorCurvePanel1.getCurve();
-        }
-        return null;
+        ColorCurve ret = null;
+        for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
+            if ( colorCurveNames[n].equals( name ) ) {
+                ret = colorCurves[n];
+                break;
+            }
+        }        
+        return ret;
     }    
 
     private void annotateSlider( FieldSliderCombo slider, Object [] values ) {
@@ -1224,6 +1294,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private org.photovault.swingui.color.FieldSliderCombo blackLevelSlider;
     private javax.swing.JButton closeBtn;
     private org.photovault.swingui.color.ColorCurvePanel colorCurvePanel1;
+    private javax.swing.JComboBox colorCurveSelectionCombo;
     private javax.swing.JComboBox colorProfileCombo;
     private org.photovault.swingui.color.FieldSliderCombo ctempSlider;
     private javax.swing.JButton discardBtn;

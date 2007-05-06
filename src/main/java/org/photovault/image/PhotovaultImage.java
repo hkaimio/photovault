@@ -311,14 +311,15 @@ public abstract class PhotovaultImage {
     /**
      Mapping of color channels
      */
-    ChannelMapOperation cm = null;
+    ChannelMapOperation channelMap = null;
     
     /**
-     Set color channel mapping
-     @param cm New mapping of color channels
+     *     Set color channel mapping
+     * 
+     * @param channelMap New mapping of color channels
      */
     public void setColorAdjustment( ChannelMapOperation cm ) {
-        this.cm = cm;
+        this.channelMap = cm;
         applyColorMapping();
     }
 
@@ -326,14 +327,14 @@ public abstract class PhotovaultImage {
      Get current color channel mapping
      */
     public ChannelMapOperation getColorAdjustment() {
-        return cm;
+        return channelMap;
     }
     
     /**
      Set the lookup tables in JAI pipeline to match color adjustment
      */
     protected void applyColorMapping() {
-        if ( cm == null || colorCorrected == null ) {
+        if ( channelMap == null || colorCorrected == null ) {
             return;
         }
         LookupTableJAI jailut = createColorMappingLUT();
@@ -346,31 +347,77 @@ public abstract class PhotovaultImage {
      identity mapping.
      */
     private LookupTableJAI createColorMappingLUT() {
-        ColorCurve c = null;
-        if ( cm != null ) {
-            c = cm.getChannelCurve( "value" );
-        }
-        if ( c == null ) {
-            // No color mapping found, use identity mapping
-            c = new ColorCurve();
-        }
         ColorModel colorModel = this.getCorrectedImageColorModel();
+        ColorSpace colorSpace = colorModel.getColorSpace();
+        
         int[] componentSizes = colorModel.getComponentSize();
+        ColorCurve valueCurve = null;
+        ColorCurve[] componentCurves = new ColorCurve[componentSizes.length];
+        boolean[] applyValueCurve = new boolean[ componentSizes.length];
+        for ( int n = 0; n < componentSizes.length ; n++ ) {
+            applyValueCurve[n] = false;
+        }
+
+        if ( channelMap != null ) {
+            valueCurve = channelMap.getChannelCurve( "value" );
+            switch ( colorSpace.getType() ) {
+                case ColorSpace.TYPE_GRAY:
+                    // Gray scale image - just apply value curve to 1st channel
+                    componentCurves[0] = valueCurve;
+                    break;
+                case ColorSpace.TYPE_RGB:
+                    componentCurves[0] = channelMap.getChannelCurve( "red" );
+                    componentCurves[1] = channelMap.getChannelCurve( "green" );
+                    componentCurves[2] = channelMap.getChannelCurve( "blue" );
+                    applyValueCurve[0] = true;
+                    applyValueCurve[1] = true;
+                    applyValueCurve[2] = true;
+                    break;
+                default:
+                    // Unsupported color format. Just return identity transform
+                    break;
+            }
+        }
+        if ( valueCurve == null ) {
+            // No color mapping found, use identity mapping
+            valueCurve = new ColorCurve();
+        }
+
         LookupTableJAI jailut = null;
         if ( componentSizes[0] == 8 ) {
-            byte[] lut = new byte[256];
+            byte[][] lut = new byte[componentSizes.length][256];
             double dx = 1.0/256.0;
-            for ( int n = 0 ; n < lut.length; n++ ) {
-                double val = c.getValue( dx * n );
-                lut[n] = (byte) (lut.length * val);
+            for ( int band = 0 ; band < colorSpace.getNumComponents() ; band++ ) {
+                for ( int n = 0 ; n < lut[band].length; n++ ) {
+                    double x = dx * n;
+                    double val = x;
+                    if ( componentCurves[band] != null ) {
+                        val = componentCurves[band].getValue( val );
+                    }
+                    if ( applyValueCurve[band] ) {
+                        val = valueCurve.getValue( val );
+                    }
+                    val = Math.max( 0.0, Math.min( val, 1.0 ) );
+                    lut[band][n] = (byte) (lut[band].length * val);
+                }
             }
             jailut = new LookupTableJAI( lut );
         } else if ( componentSizes[0] == 16 ) {
-            short[] lut = new short[0x10000];
+            short[][] lut = new short[componentSizes.length][0x10000];
             double dx = 1.0/65536.0;
-            for ( int n = 0 ; n < lut.length; n++ ) {
-                double val = c.getValue( dx * n );
-                lut[n] = (short) (lut.length * val);
+            for ( int band = 0 ; band < colorSpace.getNumComponents() ; band++ ) {
+                for ( int n = 0 ; n < lut[band].length; n++ ) {
+                    double x = dx * n;
+                    double val = x;
+                    if ( componentCurves[band] != null ) {
+                        val = componentCurves[band].getValue( val );
+                    }
+                    if ( applyValueCurve[band] ) {
+                        val = valueCurve.getValue( val );
+                    }
+                    val = Math.max( 0.0, Math.min( val, 1.0 ) );
+                    lut[band][n] = (short) (lut[band].length * val);
+                }
             }
             jailut = new LookupTableJAI( lut, true );
         } else {
