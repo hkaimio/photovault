@@ -20,6 +20,9 @@
 
 package org.photovault.image;
 
+import java.awt.Point;
+import java.awt.geom.CubicCurve2D;
+
 /**
   Mapping from original color channel to to desired output channel values. In 
  practice, this class implements a 1-dimensional function defined by a cubic 
@@ -175,6 +178,20 @@ public class ColorCurve {
         return y;
     }
     
+    /**
+     Get the Bezier curve that defines a segment 
+     of this curve
+     @param n The order number of the segment, so that segment n is between 
+     points n and n+1.
+     @return Cubic curve for the segment in question.
+     */
+    public CubicCurve2D getSegment( int n ) {
+        CubicCurve2D c = new CubicCurve2D.Double();
+        double x = pointX[n];
+        double dx = (pointX[n+1]-pointX[n])/3.0;
+        c.setCurve( x, b[n+1][0], x+dx, b[n+1][1], x+2.0*dx, b[n+1][2], pointX[n+1], b[n+1][3] );
+        return c;
+    }
     
     /**
      Test for equality
@@ -217,7 +234,7 @@ public class ColorCurve {
             b[n][3] = pointY[n];
             if ( n > 1 ) {
                 /*
-                 If possible, set the staring slope of the line to be the same
+                 If possible, set the starting slope of the line to be the same
                  as slope between previous point & segment end point
                  */
                 double dy = pointY[n] - pointY[n-2];

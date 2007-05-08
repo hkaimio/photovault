@@ -10,9 +10,12 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.CubicCurve2D;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -85,22 +88,35 @@ public class ColorCurvePanel extends javax.swing.JPanel {
     public ColorCurve getCurve() {
         return curve;
     }
+
+    /**
+     Set the curve
+     @param curve The curve that will be displayed and edited, bu the component.
+     @param color Color of the curve
+     */
+    public void setCurve( ColorCurve curve, Color color ) {
+        this.curve = curve;
+        this.curveColor = color;
+        initPoints();
+        repaint();
+    }
+
     
     /**
      Set the curve
      @param c The curve that will be displayed and edited, bu the component.
      */
     public void setCurve( ColorCurve c ) {
-        curve = c;
-        initPoints();
-        repaint();
+        setCurve( c, Color.BLACK );
     }
     
     /**
-     Add a new reference curve that will be drawn on background, in gray.
+     Add a new reference curve that will be drawn on background
+     @param curve The curve to draw
+     @param color Color of the curve
      */
-    public void addReferenceCurve( ColorCurve c ) {
-        refCurves.add( c );
+    public void addReferenceCurve( ColorCurve curve, Color color ) {
+        refCurves.add( new CurveDescriptor( curve, color ) );
         repaint();
     }
     
@@ -208,9 +224,24 @@ public class ColorCurvePanel extends javax.swing.JPanel {
     ColorCurve curve = new ColorCurve();
     
     /**
+     Color of the curve
+     */
+    Color curveColor = Color.BLACK;
+    
+    static class CurveDescriptor {
+        public CurveDescriptor( ColorCurve curve, Color color ) {
+            this.curve = curve;
+            this.color = color;
+        }
+        
+        ColorCurve curve;
+        Color color;
+    }
+    
+    /**
      Curves drawn for reference
      */
-    ArrayList<ColorCurve> refCurves = new ArrayList<ColorCurve>();
+    ArrayList<CurveDescriptor> refCurves = new ArrayList<CurveDescriptor>();
 
     /**
      Paint grid for the control
@@ -241,18 +272,21 @@ public class ColorCurvePanel extends javax.swing.JPanel {
      @param g Graphics2D object used to paint the curve
      */
     private void paintCurve( ColorCurve c, Graphics2D g ) {
-        int w = getWidth();
-        int h = getHeight();
-        double dy = 1.0 / (double)h;
-        double dx = 1.0 / (double)w;
-        int y0 = h - (int)(h * curve.getValue( 0.0 ));
-        int x0 = 0;
-        for ( int x = 0; x < w ; x++ ) {
-            int y = h - (int)(h * c.getValue( dx*x ) );
-            g.drawLine( x0, y0, x, y );
-            x0 = x;
-            y0 = y;
-        }        
+        // Paint curve segments
+        
+        AffineTransform old = g.getTransform();
+        AffineTransform xform = AffineTransform.getScaleInstance( 100, 100 );
+        for ( int n = 0 ; n < c.getPointCount()-1 ; n++ ) {
+            CubicCurve2D segment = c.getSegment( n );
+            double dw = getWidth();
+            double dh = getHeight();
+            CubicCurve2D xlated = new CubicCurve2D.Double(
+                    segment.getX1()*dw, (1.0-segment.getY1())*dh,
+                    segment.getCtrlX1() * dw, (1.0-segment.getCtrlY1())*dh,
+                    segment.getCtrlX2()*dw, (1.0-segment.getCtrlY2())*dh,
+                    segment.getX2()*dw, (1.0-segment.getY2())*dh );
+            g.draw( xlated );
+        }
     }
     
     /**
@@ -268,21 +302,33 @@ public class ColorCurvePanel extends javax.swing.JPanel {
         if ( refCurves.size() > 0 ) {
             Graphics2D refCurveGraphics = (Graphics2D) g2.create();
             refCurveGraphics.setColor( Color.GRAY );
-            for ( ColorCurve c : refCurves ) {
-                if ( c != null ) {
-                    paintCurve( c, refCurveGraphics );
+            refCurveGraphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING, 
+                    RenderingHints.VALUE_ANTIALIAS_ON );
+            for ( CurveDescriptor c : refCurves ) {
+                if ( c.curve != null ) {
+                    Color oldColor = refCurveGraphics.getColor();
+                    refCurveGraphics.setColor( c.color );
+                    paintCurve( c.curve, refCurveGraphics );
+                    refCurveGraphics.setColor( oldColor );
                 }
             }
         }
         
         Stroke curveStroke = new BasicStroke( 2.0f );
         g2.setStroke( curveStroke );
+        Color oldColor = g2.getColor();
+        g2.setColor( curveColor );
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON );
         // Paint the curve
         paintCurve( curve, g2 );
+        g2.setColor( oldColor );
         
         // Draw points
         Stroke handleStroke = new BasicStroke( 1.0f );
         g2.setColor( Color.BLACK );
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_OFF );
         for ( int i = 0; i < pointX.length ; i++ ) {
             g2.drawRect( pointX[i]-3, pointY[i]-3, 6, 6 );
         }

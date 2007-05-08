@@ -126,7 +126,28 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     /**
      Names of the color channels
      */
-    String[] colorCurveNames = {"value", "red", "green", "blue"};
+    static String[] colorCurveNames = {"value", "red", "green", "blue"};
+    
+    /**
+     Colors for the curves
+     */
+    static Color[] curveColors = {
+        Color.BLACK, 
+        Color.RED, 
+        new Color(0.0f, 0.7f, 0.0f), 
+        Color.BLUE 
+    };
+
+    /**
+     Colors for the reference curves
+     */
+    static Color[] refCurveColors = {
+        Color.GRAY,
+        Color.PINK,
+        new Color( 0.5f, 1.0f, 0.5f ),
+        new Color( 0.5f, 0.5f, 1.0f )
+    };
+
     /**
       Color curve currently displayed
      */
@@ -862,12 +883,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             c.addPoint( 0.0, 0.0 );
             c.addPoint( 1.0, 1.0 );
         }
-        colorCurvePanel1.setCurve( colorCurves[chan] );
+        colorCurvePanel1.setCurve( colorCurves[chan], curveColors[chan] );
         colorCurvePanel1.clearReferenceCurves();
         if ( refCurves[chan] != null ) {
             for ( Object c : refCurves[chan] ) {
                 if ( c != null ) {
-                    colorCurvePanel1.addReferenceCurve( (ColorCurve) c );
+                    colorCurvePanel1.addReferenceCurve( (ColorCurve) c, refCurveColors[chan] );
                 }
             }
         }
