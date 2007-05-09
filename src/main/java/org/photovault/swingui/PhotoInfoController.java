@@ -189,7 +189,8 @@ public class PhotoInfoController {
             if ( view instanceof PhotoInfoView ) {
                 PhotoInfoView obj = (PhotoInfoView) view;
                 obj.setColorChannelMultivalued( name, isMultiValued, 
-                        (ColorCurve[]) valueSet.toArray( new ColorCurve[0] ) );
+                        ( valueSet != null ) ? 
+                            (ColorCurve[]) valueSet.toArray( new ColorCurve[0] ) : null );
             }
         }
         protected void updateValue( Object view ) {

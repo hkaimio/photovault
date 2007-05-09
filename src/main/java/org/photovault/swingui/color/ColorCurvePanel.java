@@ -228,6 +228,9 @@ public class ColorCurvePanel extends javax.swing.JPanel {
      */
     Color curveColor = Color.BLACK;
     
+    /**
+     Strucutre that describes a reference curve and its color
+     */
     static class CurveDescriptor {
         public CurveDescriptor( ColorCurve curve, Color color ) {
             this.curve = curve;
