@@ -23,360 +23,427 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
+          <Group type="102" alignment="1" attributes="0">
+              <EmptySpace pref="125" max="32767" attributes="0"/>
+              <Component id="dlgControlPane" min="-2" max="-2" attributes="1"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="rawSettingsPane" alignment="0" max="32767" attributes="1"/>
-                  <Group type="102" alignment="1" attributes="0">
-                      <Component id="okBtn" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="applyBtn" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="discardBtn" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="closeBtn" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Component id="rawHistogramPane" alignment="0" max="32767" attributes="0"/>
-              </Group>
-              <EmptySpace max="-2" attributes="0"/>
+              <Component id="colorSettingTabs" min="-2" pref="428" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="1" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="rawSettingsPane" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="rawHistogramPane" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="closeBtn" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="discardBtn" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="applyBtn" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="okBtn" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
+              <Component id="colorSettingTabs" min="-2" pref="513" max="-2" attributes="1"/>
               <EmptySpace max="-2" attributes="0"/>
+              <Component id="dlgControlPane" min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="javax.swing.JButton" name="closeBtn">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Close"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="closeBtnActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="discardBtn">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Discard"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="discardBtnActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="applyBtn">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Apply"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="applyBtnActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="okBtn">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="OK"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="okBtnActionPerformed"/>
-      </Events>
-    </Component>
-    <Container class="javax.swing.JPanel" name="rawSettingsPane">
+    <Container class="javax.swing.JPanel" name="dlgControlPane">
 
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" attributes="0">
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <EmptySpace min="-2" pref="62" max="-2" attributes="0"/>
-                          <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="evCorrSlider" min="-2" pref="374" max="-2" attributes="0"/>
-                      </Group>
-                      <Group type="102" alignment="0" attributes="0">
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="1" attributes="0">
-                              <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
-                              <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
-                              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
-                              <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
-                              <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
-                              <Component id="label1" alignment="1" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="saturationSlider" alignment="1" pref="374" max="32767" attributes="0"/>
-                              <Component id="greenGainSlider" alignment="1" pref="374" max="32767" attributes="0"/>
-                              <Component id="blackLevelSlider" alignment="1" pref="374" max="32767" attributes="0"/>
-                              <Component id="hlightCompSlider" alignment="0" pref="374" max="32767" attributes="1"/>
-                              <Component id="ctempSlider" alignment="1" pref="374" max="32767" attributes="0"/>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <Component id="colorProfileCombo" min="-2" pref="317" max="-2" attributes="0"/>
-                                  <EmptySpace pref="23" max="32767" attributes="0"/>
-                                  <Component id="newProfileBtn" min="-2" pref="34" max="-2" attributes="0"/>
-                              </Group>
-                              <Component id="colorCurveSelectionCombo" alignment="0" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-              </Group>
               <Group type="102" alignment="1" attributes="0">
+                  <EmptySpace pref="24" max="32767" attributes="0"/>
+                  <Component id="okBtn" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="colorCurvePanel1" max="32767" attributes="0"/>
+                  <Component id="applyBtn" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="discardBtn" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="closeBtn" min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="evCorrSlider" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="hlightCompSlider" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="blackLevelSlider" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
-                      <Component id="ctempSlider" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="greenGainSlider" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
+              <Group type="102" alignment="1" attributes="0">
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="colorProfileCombo" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="newProfileBtn" alignment="3" min="-2" pref="24" max="-2" attributes="0"/>
+                      <Component id="closeBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="discardBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="applyBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="okBtn" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="saturationSlider" min="-2" max="-2" attributes="0"/>
-                      <Component id="label1" alignment="0" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Component id="colorCurveSelectionCombo" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Component id="colorCurvePanel1" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JLabel" name="jLabel1">
+        <Component class="javax.swing.JButton" name="applyBtn">
           <Properties>
-            <Property name="text" type="java.lang.String" value="EV correction"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JLabel" name="jLabel2">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Color Temperature"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JLabel" name="jLabel3">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Compress highlights"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JLabel" name="jLabel4">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Green"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JLabel" name="jLabel5">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Black level"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JComboBox" name="colorProfileCombo">
-          <Properties>
-            <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-              <StringArray count="1">
-                <StringItem index="0" value="None"/>
-              </StringArray>
-            </Property>
+            <Property name="text" type="java.lang.String" value="Apply"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="colorProfileComboActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="applyBtnActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="newProfileBtn">
+        <Component class="javax.swing.JButton" name="discardBtn">
           <Properties>
-            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/folder_expanded_icon.png"/>
-            </Property>
+            <Property name="text" type="java.lang.String" value="Discard"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newProfileBtnActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="discardBtnActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JLabel" name="jLabel6">
+        <Component class="javax.swing.JButton" name="closeBtn">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Color profile"/>
-          </Properties>
-        </Component>
-        <Component class="org.photovault.swingui.color.FieldSliderCombo" name="hlightCompSlider">
-          <Properties>
-            <Property name="majorTickSpacing" type="double" value="1.0"/>
-            <Property name="maximum" type="double" value="2.0"/>
-            <Property name="minimum" type="double" value="-1.0"/>
-            <Property name="value" type="double" value="0.0"/>
+            <Property name="text" type="java.lang.String" value="Close"/>
           </Properties>
           <Events>
-            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="hlightCompSliderStateChanged"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="closeBtnActionPerformed"/>
           </Events>
         </Component>
-        <Component class="org.photovault.swingui.color.FieldSliderCombo" name="evCorrSlider">
+        <Component class="javax.swing.JButton" name="okBtn">
           <Properties>
-            <Property name="fractionDigits" type="int" value="2"/>
-            <Property name="majorTickSpacing" type="double" value="1.0"/>
-            <Property name="maximum" type="double" value="2.0"/>
-            <Property name="minimum" type="double" value="-2.0"/>
+            <Property name="text" type="java.lang.String" value="OK"/>
           </Properties>
           <Events>
-            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="evCorrSliderStateChanged"/>
-          </Events>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="Hashtable sliderLabels = new Hashtable();&#xa;sliderLabels.put( new Double( -2.0 ), new JLabel(&quot;-2&quot;) );&#xa;sliderLabels.put( new Double( -1.0 ), new JLabel(&quot;-1&quot;) );&#xa;sliderLabels.put( new Double(  0 ), new JLabel(&quot;0&quot;) );&#xa;sliderLabels.put( new Double( 1.0 ), new JLabel(&quot;1&quot;) );&#xa;sliderLabels.put( new Double( 2.0 ), new JLabel(&quot;2&quot;) );&#xa;evCorrSlider.setLabelTable( sliderLabels );"/>
-          </AuxValues>
-        </Component>
-        <Component class="org.photovault.swingui.color.FieldSliderCombo" name="blackLevelSlider">
-          <Properties>
-            <Property name="fractionDigits" type="int" value="0"/>
-            <Property name="majorTickSpacing" type="double" value="500.0"/>
-            <Property name="maximum" type="double" value="1000.0"/>
-            <Property name="minimum" type="double" value="-500.0"/>
-            <Property name="value" type="double" value="0.0"/>
-          </Properties>
-          <Events>
-            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="blackLevelSliderStateChanged"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="okBtnActionPerformed"/>
           </Events>
         </Component>
-        <Component class="org.photovault.swingui.color.FieldSliderCombo" name="ctempSlider">
-          <Properties>
-            <Property name="fractionDigits" type="int" value="0"/>
-            <Property name="majorTickSpacing" type="double" value="2000.0"/>
-            <Property name="maximum" type="double" value="12000.0"/>
-            <Property name="minimum" type="double" value="2000.0"/>
-            <Property name="value" type="double" value="5500.0"/>
-          </Properties>
-          <Events>
-            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="ctempSliderStateChanged"/>
-          </Events>
-        </Component>
-        <Component class="org.photovault.swingui.color.FieldSliderCombo" name="greenGainSlider">
-          <Properties>
-            <Property name="fractionDigits" type="int" value="2"/>
-            <Property name="majorTickSpacing" type="double" value="1.0"/>
-            <Property name="minimum" type="double" value="-1.0"/>
-            <Property name="value" type="double" value="0.0"/>
-          </Properties>
-          <Events>
-            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="greenGainSliderStateChanged"/>
-          </Events>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="Hashtable greenGainLabels = new Hashtable();&#xa;greenGainLabels.put( new Double( -1.0 ), new JLabel(&quot;-1&quot;) );&#xa;greenGainLabels.put( new Double( 0.0 ), new JLabel(&quot;0&quot;) );&#xa;greenGainLabels.put( new Double( 1.0 ), new JLabel(&quot;+1&quot;) );&#xa;greenGainSlider.setLabelTable( greenGainLabels );"/>
-          </AuxValues>
-        </Component>
-        <Component class="org.photovault.swingui.color.FieldSliderCombo" name="saturationSlider">
-          <Properties>
-            <Property name="maximum" type="double" value="2.0"/>
-          </Properties>
-          <Events>
-            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="saturationSliderStateChanged"/>
-          </Events>
-        </Component>
-        <Component class="java.awt.Label" name="label1">
-          <Properties>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Dialog" size="12" style="1"/>
-            </Property>
-            <Property name="text" type="java.lang.String" value="Saturation"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JComboBox" name="colorCurveSelectionCombo">
-          <Properties>
-            <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-              <StringArray count="4">
-                <StringItem index="0" value="Value"/>
-                <StringItem index="1" value="Red"/>
-                <StringItem index="2" value="Green"/>
-                <StringItem index="3" value="Blue"/>
-              </StringArray>
-            </Property>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="colorCurveSelectionComboActionPerformed"/>
-          </Events>
-        </Component>
-        <Container class="org.photovault.swingui.color.ColorCurvePanel" name="colorCurvePanel1">
+      </SubComponents>
+    </Container>
+    <Container class="javax.swing.JTabbedPane" name="colorSettingTabs">
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
+      <SubComponents>
+        <Container class="javax.swing.JPanel" name="rawControlsPane">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="Raw conversion">
+                <Property name="tabTitle" type="java.lang.String" value="Raw conversion"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
 
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="529" max="32767" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="rawHistogramPane" alignment="0" max="32767" attributes="0"/>
+                          <Component id="jLabel6" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" alignment="1" attributes="0">
+                              <Component id="colorProfileCombo" pref="359" max="32767" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="newProfileBtn" min="-2" pref="34" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="greenGainSlider" alignment="0" min="0" pref="0" max="32767" attributes="1"/>
+                          <Component id="ctempSlider" alignment="0" min="0" pref="0" max="32767" attributes="1"/>
+                          <Component id="blackLevelSlider" alignment="0" min="0" pref="0" max="32767" attributes="1"/>
+                          <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="evCorrSlider" alignment="0" pref="399" max="32767" attributes="1"/>
+                          <Component id="hlightCompSlider" alignment="0" min="0" pref="0" max="32767" attributes="1"/>
+                          <Component id="jLabel5" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel4" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="217" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="evCorrSlider" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="hlightCompSlider" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="blackLevelSlider" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="ctempSlider" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="greenGainSlider" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="newProfileBtn" alignment="3" min="-2" pref="24" max="-2" attributes="0"/>
+                          <Component id="colorProfileCombo" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="rawHistogramPane" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
               </Group>
             </DimensionLayout>
           </Layout>
+          <SubComponents>
+            <Component class="javax.swing.JLabel" name="jLabel1">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="EV correction"/>
+              </Properties>
+            </Component>
+            <Component class="org.photovault.swingui.color.FieldSliderCombo" name="evCorrSlider">
+              <Properties>
+                <Property name="fractionDigits" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="double" value="1.0"/>
+                <Property name="maximum" type="double" value="2.0"/>
+                <Property name="minimum" type="double" value="-2.0"/>
+              </Properties>
+              <Events>
+                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="evCorrSliderStateChanged"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="{&#xa;    Hashtable sliderLabels = new Hashtable();&#xa;    sliderLabels.put( new Double( -2.0 ), getSliderLabel( &quot;-2&quot; ) );&#xa;    sliderLabels.put( new Double( -1.0 ), new JLabel(&quot;-1&quot;) );&#xa;    sliderLabels.put( new Double(  0 ), new JLabel(&quot;0&quot;) );&#xa;    sliderLabels.put( new Double( 1.0 ), new JLabel(&quot;1&quot;) );&#xa;    sliderLabels.put( new Double( 1.99 ), getSliderLabel( &quot;2&quot; ) );&#xa;    evCorrSlider.setLabelTable( sliderLabels );&#xa;    evCorrSlider.putClientProperty(&quot;JSlider.isFilled&quot;, Boolean.FALSE);&#xa;}"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel3">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Compress highlights"/>
+              </Properties>
+            </Component>
+            <Component class="org.photovault.swingui.color.FieldSliderCombo" name="hlightCompSlider">
+              <Properties>
+                <Property name="majorTickSpacing" type="double" value="1.0"/>
+                <Property name="maximum" type="double" value="2.0"/>
+                <Property name="minimum" type="double" value="-1.0"/>
+                <Property name="value" type="double" value="0.0"/>
+              </Properties>
+              <Events>
+                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="hlightCompSliderStateChanged"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="{&#xa;    Hashtable compressSliderLabels = new Hashtable();&#xa;    compressSliderLabels.put( new Double( -1.0 ), getSliderLabel( Double.toString( -1.0 ) ) );&#xa;    compressSliderLabels.put( new Double( 0.0 ), getSliderLabel( Double.toString( 0.0 ) ) );&#xa;    compressSliderLabels.put( new Double( 1.0 ), getSliderLabel( Double.toString( 1.0 ) ) );&#xa;    compressSliderLabels.put( new Double( 2.0 ), getSliderLabel( Double.toString( 2.0 ) ) );&#xa;    hlightCompSlider.setLabelTable( compressSliderLabels );&#xa;    hlightCompSlider.putClientProperty(&quot;JSlider.isFilled&quot;, Boolean.FALSE);&#xa;}"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel5">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Black level"/>
+              </Properties>
+            </Component>
+            <Component class="org.photovault.swingui.color.FieldSliderCombo" name="blackLevelSlider">
+              <Properties>
+                <Property name="fractionDigits" type="int" value="0"/>
+                <Property name="majorTickSpacing" type="double" value="500.0"/>
+                <Property name="maximum" type="double" value="1000.0"/>
+                <Property name="minimum" type="double" value="-500.0"/>
+                <Property name="value" type="double" value="0.0"/>
+              </Properties>
+              <Events>
+                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="blackLevelSliderStateChanged"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="{&#xa;    Hashtable sliderLabels = new Hashtable();&#xa;    sliderLabels.put( new Double( -500.0 ), getSliderLabel( Integer.toString( -500 ) ) );&#xa;    sliderLabels.put( new Double( 0.0 ), getSliderLabel( Integer.toString( 0 ) ) );&#xa;    sliderLabels.put( new Double( 500.0 ), getSliderLabel( Integer.toString( 500 ) ) );&#xa;    sliderLabels.put( new Double( 1000.0 ), getSliderLabel( Integer.toString( 1000 ) ) );&#xa;    blackLevelSlider.setLabelTable( sliderLabels );&#xa;    blackLevelSlider.putClientProperty(&quot;JSlider.isFilled&quot;, Boolean.FALSE);&#xa;}"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel2">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Color Temperature"/>
+              </Properties>
+            </Component>
+            <Component class="org.photovault.swingui.color.FieldSliderCombo" name="ctempSlider">
+              <Properties>
+                <Property name="fractionDigits" type="int" value="0"/>
+                <Property name="majorTickSpacing" type="double" value="2000.0"/>
+                <Property name="maximum" type="double" value="12000.0"/>
+                <Property name="minimum" type="double" value="2000.0"/>
+                <Property name="value" type="double" value="5500.0"/>
+              </Properties>
+              <Events>
+                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="ctempSliderStateChanged"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="{&#xa;    Hashtable sliderLabels = new Hashtable();&#xa;    sliderLabels.put( new Double( 2000.0 ), getSliderLabel( Integer.toString( 2000 ) ) );&#xa;    sliderLabels.put( new Double( 4000.0 ), getSliderLabel( Integer.toString( 4000 ) ) );&#xa;    sliderLabels.put( new Double( 6000.0 ), getSliderLabel( Integer.toString( 6000 ) ) );&#xa;    sliderLabels.put( new Double( 8000.0 ), getSliderLabel( Integer.toString( 8000 ) ) );&#xa;    sliderLabels.put( new Double( 10000.0 ), getSliderLabel( Integer.toString( 10000 ) ) );&#xa;    sliderLabels.put( new Double( 12000.0 ), getSliderLabel( Integer.toString( 12000 ) ) );&#xa;    ctempSlider.setLabelTable( sliderLabels );&#xa;    ctempSlider.putClientProperty(&quot;JSlider.isFilled&quot;, Boolean.FALSE);&#xa;}"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel4">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Green"/>
+              </Properties>
+            </Component>
+            <Component class="org.photovault.swingui.color.FieldSliderCombo" name="greenGainSlider">
+              <Properties>
+                <Property name="fractionDigits" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="double" value="1.0"/>
+                <Property name="minimum" type="double" value="-1.0"/>
+                <Property name="value" type="double" value="0.0"/>
+              </Properties>
+              <Events>
+                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="greenGainSliderStateChanged"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="Hashtable greenGainLabels = new Hashtable();&#xa;greenGainLabels.put( new Double( -1.0 ), getSliderLabel(&quot;-1&quot;) );&#xa;greenGainLabels.put( new Double( 0.0 ), getSliderLabel(&quot;0&quot;) );&#xa;greenGainLabels.put( new Double( 1.0 ), getSliderLabel(&quot;+1&quot;) );&#xa;greenGainSlider.setLabelTable( greenGainLabels );&#xa;greenGainSlider.putClientProperty(&quot;JSlider.isFilled&quot;, Boolean.FALSE);"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel6">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Color profile"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JComboBox" name="colorProfileCombo">
+              <Properties>
+                <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                  <StringArray count="1">
+                    <StringItem index="0" value="None"/>
+                  </StringArray>
+                </Property>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="colorProfileComboActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="newProfileBtn">
+              <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/folder_expanded_icon.png"/>
+                </Property>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newProfileBtnActionPerformed"/>
+              </Events>
+            </Component>
+            <Container class="javax.swing.JPanel" name="rawHistogramPane">
+              <Properties>
+                <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                  <Border info="org.netbeans.modules.form.compat2.border.EtchedBorderInfo">
+                    <EtchetBorder/>
+                  </Border>
+                </Property>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="rawHistogramPane = new HistogramPane();"/>
+              </AuxValues>
+
+              <Layout>
+                <DimensionLayout dim="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <EmptySpace min="0" pref="395" max="32767" attributes="0"/>
+                  </Group>
+                </DimensionLayout>
+                <DimensionLayout dim="1">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <EmptySpace min="0" pref="74" max="32767" attributes="0"/>
+                  </Group>
+                </DimensionLayout>
+              </Layout>
+            </Container>
+          </SubComponents>
+        </Container>
+        <Container class="javax.swing.JPanel" name="colorSettingControls">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="Colors">
+                <Property name="tabTitle" type="java.lang.String" value="Colors"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="colorCurvePanel1" max="32767" attributes="1"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="-2" pref="162" max="-2" attributes="0"/>
+                              <Component id="colorCurveSelectionCombo" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="saturationSlider" pref="399" max="32767" attributes="1"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="label1" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="23" max="-2" attributes="0"/>
+                      <Component id="label1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="saturationSlider" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="31" max="32767" attributes="0"/>
+                      <Component id="colorCurveSelectionCombo" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="colorCurvePanel1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="46" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+          <SubComponents>
+            <Component class="java.awt.Label" name="label1">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Dialog" size="12" style="1"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Saturation"/>
+              </Properties>
+            </Component>
+            <Component class="org.photovault.swingui.color.FieldSliderCombo" name="saturationSlider">
+              <Properties>
+                <Property name="maximum" type="double" value="2.0"/>
+                <Property name="paintLabels" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="saturationSliderStateChanged"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JComboBox" name="colorCurveSelectionCombo">
+              <Properties>
+                <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                  <StringArray count="4">
+                    <StringItem index="0" value="Value"/>
+                    <StringItem index="1" value="Red"/>
+                    <StringItem index="2" value="Green"/>
+                    <StringItem index="3" value="Blue"/>
+                  </StringArray>
+                </Property>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="colorCurveSelectionComboActionPerformed"/>
+              </Events>
+            </Component>
+            <Container class="org.photovault.swingui.color.ColorCurvePanel" name="colorCurvePanel1">
+
+              <Layout>
+                <DimensionLayout dim="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <EmptySpace min="0" pref="399" max="32767" attributes="0"/>
+                  </Group>
+                </DimensionLayout>
+                <DimensionLayout dim="1">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <EmptySpace min="0" pref="300" max="32767" attributes="0"/>
+                  </Group>
+                </DimensionLayout>
+              </Layout>
+            </Container>
+          </SubComponents>
         </Container>
       </SubComponents>
-    </Container>
-    <Container class="javax.swing.JPanel" name="rawHistogramPane">
-      <Properties>
-        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="org.netbeans.modules.form.compat2.border.EtchedBorderInfo">
-            <EtchetBorder/>
-          </Border>
-        </Property>
-      </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="rawHistogramPane = new HistogramPane();"/>
-      </AuxValues>
-
-      <Layout>
-        <DimensionLayout dim="0">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <EmptySpace min="0" pref="537" max="32767" attributes="0"/>
-          </Group>
-        </DimensionLayout>
-        <DimensionLayout dim="1">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <EmptySpace min="0" pref="139" max="32767" attributes="0"/>
-          </Group>
-        </DimensionLayout>
-      </Layout>
     </Container>
   </SubComponents>
 </Form>

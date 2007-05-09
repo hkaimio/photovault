@@ -22,6 +22,7 @@ package org.photovault.swingui.color;
 
 import com.sun.jdori.common.query.tree.ThisExpr;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Polygon;
@@ -32,10 +33,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import javax.swing.Box;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import org.photovault.common.PhotovaultException;
@@ -198,6 +202,27 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
     }
     
+    /**
+     Size of the slider labels (Size of the lowest & highest labels will affect 
+     the length of slider track, therefore they must be of same size in all 
+     sliders.
+     */
+    Dimension sliderLabelDimension = null;
+    
+    /**
+     Get a standard sized label for the sliders.
+     @param txt Text to show in label.
+     @return Label.
+     */
+    private JComponent getSliderLabel( String txt ) {
+        if ( sliderLabelDimension == null ) {
+            JLabel maxLabel = new JLabel( new Integer( 12000 ).toString() );
+            sliderLabelDimension = maxLabel.getPreferredSize();
+        }
+        JLabel l = new JLabel( txt, SwingConstants.CENTER );
+        l.setPreferredSize( sliderLabelDimension );
+        return l;
+    }
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -206,48 +231,84 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
     private void initComponents() {
         fieldSliderCombo1 = new org.photovault.swingui.color.FieldSliderCombo();
-        closeBtn = new javax.swing.JButton();
-        discardBtn = new javax.swing.JButton();
+        dlgControlPane = new javax.swing.JPanel();
         applyBtn = new javax.swing.JButton();
+        discardBtn = new javax.swing.JButton();
+        closeBtn = new javax.swing.JButton();
         okBtn = new javax.swing.JButton();
-        rawSettingsPane = new javax.swing.JPanel();
+        colorSettingTabs = new javax.swing.JTabbedPane();
+        rawControlsPane = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        colorProfileCombo = new javax.swing.JComboBox();
-        newProfileBtn = new javax.swing.JButton();
-        jLabel6 = new javax.swing.JLabel();
-        hlightCompSlider = new org.photovault.swingui.color.FieldSliderCombo();
         evCorrSlider = new org.photovault.swingui.color.FieldSliderCombo();
-        Hashtable sliderLabels = new Hashtable();
-        sliderLabels.put( new Double( -2.0 ), new JLabel("-2") );
-        sliderLabels.put( new Double( -1.0 ), new JLabel("-1") );
-        sliderLabels.put( new Double(  0 ), new JLabel("0") );
-        sliderLabels.put( new Double( 1.0 ), new JLabel("1") );
-        sliderLabels.put( new Double( 2.0 ), new JLabel("2") );
-        evCorrSlider.setLabelTable( sliderLabels );
+        {
+            Hashtable sliderLabels = new Hashtable();
+            sliderLabels.put( new Double( -2.0 ), getSliderLabel( "-2" ) );
+            sliderLabels.put( new Double( -1.0 ), new JLabel("-1") );
+            sliderLabels.put( new Double(  0 ), new JLabel("0") );
+            sliderLabels.put( new Double( 1.0 ), new JLabel("1") );
+            sliderLabels.put( new Double( 1.99 ), getSliderLabel( "2" ) );
+            evCorrSlider.setLabelTable( sliderLabels );
+            evCorrSlider.putClientProperty("JSlider.isFilled", Boolean.FALSE);
+        }
+        jLabel3 = new javax.swing.JLabel();
+        hlightCompSlider = new org.photovault.swingui.color.FieldSliderCombo();
+        {
+            Hashtable compressSliderLabels = new Hashtable();
+            compressSliderLabels.put( new Double( -1.0 ), getSliderLabel( Double.toString( -1.0 ) ) );
+            compressSliderLabels.put( new Double( 0.0 ), getSliderLabel( Double.toString( 0.0 ) ) );
+            compressSliderLabels.put( new Double( 1.0 ), getSliderLabel( Double.toString( 1.0 ) ) );
+            compressSliderLabels.put( new Double( 2.0 ), getSliderLabel( Double.toString( 2.0 ) ) );
+            hlightCompSlider.setLabelTable( compressSliderLabels );
+            hlightCompSlider.putClientProperty("JSlider.isFilled", Boolean.FALSE);
+        }
+        jLabel5 = new javax.swing.JLabel();
         blackLevelSlider = new org.photovault.swingui.color.FieldSliderCombo();
+        {
+            Hashtable sliderLabels = new Hashtable();
+            sliderLabels.put( new Double( -500.0 ), getSliderLabel( Integer.toString( -500 ) ) );
+            sliderLabels.put( new Double( 0.0 ), getSliderLabel( Integer.toString( 0 ) ) );
+            sliderLabels.put( new Double( 500.0 ), getSliderLabel( Integer.toString( 500 ) ) );
+            sliderLabels.put( new Double( 1000.0 ), getSliderLabel( Integer.toString( 1000 ) ) );
+            blackLevelSlider.setLabelTable( sliderLabels );
+            blackLevelSlider.putClientProperty("JSlider.isFilled", Boolean.FALSE);
+        }
+        jLabel2 = new javax.swing.JLabel();
         ctempSlider = new org.photovault.swingui.color.FieldSliderCombo();
+        {
+            Hashtable sliderLabels = new Hashtable();
+            sliderLabels.put( new Double( 2000.0 ), getSliderLabel( Integer.toString( 2000 ) ) );
+            sliderLabels.put( new Double( 4000.0 ), getSliderLabel( Integer.toString( 4000 ) ) );
+            sliderLabels.put( new Double( 6000.0 ), getSliderLabel( Integer.toString( 6000 ) ) );
+            sliderLabels.put( new Double( 8000.0 ), getSliderLabel( Integer.toString( 8000 ) ) );
+            sliderLabels.put( new Double( 10000.0 ), getSliderLabel( Integer.toString( 10000 ) ) );
+            sliderLabels.put( new Double( 12000.0 ), getSliderLabel( Integer.toString( 12000 ) ) );
+            ctempSlider.setLabelTable( sliderLabels );
+            ctempSlider.putClientProperty("JSlider.isFilled", Boolean.FALSE);
+        }
+        jLabel4 = new javax.swing.JLabel();
         greenGainSlider = new org.photovault.swingui.color.FieldSliderCombo();
         Hashtable greenGainLabels = new Hashtable();
-        greenGainLabels.put( new Double( -1.0 ), new JLabel("-1") );
-        greenGainLabels.put( new Double( 0.0 ), new JLabel("0") );
-        greenGainLabels.put( new Double( 1.0 ), new JLabel("+1") );
+        greenGainLabels.put( new Double( -1.0 ), getSliderLabel("-1") );
+        greenGainLabels.put( new Double( 0.0 ), getSliderLabel("0") );
+        greenGainLabels.put( new Double( 1.0 ), getSliderLabel("+1") );
         greenGainSlider.setLabelTable( greenGainLabels );
-        saturationSlider = new org.photovault.swingui.color.FieldSliderCombo();
+        greenGainSlider.putClientProperty("JSlider.isFilled", Boolean.FALSE);
+        jLabel6 = new javax.swing.JLabel();
+        colorProfileCombo = new javax.swing.JComboBox();
+        newProfileBtn = new javax.swing.JButton();
+        rawHistogramPane = rawHistogramPane = new HistogramPane();
+        colorSettingControls = new javax.swing.JPanel();
         label1 = new java.awt.Label();
+        saturationSlider = new org.photovault.swingui.color.FieldSliderCombo();
         colorCurveSelectionCombo = new javax.swing.JComboBox();
         colorCurvePanel1 = new org.photovault.swingui.color.ColorCurvePanel();
-        rawHistogramPane = rawHistogramPane = new HistogramPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Colors");
-        closeBtn.setText("Close");
-        closeBtn.addActionListener(new java.awt.event.ActionListener() {
+        applyBtn.setText("Apply");
+        applyBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                closeBtnActionPerformed(evt);
+                applyBtnActionPerformed(evt);
             }
         });
 
@@ -258,10 +319,10 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
 
-        applyBtn.setText("Apply");
-        applyBtn.addActionListener(new java.awt.event.ActionListener() {
+        closeBtn.setText("Close");
+        closeBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                applyBtnActionPerformed(evt);
+                closeBtnActionPerformed(evt);
             }
         });
 
@@ -272,15 +333,94 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
 
+        org.jdesktop.layout.GroupLayout dlgControlPaneLayout = new org.jdesktop.layout.GroupLayout(dlgControlPane);
+        dlgControlPane.setLayout(dlgControlPaneLayout);
+        dlgControlPaneLayout.setHorizontalGroup(
+            dlgControlPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, dlgControlPaneLayout.createSequentialGroup()
+                .addContainerGap(24, Short.MAX_VALUE)
+                .add(okBtn)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(applyBtn)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(discardBtn)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(closeBtn))
+        );
+        dlgControlPaneLayout.setVerticalGroup(
+            dlgControlPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, dlgControlPaneLayout.createSequentialGroup()
+                .add(dlgControlPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(closeBtn)
+                    .add(discardBtn)
+                    .add(applyBtn)
+                    .add(okBtn))
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         jLabel1.setText("EV correction");
 
-        jLabel2.setText("Color Temperature");
+        evCorrSlider.setFractionDigits(2);
+        evCorrSlider.setMajorTickSpacing(1.0);
+        evCorrSlider.setMaximum(2.0);
+        evCorrSlider.setMinimum(-2.0);
+        evCorrSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                evCorrSliderStateChanged(evt);
+            }
+        });
 
         jLabel3.setText("Compress highlights");
 
-        jLabel4.setText("Green");
+        hlightCompSlider.setMajorTickSpacing(1.0);
+        hlightCompSlider.setMaximum(2.0);
+        hlightCompSlider.setMinimum(-1.0);
+        hlightCompSlider.setValue(0.0);
+        hlightCompSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                hlightCompSliderStateChanged(evt);
+            }
+        });
 
         jLabel5.setText("Black level");
+
+        blackLevelSlider.setFractionDigits(0);
+        blackLevelSlider.setMajorTickSpacing(500.0);
+        blackLevelSlider.setMaximum(1000.0);
+        blackLevelSlider.setMinimum(-500.0);
+        blackLevelSlider.setValue(0.0);
+        blackLevelSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                blackLevelSliderStateChanged(evt);
+            }
+        });
+
+        jLabel2.setText("Color Temperature");
+
+        ctempSlider.setFractionDigits(0);
+        ctempSlider.setMajorTickSpacing(2000.0);
+        ctempSlider.setMaximum(12000.0);
+        ctempSlider.setMinimum(2000.0);
+        ctempSlider.setValue(5500.0);
+        ctempSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                ctempSliderStateChanged(evt);
+            }
+        });
+
+        jLabel4.setText("Green");
+
+        greenGainSlider.setFractionDigits(2);
+        greenGainSlider.setMajorTickSpacing(1.0);
+        greenGainSlider.setMinimum(-1.0);
+        greenGainSlider.setValue(0.0);
+        greenGainSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                greenGainSliderStateChanged(evt);
+            }
+        });
+
+        jLabel6.setText("Color profile");
 
         colorProfileCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "None" }));
         colorProfileCombo.addActionListener(new java.awt.event.ActionListener() {
@@ -296,69 +436,87 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
 
-        jLabel6.setText("Color profile");
+        rawHistogramPane.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        org.jdesktop.layout.GroupLayout rawHistogramPaneLayout = new org.jdesktop.layout.GroupLayout(rawHistogramPane);
+        rawHistogramPane.setLayout(rawHistogramPaneLayout);
+        rawHistogramPaneLayout.setHorizontalGroup(
+            rawHistogramPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 395, Short.MAX_VALUE)
+        );
+        rawHistogramPaneLayout.setVerticalGroup(
+            rawHistogramPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 74, Short.MAX_VALUE)
+        );
 
-        hlightCompSlider.setMajorTickSpacing(1.0);
-        hlightCompSlider.setMaximum(2.0);
-        hlightCompSlider.setMinimum(-1.0);
-        hlightCompSlider.setValue(0.0);
-        hlightCompSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                hlightCompSliderStateChanged(evt);
-            }
-        });
+        org.jdesktop.layout.GroupLayout rawControlsPaneLayout = new org.jdesktop.layout.GroupLayout(rawControlsPane);
+        rawControlsPane.setLayout(rawControlsPaneLayout);
+        rawControlsPaneLayout.setHorizontalGroup(
+            rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(rawControlsPaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .add(rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(jLabel6)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, rawControlsPaneLayout.createSequentialGroup()
+                        .add(colorProfileCombo, 0, 359, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(newProfileBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 34, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(greenGainSlider, 0, 0, Short.MAX_VALUE)
+                    .add(ctempSlider, 0, 0, Short.MAX_VALUE)
+                    .add(blackLevelSlider, 0, 0, Short.MAX_VALUE)
+                    .add(jLabel1)
+                    .add(evCorrSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE)
+                    .add(hlightCompSlider, 0, 0, Short.MAX_VALUE)
+                    .add(jLabel5)
+                    .add(jLabel2)
+                    .add(jLabel4)
+                    .add(jLabel3))
+                .addContainerGap())
+        );
+        rawControlsPaneLayout.setVerticalGroup(
+            rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(rawControlsPaneLayout.createSequentialGroup()
+                .add(jLabel1)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(evCorrSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jLabel3)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(hlightCompSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jLabel5)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(blackLevelSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jLabel2)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(ctempSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jLabel4)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(greenGainSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jLabel6)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(newProfileBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 24, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(colorProfileCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        colorSettingTabs.addTab("Raw conversion", rawControlsPane);
 
-        evCorrSlider.setFractionDigits(2);
-        evCorrSlider.setMajorTickSpacing(1.0);
-        evCorrSlider.setMaximum(2.0);
-        evCorrSlider.setMinimum(-2.0);
-        evCorrSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                evCorrSliderStateChanged(evt);
-            }
-        });
-
-        blackLevelSlider.setFractionDigits(0);
-        blackLevelSlider.setMajorTickSpacing(500.0);
-        blackLevelSlider.setMaximum(1000.0);
-        blackLevelSlider.setMinimum(-500.0);
-        blackLevelSlider.setValue(0.0);
-        blackLevelSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                blackLevelSliderStateChanged(evt);
-            }
-        });
-
-        ctempSlider.setFractionDigits(0);
-        ctempSlider.setMajorTickSpacing(2000.0);
-        ctempSlider.setMaximum(12000.0);
-        ctempSlider.setMinimum(2000.0);
-        ctempSlider.setValue(5500.0);
-        ctempSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                ctempSliderStateChanged(evt);
-            }
-        });
-
-        greenGainSlider.setFractionDigits(2);
-        greenGainSlider.setMajorTickSpacing(1.0);
-        greenGainSlider.setMinimum(-1.0);
-        greenGainSlider.setValue(0.0);
-        greenGainSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                greenGainSliderStateChanged(evt);
-            }
-        });
+        label1.setFont(new java.awt.Font("Dialog", 1, 12));
+        label1.setText("Saturation");
 
         saturationSlider.setMaximum(2.0);
+        saturationSlider.setPaintLabels(false);
         saturationSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 saturationSliderStateChanged(evt);
             }
         });
-
-        label1.setFont(new java.awt.Font("Dialog", 1, 12));
-        label1.setText("Saturation");
 
         colorCurveSelectionCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Value", "Red", "Green", "Blue" }));
         colorCurveSelectionCombo.addActionListener(new java.awt.event.ActionListener() {
@@ -371,134 +529,68 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         colorCurvePanel1.setLayout(colorCurvePanel1Layout);
         colorCurvePanel1Layout.setHorizontalGroup(
             colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 529, Short.MAX_VALUE)
+            .add(0, 399, Short.MAX_VALUE)
         );
         colorCurvePanel1Layout.setVerticalGroup(
             colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 217, Short.MAX_VALUE)
+            .add(0, 300, Short.MAX_VALUE)
         );
 
-        org.jdesktop.layout.GroupLayout rawSettingsPaneLayout = new org.jdesktop.layout.GroupLayout(rawSettingsPane);
-        rawSettingsPane.setLayout(rawSettingsPaneLayout);
-        rawSettingsPaneLayout.setHorizontalGroup(
-            rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(rawSettingsPaneLayout.createSequentialGroup()
-                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(rawSettingsPaneLayout.createSequentialGroup()
-                        .add(62, 62, 62)
-                        .add(jLabel1)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(evCorrSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 374, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                    .add(rawSettingsPaneLayout.createSequentialGroup()
+        org.jdesktop.layout.GroupLayout colorSettingControlsLayout = new org.jdesktop.layout.GroupLayout(colorSettingControls);
+        colorSettingControls.setLayout(colorSettingControlsLayout);
+        colorSettingControlsLayout.setHorizontalGroup(
+            colorSettingControlsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(colorSettingControlsLayout.createSequentialGroup()
+                .add(colorSettingControlsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(colorSettingControlsLayout.createSequentialGroup()
                         .addContainerGap()
-                        .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                            .add(jLabel3)
-                            .add(jLabel5)
-                            .add(jLabel2)
-                            .add(jLabel4)
-                            .add(jLabel6)
-                            .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, saturationSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, greenGainSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, blackLevelSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
-                            .add(hlightCompSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, ctempSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
-                            .add(rawSettingsPaneLayout.createSequentialGroup()
-                                .add(colorProfileCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 317, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 23, Short.MAX_VALUE)
-                                .add(newProfileBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 34, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                            .add(colorCurveSelectionCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
+                        .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .add(colorSettingControlsLayout.createSequentialGroup()
+                        .add(162, 162, 162)
+                        .add(colorCurveSelectionCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(colorSettingControlsLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(saturationSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE))
+                    .add(colorSettingControlsLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, rawSettingsPaneLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        rawSettingsPaneLayout.setVerticalGroup(
-            rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(rawSettingsPaneLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(evCorrSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel1))
+        colorSettingControlsLayout.setVerticalGroup(
+            colorSettingControlsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(colorSettingControlsLayout.createSequentialGroup()
+                .add(23, 23, 23)
+                .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(hlightCompSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel3))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(blackLevelSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel5))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jLabel2)
-                    .add(ctempSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(greenGainSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel4))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(colorProfileCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel6)
-                    .add(newProfileBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 24, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(rawSettingsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(saturationSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(saturationSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 31, Short.MAX_VALUE)
                 .add(colorCurveSelectionCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .add(46, 46, 46))
         );
-
-        rawHistogramPane.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        org.jdesktop.layout.GroupLayout rawHistogramPaneLayout = new org.jdesktop.layout.GroupLayout(rawHistogramPane);
-        rawHistogramPane.setLayout(rawHistogramPaneLayout);
-        rawHistogramPaneLayout.setHorizontalGroup(
-            rawHistogramPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 537, Short.MAX_VALUE)
-        );
-        rawHistogramPaneLayout.setVerticalGroup(
-            rawHistogramPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 139, Short.MAX_VALUE)
-        );
+        colorSettingTabs.addTab("Colors", colorSettingControls);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(125, Short.MAX_VALUE)
+                .add(dlgControlPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
             .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(rawSettingsPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                        .add(okBtn)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(applyBtn)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(discardBtn)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(closeBtn))
-                    .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                .add(colorSettingTabs, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 428, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .add(rawSettingsPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(colorSettingTabs, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 513, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(closeBtn)
-                    .add(discardBtn)
-                    .add(applyBtn)
-                    .add(okBtn))
-                .addContainerGap())
+                .add(dlgControlPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
         );
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -863,6 +955,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      @param enable <code>true</code> if the controls should be enabled
      */
     void setRawControlsEnabled( boolean enable ) {
+        colorSettingTabs.setEnabledAt( 0, enable );
+        this.rawControlsPane.setEnabled( enable );
         evCorrSlider.setEnabled( enable );
         hlightCompSlider.setEnabled( enable );
         ctempSlider.setEnabled( enable );
@@ -1350,8 +1444,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private org.photovault.swingui.color.ColorCurvePanel colorCurvePanel1;
     private javax.swing.JComboBox colorCurveSelectionCombo;
     private javax.swing.JComboBox colorProfileCombo;
+    private javax.swing.JPanel colorSettingControls;
+    private javax.swing.JTabbedPane colorSettingTabs;
     private org.photovault.swingui.color.FieldSliderCombo ctempSlider;
     private javax.swing.JButton discardBtn;
+    private javax.swing.JPanel dlgControlPane;
     private org.photovault.swingui.color.FieldSliderCombo evCorrSlider;
     private org.photovault.swingui.color.FieldSliderCombo fieldSliderCombo1;
     private org.photovault.swingui.color.FieldSliderCombo greenGainSlider;
@@ -1365,8 +1462,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private java.awt.Label label1;
     private javax.swing.JButton newProfileBtn;
     private javax.swing.JButton okBtn;
+    private javax.swing.JPanel rawControlsPane;
     private javax.swing.JPanel rawHistogramPane;
-    private javax.swing.JPanel rawSettingsPane;
     private org.photovault.swingui.color.FieldSliderCombo saturationSlider;
     // End of variables declaration//GEN-END:variables
     
