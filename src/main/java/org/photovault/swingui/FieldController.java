@@ -241,7 +241,7 @@ public abstract class FieldController {
     */
     protected Object[] model = null;
     protected Object value;
-    protected Set valueSet = null;
+    protected Set valueSet = new HashSet();
     protected Collection views = null;
     protected boolean modified = false;       
     protected boolean isMultiValued = false;

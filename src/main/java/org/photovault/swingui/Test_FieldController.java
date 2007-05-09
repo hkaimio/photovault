@@ -20,6 +20,7 @@
  
 package org.photovault.swingui;
 
+import com.sun.jdori.common.query.tree.ThisExpr;
 import java.io.*;
 import junit.framework.*;
 import java.util.*;
@@ -30,6 +31,7 @@ public class Test_FieldController extends TestCase {
     private class TestObject {
 	public String field;
 	public boolean isMultivalued;
+        public Object[] values = null;
 	public TestObject() {
 	    field = new String();
 	}
@@ -40,8 +42,9 @@ public class Test_FieldController extends TestCase {
 	    return field;
 	}
 
-	public void setMultivalued( boolean mv ) {
+	public void setMultivalued( boolean mv, Object[] values ) {
 	    isMultivalued = mv;
+            this.values = values;
 	}
     }
 
@@ -75,7 +78,7 @@ public class Test_FieldController extends TestCase {
 
 		protected void updateViewMultivalueState( Object view ) {
 		    TestObject obj = (TestObject) view;
-		    obj.setMultivalued( isMultiValued );
+		    obj.setMultivalued( isMultiValued, valueSet.toArray() );
 
 		}
 
@@ -192,11 +195,29 @@ public class Test_FieldController extends TestCase {
 	testObject.setField( null );
 	fieldCtrl.setModel( model, false );
 	assertEquals( "model value should be null if there are several alterantives", null, fieldCtrl.getValue() );
-
+        assertTrue( view1.isMultivalued );
+        boolean nullFound = false;
+        for ( Object o : view1.values ) {
+            if ( o == null ) {
+                nullFound = true;
+                break;
+            }
+        }
+        assertTrue( nullFound );
+        
 	testObject.setField( "Value5" );
 	model2.setField( null );
 	fieldCtrl.setModel( model, false );
-	assertEquals( "model value should be null if there are several alterantives", null, fieldCtrl.getValue() );
+	assertEquals( "model value should be null if there are several alternatives", null, fieldCtrl.getValue() );
+        assertTrue( view1.isMultivalued );
+        nullFound = false;
+        for ( Object o : view1.values ) {
+            if ( o != null && o.equals( "Value5" ) ) {
+                nullFound = true;
+                break;
+            }
+        }
+        assertTrue( nullFound );
 	
     }
     

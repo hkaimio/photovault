@@ -203,7 +203,7 @@ public abstract class PhotovaultImage {
              The image color model does not support saturation (e.g. b/w image),
              show the previous step instead.
              */
-            rendered = cropped.createScaledRendering( renderingWidth, renderingHeight, hints );
+            rendered = colorCorrected.createScaledRendering( renderingWidth, renderingHeight, hints );
         }
         return rendered;
     }
@@ -245,7 +245,7 @@ public abstract class PhotovaultImage {
                 rendered = saturated.createScaledRendering( (int) (scale*cropW), 
                 (int) (scale*cropH), hints );
         } else {
-                rendered = cropped.createScaledRendering( (int) (scale*cropW), 
+                rendered = colorCorrected.createScaledRendering( (int) (scale*cropW), 
                 (int) (scale*cropH), hints );
         }
         return rendered;
