@@ -626,7 +626,7 @@ public class JAIPhotoView extends JPanel
     void setColorCurve(String name, ColorCurve c) {
         if ( origImage != null ) {
             if ( c == null ) {
-                // Null curve, use indentity mapping
+                // Null curve, use identity mapping
                 c = new ColorCurve();
             }
             ChannelMapOperation cm = origImage.getColorAdjustment();

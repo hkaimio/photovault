@@ -981,9 +981,21 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         colorCurvePanel1.clearReferenceCurves();
         if ( refCurves[chan] != null ) {
             for ( Object c : refCurves[chan] ) {
-                if ( c != null ) {
-                    colorCurvePanel1.addReferenceCurve( (ColorCurve) c, refCurveColors[chan] );
+                if ( c == null ) {
+                    c = new ColorCurve();
                 }
+                colorCurvePanel1.addReferenceCurve( (ColorCurve) c, refCurveColors[chan] );
+            }
+        }
+        
+        // Draw also the curves for other channels
+        for ( int n = 0 ; n < colorCurves.length ; n++ ) {
+            if ( n != chan ) {
+                ColorCurve c = colorCurves[n];
+                if ( c == null ) {
+                    c = new ColorCurve();
+                }
+                colorCurvePanel1.addReferenceCurve( (ColorCurve) c, refCurveColors[n] );
             }
         }
         colorCurveSelectionCombo.setSelectedIndex( chan );
