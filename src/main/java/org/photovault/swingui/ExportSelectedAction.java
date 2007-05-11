@@ -21,21 +21,26 @@
 package org.photovault.swingui;
 
 
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.IllegalFormatException;
-import java.util.TreeSet;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
+import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import org.photovault.common.PhotovaultException;
-import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.export.ExportDlg;
 
@@ -56,7 +61,8 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         this.view = view;
         putValue(SHORT_DESCRIPTION, desc);
         putValue(MNEMONIC_KEY, new Integer( mnemonic) );
-        putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_S, ActionEvent.CTRL_MASK ) );
+        putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_S, 
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
         view.addSelectionChangeListener( this );
         setEnabled( view.getSelectedCount() > 0 );
     }

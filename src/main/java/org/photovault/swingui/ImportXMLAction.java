@@ -61,7 +61,6 @@ class ImportXMLAction extends AbstractAction implements XmlImportListener {
         super( text, icon );
         putValue(SHORT_DESCRIPTION, desc);
         putValue(MNEMONIC_KEY, new Integer( mnemonic) );
-        putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_S, ActionEvent.CTRL_MASK ) );
     }
         
     public void actionPerformed( ActionEvent ev ) {    

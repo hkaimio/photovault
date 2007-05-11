@@ -56,7 +56,6 @@ class ExportMetadataAction extends AbstractAction implements XmlExportListener {
         super( text, icon );
         putValue(SHORT_DESCRIPTION, desc);
         putValue(MNEMONIC_KEY, new Integer( mnemonic) );
-        putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_S, ActionEvent.CTRL_MASK ) );
     }
         
     public void actionPerformed( ActionEvent ev ) {    

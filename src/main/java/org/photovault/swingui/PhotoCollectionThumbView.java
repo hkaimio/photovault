@@ -20,17 +20,20 @@
 
 package org.photovault.swingui;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Stroke;
+import java.awt.Toolkit;
 import org.photovault.dbhelper.ODMGXAWrapper;
-import org.photovault.imginfo.*;
 import org.photovault.imginfo.FuzzyDate;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import javax.imageio.ImageIO;
-import java.io.*;
-import java.text.*;
-import java.util.*;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
@@ -39,15 +42,39 @@ import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
 import org.photovault.imginfo.SortedPhotoCollection;
 import org.photovault.imginfo.Thumbnail;
-import org.photovault.folder.*;
-import java.awt.geom.*;
-import java.text.*;
-import java.awt.font.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Vector;
+import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JViewport;
+import javax.swing.KeyStroke;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
+import javax.swing.TransferHandler;
+import org.photovault.folder.PhotoFolder;
 
 
 
@@ -418,13 +445,15 @@ public class PhotoCollectionThumbView
         selectNextAction = new ChangeSelectionAction( this,
                 ChangeSelectionAction.MOVE_FWD, "Next photo", selectNextIcon,
                 "Move to next photo", KeyEvent.VK_N,
-                KeyStroke.getKeyStroke( KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK ) );
+                KeyStroke.getKeyStroke( KeyEvent.VK_N, 
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
         
         ImageIcon selectPrevIcon = getIcon( "previous.png" );
         selectPrevAction = new ChangeSelectionAction( this,
                 ChangeSelectionAction.MOVE_BACK, "Previous photo", selectPrevIcon,
                 "Move to previous photo", KeyEvent.VK_P,
-                KeyStroke.getKeyStroke( KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK ) );
+                KeyStroke.getKeyStroke( KeyEvent.VK_P, 
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
         
         creatingThumbIcon = getIcon( "creating_thumb.png" );
     }
