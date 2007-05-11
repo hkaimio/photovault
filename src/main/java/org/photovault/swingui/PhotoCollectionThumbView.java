@@ -84,12 +84,26 @@ public class PhotoCollectionThumbView
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoCollectionThumbView.class.getName() );
     
     /**
-     * Creates a new <code>PhotoCollectionThumbView</code> instance.
-     *
+     Default constructor
      */
     public PhotoCollectionThumbView() {
+        this( null );
+    }
+    
+    /**
+     Creates a new <code>PhotoCollectionThumbView</code> instance.
+     @param collection Initial collection to show. If this collection is nonempty,
+     select the first photo in it when creating the control.
+     */
+    public PhotoCollectionThumbView( PhotoCollection collection ) {
         super();
+        if ( collection != null ) {
+            photoCollection = new SortedPhotoCollection( collection );
+        }
         createUI();
+        if ( collection != null && collection.getPhotoCount() > 0 ) {
+            selection.add( collection.getPhoto( 0 ) );
+        }
 	thumbCreatorThread = new ThumbCreatorThread( this );
 	thumbCreatorThread.start();
     }
@@ -1261,6 +1275,18 @@ public class PhotoCollectionThumbView
         }        
     }
     
+    public void selectFirstPhoto() {
+        if ( photos.size() > 0 ) {
+            // Scroll so that the selected photo is visible
+            Rectangle selectionBounds = getPhotoCellBounds( 0 );
+            scrollRectToVisible( selectionBounds );
+            
+            selection.clear();
+            selection.add( photos.get( 0 ));
+            fireSelectionChangeEvent();
+            repaint();
+        }
+    }
     /**
      * Describe <code>mouseMoved</code> method here.
      *

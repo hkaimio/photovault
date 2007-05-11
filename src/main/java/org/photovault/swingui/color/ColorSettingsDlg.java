@@ -995,7 +995,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 if ( c == null ) {
                     c = new ColorCurve();
                 }
-                colorCurvePanel1.addReferenceCurve( (ColorCurve) c, refCurveColors[n] );
+                colorCurvePanel1.addReferenceCurve( c, refCurveColors[n] );
             }
         }
         colorCurveSelectionCombo.setSelectedIndex( chan );

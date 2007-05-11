@@ -47,20 +47,42 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
 
     
+    public BrowserWindow() {
+        this( null );
+    }
+    
     /**
        Constructor
     */
-    public BrowserWindow() {
-	super( "Photovault Browser");
-	SwingUtilities.invokeLater(new java.lang.Runnable() {
-		public void run() {
-		    createUI();
-		}
-        });
-	
+    public BrowserWindow( final PhotoCollection initialCollection ) {
+        super( "Photovault Browser");
+//        SwingUtilities.invokeLater(new java.lang.Runnable() {
+//            public void run() {
+                createUI( null );
+                if ( initialCollection != null ) {
+                    viewPane.setCollection( initialCollection );
+                    SwingUtilities.invokeLater(new java.lang.Runnable() {
+                        public void run() {
+                            viewPane.selectFirstPhoto();
+                        }
+                    });
+                }
+//            }
+//        });
+        
     }
-
-    protected void createUI() {
+    
+    
+    /**
+     Show a specific photo collection in this window. Note! This must not be called 
+     before UI is created & visible!!!
+     @param c The photo collection to show
+     */
+    public void setPhotoCollection( PhotoCollection c ) {
+        viewPane.setCollection( c );
+    }
+    
+    protected void createUI( PhotoCollection collection ) {
         setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	tabPane = new JTabbedPane();
 	queryPane = new QueryPane();
@@ -68,7 +90,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	tabPane.addTab( "Query", queryPane );
 	tabPane.addTab( "Folders", treePane );
 	//	viewPane = new TableCollectionView();
-	viewPane = new PhotoCollectionThumbView();
+	viewPane = new PhotoCollectionThumbView( collection );
         viewPane.addSelectionChangeListener( this );
         previewPane = new JAIPhotoViewer();
         
@@ -117,6 +139,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         setupLayoutPreviewWithHorizontalIcons();
         
 	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );
+        split.putClientProperty( JSplitPane.ONE_TOUCH_EXPANDABLE_PROPERTY, new Boolean( true ) );
         Container cp = getContentPane();
 	cp.setLayout( new BorderLayout() );
 	cp.add( split, BorderLayout.CENTER );
@@ -365,6 +388,13 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         return icon;
     }
 
+    /**
+     Set whether to show the query/tree view pane
+     @param b if true, panel is shown, if false it is not shown.
+     */
+    public void setShowCollectionPane( boolean b ) {
+        tabPane.setVisible( b );
+    }
     
     /**
      * Sets up the window layout so that the collection is displayed as one vertical
@@ -384,6 +414,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         viewScroll.setMinimumSize( new Dimension( 170, 150 ));
         viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
+        viewScroll.setVisible( true );
         layout.setConstraints( viewScroll, c );
         viewPane.setColumnCount( 1 );
         
@@ -414,6 +445,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
         viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
         viewScroll.setMinimumSize( new Dimension( 150, 180 ));
+        viewScroll.setVisible( true );
         layout.setConstraints( viewScroll, c );
         viewPane.setRowCount( 1 );
         
@@ -426,6 +458,9 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         validate();
     }   
     
+    /**
+     Hide the preview pane
+     */
     public void setupLayoutNoPreview() {
         GridBagLayout layout = new GridBagLayout();
         collectionPane.setLayout( layout );
@@ -440,12 +475,44 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
         viewScroll.setMinimumSize( new Dimension( 150, 200 ));
+        viewScroll.setVisible( true );
         layout.setConstraints( viewScroll, c );
         viewPane.setRowCount( -1 );
         viewPane.setColumnCount( -1 );
         
         previewPane.setVisible( false );
         validate();        
+    }
+
+    /**
+     Show only preview image, no thumbnail pane.
+     */
+    public void setupLayoutNoThumbs() {
+        GridBagLayout layout = new GridBagLayout();
+        collectionPane.setLayout( layout );
+        
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 0.0;
+        c.weightx = 0.0;
+        c.gridy = 1;
+
+        // Minimum size is the size of one thumbnail
+//        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+//        viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
+//        viewScroll.setMinimumSize( new Dimension( 150, 180 ));
+        layout.setConstraints( viewScroll, c );
+        viewPane.setRowCount( 1 );
+        viewScroll.setVisible( false );
+        
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        // c.gridheight = GridBagConstraints.REMAINDER;
+        c.gridy = 0;
+        c.weighty = 1.0;
+        c.weightx = 1.0;
+        layout.setConstraints( previewPane, c );
+        previewPane.setVisible( true );
+        validate();
     }
     
     /** 
