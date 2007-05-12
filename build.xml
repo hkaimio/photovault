@@ -59,6 +59,7 @@
           <include name="swing-layout-*.jar"/>
           <include name="DdlUtils-*"/>
           <include name="derby.jar"/>
+          <include name="quaqua.jar"/>
       </fileset>
   </path>
   <path id="project.class.path">

@@ -23,6 +23,7 @@ package org.photovault.swingui;
 import com.sun.media.jai.util.SunTileCache;
 import java.util.Collection;
 import javax.media.jai.JAI;
+import javax.swing.UIManager;
 import org.odmg.*;
 import javax.swing.JOptionPane;
 import org.photovault.common.PhotovaultException;
@@ -172,10 +173,49 @@ public class Photovault implements SchemaUpdateListener {
         }
     }
     
+    /**
+     Use Quaqua look and feel to mimic native MacOS X user experince.
+     */
+    private static void initQuaqua() {
+         // set system properties here that affect Quaqua
+         // for example the default layout policy for tabbed
+         // panes:
+         System.setProperty(
+            "Quaqua.tabLayoutPolicy","scroll"
+
+         );
+
+         // set the Quaqua Look and Feel in the UIManager
+         try {
+              UIManager.setLookAndFeel(
+                  "ch.randelshofer.quaqua.QuaquaLookAndFeel"
+              );
+              log.error( "Quaqua initialized" );
+         // set UI manager properties here that affect Quaqua
+         } catch (Exception e) {
+             // take an appropriate action here
+             log.error( "Error initializing Quaqua: " + e.getMessage() );
+         }        
+    }
+
+    /**
+     Check if we are running in Macintosh.
+     */
+    private static boolean isMac() {
+        String os = System.getProperty( "os.name" ).toLowerCase();
+        boolean mac = false;
+        if ( os.indexOf( "mac") > -1 ) {
+            mac = true;
+        }
+        return mac;
+    }
     
     public static void main( String [] args ) {
         URL log4jPropertyURL = Photovault.class.getClassLoader().getResource( "photovault_log4j.properties");
         PropertyConfigurator.configure( log4jPropertyURL );	
+        if ( isMac() || System.getProperty("photovault.useQuaqua", "false" ).equals( "true" ) ) {
+            initQuaqua();
+        }
         Photovault app = new Photovault();
 	app.run();
     }
