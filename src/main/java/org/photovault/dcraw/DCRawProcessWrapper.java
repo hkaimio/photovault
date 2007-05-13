@@ -29,7 +29,9 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 
@@ -215,12 +217,13 @@ public class DCRawProcessWrapper {
      */
     static private String getDcrawCmd() {
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        String dcrawCmd = settings.getProperty( "dcraw.cmd" );
+        String dcrawCmd = System.getProperty( "dcraw.cmd", settings.getProperty( "dcraw.cmd") );
+        log.debug( "dcraw.cmd property value: " + dcrawCmd );
         if ( dcrawCmd == null ) {
             // Try to find dcraw in standard location
             String os = System.getProperty( "os.name" ).toLowerCase();
             String arch = System.getProperty( "os.arch" ).toLowerCase();
-            
+            log.debug( "os = " + os + ", arch = " + arch );
             String nativedir = "";
             String dcraw = "dcraw";
             if ( os.startsWith( "linux" ) ) {
@@ -247,6 +250,7 @@ public class DCRawProcessWrapper {
                 }
             }
         }
+        log.debug( "dcraw command: " + dcrawCmd );
         return dcrawCmd;
     }
 
