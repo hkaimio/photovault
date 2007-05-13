@@ -67,12 +67,12 @@ public class JAIPhotoViewer extends JPanel implements
 
     public void createUI() {
 	setLayout( new BorderLayout() );
+        addComponentListener( this );
 	imageView = new JAIPhotoView();
         imageView.addCropAreaChangeListener( this );
-	scrollPane = new JScrollPane( imageView );
-	scrollPane.setPreferredSize( new Dimension( 500, 500 ) );
+        scrollPane = new JScrollPane( imageView );
+        scrollPane.setPreferredSize( new Dimension( 500, 500 ) );
         add( scrollPane, BorderLayout.CENTER );
-        
         // Get the crop icon
         ImageIcon cropIcon = null;
         java.net.URL cropIconURL = JAIPhotoViewer.class.getClassLoader().getResource( "crop_icon.png" );
@@ -84,85 +84,6 @@ public class JAIPhotoViewer extends JPanel implements
                 "Crop photo", cropIcon, "Crop or rotate the selected photo",
                 KeyEvent.VK_C, null );
         
-        // Listen fot resize events of the scroll area so that fitted image can
-        // be resized as well.
-        addComponentListener( this );
-
-	JToolBar toolbar = new JToolBar();
-
-	String[] defaultZooms = {
-	    "12%",
-	    "25%",
-	    "50%",
-	    "100%",
-	    "Fit"
-	};
-	JLabel zoomLabel = new JLabel( "Zoom" );
-	JComboBox zoomCombo = new JComboBox( defaultZooms );
-	zoomCombo.setEditable( true );
-	zoomCombo.setSelectedItem( "Fit" );
-
-	final JAIPhotoViewer viewer = this;
-	zoomCombo.addActionListener(  new ActionListener() {
-		public void actionPerformed( ActionEvent ev ) {
-		    JComboBox cb = (JComboBox) ev.getSource();
-		    String selected = (String)cb.getSelectedItem();
-		    log.debug( "Selected: " + selected );
-		    isFit = false;
-
-		    // Parse the pattern
-		    DecimalFormat percentFormat = new DecimalFormat( "#####.#%" );
-		    if ( selected == "Fit" ) {
-			isFit = true;
-			log.debug( "Fitting to window" );
-			fit();
-			String strNewScale = "Fit";
-			cb.setSelectedItem( strNewScale );
-		    } else {
-			// Parse the number. First remove all white space to ease the parsing
-			StringBuffer b = new StringBuffer( selected );
-			int spaceIndex =  b.indexOf( " " );
-			while ( spaceIndex >= 0  ) {
-			    b.deleteCharAt( spaceIndex );
-			    spaceIndex =  b.indexOf( " " );
-			}
-			selected = b.toString();
-			boolean success = false;
-			float newScale = 0;
-			try {
-			    newScale = Float.parseFloat( selected );
-			    newScale /= 100.0;
-			    success = true;
-			} catch (NumberFormatException e ) {
-			    // Not a float
-			}
-			if ( !success ) {
-			    try {
-				newScale = percentFormat.parse( selected ).floatValue();
-				success = true;
-			    } catch ( ParseException e ) {
-			    }
-			}
-			if ( success ) {
-			    log.debug( "New scale: " + newScale );
-			    viewer.setScale( newScale );
-			    String strNewScale = percentFormat.format( newScale );
-			    cb.setSelectedItem( strNewScale );
-			} 
-		    }
-		}
-	    });
-
-	toolbar.add( zoomLabel );
-	toolbar.add( zoomCombo );
-
-        // Create the crop checkbox
-        JButton cropBtn = new JButton( cropPhotoAction  );
-        cropBtn.setText( "" );
-        toolbar.add( cropBtn );
-        
-	add( toolbar, BorderLayout.NORTH );
-
     }
     
     float rawConvScaling = 1.0f;
@@ -269,7 +190,9 @@ public class JAIPhotoViewer extends JPanel implements
                             rawImage.setRawSettings( photo.getRawSettings() );
                             rawImage.addChangeListener( this );
                             // Check the correct resolution for this image
-                            if ( !isFit ) {
+                            if ( isFit ) {
+                                fit();
+                            } else {
                                 setScale( getScale() );
                             }                                                        
                         } else {

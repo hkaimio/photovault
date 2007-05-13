@@ -38,7 +38,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.photovault.imginfo.indexer.ExtVolIndexer;
 import org.photovault.swingui.indexer.IndexerFileChooser;
-import org.photovault.swingui.indexer.IndexerSetupDlg;
 import org.photovault.swingui.indexer.IndexerStatusDlg;
 import org.photovault.swingui.indexer.UpdateIndexAction;
 
@@ -313,7 +312,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	pack();
 	setVisible( true );
     }
-
+    
     /**
      Create the toolbar for this browser window.
      */
@@ -353,6 +352,9 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         JButton previewNoneBtn = new JButton( previewNoneAction );
         previewNoneBtn.setText( "" );
         
+	ZoomComboBox zoomCombo = new ZoomComboBox( previewPane );
+        
+        
         tb.add( importBtn );
         tb.add( indexBtn );
         tb.add( updateBtn );
@@ -364,12 +366,14 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         tb.add( previewRightBtn );
         tb.add( previewTopBtn );
         tb.add( previewNoneBtn );
+	tb.add( zoomCombo );
         tb.addSeparator();
         tb.add( rotCWBtn );
         tb.add( rotCCWBtn );
         tb.add( rot180Btn );
         tb.add( cropBtn );
         tb.add( colorsBtn );
+        
         return tb;
     }
 

@@ -21,6 +21,10 @@
 package org.photovault.swingui;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -52,9 +56,44 @@ public class CropPhotoAction extends AbstractAction
         putValue(MNEMONIC_KEY, new Integer( mnemonic ) );
 	putValue( ACCELERATOR_KEY, accelerator );
 	view.addPhotoViewListener( this );
-	setEnabled( view.getImage() != null );            
+        view.addComponentListener( new ComponentListener () {
+            public void componentResized(ComponentEvent e) {
+            }
+
+            public void componentMoved(ComponentEvent e) {
+            }
+
+            public void componentShown(ComponentEvent e) {
+                checkIfEnabled();
+            }
+
+            public void componentHidden(ComponentEvent e) {
+                checkIfEnabled();
+            }
+            
+        });
+        
+        // JaiPhotoView is contained in JaiPhotoViewer, which can
+        // be disabled as well. So listen hierarchy change events to catch this
+        view.addHierarchyListener( new HierarchyListener() {
+            public void hierarchyChanged(HierarchyEvent e) {
+                checkIfEnabled();
+            }        
+        });
+        checkIfEnabled();
     }
 
+    /**
+     Check whether the action should be enabled or not. It is enabled if 
+     <ul>
+     <li>View is showing an image</li>
+     <li>View itself is visible</li>
+     </ul>
+     */
+    private void checkIfEnabled() {
+	setEnabled( (view.getImage() != null) && view.isShowing() );                    
+    }
+    
     /**
      Called when the action is performed. Moves selection to next or previous photo,
      depending on @see direction.
@@ -65,6 +104,6 @@ public class CropPhotoAction extends AbstractAction
     }    
 
     public void imageChanged(PhotoViewEvent e) {
-	setEnabled( view.getImage() != null );                
+	checkIfEnabled();     
     }
 }
