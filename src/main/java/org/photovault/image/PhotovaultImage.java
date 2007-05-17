@@ -294,9 +294,19 @@ public abstract class PhotovaultImage {
      */
     public void setSaturation( double s ) {
         saturation = s;
+        ColorCurve satCurve = new ColorCurve();
+        satCurve.addPoint( 0.0, 0.0 );
+        if ( s < 1.0 )  {
+            satCurve.addPoint( 1.0, s );
+        } else {
+            satCurve.addPoint( 1.0/s, 1.0 );
+        }
+        ChannelMapOperationFactory f = new ChannelMapOperationFactory( channelMap );
+        f.setChannelCurve( "saturation", satCurve );
+        channelMap = f.create();
         // Check that this image has a color model that supports saturation change
         if ( saturatedIhsImage != null ) {
-            saturatedIhsImage.setParameter( new double[]{1.0, 1.0, s}, 0 );
+            saturatedIhsImage.setParameter( createSaturationMappingLUT() , 0 );
         }
     }
     
@@ -339,6 +349,10 @@ public abstract class PhotovaultImage {
         }
         LookupTableJAI jailut = createColorMappingLUT();
         colorCorrected.setParameter( jailut, 0 );
+        if ( saturatedIhsImage != null ) {
+            saturatedIhsImage.setParameter( createSaturationMappingLUT() , 0 );
+        }
+        
     }
     
     /**
@@ -398,7 +412,7 @@ public abstract class PhotovaultImage {
                         val = valueCurve.getValue( val );
                     }
                     val = Math.max( 0.0, Math.min( val, 1.0 ) );
-                    lut[band][n] = (byte) (lut[band].length * val);
+                    lut[band][n] = (byte) ((lut[band].length-1) * val);
                 }
             }
             jailut = new LookupTableJAI( lut );
@@ -416,7 +430,63 @@ public abstract class PhotovaultImage {
                         val = valueCurve.getValue( val );
                     }
                     val = Math.max( 0.0, Math.min( val, 1.0 ) );
-                    lut[band][n] = (short) (lut[band].length * val);
+                    lut[band][n] = (short) ((lut[band].length-1) * val);
+                }
+            }
+            jailut = new LookupTableJAI( lut, true );
+        } else {
+            log.error( "Unsupported data type with with = " + componentSizes[0] );
+        }
+        return jailut;
+    }
+    
+    /**
+     Create lookup table for saturation correction. The operation is done 
+     in IHS color space, so the lookup table will contain identity mapping
+     for intensity & hue channels and map based "saturation" curve from channelMap
+     for saturation. If "saturation curve is nonexistent, use identity mapping for 
+     saturation as well.
+     
+     */
+    private LookupTableJAI createSaturationMappingLUT() {
+        ColorModel colorModel = this.getCorrectedImageColorModel();
+        
+        int[] componentSizes = colorModel.getComponentSize();
+        ColorCurve satCurve = channelMap.getChannelCurve( "saturation" );
+        if ( satCurve == null ) {
+            satCurve = new ColorCurve();
+        }
+        
+        LookupTableJAI jailut = null;
+        if ( componentSizes[0] == 8 ) {
+            byte[][] lut = new byte[componentSizes.length][256];
+            double dx = 1.0/256.0;
+            for ( int band = 0 ; band < componentSizes.length ; band++ ) {
+                // Saturation
+                for ( int n = 0 ; n < lut[band].length; n++ ) {
+                    double x = dx * n;
+                    double val = x;
+                    if ( band == 2 ) {
+                        val = satCurve.getValue( val );
+                    }
+                    val = Math.max( 0.0, Math.min( val, 1.0 ) );
+                    lut[band][n] = (byte) ((lut[band].length-1) * val);
+                }
+            }
+            
+            jailut = new LookupTableJAI( lut );
+        } else if ( componentSizes[0] == 16 ) {
+            short[][] lut = new short[componentSizes.length][0x10000];
+            double dx = 1.0/65536.0;
+            for ( int band = 0 ; band < componentSizes.length ; band++ ) {
+                for ( int n = 0 ; n < lut[band].length; n++ ) {
+                    double x = dx * n;
+                    double val = x;
+                    if ( band == 2 ) {
+                        val = satCurve.getValue( val );
+                    }
+                    val = Math.max( 0.0, Math.min( val, 1.0 ) );
+                    lut[band][n] = (short) ((lut[band].length-1) * val);
                 }
             }
             jailut = new LookupTableJAI( lut, true );
@@ -594,6 +664,11 @@ public abstract class PhotovaultImage {
         return LookupDescriptor.createRenderable( src, jailut, null );        
     }
     
+    /**
+     Add saturation mapping into from of the image processing pipeline.
+     @param src The image to which saturation correction is applied
+     @return Saturation change operator.
+     */
     protected RenderableOp getSaturated( RenderableOp src ) {
         IHSColorSpace ihs = IHSColorSpace.getInstance();
         ColorModel srcCm = getCorrectedImageColorModel();
@@ -616,8 +691,11 @@ public abstract class PhotovaultImage {
         pb.add(ihsColorModel);
         // Do the conversion.
         RenderableOp ihsImage  = JAI.createRenderable("colorconvert", pb );
-        saturatedIhsImage =
-                MultiplyConstDescriptor.createRenderable( ihsImage, new double[] {1.0, 1.0, saturation}, null );
+//        saturatedIhsImage =
+//                MultiplyConstDescriptor.createRenderable( ihsImage, new double[] {1.0, 1.0, saturation}, null );
+        LookupTableJAI jailut = createSaturationMappingLUT();
+        saturatedIhsImage = LookupDescriptor.createRenderable( ihsImage, jailut, null );
+        
         pb = new ParameterBlock();
         pb.addSource(saturatedIhsImage);
         ColorSpace sRGB = ColorSpace.getInstance( ColorSpace.CS_sRGB );

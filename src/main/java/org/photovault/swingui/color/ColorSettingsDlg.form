@@ -414,11 +414,12 @@
             <Component class="javax.swing.JComboBox" name="colorCurveSelectionCombo">
               <Properties>
                 <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                  <StringArray count="4">
+                  <StringArray count="5">
                     <StringItem index="0" value="Value"/>
                     <StringItem index="1" value="Red"/>
                     <StringItem index="2" value="Green"/>
                     <StringItem index="3" value="Blue"/>
+                    <StringItem index="4" value="Saturation"/>
                   </StringArray>
                 </Property>
               </Properties>

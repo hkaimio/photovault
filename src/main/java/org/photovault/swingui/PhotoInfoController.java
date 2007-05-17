@@ -767,6 +767,7 @@ public class PhotoInfoController {
         modelFields.put( COLOR_CURVE_RED, new ColorCurveCtrl( photos, "red" ) );
         modelFields.put( COLOR_CURVE_GREEN, new ColorCurveCtrl( photos, "green" ) );
         modelFields.put( COLOR_CURVE_BLUE, new ColorCurveCtrl( photos, "blue" ) );
+        modelFields.put( COLOR_CURVE_SATURATION, new ColorCurveCtrl( photos, "saturation" ) );
         
         folderCtrl = new FolderController( photos );
         modelFields.put( PHOTO_FOLDERS, folderCtrl );
@@ -1009,6 +1010,7 @@ public class PhotoInfoController {
     public final static String COLOR_CURVE_RED = "Red color curve";
     public final static String COLOR_CURVE_GREEN = "Green color curve";
     public final static String COLOR_CURVE_BLUE = "Blue color curve";
+    public final static String COLOR_CURVE_SATURATION = "Saturation curve";
     protected HashMap modelFields = null;
     
     // The original file that is to be added to database (if we are creating a new PhotoInfo object)

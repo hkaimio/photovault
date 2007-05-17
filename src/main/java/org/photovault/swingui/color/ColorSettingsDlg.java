@@ -1,4 +1,4 @@
-/*
+/*color
   Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
@@ -118,19 +118,19 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     RawConversionSettings rawSettings = null;
     
     /**
-     Color curves, in order value, red, green, blue
+     Color curves, in order value, red, green, blue, saturation
      */
-    ColorCurve[] colorCurves = new ColorCurve[4];
+    ColorCurve[] colorCurves = new ColorCurve[5];
     
     /**
      Curves that will be drawn as references for each channel
      */
-    ArrayList refCurves[] = new ArrayList[4];
+    ArrayList refCurves[] = new ArrayList[5];
     
     /**
      Names of the color channels
      */
-    static String[] colorCurveNames = {"value", "red", "green", "blue"};
+    static String[] colorCurveNames = {"value", "red", "green", "blue", "saturation"};
     
     /**
      Colors for the curves
@@ -139,7 +139,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         Color.BLACK, 
         Color.RED, 
         new Color(0.0f, 0.7f, 0.0f), 
-        Color.BLUE 
+        Color.BLUE,
+        new Color( 0.2f, 0.2f, 0.0f )
     };
 
     /**
@@ -149,7 +150,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         Color.GRAY,
         Color.PINK,
         new Color( 0.5f, 1.0f, 0.5f ),
-        new Color( 0.5f, 0.5f, 1.0f )
+        new Color( 0.5f, 0.5f, 1.0f ),
+        new Color( 0.5f, 0.5f, 0.2f )
     };
 
     /**
@@ -518,7 +520,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
 
-        colorCurveSelectionCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Value", "Red", "Green", "Blue" }));
+        colorCurveSelectionCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Value", "Red", "Green", "Blue", "Saturation" }));
         colorCurveSelectionCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 colorCurveSelectionComboActionPerformed(evt);
@@ -813,6 +815,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             case 3:
                 ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_BLUE );
                 break;
+            case 4:
+                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_SATURATION );
+                break;                
             default:
                 // Should never happend
                 break;
