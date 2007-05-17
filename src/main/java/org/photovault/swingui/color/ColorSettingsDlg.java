@@ -84,8 +84,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         super(parent, modal);
         initComponents();
         ctrl = new PhotoInfoController();
-        ctrl.setPhotos( photos );
         ctrl.setView( this );
+        ctrl.setPhotos( photos );
+        checkIsRawPhoto();
         final ColorSettingsDlg staticThis = this;
         this.colorCurvePanel1.addListener( new ColorCurveChangeListener() {
             public void colorCurveChanging(ColorCurvePanel p, ColorCurve c) {
@@ -109,6 +110,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ctrl = new PhotoInfoController();
         ctrl.setPhoto( photo );
         ctrl.setView( this );
+        checkIsRawPhoto();
     }
     
     /**
@@ -969,6 +971,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         blackLevelSlider.setEnabled( enable );
         colorProfileCombo.setEnabled( enable );
         newProfileBtn.setEnabled( enable );
+        if ( !enable && colorSettingTabs.getSelectedIndex() == 0 ) {
+            colorSettingTabs.setSelectedIndex( 1 );
+        }
     }
         
     /**
