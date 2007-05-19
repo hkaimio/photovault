@@ -31,21 +31,17 @@ Test case for verifying basic delete functionality
         Verify that importing JPEG photos works
     </summary>
     <description>
-        [!CDATA[
-        1. Import JPEG photo from File->Import photo
+        1. Import JPEG photo from File Import photo
         2. Set all parameters in property window
         3. Verify that the photo can be found from Photovault
         4. Stop Photovault & start again
         5. Verify that photo & all properties are the same as before
-        ]]
     </description>
     <expectedresult>
-        [!CDATA[
         1. Import status dialog is displayed
         2. Property window is shown & disappears after pressing OK
         3. Photo found
         4. Photovault starts
-        5. Photo & properties intact
-        ]]
+        5. Photo and  its properties intact
     </expectedresult>
 </testcase> 
