@@ -34,12 +34,12 @@ Test case for verifying basic delete functionality
         1. Import JPEG photo from File Import photo
         2. Set all parameters in property window
         3. Verify that the photo can be found from Photovault
-        4. Stop Photovault & start again
-        5. Verify that photo & all properties are the same as before
+        4. Stop Photovault and start again
+        5. Verify that photo and all properties are the same as before
     </description>
     <expectedresult>
         1. Import status dialog is displayed
-        2. Property window is shown & disappears after pressing OK
+        2. Property window is shown and disappears after pressing OK
         3. Photo found
         4. Photovault starts
         5. Photo and  its properties intact
