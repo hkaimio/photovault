@@ -21,8 +21,8 @@
 -->
   
   <testcase>
-      <id></id>
-      <component></component>
+      <id>template</id>
+      <component>generic</component>
       <summary>
           
       </summary>
