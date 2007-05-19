@@ -20,22 +20,21 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 -->
 
-<templates>
-    <template name="smoke">
-        <testcases>
-            <testcase>test_delete</testcase>
-            <testcase>test_login_correct</testcase>
-            <testcase>test_import_jpeg</testcase>
-        </testcases>
-    </template>
-    <template name="func_test">
-        <testcases>
-            <testcase>test_delete</testcase>
-            <testcase>test_login_correct</testcase>
-            <testcase>test_login_incorrect</testcase>
-            <testcase>test_import_jpeg</testcase>
-            <testcase>test_stability</testcase>
-        </testcases>
-        
-    </template>
-</templates>
+<!-- 
+Test case for verifying basic delete functionality
+-->
+
+<testcase>
+    <id>test_login_incorrect</id>
+    <component>generic</component>
+    <summary>
+        Verify that logging into Photovault with incorrect passwrod works
+    </summary>
+    <description>
+        1. Login with incorrect password
+    </description>
+    <expectedresult>
+        1. Error dialog is displayed. After dismissing it it is possible to try to login again.
+    </expectedresult>
+</testcase> 
+	
