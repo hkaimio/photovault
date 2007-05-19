@@ -24,12 +24,11 @@
     <id>
         test_folder_move_photo
     </id>
-    <component> SWING_UI
-        Move a photo to another folder
+    <component>SWING_UI
     </component>
-    <component>
-        SWING_UI
-    </component>
+    <summary>
+    	Move photo to different folder
+    </summary>
     <description>
         Action:
         
