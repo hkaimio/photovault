@@ -22,7 +22,7 @@
   
 <testcase>
     <id>test_folder_tree_update</id>
-    <component>swingui</component>
+    <component>SWING_UI</component>
     <summary>
         Verify that unnecessary folder is removed from folder tree
     </summary>

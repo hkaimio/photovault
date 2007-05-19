@@ -25,7 +25,7 @@
         test_crop
     </id>
     <component>
-        swingui
+        SWING_UI
     </component>
     <summary>
         Crop image

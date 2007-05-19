@@ -24,7 +24,7 @@
     <id>
         test_photo_edit_many
     </id>
-    <component> swingui
+    <component> SWING_UI
     </component>
     <summary>
         Change properties for several pictures

@@ -25,7 +25,7 @@
         test_folder_many_photos
     </id>
     <component>
-        swingui
+        SWING_UI
     </component>
     <summary>
         Folder operations for several photos

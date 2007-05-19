@@ -25,7 +25,7 @@
         test_folder_add_popup
     </id>
     <component> 
-        swingui
+        SWING_UI
     </component>
     <summary>
         Add photo to folder from pop-up menu

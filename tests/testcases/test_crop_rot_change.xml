@@ -22,7 +22,7 @@
   
 <testcase>
     <id>test_rot_crop_change</id>
-    <component>swingui</component>
+    <component>SWING_UI</component>
     <summary>
         
     </summary>

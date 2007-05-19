@@ -25,7 +25,7 @@
         test_folder_add_propdlg
     </id>
     <component>
-        swingui
+        SWING_UI
     </component>
     <summary>
         Add photo to folder from properties dialog

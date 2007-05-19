@@ -22,7 +22,7 @@
   
 <testcase>
     <id>test_zoom</id>
-    <component>swingui</component>
+    <component>SWING_UI</component>
     <summary>
         Test photo zooming in UI
     </summary>
