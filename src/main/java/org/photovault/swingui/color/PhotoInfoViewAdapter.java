@@ -25,9 +25,11 @@ import javax.swing.tree.TreePath;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
+import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.swingui.PhotoInfoController;
 import org.photovault.swingui.PhotoInfoView;
+import org.photovault.swingui.PreviewImageView;
 
 /**
  Adapter class for getting notifications from some PhotoInfoController generated 
@@ -37,7 +39,7 @@ import org.photovault.swingui.PhotoInfoView;
  In future PhotoInfoView should be refactored, using this class is more future 
  proof.
  */
-public class PhotoInfoViewAdapter implements PhotoInfoView {
+public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
     
     PhotoInfoController c;
     
@@ -217,6 +219,13 @@ public class PhotoInfoViewAdapter implements PhotoInfoView {
     }
 
     public void setColorChannelMappingMultivalued(boolean mv) {
+    }
+
+    public void modelPreviewImageChanged(PhotovaultImage preview) {
+    }
+
+    public PhotovaultImage getPreviewImage() {
+        return null;
     }
     
 }

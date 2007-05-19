@@ -29,6 +29,7 @@ import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
+import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import java.io.*;
@@ -762,6 +763,36 @@ public class PhotoInfoController {
             }
         });
         
+        /*
+         TODO: Yes, this is a hack since preview image is not saved to model
+         at any point. Perhaps PhotoInofController should offer a generic
+         communication mechanism between views?
+         */
+        modelFields.put( PREVIEW_IMAGE, new FieldController( photos ) {
+           protected void setModelValue( Object model ) {
+               // This is intended only as an information for other views
+           } 
+            protected Object getModelValue( Object model ) {
+                return null;
+            }
+            protected void updateView( Object view ) {
+                if ( view instanceof PreviewImageView ) {
+                    PreviewImageView obj = (PreviewImageView) view;
+                    obj.modelPreviewImageChanged( (PhotovaultImage) value );
+                }
+            }
+            protected void updateViewMultivalueState( Object view ) {
+                // no implementation
+            }
+            protected void updateValue( Object view ) {
+                if ( view instanceof PreviewImageView ) {
+                    PreviewImageView obj = (PreviewImageView) view;
+                    value = obj.getPreviewImage();
+                } else {
+                    value = null;
+                }
+            }
+        });
         
         modelFields.put( COLOR_CURVE_VALUE, new ColorCurveCtrl( photos, "value" ) );
         modelFields.put( COLOR_CURVE_RED, new ColorCurveCtrl( photos, "red" ) );
@@ -1011,6 +1042,9 @@ public class PhotoInfoController {
     public final static String COLOR_CURVE_GREEN = "Green color curve";
     public final static String COLOR_CURVE_BLUE = "Blue color curve";
     public final static String COLOR_CURVE_SATURATION = "Saturation curve";
+
+    public final static String PREVIEW_IMAGE = "Preview image";
+    
     protected HashMap modelFields = null;
     
     // The original file that is to be added to database (if we are creating a new PhotoInfo object)

@@ -33,6 +33,8 @@ import java.awt.image.SampleModel;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
 import java.util.Date;
+import java.util.Vector;
+import javax.media.jai.Histogram;
 import javax.media.jai.IHSColorSpace;
 import javax.media.jai.ImageLayout;
 import javax.media.jai.Interpolation;
@@ -44,6 +46,7 @@ import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedOp;
 import javax.media.jai.operator.BandCombineDescriptor;
+import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
 import javax.media.jai.operator.MultiplyConstDescriptor;
 import javax.media.jai.operator.RenderableDescriptor;
@@ -135,11 +138,18 @@ public abstract class PhotovaultImage {
             
     RenderableOp originalImage = null;
     
+    /**
+     Last rendering created.
+     */
+    RenderedImage lastRendering = null;
+    
     protected void buildPipeline(RenderableOp original) {
         originalImage = original;
         cropped = getCropped( original );
+        cropped.setProperty( "org.photovault.opname", "cropped_image" );
         
         colorCorrected = getColorCorrected( cropped );
+        colorCorrected.setProperty( "org.photovault.opname", "color_corrected_rgb_image" );
 //        RenderableOp scaled = getScaled( cropped, maxWidth, maxHeight );
         saturated = getSaturated( colorCorrected );
         
@@ -198,12 +208,14 @@ public abstract class PhotovaultImage {
         RenderedImage rendered = null;
         if ( saturated != null ) {
             rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, hints );
+            lastRendering = rendered;
         } else {
             /*
              The image color model does not support saturation (e.g. b/w image),
              show the previous step instead.
              */
             rendered = colorCorrected.createScaledRendering( renderingWidth, renderingHeight, hints );
+            lastRendering = rendered;
         }
         return rendered;
     }
@@ -244,13 +256,60 @@ public abstract class PhotovaultImage {
         if ( saturated != null ) {
                 rendered = saturated.createScaledRendering( (int) (scale*cropW), 
                 (int) (scale*cropH), hints );
+            lastRendering = rendered;
         } else {
                 rendered = colorCorrected.createScaledRendering( (int) (scale*cropW), 
                 (int) (scale*cropH), hints );
+            lastRendering = rendered;
         }
         return rendered;
     }
     
+    public static String HISTOGRAM_RGB_CHANNELS = "rgb";
+    public static String HISTOGRAM_IHS_CHANNELS = "ihs";
+
+    /**
+     Get a histogram of a specific phase of imaging pipeline
+     @param histType What histogram to retrieve. Possible values in PhotovaultImage
+     are
+     <ul>
+     <li>HISTOGRAM_RGB_CHANNELS - sRGB color space histogam calculated after 
+     cropping but before color correction is applied</li>
+     <li>HISTOGRAM_IHS_CHANNELS - IHS color space histogram calculated after RGB 
+     color corrections but before saturation correction</li>
+     </ul>
+     Derived classes may add additional histograms
+     @return The histogram from last rendering. TODO: Currently returns 
+     <code>null</code> if no rendering has been made.
+     */
+    
+    public Histogram getHistogram( String histType ) {
+        Histogram ret = null;
+        RenderedImage src = null;
+        if ( histType.equals( HISTOGRAM_RGB_CHANNELS ) ) {
+            // Calculate histogram from the image into which color correction was applied
+            src = findNamedRendering( lastRendering, "cropped_image" );
+        } else if ( histType.equals( HISTOGRAM_IHS_CHANNELS ) ) {
+            src = findNamedRendering( lastRendering, "color_corrected_ihs_image" );
+            // src = lastSaturatedRendering.getSources().get(0).getSources().get(0);
+        } 
+        if ( src != null ) {
+            int[] componentSizes = src.getColorModel().getComponentSize();
+            int numBins[] = new int[ componentSizes.length];
+            double lowValue[] = new double[ componentSizes.length];
+            double highValue[] = new double[ componentSizes.length];
+            for ( int n = 0 ; n <componentSizes.length ; n++ ) {
+                numBins[n] = 1 << componentSizes[n];
+                lowValue[n] = 0.0;
+                highValue[n] = (double) numBins[n] - 1.0;
+            }
+            RenderedOp histOp = HistogramDescriptor.create( src, null, 
+                    new Integer( 1 ), new Integer( 1 ), 
+                    numBins, lowValue, highValue, null );
+            ret = (Histogram) histOp.getProperty( "histogram" );
+        }
+        return ret;
+    }
     
     /**
      Get width of the original image
@@ -452,7 +511,10 @@ public abstract class PhotovaultImage {
         ColorModel colorModel = this.getCorrectedImageColorModel();
         
         int[] componentSizes = colorModel.getComponentSize();
-        ColorCurve satCurve = channelMap.getChannelCurve( "saturation" );
+        ColorCurve satCurve = null;
+        if ( channelMap != null ) {
+            satCurve = channelMap.getChannelCurve( "saturation" );
+        }
         if ( satCurve == null ) {
             satCurve = new ColorCurve();
         }
@@ -691,6 +753,8 @@ public abstract class PhotovaultImage {
         pb.add(ihsColorModel);
         // Do the conversion.
         RenderableOp ihsImage  = JAI.createRenderable("colorconvert", pb );
+        ihsImage.setProperty( "org.photovault.opname", "color_corrected_ihs_image" );
+
 //        saturatedIhsImage =
 //                MultiplyConstDescriptor.createRenderable( ihsImage, new double[] {1.0, 1.0, saturation}, null );
         LookupTableJAI jailut = createSaturationMappingLUT();
@@ -706,11 +770,41 @@ public abstract class PhotovaultImage {
                 Transparency.OPAQUE,
                 srcCm.getTransferType() );
         pb.add(srgbColorModel); // RGB color model!        
-        RenderableOp saturatedImage = JAI.createRenderable("colorconvert", pb );
+        RenderableOp saturatedImage = JAI.createRenderable("colorconvert", pb );        
+        saturatedImage.setProperty( "org.photovault.opname", "saturated_image" );
         
         return saturatedImage;
     }
     
+    /**
+     Find the last cached rendering of a certain phase of image processing pipeline.
+     The name is stored in JAI property "org.photovault.opname".
+     <p>
+     This function makes a depth-first search to the sources of given node and 
+     returns the first node that has the name.
+     @param op The "sink" node of the image processing graph that is searched
+     @param The name
+     @return First node found with given name or <code>NULL</codel> if no such 
+     node is found.
+     */
+    RenderedImage findNamedRendering( RenderedImage op, String name ) {
+        if ( op != null ) {
+            Object imgName = op.getProperty( "org.photovault.opname" );
+            if ( imgName.equals( name ) ) {
+                return op;
+            }
+            Vector sources = op.getSources();
+            for ( Object o: sources ) {
+                if ( o instanceof RenderedImage ) {
+                    RenderedImage candidate = findNamedRendering( (RenderedImage)o, name );
+                    if ( candidate != null ) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+        return null;
+    }
     /**
      * Get the film speed setting used when shooting the image
      * 

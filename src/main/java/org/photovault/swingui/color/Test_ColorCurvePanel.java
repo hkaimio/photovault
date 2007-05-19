@@ -21,8 +21,11 @@
 package org.photovault.swingui.color;
 
 import abbot.tester.ComponentTester;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Point;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -185,6 +188,34 @@ public class Test_ColorCurvePanel extends TestCase {
         assertEquals( 0.5, c.getX( 1 ), 0.01 );
         assertEquals( 0.5, c.getY( 1 ), 0.01 );
         
+    }
+    
+    public void testHistogram() {
+        int[] hist1 = {1,2};
+        int[] hist2 = new int[1000];
+        for ( int n = 0 ; n < 1000 ; n++ ) {
+            hist2[n] = n;
+        }
+        int[] hist3 = new int[256];
+        for ( int n = 0 ; n < 256 ; n++ ) {
+            hist3[n] = 100;
+        }
+        showFrame();
+        cp.setHistogram( hist1, Color.BLACK );
+	tester.waitForIdle();
+	BufferedImage bi = tester.capture( cp );
+	// File f = new File( testRefImageDir, "thumbnailShow1.png" );
+	//assertTrue( org.photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
+        
+        cp.setHistogram( hist2, Color.BLACK );
+	tester.waitForIdle();
+        bi = tester.capture( cp );
+	// File f = new File( testRefImageDir, "thumbnailShow1.png" );
+	// assertTrue( org.photovault.test.ImgTestUtils.compareImgToFile( bi, f ) );
+
+        cp.setHistogram( hist3, Color.BLACK );
+	tester.waitForIdle();
+        bi = tester.capture( cp );
     }
 
     /**

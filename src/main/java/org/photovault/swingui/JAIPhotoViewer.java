@@ -310,6 +310,13 @@ public class JAIPhotoViewer extends JPanel implements
     void setImage( PhotovaultImage img ) {
 	imageView.setImage( img );
     }
+    
+    /**
+     Get the actual image currently displayed in the control
+     */
+    public PhotovaultImage getImage() {
+        return imageView.getImage();
+    }
 
     public void cropAreaChanged(CropAreaChangeEvent evt) {
         photo.setPrefRotation( evt.getRotation() );

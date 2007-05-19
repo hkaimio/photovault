@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import javax.media.jai.Histogram;
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -52,6 +53,7 @@ import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
+import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
@@ -60,6 +62,7 @@ import org.photovault.swingui.PhotoInfoController;
 import org.photovault.swingui.PhotoInfoView;
 import org.photovault.swingui.PhotoViewChangeEvent;
 import org.photovault.swingui.PhotoViewChangeListener;
+import org.photovault.swingui.PreviewImageView;
 import org.photovault.swingui.RawPhotoView;
 
 /**
@@ -69,7 +72,7 @@ import org.photovault.swingui.RawPhotoView;
  * @author Harri Kaimio
  */
 public class ColorSettingsDlg extends javax.swing.JDialog 
-        implements RawImageChangeListener, RawPhotoView, PhotoViewChangeListener {
+        implements RawImageChangeListener, RawPhotoView, PhotoViewChangeListener, PreviewImageView {
 
     static org.apache.log4j.Logger log = 
             org.apache.log4j.Logger.getLogger( ColorSettingsDlg.class.getName() );
@@ -154,6 +157,18 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         new Color( 0.5f, 1.0f, 0.5f ),
         new Color( 0.5f, 0.5f, 1.0f ),
         new Color( 0.5f, 0.5f, 0.2f )
+    };
+    
+    static String[] channelHistType = {
+        null,
+        PhotovaultImage.HISTOGRAM_RGB_CHANNELS,
+        PhotovaultImage.HISTOGRAM_RGB_CHANNELS,
+        PhotovaultImage.HISTOGRAM_RGB_CHANNELS,
+        PhotovaultImage.HISTOGRAM_IHS_CHANNELS,
+    };
+    
+    static int[] channelHistBand = {
+        0, 0, 1, 2, 2
     };
 
     /**
@@ -900,15 +915,37 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     
     JAIPhotoViewer previewCtrl = null;
     
+    static class PhotoViewerAdapter 
+            extends PhotoInfoViewAdapter 
+            implements PhotoViewChangeListener {
+        public PhotoViewerAdapter( JAIPhotoViewer preview, PhotoInfoController ctrl ) {
+            super( ctrl );
+            this.previewCtrl = preview;
+            preview.addViewChangeListener( this );
+        }
+        
+        JAIPhotoViewer previewCtrl;
+        
+        public void setColorChannelCurve( String name, ColorCurve c ) {
+            if ( previewCtrl != null ) {
+                previewCtrl.colorCurveChanged( this, name, c );
+            }
+        }
+        
+        public PhotovaultImage getPreviewImage() {
+            return previewCtrl.getImage();
+        }
+
+        public void photoViewChanged(PhotoViewChangeEvent e) {
+            c.viewChanged( this, PhotoInfoController.PREVIEW_IMAGE );
+        }
+    }
+    
     public void setPreviewControl( JAIPhotoViewer viewer ) {
         previewCtrl = viewer;
         previewCtrl.addViewChangeListener( this );
-        ctrl.addView( new PhotoInfoViewAdapter( ctrl ) {
-           public void setColorChannelCurve( String name, ColorCurve c ) {
-               previewCtrl.colorCurveChanged( this, name, c );
-           }
-        });
-        
+        PhotoViewerAdapter a = new PhotoViewerAdapter( previewCtrl, ctrl ); 
+        a.photoViewChanged( null );
         reloadHistogram();
     }
 
@@ -1009,6 +1046,16 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         }
         colorCurveSelectionCombo.setSelectedIndex( chan );
+        int[] histData = null;
+        if ( previewImage != null ) {
+            if ( channelHistType[chan] != null ) {
+                Histogram h = previewImage.getHistogram( channelHistType[chan] );
+                if ( h != null && channelHistBand[chan] < h.getNumBands() ) {
+                    histData = h.getBins( channelHistBand[chan] );
+                }
+            }
+        }
+        colorCurvePanel1.setHistogram( histData, Color.BLACK );
     }
     
     /**
@@ -1404,9 +1451,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             if ( colorCurveNames[n].equals( name ) ) {
                 colorCurves[n] = curve;
                 refCurves[n] = null;
-                if ( currentColorCurve == n ) {
-                    showCurve( n );
-                }
+                showCurve( currentColorCurve );
                 break;
             }
         }        
@@ -1457,6 +1502,21 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      */
     public void photoViewChanged(PhotoViewChangeEvent e) {
         reloadHistogram();
+    }
+    
+    PhotovaultImage previewImage = null;
+    
+    /**
+     Called when preview image in some view associated with this controller changes.
+     */
+    public void modelPreviewImageChanged(PhotovaultImage preview) {
+        previewImage = preview;
+        // Update color curves with histogram data from this image.
+        showCurve( currentColorCurve );
+    }
+
+    public PhotovaultImage getPreviewImage() {
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

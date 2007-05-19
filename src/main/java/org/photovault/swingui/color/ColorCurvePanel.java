@@ -10,7 +10,9 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -127,6 +129,73 @@ public class ColorCurvePanel extends javax.swing.JPanel {
         refCurves.clear();
         repaint();
     }
+    
+    int [] histogram;
+    
+    public void setHistogram( int[] histData, Color color ) {
+        histogram = histData;
+        createHistogramPolygon();
+        repaint();
+    }
+    
+    /*
+     Create a polygon that describes the current histogram data.
+     */
+    private void createHistogramPolygon() {
+        if ( histogram != null ) {
+            int width = getWidth();
+            double dx = (double)width / (double)histogram.length;
+            // x positions of left edges of histogram bars
+            int[] xpos = new int[width];
+            double[] ypos = new double[width];
+            
+            int bin = 0;
+            int x = 0;
+            double ymax = 0;
+            double remainingSample = histogram[0];
+            int sample = 0;
+            while ( sample < histogram.length ) {
+                // Check if next histogram bin is so close that is goes to the 
+                // same pixel column
+                if ( ((sample+1)*dx) > (double)(x+1) ) {
+                    // This sample crosses the boundary between current & next bin. 
+                    // Split it between these 2
+                    x = (int) ((sample+1)*dx);
+                    double overflowRatio = ((sample+1)*dx - (double)x)/dx;
+                    ypos[bin] += histogram[sample] * ( 1.0 - overflowRatio );
+                    ypos [bin+1] = histogram[sample] * overflowRatio;
+                    xpos[bin+1] = x;
+                    ypos[bin] /= (double)(xpos[bin+1]-xpos[bin]);
+                    ymax = Math.max( ymax, ypos[bin] );
+                    bin++;
+                } else {
+                    // This sample fits into current bin
+                    ypos[bin] += histogram[sample];
+                }
+                sample++;
+            }
+            
+            // Now create the histogram polygon based on this data
+            int histogramHeight = getHeight() / 2;
+            int panelHeight = getHeight();
+            Polygon p = new Polygon();
+            int py = panelHeight;
+            // p.addPoint( 0, h );
+            for ( int n = 0 ; n <= bin ; n++ ) {
+                p.addPoint( xpos[n], py );
+                py = panelHeight - (int)(ypos[n]*histogramHeight/ymax);
+                p.addPoint( xpos[n], py );
+            }
+            p.addPoint( width-1, py );
+            p.addPoint( width-1, panelHeight );
+            histogramShape = p;
+        } else {
+            histogramShape = null;
+        }
+    }
+    
+    Shape histogramShape = null;
+    Color histogramColor = new Color( 0.0f, 0.0f, 0.0f, 0.5f );
         
     /** This method is called from within the constructor to
      * initialize the form.
@@ -302,6 +371,13 @@ public class ColorCurvePanel extends javax.swing.JPanel {
         
         paintGrid( g2 );
 
+        if ( histogramShape != null ) {
+            Graphics2D histGraphics = (Graphics2D) g2.create();
+            histGraphics.setColor( histogramColor );
+            histGraphics.setPaint( histogramColor );
+            histGraphics.fill( histogramShape );
+        }
+        
         if ( refCurves.size() > 0 ) {
             Graphics2D refCurveGraphics = (Graphics2D) g2.create();
             refCurveGraphics.setColor( Color.GRAY );
