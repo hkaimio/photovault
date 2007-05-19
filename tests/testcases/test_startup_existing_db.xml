@@ -23,8 +23,8 @@
     <id>
         test_startup_existing_db
     </id>
-    <omponent> generic
-    </omponent>
+    <component>generic
+    </component>
     <ummary>
         Startup without existing database
     </ummary>
