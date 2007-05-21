@@ -67,6 +67,38 @@ import org.photovault.image.PhotovaultImage;
 /**
  Class to represent a raw camera image and set the parameters related to
  processing it.
+ <p>
+ <strong>Image processing steps</strong>
+ The actual raw image loading and processing until demosaicing is done with dcraw.
+ Since dcraw pipeline may have some nonlinear processing steps (at least when 
+ camera ICC profile is used) that is done <em>after</em> color correction the
+ resultin image can have color effects that depend non-desirable way from actual 
+ white balance settings.
+ <p>
+ To avoid this I load image from dcraw always with the daylight color correction
+ recommended in the image file (stored to daylightMultipliers) and do actual white 
+ balance correction here. This is certainly non-optimal and at least in theory 
+ can lead to lost accuracy or even color clipping. But at least it behaves
+ predictable.
+ <p>
+ As a summary, the processing steps done for raw image are
+ <ul>
+ <li>dcraw loads raw data</li>
+ <li>dcraw scales raw channels using daylight multipliers</li>
+ <li>draw does demosaicing (using 2x2 box filter if small resolution is enough
+ or AHD interpolation</li>
+ <li>dcraw converts to linear sRGB color space using either camera specific color 
+ matrix or ICC profile</li>
+ <li>This class loads image from dcraw and forms image mipmap for JAI renderable 
+ pipeline</li>
+ <li>This class finalizes color correction to desired white balance</li>
+ <li>This class does exposure & contrast adjustments and converts the image from 
+ linear to gamma corrected sRGB color space.</li>
+ <li>Base class ({@link PhotovaultImage}) applies desired lookup tables in gamma 
+ corrected RGB & IHS color spaces if needed and instructs JAI to render final 
+ image.
+ </ul>
+ 
  */
 public class RawImage extends PhotovaultImage {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( RawImage.class.getName() );
@@ -139,12 +171,12 @@ public class RawImage extends PhotovaultImage {
     private Date timestamp = null;
     
     /**
-     Camera modelt that was used to take the picture
+     Camera model that was used to take the picture
      */
     private String camera = null;
     
     /**
-     Film speed in IOS units or -1 if not known
+     Film speed in ISO units or -1 if not known
      */
     private int filmSpeed = -1;
     
@@ -180,7 +212,8 @@ public class RawImage extends PhotovaultImage {
     private double daylightMultipliers[] = null;
     
     /**
-     Channel multipliers used for the conversion
+     Channel multipliers used for the conversion from raw image to sRGB color 
+     space.
      */
     private double chanMultipliers[] = null;
     
@@ -432,8 +465,8 @@ public class RawImage extends PhotovaultImage {
     
     /**
      Set the preferred minimum size for the resulting image. Raw converter can use
-     optimizations (e.g. reduce the image size to half) if the actual image is larger
-     than this
+     optimizations (e.g. use 2x2 block filter instead of true demosaicing) if 
+     the actual image is larger than this
      @param minWidth The preferred minimum image width.
      @param minHeight The preferred minimum image height.
      @return <code>True</code> if given minimum size was larger than the already 
@@ -968,6 +1001,13 @@ public class RawImage extends PhotovaultImage {
         return result;
     }
     
+    /**
+     Multipliers used to correct colors from the raw image loaded with dcraw to
+     the colors specified by chanMultipliers. Currently, dcraw is instructed to 
+     load the image always with channel multipliers recommended for daylight
+     (5500K). So is should always be so that chanMultipliers = colorCorr * daylightMultipliers
+     
+     */
     double colorCorr[] = new double[] {1.0, 1.0, 1.0};
     
     /**
@@ -983,9 +1023,9 @@ public class RawImage extends PhotovaultImage {
         // Update the multipliers
         chanMultipliers = new double[4];
         chanMultipliers[0] = daylightMultipliers[0]/rgb[0];
-        chanMultipliers[1] = daylightMultipliers[1]/rgb[1] / greenGain;
+        chanMultipliers[1] = daylightMultipliers[1]/rgb[1] * greenGain;
         chanMultipliers[2] = daylightMultipliers[2]/rgb[2];
-        chanMultipliers[3] = chanMultipliers[1] / greenGain;
+        chanMultipliers[3] = chanMultipliers[1];
 
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
@@ -1008,7 +1048,7 @@ public class RawImage extends PhotovaultImage {
         double rgb[] = colorTempToRGB( ctemp );
         colorCorr = new double[3];
         colorCorr[0] = 1.0/rgb[0];
-        colorCorr[1] = 1.0/rgb[1] / greenGain;
+        colorCorr[1] = greenGain/rgb[1];
         colorCorr[2] = 1.0/rgb[2];
         double colorCorrMat[][] = new double[][] {
             {colorCorr[0], 0.0, 0.0, 0.0 },
