@@ -56,6 +56,7 @@ import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedImageAdapter;
 import javax.media.jai.RenderedOp;
+import javax.media.jai.TiledImage;
 import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
@@ -560,10 +561,9 @@ public class RawImage extends PhotovaultImage {
             ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_LINEAR_RGB );
             ColorModel targetCM = new ComponentColorModel( cs, new int[]{16,16,16},
                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_USHORT );
-            
-            
-            rawImage = new RenderedImageAdapter( new BufferedImage( targetCM, r, 
-                    true, null ) );
+            rawImage = new TiledImage( new BufferedImage( targetCM, r, 
+                    true, null ), 256, 256 );
+
             
             final float[] DEFAULT_KERNEL_1D = {0.25f,0.5f,0.25f};
             ParameterBlock pb = new ParameterBlock();
@@ -585,6 +585,7 @@ public class RawImage extends PhotovaultImage {
             }
                                    
             RenderedOp filter = new RenderedOp("convolve", pb, hints);
+            // javax.media.jai.operator.BoxFilterDescriptor.create( null, new Integer(2), new Integer(2), new Integer(0), new Integer(0), null );
 
             // Add the subsampling operation.
             pb = new ParameterBlock();
@@ -593,6 +594,7 @@ public class RawImage extends PhotovaultImage {
             pb.add(new Float(0.0F)).add(new Float(0.0F));
             pb.add(Interpolation.getInstance(Interpolation.INTERP_NEAREST));
             RenderedOp downSampler = new RenderedOp("scale", pb, null);            
+            // downSampler = javax.media.jai.operator.BoxFilterDescriptor.create( null, new Integer(2), new Integer(2), new Integer(0), new Integer(0), null );
             
             RenderableOp rawImageRenderable = 
                     RenderableDescriptor.createRenderable( rawImage, 

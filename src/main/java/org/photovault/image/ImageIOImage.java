@@ -29,6 +29,7 @@ import com.sun.media.imageio.plugins.tiff.EXIFParentTIFFTagSet;
 import com.sun.media.imageio.plugins.tiff.EXIFTIFFTagSet;
 import com.sun.media.imageio.plugins.tiff.TIFFDirectory;
 import com.sun.media.imageio.plugins.tiff.TIFFField;
+import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -36,6 +37,7 @@ import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
+import java.awt.image.renderable.ParameterBlock;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -53,9 +55,14 @@ import javax.imageio.ImageReader;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
+import javax.media.jai.BorderExtender;
+import javax.media.jai.Interpolation;
+import javax.media.jai.JAI;
+import javax.media.jai.KernelJAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedImageAdapter;
+import javax.media.jai.RenderedOp;
 import javax.media.jai.TiledImage;
 import javax.media.jai.operator.RenderableDescriptor;
 import org.photovault.imginfo.ImageInstance;
@@ -417,13 +424,43 @@ public class ImageIOImage extends PhotovaultImage {
                              for large image tiles. Split image to reasonably sized
                              tiles as a workaround for this.
                              */
-                            ri = new TiledImage( ri, 1024, 1024 );
+                            ri = new TiledImage( ri, 256, 256 );
                             image =  new RenderedImageAdapter( ri );
                             originalSampleModel = image.getSampleModel();
                             originalColorModel = image.getColorModel();
+                            final float[] DEFAULT_KERNEL_1D = {0.25f,0.5f,0.25f};
+                            ParameterBlock pb = new ParameterBlock();
+                            KernelJAI kernel = new KernelJAI(DEFAULT_KERNEL_1D.length,
+                                    DEFAULT_KERNEL_1D.length,
+                                    DEFAULT_KERNEL_1D.length/2,
+                                    DEFAULT_KERNEL_1D.length/2,
+                                    DEFAULT_KERNEL_1D,
+                                    DEFAULT_KERNEL_1D);
+                            pb.add(kernel);
+                            BorderExtender extender =
+                                    BorderExtender.createInstance(BorderExtender.BORDER_COPY);
+                            RenderingHints hints =
+                                    JAI.getDefaultInstance().getRenderingHints();
+                            if(hints == null) {
+                                hints = new RenderingHints(JAI.KEY_BORDER_EXTENDER, extender);
+                            } else {
+                                hints.put(JAI.KEY_BORDER_EXTENDER, extender);
+                            }
+                            
+                            RenderedOp filter = new RenderedOp("convolve", pb, hints);
+                            // javax.media.jai.operator.BoxFilterDescriptor.create( null, new Integer(2), new Integer(2), new Integer(0), new Integer(0), null );
+                            
+                            // Add the subsampling operation.
+                            pb = new ParameterBlock();
+                            pb.addSource(filter);
+                            pb.add(new Float(0.5F)).add(new Float(0.5F));
+                            pb.add(new Float(0.0F)).add(new Float(0.0F));
+                            pb.add(Interpolation.getInstance(Interpolation.INTERP_NEAREST));
+                            RenderedOp downSampler = new RenderedOp("scale", pb, null);
+                            
                             renderableImage =
                                     RenderableDescriptor.createRenderable(
-                                    image, null, null, null, null, null, null );
+                                    image, downSampler, null, null, null, null, null );
                         } else {
                             image = null;
                             renderableImage = null;

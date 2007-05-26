@@ -60,6 +60,7 @@
           <include name="DdlUtils-*"/>
           <include name="derby.jar"/>
           <include name="quaqua.jar"/>
+          <include name="tilecachetool.jar"/>
       </fileset>
   </path>
   <path id="project.class.path">
@@ -318,7 +319,7 @@
   <target name="run" depends="dist" description="Run Photovault">
         <java fork="true" classname="org.photovault.swingui.Photovault">
             <!-- Use large enough heap to fit also big images -->
-            <jvmarg value="-Xmx256M"/>
+            <jvmarg value="-Xmx512M"/>
             <classpath>
                 <path refid="project.class.path"/>
             </classpath>
@@ -343,7 +344,7 @@
         <mkdir dir="./${reports.test}/testresults"/>
         <java fork="true" classname="org.photovault.swingui.Photovault">
             <!-- Use large enough heap to fit also big images -->
-            <jvmarg value="-Xmx256M"/>
+            <jvmarg value="-Xmx512M"/>
             <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />
             <jvmarg value="-Demma.coverage.out.merge=true" />     
             <classpath>
@@ -372,7 +373,7 @@
      <sourcepath refid="debug.sourcepath"/> 
    </nbjpdastart>
    <java fork="true" classname="org.photovault.swingui.Photovault">
-    <jvmarg value="-Xmx256M"/>
+    <jvmarg value="-Xmx512M"/>
     <jvmarg value="-Xdebug"/>
     <jvmarg value="-Xnoagent"/>
     <jvmarg value="-Djava.compiler=none"/>
@@ -406,7 +407,7 @@
         <!-- Start application. Use basically the same command as for running the application -->
         <java fork="true" classname="org.photovault.swingui.Photovault" jvm="${profiler.info.jvm}">
             <!-- Use large enough heap to fit also big images -->
-            <jvmarg value="-Xmx256M"/>
+            <jvmarg value="-Xmx512M"/>
             <jvmarg value="${profiler.info.jvmargs.agent}"/>
             <classpath>
                 <path refid="project.class.path"/>

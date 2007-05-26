@@ -21,6 +21,7 @@
 package org.photovault.swingui;
 
 import com.sun.media.jai.util.SunTileCache;
+import java.awt.Dimension;
 import java.util.Collection;
 import javax.media.jai.JAI;
 import javax.swing.UIManager;
@@ -36,7 +37,6 @@ import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
 import org.photovault.swingui.db.DbSettingsDlg;
-
 
 /**
    Main class for the photovault application
@@ -101,11 +101,30 @@ public class Photovault implements SchemaUpdateListener {
             }
         }
     }
+
+    /**
+     Initialize Java Advanced Imaging.
+     */
+    void initJAI() {
+        JAI jaiInstance = JAI.getDefaultInstance();
+        jaiInstance.setTileCache( new SunTileCache( 100*1024*1024 ) );
+        jaiInstance.setDefaultTileSize( new Dimension( 256, 256 ) );
+        try {
+            Class tcDebugger = Class.forName( "tilecachetool.TCTool" );
+            tcDebugger.newInstance();
+        } catch (InstantiationException ex) {
+            ex.printStackTrace();
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        }        
+    }
     
     void run() {
         checkSystem();
         // 100 MB tile cache
-        JAI.getDefaultInstance().setTileCache( new SunTileCache( 100*1024*1024 ) );
+        initJAI();
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         Collection databases = settings.getDatabases();
         if ( databases.size() == 0 ) {
