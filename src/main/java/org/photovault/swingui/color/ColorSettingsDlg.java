@@ -28,6 +28,7 @@ import java.awt.Graphics;
 import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.event.ActionListener;
+import java.awt.image.ColorModel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,6 +36,8 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import javax.media.jai.Histogram;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -53,6 +56,7 @@ import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
+import org.photovault.image.ImageRenderingListener;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
@@ -72,7 +76,8 @@ import org.photovault.swingui.RawPhotoView;
  * @author Harri Kaimio
  */
 public class ColorSettingsDlg extends javax.swing.JDialog 
-        implements RawImageChangeListener, RawPhotoView, PhotoViewChangeListener, PreviewImageView {
+        implements RawImageChangeListener, RawPhotoView, PhotoViewChangeListener, 
+        PreviewImageView, ImageRenderingListener {
 
     static org.apache.log4j.Logger log = 
             org.apache.log4j.Logger.getLogger( ColorSettingsDlg.class.getName() );
@@ -159,16 +164,23 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         new Color( 0.5f, 0.5f, 0.2f )
     };
     
+    /**
+     What histogram is shown with each channel
+     */
     static String[] channelHistType = {
-        null,
+        PhotovaultImage.HISTOGRAM_RGB_CHANNELS,
         PhotovaultImage.HISTOGRAM_RGB_CHANNELS,
         PhotovaultImage.HISTOGRAM_RGB_CHANNELS,
         PhotovaultImage.HISTOGRAM_RGB_CHANNELS,
         PhotovaultImage.HISTOGRAM_IHS_CHANNELS,
     };
-    
+    /**
+     The band of the histogram defined in @see channelHistTypes that is
+     associated with each channel. -1 means that all histogram bands should be
+     shown.
+     */       
     static int[] channelHistBand = {
-        0, 0, 1, 2, 2
+        -1, 0, 1, 2, 2
     };
 
     /**
@@ -953,7 +965,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      Set the photo whose settings will be changed
      */
     public void setPhoto( PhotoInfo p ) {
-        ctrl.setPhoto( p );        
+        ctrl.setPhoto( p );  
+        if ( previewCtrl != null ) {
+            previewImage = previewCtrl.getImage();
+            ctrl.viewChanged( this, ctrl.PREVIEW_IMAGE );
+            setupColorCurvesForImage();
+        }        
         rawPreviewImage = null;
         checkIsRawPhoto();
     }
@@ -964,6 +981,17 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public void setPhotos( PhotoInfo[] p ) {
         ctrl.setPhotos( p );        
         rawPreviewImage = null;
+        if ( previewCtrl != null ) {
+            previewImage = previewCtrl.getImage();
+            /*
+             HACK: PREVIEW_IMAGE is not really a field of the model but provided 
+             by another view. Therefore resetting the model will clear it. What 
+             is really needed is a mechanism with which different views can publish
+             information for others.
+             */
+            ctrl.viewChanged( this, ctrl.PREVIEW_IMAGE );
+            setupColorCurvesForImage();
+        }
         checkIsRawPhoto();
         reloadHistogram();
         
@@ -1050,12 +1078,43 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         if ( previewImage != null ) {
             if ( channelHistType[chan] != null ) {
                 Histogram h = previewImage.getHistogram( channelHistType[chan] );
-                if ( h != null && channelHistBand[chan] < h.getNumBands() ) {
-                    histData = h.getBins( channelHistBand[chan] );
+                if ( h != null ) {
+                    if ( channelHistBand[chan] == -1 ) {
+                    /*
+                     TODO: All histogram bands should be shown. Currently
+                     this is not supported by ColorCurvePanel. If the image is
+                     black and white, show jus thte value.
+                     */
+                        if ( h.getNumBands() < 3 ) {
+                            histData = h.getBins( 0 );
+                        }
+                    } else if ( channelHistBand[chan] < h.getNumBands() ) {
+                        histData = h.getBins( channelHistBand[chan] );
+                    }
                 }
             }
         }
         colorCurvePanel1.setHistogram( histData, Color.BLACK );
+    }
+    
+    /**
+     Enable or disable color curves for individual red, green, blue and saturation 
+     channels.
+     @param isEnabled If <code>true</code>, give user possibility to select 
+     curves for all channels. If <code>false</code>, force display of value curve only
+     
+     */
+    private void setColorChannelCurvesEnabled( boolean isEnabled ) {
+        ComboBoxModel newModel = colorCurveSelectionCombo.getModel();
+        int newSelection = colorCurveSelectionCombo.getSelectedIndex();
+        if ( isEnabled ) {
+            newModel = new DefaultComboBoxModel(new String[] { "Value", "Red", "Green", "Blue", "Saturation" });
+        } else {
+            newModel = new DefaultComboBoxModel(new String[] { "Value" });
+            newSelection = 0;
+        }
+        colorCurveSelectionCombo.setModel( newModel );
+        colorCurveSelectionCombo.setSelectedIndex( newSelection );
     }
     
     /**
@@ -1510,13 +1569,42 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      Called when preview image in some view associated with this controller changes.
      */
     public void modelPreviewImageChanged(PhotovaultImage preview) {
+        if ( previewImage != null ) {
+            previewImage.removeRenderingListener( this );
+        }
         previewImage = preview;
-        // Update color curves with histogram data from this image.
-        showCurve( currentColorCurve );
+        setupColorCurvesForImage();
     }
 
     public PhotovaultImage getPreviewImage() {
-        return null;
+        return previewImage;
+    }
+
+    /**
+     A new rendering of current image is created. Update color curves based on it.     
+     */
+    public void newRenderingCreated(PhotovaultImage img) {
+        img.removeRenderingListener( this );        
+        if ( img == previewImage ) {
+            setupColorCurvesForImage();
+        }
+    }
+    
+    private void setupColorCurvesForImage() {
+        if ( previewImage != null ) {
+            ColorModel cm = previewImage.getCorrectedImageColorModel();
+            if ( cm != null ) {
+            setColorChannelCurvesEnabled( cm.getNumColorComponents() >= 3 );
+            } else {
+                /*
+                 The image has not yet been rendered. Register a listener so that 
+                 we can complete setup after rendering the image
+                 */
+                previewImage.addRenderingListener( this );
+            }
+        }
+        // Update color curves with histogram data from this image.
+        showCurve( currentColorCurve );
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

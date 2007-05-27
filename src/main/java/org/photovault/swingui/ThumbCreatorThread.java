@@ -91,7 +91,7 @@ class ThumbCreatorThread extends Thread {
 			    } catch ( Throwable e ) {
 				// Most likely out of memory. Sleep for a while (to allow for other
 				// tasks to release memory) and try again
-				log.warn( "Out of memory while creating thumbnail" );
+				log.warn( "Error while creating thumbnail: " + e.getMessage() );
 				try {
 				    sleep( 5 * 1000 );
 				} catch ( InterruptedException e1 ) {

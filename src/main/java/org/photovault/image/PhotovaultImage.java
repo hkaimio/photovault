@@ -33,6 +33,8 @@ import java.awt.image.SampleModel;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 import javax.media.jai.Histogram;
 import javax.media.jai.IHSColorSpace;
@@ -155,7 +157,34 @@ public abstract class PhotovaultImage {
         
         previousCorrectedImage = original;
     }
-        
+
+    /**
+     Objects that should be notified about new renderings.
+     */
+    Set<ImageRenderingListener> renderingListeners = new HashSet<ImageRenderingListener>();
+    
+    /**
+     Request that a given {@link ImageRenderingListener} should be notified of
+     changes to this image.
+     */
+    public void addRenderingListener( ImageRenderingListener l ) {
+       renderingListeners.add( l ); 
+    }
+    
+    /**
+     Request that a given {@link ImageRenderingListener} should not anymore be 
+     notified of changes to this image.
+     */
+    public void removeRenderingListener( ImageRenderingListener l ) {
+       renderingListeners.remove( l ); 
+    }
+    
+    protected void fireNewRenderingEvent() {
+        for ( ImageRenderingListener l: renderingListeners ) {
+            l.newRenderingCreated( this );
+        }
+    }
+    
     /**
      Get the image, adjusted according to current parameters and scaled to a 
      specified resolution.
@@ -217,6 +246,7 @@ public abstract class PhotovaultImage {
             rendered = colorCorrected.createScaledRendering( renderingWidth, renderingHeight, hints );
             lastRendering = rendered;
         }
+        fireNewRenderingEvent();
         return rendered;
     }
     
@@ -262,6 +292,7 @@ public abstract class PhotovaultImage {
                 (int) (scale*cropH), hints );
             lastRendering = rendered;
         }
+        fireNewRenderingEvent();
         return rendered;
     }
     
@@ -795,7 +826,7 @@ public abstract class PhotovaultImage {
             }
             Vector sources = op.getSources();
             for ( Object o: sources ) {
-                if ( o instanceof RenderedImage ) {
+                if ( o != null && o instanceof RenderedImage ) {
                     RenderedImage candidate = findNamedRendering( (RenderedImage)o, name );
                     if ( candidate != null ) {
                         return candidate;
