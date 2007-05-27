@@ -506,6 +506,46 @@
           </tarfileset>
       </tar>
   </target>
+  <target name="osx-installer" depends="dist"
+    description="Creates a MacOS X .dmg package. Works only in Mac">
+      <fail message=".DMG installer can be created only in Mac.">
+          <condition>
+            <not>
+                <os family="mac"/>
+            </not>
+          </condition>
+      </fail>
+      
+    <mkdir dir="${dist}/osx/Photovault.app/Contents"/>
+    <mkdir dir="${dist}/osx/Photovault.app/Contents/MacOS"/>
+    <mkdir dir="${dist}/osx/Photovault.app/Contents/PkgInfo"/>
+    <mkdir dir="${dist}/osx/Photovault.app/Contents/Resources"/>
+    <mkdir dir="${dist}/osx/Photovault.app/Contents/Resources/Java"/>
+    <copy todir="${dist}/osx/Photovault.app/Contents/Resources/Java">
+        <fileset dir="${dist}/photovault-latest">
+            <exclude name="**/jai_core.jar"/>
+            <exclude name="**/jai_codec.jar"/>
+        </fileset>
+    </copy>
+    <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/A/Resources/MacOS/JavaApplicationStub"
+        todir="${dist}/osx/Photovault.app/Contents/MacOS"/> 
+    <copy file="/Developer/Applications/Java Tools/Jar Bundler.app/Contents/Resources/GenericJavaApp.icns"
+        todir="${dist}/osx/Photovault.app/Contents/Resources"/>
+    <copy file="conf/Info.plist.template" 
+        tofile="${dist}/osx/Photovault.app/Contents/Info.plist"
+        overwrite="true">
+        <filterset> 
+            <filtersfile file="conf/buildinfo.properties"/>
+        </filterset>
+    </copy>
+    <exec executable="hdiutil">
+        <arg value="create"/>
+        <arg value="-srcfolder"/>
+        <arg value="${dist}/osx/Photovault.app"/>
+        <arg value="${dist}/osx/Photovault.dmg"/>
+    </exec>
+  </target>
+
   <target name="dist-files" depends="win32-installer,dist-bin-tgz,dist-src-tgz,dist-testfiles-tgz"
     description="Creates the distribution packages"/>
 
