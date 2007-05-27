@@ -416,6 +416,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
         // Minimum size is the size of one thumbnail
         viewScroll.setMinimumSize( new Dimension( 170, 150 ));
+        viewScroll.setPreferredSize( new Dimension( 170, 150 ));
         viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
         viewScroll.setVisible( true );
@@ -449,6 +450,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
         viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
         viewScroll.setMinimumSize( new Dimension( 150, 180 ));
+        viewScroll.setPreferredSize( new Dimension( 150, 180 ));
         viewScroll.setVisible( true );
         layout.setConstraints( viewScroll, c );
         viewPane.setRowCount( 1 );
