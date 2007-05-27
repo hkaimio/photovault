@@ -329,8 +329,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         newProfileBtn = new javax.swing.JButton();
         rawHistogramPane = rawHistogramPane = new HistogramPane();
         colorSettingControls = new javax.swing.JPanel();
-        label1 = new java.awt.Label();
-        saturationSlider = new org.photovault.swingui.color.FieldSliderCombo();
         colorCurveSelectionCombo = new javax.swing.JComboBox();
         colorCurvePanel1 = new org.photovault.swingui.color.ColorCurvePanel();
 
@@ -538,17 +536,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         );
         colorSettingTabs.addTab("Raw conversion", rawControlsPane);
 
-        label1.setFont(new java.awt.Font("Dialog", 1, 12));
-        label1.setText("Saturation");
-
-        saturationSlider.setMaximum(2.0);
-        saturationSlider.setPaintLabels(false);
-        saturationSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                saturationSliderStateChanged(evt);
-            }
-        });
-
         colorCurveSelectionCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Value", "Red", "Green", "Blue", "Saturation" }));
         colorCurveSelectionCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -556,11 +543,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
 
+        colorCurvePanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED, java.awt.Color.white, java.awt.Color.lightGray, null, null));
         org.jdesktop.layout.GroupLayout colorCurvePanel1Layout = new org.jdesktop.layout.GroupLayout(colorCurvePanel1);
         colorCurvePanel1.setLayout(colorCurvePanel1Layout);
         colorCurvePanel1Layout.setHorizontalGroup(
             colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 399, Short.MAX_VALUE)
+            .add(0, 395, Short.MAX_VALUE)
         );
         colorCurvePanel1Layout.setVerticalGroup(
             colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -574,31 +562,21 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             .add(colorSettingControlsLayout.createSequentialGroup()
                 .add(colorSettingControlsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(colorSettingControlsLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .add(colorSettingControlsLayout.createSequentialGroup()
-                        .add(162, 162, 162)
+                        .add(155, 155, 155)
                         .add(colorCurveSelectionCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                    .add(colorSettingControlsLayout.createSequentialGroup()
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, colorSettingControlsLayout.createSequentialGroup()
                         .addContainerGap()
-                        .add(saturationSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE))
-                    .add(colorSettingControlsLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                        .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         colorSettingControlsLayout.setVerticalGroup(
             colorSettingControlsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(colorSettingControlsLayout.createSequentialGroup()
-                .add(23, 23, 23)
-                .add(label1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(saturationSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 31, Short.MAX_VALUE)
+                .add(25, 25, 25)
                 .add(colorCurveSelectionCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .add(46, 46, 46))
+                .addContainerGap(127, Short.MAX_VALUE))
         );
         colorSettingTabs.addTab("Colors", colorSettingControls);
 
@@ -633,11 +611,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         int i = colorCurveSelectionCombo.getSelectedIndex();
         showCurve( i );
     }//GEN-LAST:event_colorCurveSelectionComboActionPerformed
-
-    private void saturationSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_saturationSliderStateChanged
-        double saturation = saturationSlider.getValue();
-        notifyPreviewSaturationChange( saturation );
-    }//GEN-LAST:event_saturationSliderStateChanged
 
     private void greenGainSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_greenGainSliderStateChanged
         double greenEv = greenGainSlider.getValue();
@@ -1629,12 +1602,10 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private java.awt.Label label1;
     private javax.swing.JButton newProfileBtn;
     private javax.swing.JButton okBtn;
     private javax.swing.JPanel rawControlsPane;
     private javax.swing.JPanel rawHistogramPane;
-    private org.photovault.swingui.color.FieldSliderCombo saturationSlider;
     // End of variables declaration//GEN-END:variables
     
 }
