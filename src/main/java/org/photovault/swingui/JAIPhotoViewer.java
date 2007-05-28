@@ -82,7 +82,7 @@ public class JAIPhotoViewer extends JPanel implements
         
         cropPhotoAction = new CropPhotoAction( imageView,
                 "Crop photo", cropIcon, "Crop or rotate the selected photo",
-                KeyEvent.VK_C, null );
+                KeyEvent.VK_O, null );
         
     }
     

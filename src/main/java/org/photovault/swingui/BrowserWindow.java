@@ -154,6 +154,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
                 indexDir();
             }
         };
+        indexDirAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_D );
         indexDirAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Index all images in a directory" );
         
@@ -163,6 +164,11 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
                 importFile();
             }
         };
+        importAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_O );
+        importAction.putValue( AbstractAction.ACCELERATOR_KEY, 
+                KeyStroke.getKeyStroke( KeyEvent.VK_O, 
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ));
+        
         importAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Import new image into database" );
 
@@ -179,6 +185,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         };
         previewTopAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show preview on top of thumbnails" );
+        previewTopAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_T );
+        
         ImageIcon previewRightIcon = getIcon( "view_preview_right.png" );
         previewRightAction = new AbstractAction( "Preview on right", previewRightIcon ) {
             public void actionPerformed( ActionEvent e ) {
@@ -187,6 +195,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         };
         previewRightAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show preview on right of thumbnails" );
+        previewRightAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_R );
+
         ImageIcon previewNoneIcon = getIcon( "view_no_preview.png" );
         previewNoneAction = new AbstractAction( "No preview", previewNoneIcon ) {
             public void actionPerformed( ActionEvent e ) {
@@ -195,6 +205,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         };
         previewNoneAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show no preview image" );
+        previewNoneAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_O );
         
         JToolBar tb = createToolbar();
         cp.add( tb, BorderLayout.NORTH );
@@ -208,6 +219,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	menuBar.add( fileMenu );
 	
 	JMenuItem newWindowItem = new JMenuItem( "New window", KeyEvent.VK_N );
+        newWindowItem.setIcon( getIcon( "window_new.png" ) );
 	newWindowItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
 		    BrowserWindow br = new BrowserWindow();
@@ -220,34 +232,38 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	fileMenu.add( importItem );
 
 	JMenuItem indexDirItem = new JMenuItem( indexDirAction );
-	fileMenu.add( indexDirItem );
+        fileMenu.add( indexDirItem );
         
         
         updateIndexAction.addStatusChangeListener( statusBar );
         JMenuItem updateIndexItem = new JMenuItem( updateIndexAction );
         fileMenu.add( updateIndexItem );
         
-
         ExportSelectedAction exportAction = 
                 (ExportSelectedAction) viewPane.getExportSelectedAction();
 	JMenuItem exportItem = new JMenuItem( exportAction );
         exportAction.addStatusChangeListener( statusBar );
 	fileMenu.add( exportItem );
+
+        JMenu dbMenu = new JMenu( "Database" );
+        dbMenu.setMnemonic( KeyEvent.VK_B );
+        dbMenu.setIcon( getIcon( "empty_icon.png" ) );
         
         ExportMetadataAction exportMetadata = 
                 new ExportMetadataAction( "Export as XML...", null, 
-                "Export whole database as XML file", KeyEvent.VK_T );
-        fileMenu.add( new JMenuItem( exportMetadata ) );
+                "Export whole database as XML file", KeyEvent.VK_E );
+        dbMenu.add( new JMenuItem( exportMetadata ) );
         
         ImportXMLAction importMetadata = 
                 new ImportXMLAction( "Import XML data...", null, 
-                "Import data from other Photovault database as XML", KeyEvent.VK_T );
+                "Import data from other Photovault database as XML", KeyEvent.VK_I );
         importMetadata.addStatusChangeListener( statusBar );
-        fileMenu.add( new JMenuItem( importMetadata ) );
+        dbMenu.add( new JMenuItem( importMetadata ) );
         
-        fileMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
+        fileMenu.add( dbMenu );
         
 	JMenuItem exitItem = new JMenuItem( "Exit", KeyEvent.VK_X );
+        exitItem.setIcon( getIcon( "exit.png" ) );
 	exitItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
 		    System.exit( 0 );
@@ -275,17 +291,19 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	viewMenu.add( prevPhotoItem );
         
         JMenu sortMenu = new JMenu( "Sort by" );
+        sortMenu.setMnemonic( KeyEvent.VK_S );
+        sortMenu.setIcon( getIcon( "empty_icon.png" ) );
         JMenuItem byDateItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
                 new ShootingDateComparator(), "Date", null, 
-                "Order photos by date", null ));
+                "Order photos by date", KeyEvent.VK_D ));
         sortMenu.add( byDateItem );
         JMenuItem byPlaceItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
                 new ShootingPlaceComparator(), "Place", null, 
-                "Order photos by shooting place", null ));
+                "Order photos by shooting place", KeyEvent.VK_P ));
         sortMenu.add( byPlaceItem );
         JMenuItem byQualityItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
                 new QualityComparator(), "Quality", null, 
-                "Order photos by quality", null ));
+                "Order photos by quality", KeyEvent.VK_Q ));
         sortMenu.add( byQualityItem );
         viewMenu.add( sortMenu );
         
@@ -302,6 +320,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	imageMenu.add( new JMenuItem( viewPane.getRotate180degActionAction() ) );
         imageMenu.add( new JMenuItem( previewPane.getCropAction() ) );
         imageMenu.add( new JMenuItem( viewPane.getEditSelectionColorsAction() ) );
+        imageMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
         
         JMenu aboutMenu = new JMenu( "About" );
         aboutMenu.setMnemonic( KeyEvent.VK_A );

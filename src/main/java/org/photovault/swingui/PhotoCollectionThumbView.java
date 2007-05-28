@@ -356,7 +356,7 @@ public class PhotoCollectionThumbView
         editSelectionColorsAction =
                 new EditSelectionColorsAction( this, null, "Adjust colors...", colorsIcon,
                 "Adjust colors of the selected photos",
-                KeyEvent.VK_C );
+                KeyEvent.VK_A );
         JMenuItem colorsItem = new JMenuItem( editSelectionColorsAction );
         ImageIcon showIcon = getIcon( "show_new_window.png" );
         showSelectedPhotoAction =
@@ -370,6 +370,9 @@ public class PhotoCollectionThumbView
                 new RotateSelectedPhotoAction( this, 90, "Rotate 90 deg CW",
                 rotateCWIcon, "Rotates the selected photo clockwise",
                 KeyEvent.VK_R );
+        rotateCWAction.putValue( AbstractAction.ACCELERATOR_KEY, 
+                KeyStroke.getKeyStroke( KeyEvent.VK_R, 
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
         JMenuItem rotateCW = new JMenuItem( rotateCWAction );
         
         ImageIcon rotateCCWIcon = getIcon( "rotate_ccw.png" );
@@ -378,21 +381,25 @@ public class PhotoCollectionThumbView
                 rotateCCWIcon,
                 "Rotates the selected photo counterclockwise",
                 KeyEvent.VK_W );
+        rotateCCWAction.putValue( AbstractAction.ACCELERATOR_KEY, 
+                KeyStroke.getKeyStroke( KeyEvent.VK_L, 
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
         JMenuItem rotateCCW = new JMenuItem( rotateCCWAction );
         
         ImageIcon rotate180Icon = getIcon( "rotate_180.png" );
         rotate180degAction
                 = new RotateSelectedPhotoAction( this, 180, "Rotate 180 deg",
-                rotate180Icon, "Rotates the selected photo 180 degrees", KeyEvent.VK_R );
+                rotate180Icon, "Rotates the selected photo 180 degrees", KeyEvent.VK_T );
         JMenuItem rotate180deg = new JMenuItem( rotate180degAction );
         JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
         addToFolder.addActionListener( this );
         addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
+        addToFolder.setIcon( getIcon( "empty_icon.png" ) );
         ImageIcon exportIcon = getIcon( "filesave.png" );
         exportSelectedAction
                 = new ExportSelectedAction( this, "Export selected...", exportIcon,
                 "Export the selected photos to from archive database to image files",
-                KeyEvent.VK_X );
+                KeyEvent.VK_E );
         JMenuItem exportSelected = new JMenuItem( exportSelectedAction );
         
         ImageIcon deleteSelectedIcon = getIcon( "delete_image.png" );
@@ -404,6 +411,7 @@ public class PhotoCollectionThumbView
         
         // Create the Quality submenu
         JMenu qualityMenu = new JMenu( "Quality" );
+        qualityMenu.setIcon( getIcon( "empty_icon.png" ) );
         String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
         String qualityIconnames[] = { 
             "quality_unevaluated.png", 

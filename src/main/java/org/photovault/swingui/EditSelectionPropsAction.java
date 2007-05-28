@@ -40,7 +40,7 @@ class EditSelectionPropsAction extends AbstractAction implements SelectionChange
 	this.view = view;
 	putValue(SHORT_DESCRIPTION, desc);
         putValue(MNEMONIC_KEY, new Integer( mnemonic) );
-	//	putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_S, ActionEvent.CTRL_MASK ) );
+	putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, ActionEvent.ALT_MASK ) );
 	view.addSelectionChangeListener( this );
 	setEnabled( view.getSelectedCount() > 0 );
     }

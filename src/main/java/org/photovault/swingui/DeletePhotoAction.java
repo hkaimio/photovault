@@ -21,12 +21,14 @@
 package org.photovault.swingui;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import org.photovault.common.PhotovaultException;
 import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
@@ -60,7 +62,7 @@ public class DeletePhotoAction extends AbstractAction implements SelectionChange
 	this.view = view;
 	putValue(SHORT_DESCRIPTION, desc);
         putValue(MNEMONIC_KEY, new Integer( mnemonic) );
-	//	putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_S, ActionEvent.CTRL_MASK ) );
+	putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( KeyEvent.VK_DELETE, 0 ) );
 	view.addSelectionChangeListener( this );
 	setEnabled( view.getSelectedCount() > 0 );
     }
