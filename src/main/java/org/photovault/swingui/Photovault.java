@@ -101,6 +101,8 @@ public class Photovault implements SchemaUpdateListener {
             }
         }
     }
+    
+    static boolean debugTileCache = false;
 
     /**
      Initialize Java Advanced Imaging.
@@ -109,16 +111,18 @@ public class Photovault implements SchemaUpdateListener {
         JAI jaiInstance = JAI.getDefaultInstance();
         jaiInstance.setTileCache( new SunTileCache( 100*1024*1024 ) );
         jaiInstance.setDefaultTileSize( new Dimension( 256, 256 ) );
-        try {
-            Class tcDebugger = Class.forName( "tilecachetool.TCTool" );
-            tcDebugger.newInstance();
-        } catch (InstantiationException ex) {
-            ex.printStackTrace();
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-        } catch (IllegalAccessException ex) {
-            ex.printStackTrace();
-        }        
+        if ( debugTileCache ) {
+            try {
+                Class tcDebugger = Class.forName( "tilecachetool.TCTool" );
+                tcDebugger.newInstance();
+            } catch (InstantiationException ex) {
+                ex.printStackTrace();
+            } catch (ClassNotFoundException ex) {
+                ex.printStackTrace();
+            } catch (IllegalAccessException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
     
     void run() {
@@ -229,9 +233,43 @@ public class Photovault implements SchemaUpdateListener {
         return mac;
     }
     
+    /**
+     Parse command line arguments
+     @param args the arguments supplied to program
+     @return true if parsing was succesful, false otherwise
+     */
+    private static boolean parseArgs( String[] args ) {
+        int n = 0;
+        while ( n < args.length ) {
+            if ( args[n].equals( "-d" ) || args[n].equals( "--debug" ) ) {
+                debugTileCache = true;
+            } else {
+                return false;
+            }
+            n++;
+        }
+        return true;
+    }
+    
+    private static void printUsage() {
+        System.out.println( "Photovault Image Organizer" );
+        System.out.println( "Copyright (c) 2007 Harri Kaimio" );
+        System.out.println();
+        System.out.println( "Usage:" );
+        System.out.println( "photovault [-d]" );
+        System.out.println( "-d Show debug information" );
+        
+        
+    }
+    
+    
     public static void main( String [] args ) {
         URL log4jPropertyURL = Photovault.class.getClassLoader().getResource( "photovault_log4j.properties");
         PropertyConfigurator.configure( log4jPropertyURL );	
+        if ( !parseArgs( args ) ) {
+            printUsage();
+            System.exit( 1 );
+        }
         if ( isMac() || System.getProperty("photovault.useQuaqua", "false" ).equals( "true" ) ) {
             initQuaqua();
         }
