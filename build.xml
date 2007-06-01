@@ -74,23 +74,35 @@
     <pathelement path="src/main/resources"/>
   </path>
 
-<path id="debug.sourcepath" >
+  <path id="debug.sourcepath" >
     <pathelement path="src/main/java"/>
     <pathelement path="src/test/java"/>
-</path>
-  <target name="init">
+  </path>
+
+  <property environment="env"/>
+
+  <target name="check-svn" description="Check whether Subversion is installed">
+    <available property="svn.installed" file="svn" filepath="${env.PATH}"/>
+    <echo message="Subversion installed: ${svn.installed}"/>
+  </target>
+
+<target name="init-svn" if="svn.installed" depends="check-svn" 
+    description="Initialize Subversion state related variables">
+    <!-- Get SCM information & store it into buildinfo.properties -->
+    <exec executable="svnversion" outputproperty="svnrevision" failifexecutionfails="false"> 
+        <arg line="."/>
+    </exec>
+    <svninfoproperties dir="." verbose="true"/> 
+    <echo message="SVN revision: ${svnrevision}"/>
+    <echo message="SVN URL: ${svn.info.url}"/>    
+</target>
+
+  <target name="init" depends="init-svn">
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
 
-    <!-- Get SCM information & store it into buildinfo.properties -->
-    <exec executable="svnversions" outputproperty="svnrevision" failifexecutionfails="false"> 
-        <arg line="."/>
-    </exec>
-    <svninfoproperties dir="." verbose="true"/> 
-    <echo>SVN revision: ${svnrevision}</echo>
-    <echo>SVN URL: ${svn.info.url}</echo>
     <copy file="conf/buildinfo.template.properties" 
 	    tofile="conf/buildinfo.properties"
 	    overwrite="true">
@@ -476,7 +488,8 @@
           </tarfileset>
           <tarfileset dir="lib" prefix="${tardir}/lib">
               <exclude name="**/.svn"/>
-              <exclude name="**/jai_*"/>
+              <exclude name="**/jai_core.jar"/>
+              <exclude name="**/jai_codec.jar"/>
           </tarfileset>
           <tarfileset dir="conf" prefix="${tardir}/conf">
               <exclude name="**/.svn"/>
@@ -522,21 +535,26 @@
           <fileset dir="${dist}/osx" includes="**/*"/>
       </delete>
       
+      <!-- Create the application bundle directory hiearchy -->
       <mkdir dir="${dist}/osx/Photovault.app/Contents"/>
       <mkdir dir="${dist}/osx/Photovault.app/Contents/MacOS"/>
       <mkdir dir="${dist}/osx/Photovault.app/Contents/PkgInfo"/>
       <mkdir dir="${dist}/osx/Photovault.app/Contents/Resources"/>
       <mkdir dir="${dist}/osx/Photovault.app/Contents/Resources/Java"/>
+      
+      <!-- Copy Photovault to bundle -->
       <copy todir="${dist}/osx/Photovault.app/Contents/Resources/Java">
           <fileset dir="${dist}/photovault-latest">
               <exclude name="**/jai_core.jar"/>
               <exclude name="**/jai_codec.jar"/>
           </fileset>
       </copy>
+      <!-- Copy Java framework files -->
       <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/A/Resources/MacOS/JavaApplicationStub"
             todir="${dist}/osx/Photovault.app/Contents/MacOS"/> 
       <copy file="/Developer/Applications/Java Tools/Jar Bundler.app/Contents/Resources/GenericJavaApp.icns"
             todir="${dist}/osx/Photovault.app/Contents/Resources"/>
+      <!-- Create Info.plist with correct version information -->
       <copy file="conf/Info.plist.template" 
             tofile="${dist}/osx/Photovault.app/Contents/Info.plist"
             overwrite="true">
@@ -544,6 +562,8 @@
               <filtersfile file="conf/buildinfo.properties"/>
           </filterset>
       </copy>
+      
+      <!-- Create the disk image file -->
       <exec executable="hdiutil">
           <arg value="create"/>
           <arg value="-srcfolder"/>
