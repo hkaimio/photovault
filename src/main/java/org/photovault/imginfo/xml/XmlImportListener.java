@@ -36,7 +36,7 @@ public interface XmlImportListener {
      @param status New status code, see {@link XmlImporter} documentation for 
      details.
      */
-    public void xmlImportStatus( XmlImporter exporter, int status );
+    public void xmlImportStatus( XmlImporter importer, int status );
 
     /**
      Called if an error occurs during importing.
@@ -47,7 +47,7 @@ public interface XmlImportListener {
     
     /**
      Called when a object has been read from XML file
-     @param exporter The XmlImporter object that initiated the event
+     @param xmlImporter The XmlImporter object that initiated the event
      @param obj The object just importer
      */
     void xmlImportObjectImported(XmlImporter xmlImporter, Object obj);

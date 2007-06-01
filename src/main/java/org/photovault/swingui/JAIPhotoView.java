@@ -562,7 +562,7 @@ public class JAIPhotoView extends JPanel
 
     /**
      Set the zoom scaling factor used for drawing the image
-     @param scale (1.0 = actual scale, no zooming)
+     @param newValue (1.0 = actual scale, no zooming)
      */
     public void setScale( float newValue ) {
 	imgScale = newValue;
@@ -580,7 +580,7 @@ public class JAIPhotoView extends JPanel
 
     /**
      Set the rotation to apply for the image
-     @param rotation in degrees, clockwise
+     @param newRot in degrees, clockwise
      */
     public void setRotation( double newRot ) {
 	newRotDegrees = newRot;

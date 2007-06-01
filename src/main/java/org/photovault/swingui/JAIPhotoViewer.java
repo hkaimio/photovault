@@ -288,7 +288,7 @@ public class JAIPhotoViewer extends JPanel implements
     boolean isFit = true;
     
     /**
-     {@lookup RawImage} of the currently displayed instance or <code>null</code>
+     {@link RawImage} of the currently displayed instance or <code>null</code>
      if current instance is not a raw image.
      */
     RawImage rawImage = null;
@@ -389,7 +389,9 @@ public class JAIPhotoViewer extends JPanel implements
     /**
      Called when color settings in another control that uses this control as 
      a preview image are changed.
-     @param e Event that describes the change.
+     @param v the {@link PhotoInfoView} that initiated the changes
+     @param name Name of the color curve that was changed
+     @param c The changed color curve
      */
     public void colorCurveChanged( PhotoInfoViewAdapter v, String name, ColorCurve c ) {
         PhotoInfo[] model = v.getController().getPhotos();

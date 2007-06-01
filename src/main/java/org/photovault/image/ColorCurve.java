@@ -117,7 +117,7 @@ public class ColorCurve {
     /**
      Get X coordinate of nth control point
      @param n Number of control point
-     @retun X coordinate
+     @return X coordinate
      */
     public double getX( int n ) {
         return pointX[n];
@@ -126,7 +126,7 @@ public class ColorCurve {
     /**
      Get Y coordinate of nth control point
      @param n Number of control point
-     @retun Y coordinate
+     @return Y coordinate
      */
     public double getY( int n ) {
         return pointY[n];

@@ -37,7 +37,7 @@ public class SetPhotoOrderAction extends AbstractAction  {
        @param view The view this action object is associated with. The action gets
        the selection to export from this view.
      * @param c Comparator object that is used to sort the photos
-     * @param texr Test to display in menus
+     * @param text Test to display in menus
      * @param icon Icon that is displayed in menus etc.
     */
     public SetPhotoOrderAction( PhotoCollectionThumbView view, Comparator c, String text, ImageIcon icon,

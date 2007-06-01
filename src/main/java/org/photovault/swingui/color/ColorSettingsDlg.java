@@ -826,10 +826,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
     }
     
-    /**
-     * Exposure slider value was changed
-     * @param evt The event
-     */
 
     RawImage rawPreviewImage = null;
     RawImage previewCtrlImage = null;

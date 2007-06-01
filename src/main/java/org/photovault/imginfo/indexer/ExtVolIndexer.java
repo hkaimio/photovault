@@ -444,7 +444,7 @@ public class ExtVolIndexer implements Runnable {
      in external volume if user so wants. If there already is a directory with
      same name under this folder the indexer uses it, otherwise it creates new
      folderst for each directory.
-     @param folder used as top of the structure or <code>null</code> if no folders
+     @param topFolder used as top of the structure or <code>null</code> if no folders
      should be created.
      */
     public void setTopFolder(PhotoFolder topFolder) {

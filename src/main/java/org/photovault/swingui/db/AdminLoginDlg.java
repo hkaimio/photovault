@@ -191,7 +191,7 @@ public class AdminLoginDlg extends javax.swing.JDialog {
     
     /**
      * Shows the dialog.
-     * @returns the reason for dialog dismissal, either LOGIN_DLG_OK or LOGIN_DLG_CANCEL
+     * @return the reason for dialog dismissal, either LOGIN_DLG_OK or LOGIN_DLG_CANCEL
      */    
     public int showDialog() {
         // Center the dialog on screen

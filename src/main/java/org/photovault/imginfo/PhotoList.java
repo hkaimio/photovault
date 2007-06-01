@@ -70,7 +70,7 @@ public class PhotoList implements PhotoCollection {
 
     /**
      Get nth photo from the collection
-     @param n order umber of the photo
+     @param numPhoto order umber of the photo
      @return Photo
      @throws IndexOutOfBoundsException if n < 0 or n >= getPhotoCount()
      */
@@ -80,7 +80,7 @@ public class PhotoList implements PhotoCollection {
 
     /**
      Add a new photo as the last element of the collection
-     @param photo Photo to add
+     @param p Photo to add
      */
     public void addPhoto( PhotoInfo p ) {
         photos.add( p );
@@ -95,7 +95,7 @@ public class PhotoList implements PhotoCollection {
     
     /**
      Add a new listener
-     @param listener to add
+     @param l to add
      */
     public void addPhotoCollectionChangeListener(PhotoCollectionChangeListener l) {
         listeners.add( l );
@@ -104,7 +104,7 @@ public class PhotoList implements PhotoCollection {
 
     /**
      Remove an existing listener
-     @param listener to remove
+     @param l to remove
      */
     public void removePhotoCollectionChangeListener(PhotoCollectionChangeListener l) {
         listeners.add( l );

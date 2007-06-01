@@ -52,7 +52,7 @@ public class DeletePhotoAction extends AbstractAction implements SelectionChange
      @param view The thumbnail view from which the selection is determined
      @param text Text that is displayed in menus etc for this action
      @param icon Icon for this action
-     @param description Longer description text for this action
+     @param desc Longer description text for this action
      @param mnemonic Shortcut for this action
      
      */

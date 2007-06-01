@@ -29,7 +29,7 @@ public interface ColorCurveChangeListener {
     
     /**
      This method is called every time use moves any of the control points
-     @param p The {@link ColorCUrvePanel} that initiated the event
+     @param p The {@link ColorCurvePanel} that initiated the event
      @param c Curve after applying the change
      */
     public void colorCurveChanging( ColorCurvePanel p, ColorCurve c );
@@ -37,7 +37,7 @@ public interface ColorCurveChangeListener {
     /**
      This method is called after user has completed changing a control point,
      i.e. releases mouse on it.
-     @param p The {@link ColorCUrvePanel} that initiated the event
+     @param p The {@link ColorCurvePanel} that initiated the event
      @param c Curve after applying the change
      */
     public void colorCurveChangeCompleted( ColorCurvePanel p, ColorCurve c );

@@ -22,7 +22,7 @@ package org.photovault.dcraw;
 import java.util.EventObject;
 
 /**
-  This event describes a change to {@linkto RawImage} object (e.g. exposure 
+  This event describes a change to {@link RawImage} object (e.g. exposure 
  settings.
  */
 public class RawImageChangeEvent extends EventObject {

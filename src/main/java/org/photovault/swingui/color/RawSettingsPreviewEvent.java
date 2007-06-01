@@ -43,7 +43,7 @@ public class RawSettingsPreviewEvent extends EventObject {
     
     /** Creates a new instance of RawSettingsPreviewEvent 
      @param src Object that initiated this event
-     @param mode the photos whose settings were changed
+     @param model the photos whose settings were changed
      @param newSettings New settings for the changed photos
      */
     public RawSettingsPreviewEvent( Object src, PhotoInfo[] model,

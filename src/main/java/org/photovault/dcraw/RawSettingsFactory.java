@@ -131,7 +131,7 @@ public class RawSettingsFactory {
     
     /**
      * Set the EV correction
-     * @param evCorr EV correction that will be used (compared to {@link white} setting)
+     * @param evCorr EV correction that will be used (compared to {@link #white} setting)
      */
     public void setEvCorr( double evCorr ) {
         this.evCorr = evCorr;

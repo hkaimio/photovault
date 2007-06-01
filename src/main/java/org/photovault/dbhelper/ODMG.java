@@ -65,8 +65,8 @@ public class ODMG {
      Initialize database connection & OJB ODMG framework
      @param user User name that is used to log into database
      @param passwd password of the user
-     @dbDesc The database that is opened
-     @throws @see PhotovaultException if database login is not succesfull     
+     @param dbDesc The database that is opened
+     @throws {@link org.photovault.common.PhotovaultException} if database login is not succesfull     
      */
     public static void initODMG( String user, String passwd, PVDatabase dbDesc )
         throws PhotovaultException {

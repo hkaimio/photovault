@@ -188,7 +188,7 @@ public class XmlImporter {
          This callback returns the folder to Diester. Unlike the name suggests,
          the method tries not to create a folder, but returns an existing folder
          with given uuid if such one exists.
-         @param attr attributes of the &lt;folder&gr; element.
+         @param attrs attributes of the &lt;folder&gr; element.
          @return The folder with give uuid.
          */
         public Object createObject( Attributes attrs ) {

@@ -21,13 +21,13 @@
 package org.photovault.dcraw;
 
 /**
-  Interface for receiving information about changes to a {@linkto RawImage} 
- in the form of {@linkto RawImageChangeEvent}s
+  Interface for receiving information about changes to a {@link RawImage} 
+ in the form of {@link RawImageChangeEvent}s
  */
 public interface RawImageChangeListener {
     /**
      Called when some settings (exposure, color balance etc.) of an
-     {@linkto RawImage} have been changed
+     {@link RawImage} have been changed
      */
     public void rawImageSettingsChanged( RawImageChangeEvent ev );
 }

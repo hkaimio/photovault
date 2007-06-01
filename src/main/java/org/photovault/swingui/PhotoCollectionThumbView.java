@@ -144,7 +144,7 @@ public class PhotoCollectionThumbView
      Note that PhotoCollectionThumbView can internally sort the collection, so the order
      of photos in returned collection may be different than the display order.
      If you need the collection in same sorting order as displayed use 
-     @see getSortedCollection() instead.
+     {@link #getSortedCollection()} instead.
      */
     public PhotoCollection getCollection() {
         if ( photoCollection != null ) {

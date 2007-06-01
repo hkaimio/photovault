@@ -70,17 +70,18 @@ import org.photovault.image.PhotovaultImage;
  processing it.
  <p>
  <strong>Image processing steps</strong>
- The actual raw image loading and processing until demosaicing is done with dcraw.
+ <p>
+ The actual raw image loading and processing up to demosaicing is done with dcraw.
  Since dcraw pipeline may have some nonlinear processing steps (at least when 
- camera ICC profile is used) that is done <em>after</em> color correction the
- resultin image can have color effects that depend non-desirable way from actual 
+ camera ICC profile is used) that are done <em>after</em> color correction the
+ resulting image can have color effects that depend in non-desirable way from actual 
  white balance settings.
  <p>
- To avoid this I load image from dcraw always with the daylight color correction
- recommended in the image file (stored to daylightMultipliers) and do actual white 
+ To avoid this I load image from dcraw always using the daylight color correction
+ recommended in the image file (stored to daylightMultipliers). I then do the actual white 
  balance correction here. This is certainly non-optimal and at least in theory 
  can lead to lost accuracy or even color clipping. But at least it behaves
- predictable.
+ predictably.
  <p>
  As a summary, the processing steps done for raw image are
  <ul>
@@ -472,7 +473,7 @@ public class RawImage extends PhotovaultImage {
      @param minHeight The preferred minimum image height.
      @return <code>True</code> if given minimum size was larger than the already 
      loaded version. In this case the caller should reload image using 
-     {@link getCorrectedImage()}.
+     {@link #getCorrectedImage()}.
      @deprecated Use scaling paremeters in getRenderedImage instead.
      */
     public boolean setMinimumPreferredSize( int minWidth, int minHeight ) {
@@ -1033,8 +1034,8 @@ public class RawImage extends PhotovaultImage {
     }
     
     /**
-     * Set the color temperature to use when converting the image
-     * @param T Color temperature (in Kelvin)
+     * Set the green gain to use when converting the image
+     * @param g Green gain
      */
     public void setGreenGain( double g ) {
         greenGain = g;

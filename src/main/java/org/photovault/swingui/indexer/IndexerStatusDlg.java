@@ -228,7 +228,7 @@ public class IndexerStatusDlg extends javax.swing.JDialog implements ExtVolIndex
     
     /**
      This method is called after the indexing operation is complete
-     @ indexer The indexer that has completed its work.
+     @param indexer The indexer that has completed its work.
      */
     public void indexingComplete(ExtVolIndexer indexer) {
         closeBtn.setEnabled( true );

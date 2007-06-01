@@ -48,8 +48,8 @@ public class PhotovaultImageFactory {
      memory immediately. If <code>false</code> it will be read upon demand.
      @return Object of a subclass of PhotovaultImage if the file can be read. 
      <code>null</code> if it not of an recognized image file format.
-     @throws PhotovaultException if dcraw has not been initialized properly ({@see 
-     DCRawProcessWrapper})
+     @throws PhotovaultException if dcraw has not been initialized properly ({@link 
+     org.photovault.dcraw.DCRawProcessWrapper})
      */
     public PhotovaultImage create( File f, boolean loadImage, boolean loadMetadata )
             throws PhotovaultException {

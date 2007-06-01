@@ -44,7 +44,7 @@ import javax.swing.text.NumberFormatter;
 
 /**
  * A combined UI control that allows changing of a double parameter using either
- * {@link JSlider} or {@link JFormattedtextField}. API of the control represents
+ * {@link JSlider} or {@link javax.swing.JFormattedTextField}. API of the control represents
  * JSlider but it has the following additional features:
  * <ul>
  *    <li>Possibility to add annotations (small blue diamond figures) at given
@@ -182,7 +182,7 @@ public class FieldSliderCombo extends javax.swing.JPanel {
     
     /**
      * Set the label table
-     * @param labels New label table. See {@link labels} for details of the content of the Hashtable.
+     * @param labels New label table. See {@link #labels} for details of the content of the Hashtable.
      */
     public void setLabelTable( Map labels ) {
         this.labels = labels;
@@ -191,7 +191,7 @@ public class FieldSliderCombo extends javax.swing.JPanel {
     
     /**
      * Get the current lables.
-     * @return See {@link labels} for details of the content of the Hashtable.
+     * @return See {@link #labels} for details of the content of the Hashtable.
      */
     public Map getLableTable( ) {
         return labels;

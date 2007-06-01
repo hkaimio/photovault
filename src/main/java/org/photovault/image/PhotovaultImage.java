@@ -416,7 +416,7 @@ public abstract class PhotovaultImage {
     /**
      *     Set color channel mapping
      * 
-     * @param channelMap New mapping of color channels
+     * @param cm New mapping of color channels
      */
     public void setColorAdjustment( ChannelMapOperation cm ) {
         this.channelMap = cm;

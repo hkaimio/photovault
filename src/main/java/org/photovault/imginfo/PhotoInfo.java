@@ -411,7 +411,7 @@ public class PhotoInfo {
      @deprecated This method does not do any error checking whether the instances
      are actually deleted. This is sometimes useful for e.g. cleaning up a test
      environment but production code should use 
-     {@see delete( boolean deleteExternalInstances )} instead.
+     {@link #delete( boolean deleteExternalInstances )} instead.
      */
     public void delete() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
@@ -939,7 +939,7 @@ public class PhotoInfo {
     /**
      Helper function to save a rendered image to file
      @param instanceFile The file into which the image will be saved
-     @img Image that willb e saved
+     @param img Image that willb e saved
      @throws PhotovaultException if saving does not succeed
      */
     protected void saveInstance( File instanceFile, RenderedImage img ) throws PhotovaultException {
@@ -1843,7 +1843,7 @@ public class PhotoInfo {
      preferred way of creating a new photo into the DB.
      @param newFname The original file name
      @throws IllegalArgumentException if the given file name is longer than
-     @see ORIG_FNAME_LENGTH
+     {@link #ORIG_FNAME_LENGTH}
      */
     public final void setOrigFname(final String newFname) {
         checkStringProperty( "OrigFname", newFname, ORIG_FNAME_LENGTH );

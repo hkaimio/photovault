@@ -137,8 +137,8 @@ public abstract class VolumeBase {
     /**
      Tis abstract method must be overloaded so that it returns a file path in which a
      new instanc of a certain PhotoInfo object can be stored.
-     @photo The PhotoInfo objec which instance will be stored into the volume
-     @strExtension Filename extension for the photo
+     @param photo The PhotoInfo objec which instance will be stored into the volume
+     @param strExtension Filename extension for the photo
      @return A unique file name in the directory hierarchy controlled by the 
      volume or <code>null</code> if the volume does not allow storing on the image
      */
@@ -151,7 +151,7 @@ public abstract class VolumeBase {
      The default implementation just constructs an apsolute path by adding the file name
      to volume bas directory.
      @param fname File name to map
-     @returns An absolute path to the file
+     @return An absolute path to the file
      @throws FileNotFoundException if there is no file with the given name
      */
     public File mapFileName( String fname ) throws FileNotFoundException {

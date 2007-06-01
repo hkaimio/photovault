@@ -125,7 +125,7 @@ public class RawConversionSettings implements Cloneable {
 
     /**
      *     Get the white point
-     * @return See {@link white}
+     * @return See {@link #white}
      */
     public int getWhite() {
         return white;
@@ -134,7 +134,7 @@ public class RawConversionSettings implements Cloneable {
     /**
      *     Get the black point
      * 
-     * @return See {@link black}
+     * @return See {@link #black}
      */
     public int getBlack() {
         return black;
@@ -142,7 +142,7 @@ public class RawConversionSettings implements Cloneable {
     
     /**
      *     Get exposure correction
-     * @return See {@link evCorr}
+     * @return See {@link #evCorr}
      */
     public double getEvCorr() {
         return evCorr;
@@ -158,7 +158,7 @@ public class RawConversionSettings implements Cloneable {
     
     /**
      * Get info whether to use embedded color profile
-     * @return See {@link useEmbeddedICCProfile}
+     * @return See {@link #useEmbeddedICCProfile}
      */
     public boolean getUseEmbeddedICCProfile() {
         return useEmbeddedICCProfile;
@@ -176,8 +176,8 @@ public class RawConversionSettings implements Cloneable {
     
     /**
      * Get the method for setting white balance
-     * @return One of {@link WB_AUTOMATIC}, {@link WB_MANUAL} 
-     * or {@link WB_CAMERA}
+     * @return One of {@link #WB_AUTOMATIC}, {@link #WB_MANUAL} 
+     * or {@link #WB_CAMERA}
      */
     public int getWhiteBalanceType() {
         return whiteBalanceType;
@@ -185,7 +185,7 @@ public class RawConversionSettings implements Cloneable {
 
     /**
      * Get the red/green channel multiplier ratio
-     * @return see {@link redGreenRatio}
+     * @return see {@link #redGreenRatio}
      */
     public double getRedGreenRatio() {
         return redGreenRatio;
@@ -193,7 +193,7 @@ public class RawConversionSettings implements Cloneable {
 
     /**
      * Get blue/green channel multiplier ratio
-     * @return See {@link blueGreenRatio}
+     * @return See {@link #blueGreenRatio}
      */
     public double getBlueGreenRatio() {
         return blueGreenRatio;
@@ -201,7 +201,7 @@ public class RawConversionSettings implements Cloneable {
 
     /**
      * Get daylight channel multipliers
-     * @return See {@link daylightRedGreenRation}
+     * @return See {@link #daylightRedGreenRatio}
      */
     public double getDaylightRedGreenRatio() {
         return daylightRedGreenRatio;
@@ -209,7 +209,7 @@ public class RawConversionSettings implements Cloneable {
 
     /**
      * Get daylight channel multipliers
-     * @return See {@link daylightRedGreenRation}
+     * @return See {@link #daylightBlueGreenRatio}
      */
     public double getDaylightBlueGreenRatio() {
         return daylightBlueGreenRatio;
@@ -355,7 +355,7 @@ public class RawConversionSettings implements Cloneable {
     /**
      * Creates a new RawConversionSettings object using color temperature
      * @param colorTemp Color temperature
-     * @param green Green gain to use
+     * @param greenGain Green gain to use
      * @param daylightMult daylight channel multipliers (3 doubles)
      * @param white White pixel value
      * @param black Black pixel value

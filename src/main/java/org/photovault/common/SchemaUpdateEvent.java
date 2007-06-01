@@ -41,9 +41,10 @@ public class SchemaUpdateEvent {
     
     /**
      Get the current phase of schema update - either 
-     @see SchemaUpdateAction.PHASE_ALTER_SCHEMA, 
-     @see SchemaUpdateAction.PHASE_CREATING_HASHES or
-     @see SchemaUpdateAction.PHASE_COMPLETE.
+     {@link SchemaUpdateAction#PHASE_ALTERING_SCHEMA}, 
+     {@link SchemaUpdateAction#PHASE_CREATING_HASHES} or
+     {@link SchemaUpdateAction#PHASE_COMPLETE}.
+     @see SchemaUpdateAction
      */
     public int getPhase() {
         return phase;

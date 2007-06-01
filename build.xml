@@ -434,14 +434,13 @@
              author="true"
              version="true"
              use="true"
-             windowtitle="Test API">
+             windowtitle="Photovault API documentation">
 
       <classpath refid="project.class.path"/>
-      <doctitle><![CDATA[<h1>Photo archive</h1>]]></doctitle>
-      <bottom><![CDATA[<i>Copyright &#169; 2004 Harri Kaimio</i>]]></bottom>
+      <doctitle><![CDATA[<h1>Photovault</h1>]]></doctitle>
+      <bottom><![CDATA[<i>Copyright &#169; 2007 Harri Kaimio</i>]]></bottom>
       <tag name="todo" scope="all" description="To do:" />
-      <link offline="true" href="http://java.sun.com/products/jdk/1.2/docs/api/" packagelistLoc="C:\tmp"/>
-      <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+      <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
     </javadoc>
   </target>
   <target name="clean"
