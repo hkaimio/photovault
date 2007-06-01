@@ -85,7 +85,7 @@
     <mkdir dir="${build}"/>
 
     <!-- Get SCM information & store it into buildinfo.properties -->
-    <exec executable="svnversion" outputproperty="svnrevision" failifexecutionfails="no"> 
+    <exec executable="svnversions" outputproperty="svnrevision" failifexecutionfails="false"> 
         <arg line="."/>
     </exec>
     <svninfoproperties dir="." verbose="true"/> 
