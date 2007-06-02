@@ -259,7 +259,7 @@ public class RawImage extends PhotovaultImage {
      * not available
      */
     public Date getTimestamp() {
-        return timestamp;
+        return (timestamp!= null) ? (Date) timestamp.clone()  : null;
     }
     
     /**
@@ -324,7 +324,7 @@ public class RawImage extends PhotovaultImage {
      * @return The multipliers (4 doubles, RGBG)
      */
     public double[] getCameraMultipliers() {
-        return cameraMultipliers;
+        return (cameraMultipliers != null) ? cameraMultipliers.clone() : null;
     }
     
     /**
@@ -333,7 +333,7 @@ public class RawImage extends PhotovaultImage {
      * @return The multipliers (3 doubles, RGB)
      */
     public double[] getDaylightMultipliers() {
-        return daylightMultipliers;
+        return (daylightMultipliers != null) ? daylightMultipliers.clone() : null;
     }
     
     
@@ -384,7 +384,7 @@ public class RawImage extends PhotovaultImage {
     
     
     public int[][] getHistogramBins() {
-        return histBins;
+        return (histBins!=null) ? histBins.clone() : null;
     }
     
     /** Creates a new instance of RawImage
@@ -460,7 +460,7 @@ public class RawImage extends PhotovaultImage {
             // Store the color model of the image
             ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_sRGB );
             cm = new ComponentColorModel( cs, new int[]{8,8,8},
-                    false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE );            
+                    false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE );
         }
         return correctedImage;
     }
@@ -636,7 +636,7 @@ public class RawImage extends PhotovaultImage {
         double highVal[] = {65535.};
         RenderedOp histOp = 
                 HistogramDescriptor.create( rawImage, null,
-                new Integer(1), new Integer(1),
+                Integer.valueOf( 1 ), Integer.valueOf( 1 ),
                 numBins, lowVal, highVal, null );
         
         Histogram hist = (Histogram) histOp.getProperty( "histogram" );
@@ -687,7 +687,7 @@ public class RawImage extends PhotovaultImage {
         double lowVal[] = {0.};
         double highVal[] = {65535.};
         RenderedOp histOp = HistogramDescriptor.create( lumImg, null,
-                new Integer(1), new Integer(1),
+                Integer.valueOf( 1 ), Integer.valueOf( 1 ),
                 numBins, lowVal, highVal, null );
         
         Histogram hist = (Histogram) histOp.getProperty( "histogram" );
@@ -934,7 +934,7 @@ public class RawImage extends PhotovaultImage {
         if ( gammaLut == null ) {
             createGammaLut();
         }
-        return gammaLut;
+        return (gammaLut != null) ? gammaLut.clone() : null;
     }
     
     final static double XYZ_to_RGB[][] = {
@@ -1039,10 +1039,7 @@ public class RawImage extends PhotovaultImage {
      */
     public void setGreenGain( double g ) {
         greenGain = g;
-        applyWbCorrection();
-        
-        double rgb[] = colorTempToRGB( ctemp );
-        
+        applyWbCorrection();        
         rawSettings = null;
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }

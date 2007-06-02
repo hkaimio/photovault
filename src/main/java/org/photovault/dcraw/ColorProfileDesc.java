@@ -137,14 +137,14 @@ public class ColorProfileDesc {
      * @return MD hash of the ICC profile hash
      */
     public byte[] getHash() {
-        return hash;
+        return (hash != null) ? hash.clone() : null;
     }
 
     /**
      * Set the hash
      * @param hash New MD5 hash
      */
-    public void setHash(byte[] hash) {
+    private void setHash(byte[] hash) {
         this.hash = hash;
     }
     

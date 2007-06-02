@@ -86,12 +86,6 @@ public class XmlImporter {
     int folderCount = 0;
 
     /**
-     Number of instances imported
-     */
-    int instanceCount = 0;
-    
-    
-    /**
      Get the number of imported new folders
      @return Number of new folders imported during the ongoing operation
      */
@@ -169,7 +163,7 @@ public class XmlImporter {
      first stris to find a fodler with the uuid specified in XML. If no such 
      folder is found, a new folder is created.
      */
-    public class FolderFactory extends AbstractObjectCreationFactory {
+    public static class FolderFactory extends AbstractObjectCreationFactory {
 
         /**
          If true, always set the parent of the folder from either parent-id 
@@ -235,7 +229,7 @@ public class XmlImporter {
      first tries to find a photo with the uuid specified in XML. If no such 
      photo is found, a new folder is created.
      */
-    public class PhotoFactory extends AbstractObjectCreationFactory {
+    public static class PhotoFactory extends AbstractObjectCreationFactory {
         public PhotoFactory( ) {
 
         }
@@ -254,9 +248,9 @@ public class XmlImporter {
             
             if ( p == null ) {
                 p = PhotoInfo.create( uuid );
-                digester.push( STACK_CREATING_NEW, new Boolean( true ) );
+                digester.push( STACK_CREATING_NEW, Boolean.TRUE );
             } else {
-                digester.push( STACK_CREATING_NEW, new Boolean( false ) );                
+                digester.push( STACK_CREATING_NEW, Boolean.FALSE );                
             }
             return p;
         }
@@ -267,7 +261,7 @@ public class XmlImporter {
      first tries to find a photo with the uuid specified in XML. If no such 
      photo is found, a new folder is created.
      */
-    public class InstanceFactory extends AbstractObjectCreationFactory {
+    public static class InstanceFactory extends AbstractObjectCreationFactory {
         public InstanceFactory() {
             
         }
@@ -301,7 +295,7 @@ public class XmlImporter {
     /**
      Factory object for creating a rectangle2D object based on crop element.
      */
-    public class RectangleFactory extends AbstractObjectCreationFactory {
+    public static class RectangleFactory extends AbstractObjectCreationFactory {
         public RectangleFactory() {
             
         }
@@ -323,7 +317,7 @@ public class XmlImporter {
     /**
      Factory for creating fuzzy date in Digester rule
      */
-    public class FuzzyDateFactory extends AbstractObjectCreationFactory {
+    public static class FuzzyDateFactory extends AbstractObjectCreationFactory {
         public FuzzyDateFactory() {
             
         }
@@ -344,7 +338,6 @@ public class XmlImporter {
      Import data from XML file according to current settings in this object.
      */
     public void importData() {
-        final XmlImporter tthis = this;
         Digester digester = new Digester();
         digester.push(this); // Push controller servlet onto the stack
         digester.setValidating(false);

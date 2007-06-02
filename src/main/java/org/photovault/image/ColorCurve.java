@@ -217,6 +217,19 @@ public class ColorCurve {
     }
     
     /**
+     Calculate hash code for this curve.
+     */
+    public int hashCode() {
+        long hash = 0;
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            // We cannot use the hash codes for doubles directly since we allow error
+            // margin in equality.
+            hash = hash * 31 + Math.round( pointX[n] * 1000 ) + Math.round( pointY[n] * 1000 );
+        }
+        return (int)( hash % Integer.MAX_VALUE );
+    }    
+    
+    /**
      Recalculate Bezier coefficients based on current control points.
      */
     private void calcCoeffs() {

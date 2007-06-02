@@ -60,8 +60,6 @@ public class ColorProfileInstance {
      */
     String fname;
     
-    File profileFile = null;
-    
     /**
      * Get the volume in which this instance is stored
      * @return The Volume of this instance
@@ -85,5 +83,12 @@ public class ColorProfileInstance {
             ex.printStackTrace();
         }
         return ret;
+    }
+    
+    /**
+     Get the profile description for this profile.
+     */
+    public ColorProfileDesc getProfile() {
+        return profile;
     }
 }

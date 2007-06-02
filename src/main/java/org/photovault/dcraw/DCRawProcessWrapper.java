@@ -62,7 +62,6 @@ public class DCRawProcessWrapper {
                     "for this architecture" );
         }
         ArrayList cmd = new ArrayList();
-        PhotovaultSettings settings = PhotovaultSettings.getSettings();
         cmd.add( DCRAW_CMD );
         // Output to stdout
         cmd.add( "-c" );

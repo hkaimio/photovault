@@ -152,7 +152,6 @@ public class ColorCurvePanel extends javax.swing.JPanel {
             int bin = 0;
             int x = 0;
             double ymax = 0;
-            double remainingSample = histogram[0];
             int sample = 0;
             while ( sample < histogram.length ) {
                 // Check if next histogram bin is so close that is goes to the 
@@ -346,8 +345,6 @@ public class ColorCurvePanel extends javax.swing.JPanel {
     private void paintCurve( ColorCurve c, Graphics2D g ) {
         // Paint curve segments
         
-        AffineTransform old = g.getTransform();
-        AffineTransform xform = AffineTransform.getScaleInstance( 100, 100 );
         for ( int n = 0 ; n < c.getPointCount()-1 ; n++ ) {
             CubicCurve2D segment = c.getSegment( n );
             double dw = getWidth();
@@ -405,6 +402,7 @@ public class ColorCurvePanel extends javax.swing.JPanel {
         
         // Draw points
         Stroke handleStroke = new BasicStroke( 1.0f );
+        g2.setStroke( handleStroke );
         g2.setColor( Color.BLACK );
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_OFF );
@@ -448,7 +446,7 @@ public class ColorCurvePanel extends javax.swing.JPanel {
      Number of pixels that mouse press position can differ from control point 
      (hamming distance) so that it is still considered a hit.
      */
-    final int MOUSE_THRESHOLD = 5;
+    final static int MOUSE_THRESHOLD = 5;
     
     /**
      Get control point in given location

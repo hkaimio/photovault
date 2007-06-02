@@ -112,7 +112,6 @@ public abstract class PhotovaultImage {
     public abstract ColorModel getCorrectedImageColorModel();
     
     RenderableOp previousCorrectedImage = null;
-    RenderableOp origRenderable = null;
     RenderableOp cropped = null;
     RenderableOp saturated = null;
     
@@ -296,8 +295,8 @@ public abstract class PhotovaultImage {
         return rendered;
     }
     
-    public static String HISTOGRAM_RGB_CHANNELS = "rgb";
-    public static String HISTOGRAM_IHS_CHANNELS = "ihs";
+    public static final String HISTOGRAM_RGB_CHANNELS = "rgb";
+    public static final String HISTOGRAM_IHS_CHANNELS = "ihs";
 
     /**
      Get a histogram of a specific phase of imaging pipeline
@@ -335,7 +334,7 @@ public abstract class PhotovaultImage {
                 highValue[n] = (double) numBins[n] - 1.0;
             }
             RenderedOp histOp = HistogramDescriptor.create( src, null, 
-                    new Integer( 1 ), new Integer( 1 ), 
+                    Integer.valueOf( 1 ), Integer.valueOf( 1 ), 
                     numBins, lowValue, highValue, null );
             ret = (Histogram) histOp.getProperty( "histogram" );
         }
@@ -751,8 +750,6 @@ public abstract class PhotovaultImage {
     
     protected RenderableOp getColorCorrected( RenderableOp src ) {
         // Initialize lookup table based on original image color model
-        ColorModel cm = this.getCorrectedImageColorModel();
-        int[] componentSizes = cm.getComponentSize();
         LookupTableJAI jailut = createColorMappingLUT();
         return LookupDescriptor.createRenderable( src, jailut, null );        
     }

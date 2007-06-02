@@ -247,7 +247,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      */
     private JComponent getSliderLabel( String txt ) {
         if ( sliderLabelDimension == null ) {
-            JLabel maxLabel = new JLabel( new Integer( 12000 ).toString() );
+            JLabel maxLabel = new JLabel( String.valueOf( 12000 ) );
             sliderLabelDimension = maxLabel.getPreferredSize();
         }
         JLabel l = new JLabel( txt, SwingConstants.CENTER );
@@ -758,7 +758,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             File profileFile = fc.getSelectedFile();
             ColorProfileDesc.CreateProfile createProfAction = 
                     new ColorProfileDesc.CreateProfile( profileFile, profileFile.getName(), "" );
-            ColorProfileDesc p = createProfAction.execute();
+            createProfAction.execute();
             updateColorProfiles();
         }
     }//GEN-LAST:event_newProfileBtnActionPerformed

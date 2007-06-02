@@ -352,7 +352,7 @@ public class FieldSliderCombo extends javax.swing.JPanel {
         for ( double d = minVal; d <= maxVal ; d += labelSpacing ) {
             int p = getSliderPos( d );
             String labelStr = fmt.format( d );
-            t.put( new Integer( p ), new JLabel( labelStr ) );
+            t.put( Integer.valueOf( p ), new JLabel( labelStr ) );
         }
     }
     
@@ -367,7 +367,7 @@ public class FieldSliderCombo extends javax.swing.JPanel {
             while ( iter.hasNext() ) {
                 Map.Entry e = (Entry) iter.next();
                 double vp = ((Number)e.getKey()).doubleValue();
-                sliderLabels.put( new Integer( getSliderPos(vp) ), e.getValue() );
+                sliderLabels.put( Integer.valueOf( getSliderPos(vp) ), e.getValue() );
             }
         } else {
             createStandardLabels( sliderLabels );
@@ -376,14 +376,14 @@ public class FieldSliderCombo extends javax.swing.JPanel {
             for ( int n = 0; n < annotations.length; n++ ) {
                 int v = getSliderPos( annotations[n] );
                 if ( v >= valueSlider.getMinimum() && v <= valueSlider.getMaximum() ) {
-                Integer k = new Integer( v );
+                Integer k = Integer.valueOf( v );
                 if ( sliderLabels.containsKey( k ) ) {
                     if ( v == valueSlider.getMaximum() ) {
                         v--;
                     } else {
                         v++;
                     }
-                    k = new Integer( v );
+                    k = Integer.valueOf( v );
                 }
                 sliderLabels.put( k, new ColorSettingsDlg.ModelValueAnnotation( Color.BLUE ) );
                 }
@@ -395,7 +395,7 @@ public class FieldSliderCombo extends javax.swing.JPanel {
              labels (that do not take sliderMult into account) if no labels are set).
              So let's create an empty label.
              */
-            sliderLabels.put( new Integer( valueSlider.getMinimum() ), new JLabel( "" ) );
+            sliderLabels.put( Integer.valueOf( valueSlider.getMinimum() ), new JLabel( "" ) );
         }
         valueSlider.setLabelTable( sliderLabels );
     }
