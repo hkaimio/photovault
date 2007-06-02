@@ -112,11 +112,6 @@ public class ImageXform {
 	    }
 	}
 
-	Point p = new Point();
-	p.setLocation( minX, minY );
-	Dimension d = new Dimension();
-	d.setSize( maxX-minX, maxY-minY );
-	 
-	return new Rectangle( p, d );
+	return new Rectangle2D.Double( minX, minY, maxX-minX, maxY-minY );
     }
 }

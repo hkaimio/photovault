@@ -84,7 +84,10 @@ public class Test_ImageXform extends TestCase {
     public static Test suite() {
 	return new TestSuite( Test_ImageXform.class );
     }
-
+    
+    public static void main( String[] args ) {
+	junit.textui.TestRunner.run( suite() );
+    }        
 }
 
     

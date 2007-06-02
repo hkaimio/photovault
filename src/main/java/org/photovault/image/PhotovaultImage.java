@@ -655,7 +655,8 @@ public abstract class PhotovaultImage {
         float cropWidth = (float) (cropMaxX - cropMinX);
         cropWidth = ( cropWidth > 0.000001 ) ? cropWidth : 0.000001f;
         float cropHeight = (float) (cropMaxY - cropMinY);
-        cropHeight = ( cropHeight > 0.000001 ) ? cropHeight : 0.000001f;        
+        cropHeight = ( cropHeight > 0.000001 ) ? cropHeight : 0.000001f; 
+        
         float cropX = (float)(rotatedImage.getMinX() + cropMinX * rotatedImage.getWidth());
         float cropY = (float)(rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight());
         float cropW = cropWidth * rotatedImage.getWidth();

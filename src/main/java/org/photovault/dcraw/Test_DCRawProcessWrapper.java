@@ -24,28 +24,13 @@ package org.photovault.dcraw;
 import com.sun.media.jai.codec.ImageCodec;
 import com.sun.media.jai.codec.ImageEncoder;
 import com.sun.media.jai.codec.JPEGEncodeParam;
-import com.sun.media.jai.codec.SeekableStream;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Iterator;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import javax.media.jai.Interpolation;
-import javax.media.jai.JAI;
-import javax.media.jai.LookupTableJAI;
-import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
-import javax.media.jai.RenderableOp;
-import javax.media.jai.RenderedOp;
+import javax.media.jai.RenderedImageAdapter;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -75,17 +60,9 @@ public class Test_DCRawProcessWrapper extends TestCase {
             } catch (PhotovaultException ex) {
                 fail( ex.getMessage() );
             }
-            RenderableOp img = ri.getCorrectedImage();
-            AffineTransform thumbScale = org.photovault.image.ImageXform.getFittingXform( 200, 200,
-                    0,
-                    img.getWidth(), img.getHeight() );
-            ParameterBlockJAI thumbScaleParams = new ParameterBlockJAI( "affine" );
-            thumbScaleParams.addSource( img );
-            thumbScaleParams.setParameter( "transform", thumbScale );
-            thumbScaleParams.setParameter( "interpolation",
-                    Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
-            PlanarImage thumbImage = JAI.create( "affine", thumbScaleParams );
-            
+
+            PlanarImage thumbImage = new RenderedImageAdapter( ri.getRenderedImage( 200, 200, true ) );
+
             JPEGEncodeParam encodeParam = new JPEGEncodeParam();
             ImageEncoder encoder = ImageCodec.createImageEncoder("JPEG", os,
                     encodeParam);

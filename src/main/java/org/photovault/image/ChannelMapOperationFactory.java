@@ -72,7 +72,11 @@ public class ChannelMapOperationFactory {
      @param curve New curve for the channel
      */
     public void setChannelCurve( String channel, ColorCurve curve ) {
-        channelCurves.put( channel, curve );
+        if ( curve != null ) {
+            channelCurves.put( channel, curve );
+        } else {
+            channelCurves.remove( channel );
+        }
     }
     
     /**

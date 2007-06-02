@@ -454,8 +454,8 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	try {
 	    Thumbnail thumb = photo.getThumbnail();
 	    assertNotNull( thumb );
-	    assertTrue( "Database is corrupt, should return default thumbnail",
-			thumb == Thumbnail.getDefaultThumbnail() );
+	    assertTrue( "Database is corrupt, should return error thumbnail",
+			thumb == Thumbnail.getErrorThumbnail() );
 	    assertEquals( "Database is corrupt, getThumbnail should not create a new instance",
 			  numInstances, photo.getNumInstances() );
 	    
@@ -518,8 +518,9 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         
 	PhotoInfo photo = PhotoInfo.create();
 	Thumbnail thumb = photo.getThumbnail();
-	assertTrue( "getThumbnail should return default thumbnail",
-		    thumb == Thumbnail.getDefaultThumbnail() ) ;
+        // TODO: Should getThumbnail really return defaultThumbnail in this situation?
+	assertTrue( "getThumbnail should return error thumbnail",
+		    thumb == Thumbnail.getErrorThumbnail() ) ;
 	assertEquals( "No new instances should have been created", 0, photo.getNumInstances() );
 
 	// Create a new instance and check that a valid thumbnail is returned after this

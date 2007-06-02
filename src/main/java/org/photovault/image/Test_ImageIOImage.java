@@ -44,7 +44,7 @@ public class Test_ImageIOImage extends TestCase {
         assertEquals( img.getCamera(), "Minolta Co., Ltd. DiMAGE 7i" );
         assertEquals( img.getAperture(), 3.5 );
         assertEquals( img.getShutterSpeed(), 0.1 );
-        RenderableOp ri = img.getCorrectedImage();
+        RenderedImage ri = img.getRenderedImage( 1.0, false );
         assertEquals( 2560, ri.getWidth() );
         assertEquals( 1920, ri.getHeight() );
     }
