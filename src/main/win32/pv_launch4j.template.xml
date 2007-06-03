@@ -11,9 +11,8 @@
   <icon></icon>
   <jre>
     <path></path>
-    <minVersion>1.4.2</minVersion>
-    <initialHeapSize>256</initialHeapSize>
-    <maxHeapSize>512</maxHeapSize>
+    <minVersion>1.5.0</minVersion>
+    <maxHeapSize>@heap.max_size@</maxHeapSize>
     <args>-Dpv.basedir="%EXEDIR%"</args>
   </jre>
   <versionInfo>

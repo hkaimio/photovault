@@ -910,6 +910,10 @@ public class PhotoInfo {
         
         try {
             saveInstance( thumbnailFile, thumbImage );
+            if ( thumbImage instanceof PlanarImage ) {
+                ((PlanarImage)thumbImage).dispose();
+                System.gc();
+            }
         } catch (PhotovaultException ex) {
             log.error( "error writing thumbnail for " + original.getImageFile().getAbsolutePath() + 
                     ": " + ex.getMessage() );
@@ -1178,6 +1182,10 @@ public class PhotoInfo {
                 } finally {
                     if (ios != null) ios.close();
                     writer.dispose();
+                    if ( exportImage != null & exportImage instanceof PlanarImage ) {
+                        ((PlanarImage)exportImage).dispose();
+                        System.gc();
+                    }
                 }
             }
             

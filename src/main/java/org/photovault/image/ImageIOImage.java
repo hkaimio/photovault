@@ -386,9 +386,13 @@ public class ImageIOImage extends PhotovaultImage {
     }
     
     /**
-     * Load the image and/or metadata
-     * @param loadImage Load the image pixel data if <CODE>true</CODE>
-     * @param loadMetadata Load image metadata if <CODE>true</CODE>.
+     Load the image and/or metadata
+     @param loadImage Load the image pixel data if <CODE>true</CODE>
+     @param loadMetadata Load image metadata if <CODE>true</CODE>.
+     @param minWidth Minimum width of the loaded image
+     @param minHeight Minimum height of the loaded image
+     @param isLowQualityAllowed If <code>true</code>, use larger subsampling 
+     to speed up loading.
      */
     private void load( boolean loadImage, boolean loadMetadata, 
             int minWidth, int minHeight, boolean isLowQualityAllowed ) {
@@ -416,7 +420,22 @@ public class ImageIOImage extends PhotovaultImage {
                                 ri = readSubsampled( reader, minWidth, minHeight );
                             }
                         } else {
-                            ri = reader.read( 0, null );
+                            /*
+                             High quality image is requested.
+                             
+                             If the image is very large, use subsampling anyway
+                             to decrease memory consumption & speed up interactive 
+                             operations. Anyway, most often user just views image 
+                             at screen resolution
+                             */
+                            ImageReadParam param = reader.getDefaultReadParam();
+                            
+
+                            if ( minWidth * 2 < width && minHeight * 2 < height ) {
+                                param.setSourceSubsampling( 2, 2, 0, 0 );
+                            }
+                                ri = reader.read( 0, param );
+                            
                         }
                         if ( ri != null ) {                            
                             /*

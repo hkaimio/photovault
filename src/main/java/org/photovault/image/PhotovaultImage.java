@@ -234,6 +234,10 @@ public abstract class PhotovaultImage {
         hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
         
         RenderedImage rendered = null;
+        if ( lastRendering != null && lastRendering instanceof PlanarImage ) {
+            ((PlanarImage)lastRendering).dispose();
+            System.gc();
+        }
         if ( saturated != null ) {
             rendered = saturated.createScaledRendering( renderingWidth, renderingHeight, hints );
             lastRendering = rendered;
@@ -281,6 +285,10 @@ public abstract class PhotovaultImage {
         }
         RenderingHints hints = new RenderingHints( null );
         hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
+        if ( lastRendering != null && lastRendering instanceof PlanarImage ) {
+            ((PlanarImage)lastRendering).dispose();
+            System.gc();
+        }
         RenderedImage rendered = null;
         if ( saturated != null ) {
                 rendered = saturated.createScaledRendering( (int) (scale*cropW), 
@@ -341,6 +349,12 @@ public abstract class PhotovaultImage {
         return ret;
     }
     
+    public void dispose() {
+        if ( lastRendering != null && lastRendering instanceof PlanarImage ) {
+            ((PlanarImage)lastRendering).dispose();
+        }
+        System.gc();
+    }
     /**
      Get width of the original image
      @return width in pixels

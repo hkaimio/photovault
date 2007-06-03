@@ -534,6 +534,9 @@ public class JAIPhotoView extends JPanel
      */
     public void setImage( PhotovaultImage img ) {
 	boolean isFirst = (origImage == null ) ? true : false;
+        if ( origImage != null ) {
+            origImage.dispose();
+        }
 	origImage = img;
 	xformImage = null;
         fireImageChangedEvent( new PhotoViewEvent( this ) );

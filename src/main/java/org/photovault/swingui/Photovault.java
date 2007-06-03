@@ -102,6 +102,10 @@ public class Photovault implements SchemaUpdateListener {
         }
     }
     
+    /**
+     If <code>true</code> open the TileCacheTool window. This can be set by the 
+     -d command line argument.
+     */
     static boolean debugTileCache = false;
 
     /**
@@ -111,6 +115,11 @@ public class Photovault implements SchemaUpdateListener {
         JAI jaiInstance = JAI.getDefaultInstance();
         jaiInstance.setTileCache( new SunTileCache( 100*1024*1024 ) );
         jaiInstance.setDefaultTileSize( new Dimension( 256, 256 ) );
+        /*
+         Not sure how much this helps in practice - Photovault still seems to use 
+         all heap available in the long run.
+         */
+        jaiInstance.setRenderingHint( JAI.KEY_CACHED_TILE_RECYCLING_ENABLED, Boolean.TRUE );
         if ( debugTileCache ) {
             try {
                 Class tcDebugger = Class.forName( "tilecachetool.TCTool" );
