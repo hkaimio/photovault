@@ -537,7 +537,6 @@
       <!-- Create the application bundle directory hiearchy -->
       <mkdir dir="${dist}/osx/Photovault.app/Contents"/>
       <mkdir dir="${dist}/osx/Photovault.app/Contents/MacOS"/>
-      <mkdir dir="${dist}/osx/Photovault.app/Contents/PkgInfo"/>
       <mkdir dir="${dist}/osx/Photovault.app/Contents/Resources"/>
       <mkdir dir="${dist}/osx/Photovault.app/Contents/Resources/Java"/>
       
@@ -548,9 +547,16 @@
               <exclude name="**/jai_codec.jar"/>
           </fileset>
       </copy>
+      <!-- Copy dcraw -->
+      <copy file="${build.lib.dir}/macosx/dcrawU" 
+            todir="${dist}/osx/Photovault.app/Contents/Resources/Java"/>
+      <chmod file="${dist}/osx/Photovault.app/Contents/Resources/Java/dcrawU"
+            perm="755"/>            
       <!-- Copy Java framework files -->
       <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/A/Resources/MacOS/JavaApplicationStub"
             todir="${dist}/osx/Photovault.app/Contents/MacOS"/> 
+      <chmod file="${dist}/osx/Photovault.app/Contents/MacOS/JavaApplicationStub"
+            perm="755"/>
       <copy file="/Developer/Applications/Java Tools/Jar Bundler.app/Contents/Resources/GenericJavaApp.icns"
             todir="${dist}/osx/Photovault.app/Contents/Resources"/>
       <!-- Create Info.plist with correct version information -->
@@ -561,6 +567,8 @@
               <filtersfile file="conf/buildinfo.properties"/>
           </filterset>
       </copy>
+      <echo file="${dist}/osx/Photovault.app/Contents/PkgInfo"
+            message="APPL/????"/>
       
       <!-- Create the disk image file -->
       <exec executable="hdiutil">

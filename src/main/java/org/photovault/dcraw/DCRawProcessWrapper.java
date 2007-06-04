@@ -230,6 +230,9 @@ public class DCRawProcessWrapper {
             } else if ( os.startsWith( "windows" ) ) {
                 nativedir = "win32-" + arch;
                 dcraw = "dcraw.exe";
+            } else if ( os.startsWith( "mac os x" ) ) {
+                nativedir = "macosx";
+                dcraw = "dcrawU";
             }
             
             /*

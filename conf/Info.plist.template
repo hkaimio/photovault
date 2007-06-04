@@ -39,7 +39,7 @@
 	    <key>apple.laf.useScreenMenuBar</key>
 	    <string>true</string>
 	    <key>dcraw.cmd</key>
-	    <string>$APP_PACKAGE/Contents/Resources/Java/dcraw</string>
+	    <string>$APP_PACKAGE/Contents/Resources/Java/dcrawU</string>
 	</dict>
     </dict>
     <key>LSHasLocalizedDisplayName</key>
