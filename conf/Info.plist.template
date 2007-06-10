@@ -33,7 +33,7 @@
 	<key>ClassPath</key>
 	<string>$JAVAROOT/photovault.jar</string>
         <key>VMOptions</key>
-	<string>-Xmx@heap.max_size@</string>
+	<string>-Xmx@heap.max_size@M @run.jvmargs@</string>
 	<key>Properties</key>
 	<dict>
 	    <key>apple.laf.useScreenMenuBar</key>

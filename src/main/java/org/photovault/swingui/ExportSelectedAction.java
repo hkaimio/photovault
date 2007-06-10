@@ -40,6 +40,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import org.omg.SendingContext.RunTime;
 import org.photovault.common.PhotovaultException;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.export.ExportDlg;
@@ -49,6 +50,8 @@ import org.photovault.swingui.export.ExportDlg;
  view.
  */
 class ExportSelectedAction extends AbstractAction implements SelectionChangeListener {
+
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ExportSelectedAction.class.getName() );
     
     /**
      Constructor.
@@ -149,26 +152,62 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         
         public void run() {
             for ( int n = 0; n < exportPhotos.length; n++  ) {
-                String fname;
                 try {
-                    fname = String.format(format, new Integer(n + 1));
-                } catch (IllegalFormatException e ) {
-                    owner.exportError( "Cannot format file name: \n" + e.getMessage() );
-                    break;
-                }
-                int percent = (n) * 100 / exportPhotos.length;
-                owner.exportingPhoto( this, fname, percent );
-                File f = new File( fname );
-                PhotoInfo photo = exportPhotos[n];
-                try {
-                    photo.exportPhoto( f, exportWidth, exportHeight );
-                } catch ( PhotovaultException e ) {
-                    owner.exportError( e.getMessage() );
+                    String fname;
+                    try {
+                        fname = String.format(format, new Integer(n + 1));
+                    } catch (IllegalFormatException e ) {
+                        owner.exportError( "Cannot format file name: \n" + e.getMessage() );
+                        break;
+                    }
+                    int percent = (n) * 100 / exportPhotos.length;
+                    owner.exportingPhoto( this, fname, percent );
+                    File f = new File( fname );
+                    PhotoInfo photo = exportPhotos[n];
+                    int triesLeft = 1;
+                    boolean succeeded = false;
+                    while ( !succeeded && triesLeft > 0 ) {
+                        try {
+                            photo.exportPhoto( f, exportWidth, exportHeight );
+                            succeeded = true;
+                        } catch ( PhotovaultException e ) {
+                            owner.exportError( e.getMessage() );
+                        } catch ( OutOfMemoryError e ) {
+                            /*
+                             Often we end here because minor GC did not succeed 
+                             to free enough memory from young generations. Let's 
+                             try again, second time Java will do major gc round 
+                             and this might be succesful.
+                             */
+                            if ( triesLeft > 0 ) {
+                                Runtime rt = Runtime.getRuntime();
+                                long freeMem = rt.freeMemory();
+                                long totMem = rt.totalMemory();
+                                log.error( "Out of memory while exporting " + 
+                                        fname + ", trying again" );
+                                System.gc();
+                                long freeMemAfter = rt.freeMemory();
+                                long totMemAfter = rt.totalMemory();
+                                log.error( "Free memory " + freeMem + "->" + 
+                                        freeMemAfter + ", freed " + 
+                                        ((totMem-freeMem) - (totMemAfter-freeMemAfter)) + 
+                                        " bytes" );
+                            } else {
+                                owner.exportError( "Out of memory exporting " + 
+                                        fname + 
+                                        "\nTry colsing sime windows or increasing heap size");
+                            }
+                        }
+                        triesLeft--;
+                    }
+                } catch ( Throwable t ) {
+                    
+                    owner.exportError( t.getMessage() );
+                    t.printStackTrace();
                 }
             }
             owner.exportDone( this );
         }
-        
     };
     
     /**
