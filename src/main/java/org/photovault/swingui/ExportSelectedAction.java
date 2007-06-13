@@ -193,9 +193,9 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                                         ((totMem-freeMem) - (totMemAfter-freeMemAfter)) + 
                                         " bytes" );
                             } else {
-                                owner.exportError( "Out of memory exporting " + 
+                                owner.exportError( "Out of memory while exporting " + 
                                         fname + 
-                                        "\nTry colsing sime windows or increasing heap size");
+                                        "\nTry closing some windows or increasing heap size");
                             }
                         }
                         triesLeft--;
