@@ -102,42 +102,51 @@ public class Photovault implements SchemaUpdateListener {
         }
     }
     
-    /**
-     If <code>true</code> open the TileCacheTool window. This can be set by the 
-     -d command line argument.
-     */
-    static boolean debugTileCache = false;
 
     /**
-     Initialize Java Advanced Imaging.
+     initJai() method calls JAI.setTileCache which causes a static dependency to
+     JAI. If the method was part of Photovault class Java VM would fail to load
+     the class which is not acceptable since the class must give the user instructions
+     how to install JAI if it is not installed. So the method must be isoalted to
+     its own class.
      */
-    void initJAI() {
-        JAI jaiInstance = JAI.getDefaultInstance();
-        jaiInstance.setTileCache( new SunTileCache( 100*1024*1024 ) );
-        jaiInstance.setDefaultTileSize( new Dimension( 256, 256 ) );
+    static class JaiInitializer {
+        /**
+         If <code>true</code> open the TileCacheTool window. This can be set by the
+         -d command line argument.
+         */
+        public static boolean debugTileCache = false;
+        /**
+         Initialize Java Advanced Imaging.
+         */
+        public static void initJAI() {
+            JAI jaiInstance = JAI.getDefaultInstance();
+            jaiInstance.setTileCache( new SunTileCache( 100*1024*1024 ) );
+            jaiInstance.setDefaultTileSize( new Dimension( 256, 256 ) );
         /*
-         Not sure how much this helps in practice - Photovault still seems to use 
+         Not sure how much this helps in practice - Photovault still seems to use
          all heap available in the long run.
          */
-        jaiInstance.setRenderingHint( JAI.KEY_CACHED_TILE_RECYCLING_ENABLED, Boolean.TRUE );
-        if ( debugTileCache ) {
-            try {
-                Class tcDebugger = Class.forName( "tilecachetool.TCTool" );
-                tcDebugger.newInstance();
-            } catch (InstantiationException ex) {
-                ex.printStackTrace();
-            } catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
-            } catch (IllegalAccessException ex) {
-                ex.printStackTrace();
+            jaiInstance.setRenderingHint( JAI.KEY_CACHED_TILE_RECYCLING_ENABLED, Boolean.TRUE );
+            if ( debugTileCache ) {
+                try {
+                    Class tcDebugger = Class.forName( "tilecachetool.TCTool" );
+                    tcDebugger.newInstance();
+                } catch (InstantiationException ex) {
+                    ex.printStackTrace();
+                } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                } catch (IllegalAccessException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }
-    
+
     void run() {
         checkSystem();
         // 100 MB tile cache
-        initJAI();
+        JaiInitializer.initJAI();
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         Collection databases = settings.getDatabases();
         if ( databases.size() == 0 ) {
@@ -186,7 +195,7 @@ public class Photovault implements SchemaUpdateListener {
         } catch ( Throwable t ) {
             throw new PhotovaultException( 
                       "Java Advanced Imaging not installed\n"
-                    + "properly. This is needed by Photovault,"
+                    + "properly. It is needed by Photovault,\n"
                     + "please download and install it from\n"
                     + "http://java.sun.com/products/java-media/jai/");
         }
@@ -251,7 +260,7 @@ public class Photovault implements SchemaUpdateListener {
         int n = 0;
         while ( n < args.length ) {
             if ( args[n].equals( "-d" ) || args[n].equals( "--debug" ) ) {
-                debugTileCache = true;
+                JaiInitializer.debugTileCache = true;
             } else {
                 return false;
             }

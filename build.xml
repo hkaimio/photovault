@@ -60,7 +60,6 @@
           <include name="DdlUtils-*"/>
           <include name="derby.jar"/>
           <include name="quaqua.jar"/>
-          <include name="tilecachetool.jar"/>
       </fileset>
   </path>
   <path id="project.class.path">
