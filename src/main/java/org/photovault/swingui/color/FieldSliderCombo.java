@@ -389,14 +389,19 @@ public class FieldSliderCombo extends javax.swing.JPanel {
                 }
             }
         }
-        if ( sliderLabels.size() == 0 ) {
-            /*
-             JSlider crashes if label table is null, and it will show default 
-             labels (that do not take sliderMult into account) if no labels are set).
-             So let's create an empty label.
-             */
-            sliderLabels.put( Integer.valueOf( valueSlider.getMinimum() ), new JLabel( "" ) );
+        /*
+         JSlider crashes if label table is empty. In Java 6 it crashes also if 
+         none of the labels happens to be in the range of the slider. So let's 
+         create empty labels at the ends if there are no such ones.
+         */
+        Integer minValue = Integer.valueOf( valueSlider.getMinimum() );
+        if ( !sliderLabels.containsKey( minValue ) ) {
+            sliderLabels.put( minValue, new JLabel( "" ) );
         }
+        Integer maxValue = Integer.valueOf( valueSlider.getMaximum() );
+        if ( !sliderLabels.containsKey( maxValue ) ) {
+            sliderLabels.put( maxValue, new JLabel( "" ) );
+        }        
         valueSlider.setLabelTable( sliderLabels );
     }
     
