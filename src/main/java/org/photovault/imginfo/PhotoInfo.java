@@ -273,16 +273,8 @@ public class PhotoInfo {
         PhotoInfo photo = PhotoInfo.create();
         txw.lock( photo, Transaction.WRITE );
         photo.addInstance( vol, instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
-        String fname = imgFile.getName();
-        // Ensure that we are not overflowing the string
-        if ( fname.length() > ORIG_FNAME_LENGTH ) {
-            fname = fname.substring( 0, ORIG_FNAME_LENGTH );
-        }
-        photo.setOrigFname( fname );
-        java.util.Date shootTime = new java.util.Date( imgFile.lastModified() );
-        photo.setShootTime( shootTime );
         photo.setCropBounds( new Rectangle2D.Float( 0.0F, 0.0F, 1.0F, 1.0F ) );
-        photo.updateFromFileMetadata( instanceFile );
+        photo.updateFromOriginalFile();
         txw.commit();
         return photo;
     }
