@@ -118,5 +118,5 @@ then
 fi
 
 
-_debug "Calling: '${JAVACMD} -Xmx256M -jar ${jar}/lib/photovault.jar $@"
-"${JAVACMD}" -Xmx256M "-Dpv.basedir=${pvdir}" -jar "${jar}/lib/photovault.jar" "$@"
+_debug "Calling: '${JAVACMD} -Xmx384M -jar ${jar}/lib/photovault.jar $@"
+"${JAVACMD}" -Xmx384M "-Dpv.basedir=${pvdir}" -jar "${jar}/lib/photovault.jar" "$@"
