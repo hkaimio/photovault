@@ -504,14 +504,14 @@ public abstract class PhotovaultImage {
         if ( componentSizes[0] == 8 ) {
             byte[][] lut = new byte[componentSizes.length][256];
             double dx = 1.0/256.0;
-            for ( int band = 0 ; band < colorSpace.getNumComponents() ; band++ ) {
+            for ( int band = 0 ; band < colorModel.getNumComponents() ; band++ ) {
                 for ( int n = 0 ; n < lut[band].length; n++ ) {
                     double x = dx * n;
                     double val = x;
-                    if ( componentCurves[band] != null ) {
+                    if ( band < componentCurves.length && componentCurves[band] != null ) {
                         val = componentCurves[band].getValue( val );
                     }
-                    if ( applyValueCurve[band] ) {
+                    if ( band < applyValueCurve.length && applyValueCurve[band] ) {
                         val = valueCurve.getValue( val );
                     }
                     val = Math.max( 0.0, Math.min( val, 1.0 ) );
@@ -522,14 +522,14 @@ public abstract class PhotovaultImage {
         } else if ( componentSizes[0] == 16 ) {
             short[][] lut = new short[componentSizes.length][0x10000];
             double dx = 1.0/65536.0;
-            for ( int band = 0 ; band < colorSpace.getNumComponents() ; band++ ) {
+            for ( int band = 0 ; band < colorModel.getNumComponents() ; band++ ) {
                 for ( int n = 0 ; n < lut[band].length; n++ ) {
                     double x = dx * n;
                     double val = x;
-                    if ( componentCurves[band] != null ) {
+                    if ( band < componentCurves.length && componentCurves[band] != null ) {
                         val = componentCurves[band].getValue( val );
                     }
-                    if ( applyValueCurve[band] ) {
+                    if ( band < applyValueCurve.length && applyValueCurve[band] ) {
                         val = valueCurve.getValue( val );
                     }
                     val = Math.max( 0.0, Math.min( val, 1.0 ) );
@@ -837,6 +837,11 @@ public abstract class PhotovaultImage {
                 return op;
             }
             Vector sources = op.getSources();
+            if ( sources == null ) {
+                // Apparently we arrived at the leaf node without finding the 
+                // correct rendering.
+                return null;
+            }
             for ( Object o: sources ) {
                 if ( o != null && o instanceof RenderedImage ) {
                     RenderedImage candidate = findNamedRendering( (RenderedImage)o, name );

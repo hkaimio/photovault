@@ -110,7 +110,6 @@ public class JAIPhotoView extends JPanel
 	    imgHeight = xformImage.getHeight();
 	    imgX = (compWidth-imgWidth)/2;
 	    imgY = (compHeight-imgHeight)/2;
-            
 	    g2.drawRenderedImage( xformImage, new AffineTransform(1f,0f,0f,1f, imgX, imgY) );
             if ( !drawCropped ) {
                 paintCropBorder( g2, imgX, imgY, imgWidth, imgHeight );
