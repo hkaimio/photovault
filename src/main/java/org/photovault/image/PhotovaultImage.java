@@ -52,6 +52,7 @@ import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
 import javax.media.jai.operator.MultiplyConstDescriptor;
 import javax.media.jai.operator.RenderableDescriptor;
+import javax.media.jai.operator.TranslateDescriptor;
 
 /**
  PhotovaultImage is a facade fro Photovault imaging pipeline. It is abstract 
@@ -675,6 +676,23 @@ public abstract class PhotovaultImage {
         float cropY = (float)(rotatedImage.getMinY() + cropMinY * rotatedImage.getHeight());
         float cropW = cropWidth * rotatedImage.getWidth();
         float cropH = cropHeight * rotatedImage.getHeight();
+        Rectangle2D.Float cropRect = new Rectangle2D.Float( cropX, cropY, cropW, cropH );
+        Rectangle2D.Float srcRect = new Rectangle2D.Float( rotatedImage.getMinX(), rotatedImage.getMinY(),
+                rotatedImage.getWidth(), rotatedImage.getHeight() );
+        if ( !srcRect.contains( cropRect ) ) {
+            // Crop rectangle must fit inside source image
+            Rectangle2D.intersect( srcRect, cropRect, cropRect );
+            if ( !srcRect.contains( cropRect ) ) {
+                // Ups, we have a problem... this can happen due to rounding errors
+                // (for example, if cropY is just above zero). Disable cropping
+                // to avoid error.
+                cropX = rotatedImage.getMinX();
+                cropY = rotatedImage.getMinY();
+                cropW = rotatedImage.getWidth();
+                cropH = rotatedImage.getHeight();
+            }
+        }
+        
         cropParams.setParameter( "x", cropX );
         cropParams.setParameter( "y", cropY );
         cropParams.setParameter( "width", cropW );
