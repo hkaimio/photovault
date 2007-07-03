@@ -20,53 +20,63 @@
 
 package org.photovault.imginfo;
 
+import java.awt.geom.Rectangle2D;
 import java.io.*;
 import junit.framework.*;
 import java.util.*;
 import java.sql.*;
 import java.awt.image.*;
 import javax.imageio.*;
-import javax.imageio.stream.*;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.photovault.common.PhotovaultException;
-import org.photovault.dbhelper.ImageDb;
-import org.photovault.common.PhotovaultSettings;
-import org.photovault.common.JUnitOJBManager;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoInfo extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoInfo.class.getName() );
 
-  String testImgDir = "testfiles";
-  String nonExistingDir = "/tmp/_dirThatDoNotExist";
-  
-  /**
-   * Default constructor to set up OJB environment
-   */
-  public Test_PhotoInfo() {
-      super();   
-  }
+    String testImgDir = "testfiles";
+    String nonExistingDir = "/tmp/_dirThatDoNotExist";
+    Session session = null;
+    Transaction tx = null;
+    
+    PhotoInfoDAO photoDAO = new PhotoInfoDAOHibernate();
+    
+    /**
+     * Default constructor to set up OJB environment
+     */
+    public Test_PhotoInfo() {
+        super();
+    }
 
     /**
-       Tears down the testing environment
-    */
-    public void tearDown() {
-
+     Sets ut the test environment
+     */
+    public void setUp() {
+        session = HibernateUtil.getSessionFactory().getCurrentSession();
+        tx = session.beginTransaction();
     }
-  //    File testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\imginfo" );
-  File testRefImageDir = new File( "tests/images/photovault/imginfo" );
+    
+    /**
+     Tears down the testing environment
+     */
+    public void tearDown() {
+        tx.commit();
+        
+    }
+    //    File testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\imginfo" );
+    File testRefImageDir = new File( "tests/images/photovault/imginfo" );
     /**
        Test case that verifies that an existing photo infor record 
        can be loaded successfully
     */
     public void testRetrievalSuccess() {
 	int photoId = 1;
-	try {
-	    PhotoInfo photo = PhotoInfo.retrievePhotoInfo( photoId );
-	    assertTrue(photo != null );
-	} catch (PhotoNotFoundException e) {
-	    fail( "Photo " + photoId + " not found" );
-	}
+        PhotoInfo photo = null;
+        photo = photoDAO.findById( Integer.valueOf( photoId ), false );
+        assertNotNull( photo );
 	// TODO: check some other properties of the object
 
     }
@@ -77,13 +87,9 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     */
     public void testRetrievalNotFound() {
 	int photoId = -1;
-	try {
-	    PhotoInfo photo = PhotoInfo.retrievePhotoInfo( photoId );
-	} catch (PhotoNotFoundException e) {
-	    return;
-	}
-	// If execution comes here  the correct exception was not thrown
-	fail( "Image " + photoId + " should not exist." );
+        PhotoInfo photo = null;
+        photo = photoDAO.findById( Integer.valueOf( photoId ), false );
+        assertNull( "Image " + photoId + " should not exist." , photo );
     }
 
     /** 
@@ -91,34 +97,16 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     */
     public void testUpdate() {
 	int photoId = 1;
-	PhotoInfo photo = null;	
-	try {
-	    photo = PhotoInfo.retrievePhotoInfo( photoId );
-	    assertTrue(photo != null );	    
-	} catch (PhotoNotFoundException e) {
-	    fail( "Photo " + photoId + " not found" );
-	}
-
+        PhotoInfo photo = null;
+        photo = photoDAO.findById( Integer.valueOf( photoId ), false );
+        assertTrue(photo != null );
+        
 	// Update the photo
 	String shootingPlace = photo.getShootingPlace();
 	String newShootingPlace = "Testipaikka";
 	photo.setShootingPlace( newShootingPlace );
-	//	photo.updateDB();
-
-	// retrieve the updated photo from DB and chech that the
-	// modification has been done
-	try {
-	    photo = PhotoInfo.retrievePhotoInfo( photoId );
-	    assertTrue(photo != null );	    
-	} catch (PhotoNotFoundException e) {
-	    fail( "Photo " + photoId + " not found after updating" );
-	}
-
-	assertEquals( newShootingPlace, photo.getShootingPlace() );
-
-	// restore the shooting place
-	photo.setShootingPlace( shootingPlace );
-	//	photo.updateDB();
+        photoDAO.flush();
+        assertMatchesDb( photo );
     }
 
     /** 
@@ -127,8 +115,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     public void testNullShootDateUpdate() {
 	int photoId = 1;
 	PhotoInfo photo = null;	
+	Session session = HibernateUtil.getSessionFactory().openSession();
+        Transaction tx = session.beginTransaction();
 	try {
-	    photo = PhotoInfo.retrievePhotoInfo( photoId );
+	    photo = PhotoInfo.findPhotoInfo( session, photoId );
 	    assertTrue(photo != null );	    
 	} catch (PhotoNotFoundException e) {
 	    fail( "Photo " + photoId + " not found" );
@@ -137,12 +127,15 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	java.util.Date origTime = photo.getShootTime();
 	// Update the photo
 	photo.setShootTime( null );
-	//	photo.updateDB();
-
+        tx.commit();
+        session.close();
+        
 	// retrieve the updated photo from DB and chech that the
 	// modification has been done
+        session = HibernateUtil.getSessionFactory().openSession();
+        tx = session.beginTransaction();	
 	try {
-	    photo = PhotoInfo.retrievePhotoInfo( photoId );
+	    photo = PhotoInfo.findPhotoInfo( session, photoId );
 	    assertNull( "Shooting time was supposedly set to null", photo.getShootTime() );	    
 	} catch (PhotoNotFoundException e) {
 	    fail( "Photo " + photoId + " not found after updating" );
@@ -151,16 +144,25 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 
 	// restore the shooting place
 	photo.setShootTime( origTime );
-	//	photo.updateDB();
+        tx.commit();
+        session.close();
     }
 
     /**
        Test normal creation of a persistent PhotoInfo object
     */
     public void testPhotoCreation() {
-	PhotoInfo photo = PhotoInfo.create();
+        
+	PhotoInfo photo = new PhotoInfo();
+	Session session = HibernateUtil.getSessionFactory().openSession();
+        Transaction tx = session.beginTransaction();
+        try {
+            session.save( photo );
+        } catch ( Throwable t ) {
+            fail( t.getMessage() );
+        }
 	assertNotNull( photo );
-
+        photo.setUUID( UUID.randomUUID() );
 	photo.setPhotographer( "TESTIKUVAAJA" );
 	photo.setShootingPlace( "TESTPLACE" );
 	photo.setShootTime( new java.util.Date() );
@@ -171,10 +173,18 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	photo.setFilm( "Tri-X" );
 	photo.setFilmSpeed( 400 );
 	photo.setLens( "Canon FD 50mm/F1.4" );
+        photo.setCropBounds( new Rectangle2D.Double( 0.1, 0.2, 0.5, 0.7 ) );
 	photo.setDescription( "This is a long test description that tries to verify that the description mechanism really works" );
 	//	photo.updateDB();
-	try {
-	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
+        tx.commit();
+        session.close();
+        
+        Session session2 = HibernateUtil.getSessionFactory().openSession();
+        tx = session2.beginTransaction();
+        
+        PhotoInfo photo2 = null;
+        try {
+	    photo2 = PhotoInfo.findPhotoInfo( session2, photo.getUid() );
 
 	    assertEquals( photo.getPhotographer(), photo2.getPhotographer() );
 	    assertEquals( photo.getShootingPlace(), photo2.getShootingPlace() );
@@ -188,23 +198,29 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    assertTrue( photo.getFocalLength() == photo2.getFocalLength() );
 	    assertTrue( photo.getFStop() == photo2.getFStop() );
 	    assertTrue( photo.getUid() == photo2.getUid() );
-	    
+	    assertTrue( photo.getUUID().equals( photo2.getUUID() ) );
+            assertTrue( photo.getCropBounds().equals( photo2.getCropBounds() ) );
+            
 	    //	    assertTrue( photo.equals( photo2 ));
 			
 	} catch ( PhotoNotFoundException e ) {
 	    fail ( "inserted photo not found" );
 	}
-	// Clean the DB
-	photo.delete();
+        session2.delete( photo2 );
+        tx.commit();
+        session2.close();
     }
 
     public void testPhotoDeletion() {
-	PhotoInfo photo = PhotoInfo.create();
-	assertNotNull( photo );
-
+	PhotoInfo photo = new PhotoInfo();
+	Session session = HibernateUtil.getSessionFactory().openSession();
+        Transaction tx = session.beginTransaction();
+        session.save( photo );
+        tx.commit();
+        
 	// Check that the photo can be retrieved from DB
 
-	Connection conn = ImageDb.getConnection();
+	Connection conn = session.connection();
 	String sql = "SELECT * FROM photos WHERE photo_id = " + photo.getUid();
 	Statement stmt = null;
 	ResultSet rs = null;
@@ -229,8 +245,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    }
 	}
 
-	photo.delete();
-	// Check that the photo is deleted from the database
+        tx = session.beginTransaction();
+        session.delete( photo );
+        tx.commit();
+        // Check that the photo is deleted from the database
 	try {
 	    stmt = conn.createStatement();
 	    rs = stmt.executeQuery( sql );
@@ -251,10 +269,11 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 		} catch ( Exception e ) {}
 	    }
 	}
+        session.close();
     }
     
     public void testInstanceAddition() {
-      File testFile = new File( testImgDir, "test1.jpg" );
+        File testFile = new File( testImgDir, "test1.jpg" );
 	File instanceFile = VolumeBase.getDefaultVolume().getFilingFname( testFile );
 	try {
 	    FileUtils.copyFile( testFile, instanceFile );
@@ -264,16 +283,17 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         
 	PhotoInfo photo = PhotoInfo.create();
 	assertNotNull( photo );
-
+        photoDAO.makePersistent( photo );
+        
 	int numInstances = photo.getNumInstances();
 	photo.addInstance( VolumeBase.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
 	// Check that number of instances is consistent with addition
 	assertEquals( numInstances+1, photo.getNumInstances() );
-	Vector instances = photo.getInstances();
+	Set<ImageInstance> instances = photo.getInstances();
 	assertEquals( instances.size(), numInstances+1 );
 
         // Add another instance using different method
-      File testFile2 = new File( testImgDir, "test2.jpg" );
+        File testFile2 = new File( testImgDir, "test2.jpg" );
 	File instanceFile2 = VolumeBase.getDefaultVolume().getFilingFname( testFile2 );
 	try {
 	    FileUtils.copyFile( testFile2, instanceFile2 );
@@ -290,10 +310,12 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	assertEquals( instances.size(), numInstances+1 );
         
 	// Try to find the instance
-	boolean found1 = false;
+        boolean found1 = false;
         boolean found2 = false;
-	for ( int i = 0 ; i < photo.getNumInstances(); i++ ) {
-	    ImageInstance ifile = photo.getInstance( i );
+
+        instances = photo.getInstances();
+        
+	for ( ImageInstance ifile : instances ) {
 	    if ( ifile.getImageFile().equals( instanceFile ) ) {
 		found1 = true;
 	    }
@@ -304,6 +326,8 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	}
         assertTrue( "Image instance 1 not found", found1 );
         assertTrue( "Image instance 2 not found", found2 );
+        session.flush();
+        assertMatchesDb( photo );
 	// Clean the DB
 	photo.delete();
     }
@@ -353,6 +377,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    fail( "Could not find photo: " + e.getMessage() );
 	}
 	assertNotNull( photo );
+        photoDAO.makePersistent( photo );
 	int instanceCount = photo.getNumInstances();
 	photo.createThumbnail();
 	assertEquals( "InstanceNum should be 1 greater after adding thumbnail",
@@ -360,8 +385,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	// Try to find the new thumbnail
 	boolean foundThumbnail = false;
 	ImageInstance thumbnail = null;
-	for ( int n = 0; n < instanceCount+1; n++ ) {
-	    ImageInstance instance = photo.getInstance( n );
+	for ( ImageInstance instance : photo.getInstances() ) {
 	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL ) {
 		foundThumbnail = true;
 		thumbnail = instance; 
@@ -381,29 +405,25 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	assertEquals( "Thumbnail exists, getThumbnail should not create a new instance",
 		     instanceCount+1, photo.getNumInstances() );
 	
-
-	// Assert that the thumbnail is saved correctly to the database
-	PhotoInfo photo2 = null;
-	try {
-	    photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-	} catch( PhotoNotFoundException e ) {
-	    fail( "Photo not storein into DB" );
-	}
-						
-	// Try to find the new thumbnail
-	foundThumbnail = false;
-	ImageInstance thumbnail2 = null;
-	for ( int n = 0; n < instanceCount+1; n++ ) {
-	    ImageInstance instance = photo2.getInstance( n );
-	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL ) {
-		foundThumbnail = true;
-		thumbnail2 = instance; 
-		break;
-	    }
-	}
-	assertTrue( "Could not find the created thumbnail", foundThumbnail );
-	assertEquals( "Thumbnail width should be 100", 100, thumbnail2.getWidth() );
-	assertTrue( "Thumbnail filename not saved correctly", thumbnailFile.equals( thumbnail2.getImageFile() ));
+        session.flush();
+        assertMatchesDb( photo );
+        
+//	// Assert that the thumbnail is saved correctly to the database
+//	PhotoInfo photo2 = photoDAO.findById( photo.getId(), false );
+//						
+//	// Try to find the new thumbnail
+//	foundThumbnail = false;
+//	ImageInstance thumbnail2 = null;
+//	for ( ImageInstance instance : photo2.getInstances()  ) {
+//	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL ) {
+//		foundThumbnail = true;
+//		thumbnail2 = instance; 
+//		break;
+//	    }
+//	}
+//	assertTrue( "Could not find the created thumbnail", foundThumbnail );
+//	assertEquals( "Thumbnail width should be 100", 100, thumbnail2.getWidth() );
+//	assertTrue( "Thumbnail filename not saved correctly", thumbnailFile.equals( thumbnail2.getImageFile() ));
 	photo.delete();
 	assertFalse( "Image file does exist after delete", thumbnailFile.exists() );
     }
@@ -441,13 +461,12 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 
 	// Corrupt the database by deleting the actual image files
 	// that instances refer to
-	int numInstances = photo.getNumInstances();
-	for ( int n = 0; n  < numInstances ; n++ ) {
-	    ImageInstance instance = photo.getInstance( n );
+	for ( ImageInstance instance : photo.getInstances() ) {
 	    File instFile = instance.getImageFile();
 	    instFile.delete();
 	}
 
+        int numInstances = photo.getNumInstances();
 	// Create the thumbnail
 	photo.createThumbnail();
 
@@ -492,8 +511,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	// Try to find the new thumbnail
 	boolean foundThumbnail = false;
 	ImageInstance thumbnail = null;
-	for ( int n = 0; n < instanceCount+1; n++ ) {
-	    ImageInstance instance = photo.getInstance( n );
+	for ( ImageInstance instance : photo.getInstances() ) {
 	    if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL ) {
 		foundThumbnail = true;
 		thumbnail = instance; 
@@ -718,9 +736,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         assertNotNull( "No hash for original photo", hash );
 
         // If the original instance is deleted the hash value should still remain
-        while ( photo.getNumInstances() > 0 ) {
-            ImageInstance i = photo.getInstance( 0 );
-            photo.removeInstance( 0 );
+        ImageInstance[] instances = (ImageInstance[]) photo.getInstances().
+                toArray( new ImageInstance[photo.getNumInstances()]);
+        for ( ImageInstance i : instances ) {
+            photo.removeInstance( i );
             if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
                 instanceHash = i.getHash();
             }
@@ -748,13 +767,15 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    fail( "Could not find photo: " + e.getMessage() );
 	}
         
+        photoDAO.makePersistent( photo );
+        
         byte[] hash = photo.getOrigInstanceHash();
         
-        PhotoInfo[] photos = PhotoInfo.retrieveByOrigHash( hash );
-        assertNotNull( "No Photos with matching hash found!!", photos );
+        List photos = photoDAO.findPhotosWithOriginalHash( hash );
+        this.assertTrue( "No Photos with matching hash found!!", photos.size() > 0 );
         boolean found = false;
-        for ( int n = 0; n < photos.length; n++ ) {
-            if ( photos[n] == photo ) {
+        for ( Object o : photos ) {
+            if ( o == photo ) {
                 found = true;
             }
         }
@@ -763,6 +784,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 
     public void testRawSettings() {
         PhotoInfo p = PhotoInfo.create();
+        photoDAO.makePersistent( p );
         double chanMul[] = { 
             1., .7, .5, .7
         };
@@ -776,6 +798,12 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         RawConversionSettings rs2 = p.getRawSettings();
         assertTrue( rs.equals( rs2 ) );
         assertEquals( 16000, rs2.getWhite() );
+        session.flush();
+        assertMatchesDb( p );
+        List l = session.createQuery( "from RawConversionSettings where rawSettingId = :id" ).
+                setInteger( "id", p.getRawSettings().getRawSettingId() ).list();
+        assertEquals( 1, l.size() );
+                
     }
     
     
@@ -786,9 +814,17 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
             hash[n] = 0;
         }
         
-        PhotoInfo[] photos = PhotoInfo.retrieveByOrigHash( hash );
-        assertNull( "retrieveByOrigHash should result null", photos );
+        List photos = photoDAO.findPhotosWithOriginalHash( hash );
+        assertEquals( "retrieveByOrigHash should result empty list", 0, photos.size() );
     }
+    
+    /**
+     Utility to check that the object in memory matches the DB
+     */
+    void assertMatchesDb( PhotoInfo p ) {
+        assertMatchesDb( p, session );
+    }
+    
         
     public static void main( String[] args ) {
 	//	org.apache.log4j.BasicConfigurator.configure();

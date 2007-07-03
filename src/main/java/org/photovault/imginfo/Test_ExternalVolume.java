@@ -26,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -136,7 +137,7 @@ public class Test_ExternalVolume extends PhotovaultTestCase {
         }
 
         // Check that the original instance is created in external volume
-        Vector instances = p.getInstances();
+        Set<ImageInstance> instances = p.getInstances();
         Iterator iter = instances.iterator();
         boolean foundOriginal = false;
         while ( iter.hasNext() ) {

@@ -87,6 +87,12 @@
       </unique-->
       
     </table>
+    
+    <table name="unique_keys">
+        <column name="id_name" type="VARCHAR" size="25"/>
+        <column name="next_val" type="integer" size="11"/>
+    </table>
+    
     <table name="OJB_DLIST">
       <column name="ID" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
       <column name="SIZE_" primaryKey="false" required="false" type="INTEGER" size="11" autoIncrement="false"/>

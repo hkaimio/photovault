@@ -389,8 +389,7 @@ public class XmlExporter {
         writer.write( getIndent() + "<instances>" );
         writer.newLine();
         indent += 2;
-        for ( int n = 0; n < p.getNumInstances(); n++ ) {
-            ImageInstance i = p.getInstance( n );
+        for ( ImageInstance i : p.getInstances() ) {
             writeInstance( i );
         }
         indent -= 2;

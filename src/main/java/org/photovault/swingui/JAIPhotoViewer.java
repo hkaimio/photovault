@@ -146,9 +146,8 @@ public class JAIPhotoViewer extends JPanel implements
 
 	// Find the original file
 	ImageInstance original = null;
-        Vector instances = photo.getInstances();
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance instance = (ImageInstance) instances.get( n );
+        Set<ImageInstance> instances = photo.getInstances();
+        for ( ImageInstance instance: instances ) {
             if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
                 original = instance;
                 File imageFile = original.getImageFile();

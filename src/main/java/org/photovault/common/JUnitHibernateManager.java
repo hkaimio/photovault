@@ -21,11 +21,13 @@
 package org.photovault.common;
 import java.io.File;
 import java.io.IOException;
-import org.photovault.dbhelper.ODMG;
+import org.hibernate.*;
+import org.hibernate.cfg.*;
+import org.photovault.persistence.HibernateUtil;
 
 /**
- * This class handles proper OJB initialization for unti tests. This class is 
- * a singleton and it just sets up the OJB environment according to configuration files
+ * This class handles proper Hibernate initialization for unti tests. This class is 
+ * a singleton and it just sets up the Hibernate environment according to configuration files
  * so it is enough that the unit tests just get a reference to it.
  *<p>
  * Environment setup is doe like this:
@@ -36,11 +38,13 @@ import org.photovault.dbhelper.ODMG;
  * </ul>
  * @author harri Kaimio
  */
-public class JUnitOJBManager {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JUnitOJBManager.class.getName() );
+public class JUnitHibernateManager {
+    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JUnitHibernateManager.class.getName() );
 
-    /** Creates a new instance of JUnitOJBManager */
-    private JUnitOJBManager() {
+    SessionFactory sessionFactory;
+    
+    /** Creates a new instance of JUnitHibernateManager */
+    private JUnitHibernateManager() {
         System.setProperty( "photovault.configfile", "conf/junittest_config.xml" );
         log.error( "Initializing OB for JUnit tests" );
         createDatabase();
@@ -54,9 +58,9 @@ public class JUnitOJBManager {
         }
         
         try {
-            ODMG.initODMG( "", "", db );
+            HibernateUtil.init( "", "", db );
             log.debug( "Connection succesful!!!" );
-        } catch (PhotovaultException e ) {
+        } catch (Throwable e ) {
             log.error( "Error logging into Photovault: " + e.getMessage() );
             System.exit( 1 );
         } 
@@ -91,11 +95,12 @@ public class JUnitOJBManager {
         }
     }
     
-    static JUnitOJBManager mgr = null;
-    public static JUnitOJBManager getOJBManager() {
+    static JUnitHibernateManager mgr = null;
+    public static JUnitHibernateManager getHibernateManager() {
         if ( mgr == null ) {
-            mgr = new JUnitOJBManager();
+            mgr = new JUnitHibernateManager();
         }
         return mgr;
     }
+
 }

@@ -23,11 +23,14 @@ package org.photovault.imginfo.indexer;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.query.Criteria;
@@ -205,11 +208,7 @@ public class ExtVolIndexer implements Runnable {
                 } catch (PhotoNotFoundException ex) {
                     ex.printStackTrace();
                 }
-                Vector instances = photo.getInstances();
-                int instNum = instances.indexOf( oldInstance );
-                if ( instNum >= 0 ) {
-                    photo.removeInstance( instNum );
-                }
+                photo.removeInstance( oldInstance );
             }
         }
         
@@ -426,14 +425,17 @@ public class ExtVolIndexer implements Runnable {
         Iterator photoIter = result.iterator();
         while ( photoIter.hasNext() ) {
             PhotoInfo p = (PhotoInfo) photoIter.next();
-            Vector instances = p.getInstances();
-            for ( int i = instances.size()-1; i >= 0; i-- ) {
-                ImageInstance inst = (ImageInstance) instances.get( i );
+            Set<ImageInstance> instances = p.getInstances();
+            List <ImageInstance> purge = new ArrayList<ImageInstance>();
+            for ( ImageInstance inst : instances ) {
                 Date checkTime = inst.getCheckTime();
                 if ( inst.getVolume() == volume 
                         && (checkTime == null || checkTime.before( startTime )) ) {
-                    p.removeInstance( i );
+                    purge.add( inst );
                 }
+            }
+            for ( ImageInstance inst : purge ) {
+                p.removeInstance( inst );
             }
         }
         txw.commit();

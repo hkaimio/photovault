@@ -18,12 +18,15 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 package org.photovault.dcraw;
+import javax.persistence.*;
 
 /**
  * Wrapper object for all settings related to raw conversion using dcraw.
  * This is an immutable object.
  * @author Harri Kaimio
  */
+@Entity
+@Table( name = "dcraw_settings" )
 public class RawConversionSettings implements Cloneable {
     
     /**
@@ -119,16 +122,30 @@ public class RawConversionSettings implements Cloneable {
      * Get the OJB gey for this object
      * @return The key used in database
      */
+    @Id
+    @GeneratedValue( generator = "rawconv_id_gen", strategy = GenerationType.TABLE )
+    @Column( name = "rawconv_id")
+    @TableGenerator( name="rawconv_id_gen", table="unique_keys", pkColumnName="id_name", 
+                     pkColumnValue="rawconv_id_gen", valueColumnName="next_val" ) 
     public int getRawSettingId() {
         return rawSettingId;
+    }
+    
+    protected void setRawSettingId( int id ) {
+        rawSettingId = id;
     }
 
     /**
      *     Get the white point
      * @return See {@link #white}
      */
+    @Column( name = "whitepoint" )
     public int getWhite() {
         return white;
+    }
+    
+    protected void setWhite( int white ) {
+        this.white = white;
     }
 
     /**
@@ -136,32 +153,53 @@ public class RawConversionSettings implements Cloneable {
      * 
      * @return See {@link #black}
      */
+    @Column( name = "blackpoint" ) 
     public int getBlack() {
         return black;
     }
-    
+
+    protected void setBlack( int black ) {
+        this.black = black;
+    }
+
+
     /**
      *     Get exposure correction
      * @return See {@link #evCorr}
      */
+    @Column( name = "ev_corr" )
     public double getEvCorr() {
         return evCorr;
+    }
+
+    protected void setEvCorr( int newEv ) {
+        this.evCorr = newEv;
     }
 
     /**
      * Get the highlight compression used
      * @return Number of f-stops the highlights are compressed.
      */
+    @Column( name = "hlight_corr")
     public double getHighlightCompression() {
         return hlightComp;
+    }
+
+    protected void setHighlightCompression( double hlc ) {
+        this.hlightComp = hlc;
     }
     
     /**
      * Get info whether to use embedded color profile
      * @return See {@link #useEmbeddedICCProfile}
      */
+    @Column( name = "embedded_profile" )
     public boolean getUseEmbeddedICCProfile() {
         return useEmbeddedICCProfile;
+    }
+
+    protected void setUseEmbeddedICCProfile( boolean isEmbedded ) {
+        this.useEmbeddedICCProfile = isEmbedded;
     }
     
     /**
@@ -169,7 +207,7 @@ public class RawConversionSettings implements Cloneable {
      @return The used profile or <code>null</code> if no non-embedded profile
      is assigned.
      */
-
+    @Transient
     public ColorProfileDesc getColorProfile() {
         return colorProfile;
     }
@@ -179,40 +217,65 @@ public class RawConversionSettings implements Cloneable {
      * @return One of {@link #WB_AUTOMATIC}, {@link #WB_MANUAL} 
      * or {@link #WB_CAMERA}
      */
+    @Column( name = "wb_type" )
     public int getWhiteBalanceType() {
         return whiteBalanceType;
     }
 
+    protected void setWhiteBalanceType( int wbType ) {
+        this.whiteBalanceType = wbType;
+    }
+    
     /**
      * Get the red/green channel multiplier ratio
      * @return see {@link #redGreenRatio}
      */
+    @Column( name = "r_g_ratio" )
     public double getRedGreenRatio() {
         return redGreenRatio;
     }
 
+    protected void setRedGreenRatio( double newRatio ) {
+        this.redGreenRatio = newRatio;
+    }
+    
     /**
      * Get blue/green channel multiplier ratio
      * @return See {@link #blueGreenRatio}
      */
+    @Column( name = "b_g_ratio" )
     public double getBlueGreenRatio() {
         return blueGreenRatio;
     }
 
+    protected void setBlueGreenRatio( double newRatio ) {
+        this.blueGreenRatio = newRatio;
+    }
+    
     /**
      * Get daylight channel multipliers
      * @return See {@link #daylightRedGreenRatio}
      */
+    @Column( name = "dl_r_g_ratio" )
     public double getDaylightRedGreenRatio() {
         return daylightRedGreenRatio;
+    }
+
+    protected void setDaylightRedGreenRatio( double newRatio ) {
+        this.daylightRedGreenRatio = newRatio;
     }
 
     /**
      * Get daylight channel multipliers
      * @return See {@link #daylightBlueGreenRatio}
      */
+    @Column( name = "dl_b_g_ratio" )
     public double getDaylightBlueGreenRatio() {
         return daylightBlueGreenRatio;
+    }
+
+    protected void setDaylightBlueGreenRatio( double newRatio ) {
+        this.daylightBlueGreenRatio = newRatio;
     }
     
     final static double XYZ_to_RGB[][] = {
@@ -297,6 +360,7 @@ public class RawConversionSettings implements Cloneable {
      * Get color temperature of the image
      * @return Color temperature (in Kelvin)
      */
+    @Transient
     public double getColorTemp() {
         double rgb[] = {
             daylightRedGreenRatio/redGreenRatio,
@@ -312,6 +376,7 @@ public class RawConversionSettings implements Cloneable {
      * @return Ratio of green channel multiplier to the multiplier caused by 
      * illuminant with current comlor temperature.
      */
+    @Transient
     public double getGreenGain() {
         double rgb[] = {
             daylightRedGreenRatio/redGreenRatio,

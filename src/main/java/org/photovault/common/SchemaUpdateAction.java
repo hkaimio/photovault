@@ -160,8 +160,7 @@ public class SchemaUpdateAction {
         int processedPhotos = 0;
         while ( iter.hasNext() ) {
             PhotoInfo photo = (PhotoInfo) iter.next();
-            for ( int n = 0; n < photo.getNumInstances(); n++ ) {
-                ImageInstance inst = photo.getInstance( n );
+            for ( ImageInstance inst : photo.getInstances() ) {
                 /*
                  Hashes are generated on demand, so this call calculates the hash
                  if it has not been calculated previously.

@@ -30,5 +30,9 @@
     <!--
     Root of the folder hierarchy must have ID 1
     -->
-    <photo_collections collection_id="1" parent="0" collection_name="Top" collection_desc="Root folder"/>
+    <photo_collections collection_id="1" collection_name="Top" collection_desc="Root folder"/>
+    
+    <!-- Hibernate sequence initialization -->
+    <unique_keys id_name="hibernate_seq" next_val="1"/>
+    <unique_keys id_name="folder_id_gen" next_val="10"/>
 </data>

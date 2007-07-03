@@ -104,15 +104,15 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         PhotoFolder subfolder1 = new PhotoFolder();
         subfolder1.setName( "Folder 1" );
         subfolder1.setDescription( "Description 1\nanother line" );
-        subfolder1.setParentFolder( root );
+        subfolder1.reparentFolder( root );
         PhotoFolder subfolder2 = new PhotoFolder();
         subfolder2.setName( "Folder 2" );
         subfolder2.setDescription( "Description 2\nanother line" );
-        subfolder2.setParentFolder( root );
+        subfolder2.reparentFolder( root );
         PhotoFolder subfolder3 = new PhotoFolder();
         subfolder3.setName( "Folder 3" );
         subfolder3.setDescription( "Description 3\nanother line" );
-        subfolder3.setParentFolder( subfolder2 );
+        subfolder3.reparentFolder( subfolder2 );
         File outfile = File.createTempFile( "pv_export_test", ".xml" );
         FileWriter fw = new FileWriter( outfile );
         BufferedWriter writer = new BufferedWriter( fw );
@@ -167,8 +167,7 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         assertEquals( 0.4, c.getY( 1 ) );
         assertEquals( 0.5, c.getX( 1 ) );
         boolean foundOrig = false;
-        for ( int n = 0; n < p.getNumInstances(); n++ ) {
-            ImageInstance i = p.getInstance( n );
+        for ( ImageInstance i : p.getInstances() ) {
             if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
                 cm = i.getColorChannelMapping();
                 c = cm.getChannelCurve( "value" );

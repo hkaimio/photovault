@@ -21,12 +21,15 @@
 package org.photovault.folder;
 
 
+import java.lang.UnsupportedOperationException;
+import java.lang.UnsupportedOperationException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
-import org.photovault.dbhelper.ODMG;
-import org.photovault.dbhelper.ODMGXAWrapper;
-import org.odmg.*;
+import java.util.Set;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Fetch;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -34,11 +37,14 @@ import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoInfo;
+import javax.persistence.*;
 
 /**
    Implements a folder that can contain both PhotoInfos and other folders
 */
 
+@Entity
+@Table( name = "photo_collections" )
 public class PhotoFolder implements PhotoCollection {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
@@ -55,6 +61,8 @@ public class PhotoFolder implements PhotoCollection {
 
     UUID uuid = null;
     
+    @Column( name = "collection_uuid" )
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
     public UUID getUUID() {
         if ( uuid == null ) {
             setUUID( UUID.randomUUID() );
@@ -63,11 +71,8 @@ public class PhotoFolder implements PhotoCollection {
     }    
     
     public void setUUID( UUID uuid ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
 	this.uuid = uuid;
 	modified();
-	txw.commit();
     }
     /**
        Persistent ID for this folder
@@ -79,10 +84,18 @@ public class PhotoFolder implements PhotoCollection {
      * Get the value of folderId.
      * @return value of folderId.
      */
+    @Id 
+    @GeneratedValue( generator = "folder_id_gen", strategy = GenerationType.TABLE )
+    @TableGenerator( name="folder_id_gen", table="unique_keys", pkColumnName="id_name", 
+                     pkColumnValue="folder_id_gen", valueColumnName="next_val", initialValue=10 )
+    @Column( name = "collection_id" )
     public int getFolderId() {
 	return folderId;
     }
     
+    protected void setFolderId( int newId ) {
+        folderId = newId;
+    }
     /**
        Name of this folder
     */
@@ -92,6 +105,7 @@ public class PhotoFolder implements PhotoCollection {
      * Get the value of name.
      * @return value of name.
      */
+    @Column( name = "collection_name" )
     public String getName() {
 	return name;
     }
@@ -102,11 +116,8 @@ public class PhotoFolder implements PhotoCollection {
      */
     public void setName(String  v) {
 	checkStringProperty( "Name", v, NAME_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
 	this.name = v;
 	modified();
-	txw.commit();
     }
     String description;
     
@@ -114,6 +125,7 @@ public class PhotoFolder implements PhotoCollection {
      * Get the value of description.
      * @return value of description.
      */
+    @Column( name = "collection_desc" )
     public String getDescription() {
 	return description;
     }
@@ -123,11 +135,8 @@ public class PhotoFolder implements PhotoCollection {
      * @param v  Value to assign to description.
      */
     public void setDescription(String  v) {
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
 	this.description = v;
 	modified();
-	txw.commit();
     }
     Date creationDate = null;
     
@@ -135,17 +144,35 @@ public class PhotoFolder implements PhotoCollection {
      * Get the value of creationDate.
      * @return value of creationDate.
      */
+    @Transient
     public Date getCreationDate() {
 	return creationDate != null ? (Date) creationDate.clone()  : null;
     }
 
     // Implementation of PhotoCollection interface
 
-    Collection photos = null;
+    Set<PhotoInfo> photos = new HashSet();
+    
+    @ManyToMany( cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )
+    @org.hibernate.annotations.Cascade({
+               org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
+    @JoinTable( name = "collection_photos",
+                joinColumns = {@JoinColumn( name = "collection_id" ) },
+                inverseJoinColumns = {@JoinColumn( name = "photo_id" ) } )
+    public Set<PhotoInfo> getPhotos() {
+        // TODO: Make test case to verify if this works with Hibernate
+        return photos;
+    }
+    
+    protected void setPhotos( Set<PhotoInfo> newPhotos ) {
+        this.photos = newPhotos;
+        modified();
+    }
     
     /**
      * Returns the number of photos in the folder
      */
+    @Transient
     public int getPhotoCount()
     {
 	if ( photos == null ) {
@@ -176,17 +203,13 @@ public class PhotoFolder implements PhotoCollection {
     */
     public void addPhoto( PhotoInfo photo ) {
 	if ( photos == null ) {
-	    photos = new Vector();
+	    photos = new HashSet();
 	}
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
 	if ( !photos.contains( photo ) ) {
-            txw.lock( photo, Transaction.WRITE );
 	    photo.addedToFolder( this );
 	    photos.add( photo );
 	    modified();
 	}
-	txw.commit();
     }
 
     /**
@@ -196,19 +219,16 @@ public class PhotoFolder implements PhotoCollection {
 	if ( photos == null ) {
 	    return;
 	}
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
-        txw.lock( photo, Transaction.WRITE );
 	photo.removedFromFolder( this );
 	photos.remove( photo );
 	modified();
-	txw.commit();
     }
     
 
     /**
        Returns the numer of subfolders this folder has.
     */
+    @Transient
     public int getSubfolderCount() {
 	if ( subfolders == null ) {
 	    return 0;
@@ -234,17 +254,15 @@ public class PhotoFolder implements PhotoCollection {
        Adds a new subfolder to this folder. This method is called by setParentFolder().
     */
     protected void addSubfolder( PhotoFolder subfolder ) {
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
 	if ( subfolders == null ) {
-	    subfolders = new Vector();
+	    subfolders = new HashSet<PhotoFolder>();
 	}
-        // TODO: lock subfolder???
+        subfolder.parent = this;
 	subfolders.add( subfolder );
 	modified();
+        subfolder.modified();
 	// Inform all parents & their that the structure has changed
 	subfolderStructureChanged( this );
-	txw.commit();
     }
 
     /**
@@ -254,41 +272,59 @@ public class PhotoFolder implements PhotoCollection {
 	if ( subfolder == null ) {
 	    return;
 	}
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
-        txw.lock( subfolder, Transaction.WRITE );
 	subfolders.remove( subfolder );
 	modified();
 	// Inform all parents & their that the structure has changed
 	subfolderStructureChanged( this );
-	txw.commit();
+    }
+    
+    @OneToMany( mappedBy="parentFolder", cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )
+    @org.hibernate.annotations.Cascade({
+               org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
+    public Set<PhotoFolder> getSubfolders() {
+        return subfolders;
+    }    
+    protected void setSubfolders( Set<PhotoFolder> newSubfolders ) {
+        subfolders = newSubfolders;
+        modified();
+	subfolderStructureChanged( this );        
     }
     
     /**
        All subfolders for this folder
     */
-    Collection subfolders = null;
+    Set<PhotoFolder> subfolders = new HashSet<PhotoFolder>();
     
     /**
        Returns the parent of this folder or null if this is a top-level folder
     */
+    @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
+    @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
+    @JoinColumn( name = "parent", nullable = true )
     public PhotoFolder getParentFolder() {
 	return parent;
     }
 
-    public void setParentFolder( PhotoFolder newParent ) {
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
-	// If the parent is already set, remove the folder from its subfolders
-	if ( parent != null ) {
+    protected void setParentFolder( PhotoFolder newParent ) {
+	this.parent = newParent;
+	modified();
+    }
+    
+    /**
+     Set a new parent for this folder
+     @param newParent New parent for this folder
+     */
+    public void reparentFolder( PhotoFolder newParent ) {
+        if ( parent != null ) {
 	    parent.removeSubfolder( this );
 	}
 	this.parent = newParent;
 	if ( parent != null ) {
-	    parent.addSubfolder( this );
+	    parent.subfolders.add( this );
+	    subfolderStructureChanged( parent );
+            parent.modified();            
 	}
 	modified();
-	txw.commit();
     }
     
     /**
@@ -432,18 +468,14 @@ public class PhotoFolder implements PhotoCollection {
     */
     public static PhotoFolder create( String name, PhotoFolder parent ) {
         
-        ODMGXAWrapper txw = new ODMGXAWrapper();
         PhotoFolder folder = new PhotoFolder();
         try {
             folder.setName( name );
             folder.uuid = UUID.randomUUID();
-            folder.setParentFolder( parent );
-            txw.lock( folder, Transaction.WRITE );
+            folder.reparentFolder( parent );
         } catch (IllegalArgumentException e ) {
             throw e;
-        } finally {
-            txw.commit();
-        }
+        } 
         return folder;
     }
 
@@ -454,123 +486,56 @@ public class PhotoFolder implements PhotoCollection {
        @param parent Parent folder of the new folder
     */
     public static PhotoFolder create(UUID uuid, PhotoFolder parent) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
         PhotoFolder folder = new PhotoFolder();
         try {
             folder.uuid = uuid;
             folder.name = "";
             folder.setParentFolder( parent );
-            txw.lock( folder, Transaction.WRITE );
         } catch (IllegalArgumentException e ) {
             throw e;
-        } finally {
-            txw.commit();
         }
         return folder;
     }    
 
     /**
        Returns the root folder for the PhotoFolder hierarchy, i.e. the folder with id 1.
+     @deprecated Does not work with Hibernate, use PhotoFolderDAO#findRootFolder() instead.
     */
     public static PhotoFolder getRoot() {
-        PhotoFolder rootFolder = PhotoFolder.rootFolder;
-        if ( rootFolder == null ) {
-            ODMGXAWrapper txw = new ODMGXAWrapper();
-            Implementation odmg = ODMG.getODMGImplementation();
-	
-            List folders = null;
-            boolean mustCommit = false;
-            try {
-                OQLQuery query = odmg.newOQLQuery();
-                query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );                
-                folders = (List) query.execute();
-            } catch ( Exception e ) {
-                Throwable rootCause = e;
-                while ( rootCause.getCause() != null ) {
-                    rootCause = rootCause.getCause();
-                }
-                log.error( rootCause.getMessage() );
-                txw.abort();
-                return null;
-            }
-            rootFolder = (PhotoFolder) folders.get( 0 );
-            PhotoFolder.rootFolder = rootFolder;
-            // If a new transaction was created, commit it
-            txw.commit();
-        }
-	return rootFolder;
+        throw new UnsupportedOperationException( 
+                "PhotoFolder#getRoot() not implemented, use PhotoFolderDAO#findRootFolder() instead");
     }
     
     /**
      Get folder by its UUID.
      @param uuid UUID for t6he folder to retrieve
      @return The given folder or <code>null</code> if not found     
+     @deprecated Does not work with Hibernate, use PhotoFolderDAO#findByUUID() instead.
      */
     public static PhotoFolder getFolderByUUID(UUID uuid) {
-        PhotoFolder f = null;
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        List folders = null;
-        boolean mustCommit = false;
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( "select folders from " + PhotoFolder.class.getName() 
-                        + " where uuid = \"" + uuid.toString() + "\"" );
-            folders = (List) query.execute();
-        } catch ( Exception e ) {
-            txw.abort();
-            return null;
-        }
-        if ( folders.size() > 0 ) {
-            f = (PhotoFolder) folders.get( 0 );
-        }
-        // If a new transaction was created, commit it
-        txw.commit();
-        return f;
+        throw new UnsupportedOperationException( 
+                "PhotoFolder#getFolderByUUID() not implemented, use PhotoFolderDAO#findByUUID() instead");
     }
 
     /**
      Returns the root folder with givenId.
      @param id id of the folder to retrieve
      @return The given folder or <code>null</code> if not found
+     @deprecated Does not work with Hibernate, use PhotoFolderDAO#findById() instead.
     */
     public static PhotoFolder getFolderById( int id ) {
-        PhotoFolder f = null;
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        List folders = null;
-        boolean mustCommit = false;
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( "select folders from " + PhotoFolder.class.getName() 
-                        + " where folderId = " + id );
-            folders = (List) query.execute();
-        } catch ( Exception e ) {
-            txw.abort();
-            return null;
-        }
-        f = (PhotoFolder) folders.get( 0 );
-        // If a new transaction was created, commit it
-        txw.commit();
-        return f;
+        throw new UnsupportedOperationException( 
+                "PhotoFolder#getFolderById() not implemented, use PhotoFolderDAO#findById() instead");
     }
-
-    
     
     static PhotoFolder rootFolder = null;
 
     /**
-       Deletes this object from the persistent repository
+       Deletes all resources from this folder
     */
     public void delete() {
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	// Find the current transaction or create a new one
-	boolean mustCommit = false;
-
 	// First make sure that this object is deleted from its parent's subfolders list (if it has a parent)
-	setParentFolder( null );
+	reparentFolder( null );
 
 	// Then notify all photos belonging to this folder
 	if ( photos != null ) {
@@ -580,13 +545,7 @@ public class PhotoFolder implements PhotoCollection {
 		photo.removedFromFolder( this );
 	    }
 	}
-	Database db = ODMG.getODMGDatabase();
-	db.deletePersistent( this );
-	
-	txw.commit();
     }
-    
-
 
     /**
        Converts the folder object to String.
@@ -595,7 +554,4 @@ public class PhotoFolder implements PhotoCollection {
     public String toString() {
 	return name;
     }
-
-
-
 }    

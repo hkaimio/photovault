@@ -213,8 +213,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         // Check that both instances of p2 can be found
         boolean found[] = {false, false};
         File files[] = {photo2inst1, photo2inst2};
-        for ( n = 0; n < p2.getNumInstances(); n++ ) {
-            ImageInstance i = p2.getInstance( n );
+        for ( ImageInstance i : p2.getInstances() ) {
             for ( int m = 0; m < found.length; m++ ) {
                 if ( files[m].equals( i.getImageFile() ) ) {
                     found[m] = true;

@@ -211,7 +211,7 @@ public class XmlImporter {
             if ( folder == null ) {
                 folder = PhotoFolder.create( uuid, parent );
             } else if ( parentUuidStr != null || forceReparent ) {
-                folder.setParentFolder( parent );
+                folder.reparentFolder( parent );
             }
             return folder;
         }

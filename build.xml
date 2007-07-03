@@ -47,18 +47,39 @@
   <path id="runtime.path">
       <fileset id="runtime.fileset" dir="${build.lib.dir}">
           <include name="db-ojb-1.0.4.jar"/>
+          
+          <!-- Hibernate & dependencies -->
+          <include name="hibernate3.jar"/>
+          <include name="jta.jar"/>
+          <include name="jdbc2.0-stdext.jar"/>
+          <include name="javassist.jar"/>
+          <include name="ehcache-1.2.3.jar"/>
+          <include name="c3p0-0.9.1.jar"/>
+          <include name="hibernate-annotations.jar"/>
+          <include name="hibernate-commons-annotations.jar"/>
+          <include name="ejb3-persistence.jar"/>
+          <include name="antlr-2.7.5.jar"/>
+          <include name="dom4j-1.6.1.jar"/>
+          
+          <!-- EXIF librabry -->
           <include name="exif_extract.jar"/>
+          
           <!-- <include name="jai_codec.jar"/>
           <include name="jai_core.jar"/>-->
+          
+          <!-- JAI imageio -->
           <include name="jai_imageio.jar"/>
           <include name="clibwrapper_jiio.jar"/>
+          
+          <!-- Derby & JDBC drivers -->
           <include name="mysql-connector-java.jar"/>
+          <include name="derby.jar"/>
+          
+          <!-- Logging -->
           <include name="log4j-1.2.12.jar"/>
           <include name="commons-*.jar"/>
-          <include name="antlr-2.7.5.jar"/>
           <include name="swing-layout-*.jar"/>
           <include name="DdlUtils-*"/>
-          <include name="derby.jar"/>
           <include name="quaqua.jar"/>
       </fileset>
   </path>

@@ -19,20 +19,14 @@
  */
 
 package org.photovault.imginfo;
-import com.sun.media.imageio.plugins.tiff.BaselineTIFFTagSet;
-import com.sun.media.imageio.plugins.tiff.EXIFTIFFTagSet;
-import com.sun.org.apache.xerces.internal.impl.dtd.models.DFAContentModel;
 import java.awt.image.renderable.ParameterBlock;
+import java.lang.UnsupportedOperationException;
 import java.util.*;
-import java.sql.*;
 import java.io.*;
-import java.text.*;
 import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
-import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.*;
 import com.sun.media.jai.codec.*;
-import java.awt.Transparency;
 import java.awt.image.*;
 import java.awt.geom.*;
 import com.drew.metadata.*;
@@ -42,6 +36,8 @@ import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.query.Criteria;
 import org.apache.ojb.broker.query.QueryByCriteria;
 import org.apache.ojb.odmg.*;
+import org.hibernate.Session;
+import org.hibernate.annotations.Cascade;
 import org.odmg.*;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dbhelper.ODMG;
@@ -54,11 +50,15 @@ import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
 
+import javax.persistence.*;
+
 /**
  PhotoInfo represents information about a single photograph
  TODO: write a decent doc!
  */
-public class PhotoInfo {
+@Entity
+@Table( name = "photos" )
+public class PhotoInfo implements java.io.Serializable {
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
     
@@ -77,13 +77,14 @@ public class PhotoInfo {
     final static int ORIG_FNAME_LENGTH = 30;
     
     public PhotoInfo() {
+        uuid = UUID.randomUUID();
         changeListeners = new HashSet();
-        instances = new Vector();
     }
     
     /**
      Static method to load photo info from database by photo id.
      @param photoId ID of the photo to be retrieved
+     @deprecated Use findPhotoInfo( int photoId ) instead
      */
     public static PhotoInfo retrievePhotoInfo( int photoId ) throws PhotoNotFoundException {
         log.debug( "Fetching PhotoInfo with ID " + photoId );
@@ -113,6 +114,22 @@ public class PhotoInfo {
         // This sounds like a bug in OJB?????
         if ( photo.getUid() != photoId ) {
             log.warn( "Found photo with ID = " + photo.getUid() + " while looking for ID " + photoId );
+            throw new PhotoNotFoundException();
+        }
+        return photo;
+    }
+    
+    /**
+     Get a PhotoInfo object with given ID
+     @param session the persistence context into which the object is requested
+     @param uid UID of the requested object.
+     @return The PhotoInfo with given UID or <code>null</code> if no such is 
+     available.
+     */
+    public static PhotoInfo findPhotoInfo( Session session, Integer uid )
+    throws PhotoNotFoundException {        
+        PhotoInfo photo =  (PhotoInfo) session.get( PhotoInfo.class, uid );
+        if ( photo == null ) {
             throw new PhotoNotFoundException();
         }
         return photo;
@@ -158,32 +175,18 @@ public class PhotoInfo {
      @param hash The hash code we are looking for
      @return An array of matching PhotoInfo objects or <code>null</code>
      if none found.
+     @deprecated Use PhotoInfoDAO#findPhotosWithOriginalHash instead.
      */
     static public PhotoInfo[] retrieveByOrigHash(byte[] hash) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        Transaction tx = odmg.currentTransaction();
-        
-        PhotoInfo photos[] = null;
-        try {
-            PersistenceBroker broker = ((HasBroker) tx).getBroker();
-            
-            Criteria crit = new Criteria();
-            crit.addEqualTo( "origInstanceHash", hash );
-            
-            QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
-            Collection result = broker.getCollectionByQuery( q );
-            if ( result.size() > 0 ) {
-                photos = (PhotoInfo[]) result.toArray( new PhotoInfo[result.size()] );
-            }
-            txw.commit();
-        } catch ( Exception e ) {
-            log.warn( "Error executing query: " + e.getMessage() );
-            e.printStackTrace( System.out );
-            txw.abort();
-        }
-        return photos;  
+        throw new UnsupportedOperationException( 
+                "retrieveByOrigHash not supported with Hibernate, " +
+                "Use PhotoInfoDAO#findPhotosWithOriginalHash instead" );
+//        PhotoInfo photos[] = null;
+//        List result = new ArrayList();
+//        if ( result.size() > 0 ) {
+//                photos = (PhotoInfo[]) result.toArray( new PhotoInfo[result.size()] );
+//            }
+//        return photos;  
     }
     
     /**
@@ -194,12 +197,6 @@ public class PhotoInfo {
     public static PhotoInfo create() {
         PhotoInfo photo = new PhotoInfo();
         photo.uuid = UUID.randomUUID();
-        
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();        
-        db.makePersistent( photo );
-        txw.lock( photo, Transaction.WRITE );
-        txw.commit();
         return photo;
     }
     
@@ -221,17 +218,19 @@ public class PhotoInfo {
     }
     
     /**
-     Add a new image to the database. Unless the image resides in an external
+     Create a new Photo based on an image file. Unless the image resides in an external
      volume this method first copies a given image file to the default database
      volume. It then extracts the information it can from the image file and
-     stores a corresponding entry in DB.
+     creates a PhotoInfo object based on this.
      
      @param imgFile File object that describes the image file that is to be added
      to the database
      @return The PhotoInfo object describing the new file.
      @throws PhotoNotFoundException if the file given as imgFile argument does
      not exist or is unaccessible. This includes a case in which imgFile is part
-     if normal Volume.
+     of normal Volume.
+     
+     // TODO: Move this into a command object.
      */
     public static PhotoInfo addToDB( File imgFile )  throws PhotoNotFoundException {
         VolumeBase vol = null;
@@ -269,13 +268,10 @@ public class PhotoInfo {
         }
         
         // Create the image
-        ODMGXAWrapper txw = new ODMGXAWrapper();
         PhotoInfo photo = PhotoInfo.create();
-        txw.lock( photo, Transaction.WRITE );
         photo.addInstance( vol, instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
         photo.setCropBounds( new Rectangle2D.Float( 0.0F, 0.0F, 1.0F, 1.0F ) );
         photo.updateFromOriginalFile();
-        txw.commit();
         return photo;
     }
     
@@ -284,10 +280,9 @@ public class PhotoInfo {
     /**
      Get the globally unique ID for this photo;
      */
+    @Column( name = "photo_uuid" )
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
     public UUID getUUID() {
-        if ( uuid == null ) {
-            setUUID( UUID.randomUUID() );
-        }
         return uuid;
     }    
     
@@ -307,8 +302,7 @@ public class PhotoInfo {
     public boolean updateFromOriginalFile() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         ImageInstance instance = null;
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance candidate = (ImageInstance) instances.get( n );
+        for ( ImageInstance candidate : instances ) {
             if ( candidate.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
                 instance = candidate;
                 File f = instance.getImageFile();
@@ -406,12 +400,8 @@ public class PhotoInfo {
      {@link #delete( boolean deleteExternalInstances )} instead.
      */
     public void delete() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();
-        
         // First delete all instances
-        for ( int i = 0; i < instances.size(); i++ ) {
-            ImageInstance f = (ImageInstance) instances.get( i );
+        for ( ImageInstance f : instances ) {
             f.delete();
         }
         
@@ -422,10 +412,6 @@ public class PhotoInfo {
                 ((PhotoFolder)foldersArray[n]).removePhoto( this );
             }
         }
-        
-        // Then delete the PhotoInfo itself
-        db.deletePersistent( this );
-        txw.commit();
     }
     
     /**
@@ -445,8 +431,7 @@ public class PhotoInfo {
         // First delete all instances
         Vector deletedInstances = new Vector();
         Vector notDeletedInstances = new Vector();
-        for ( int i = 0; i < instances.size(); i++ ) {
-            ImageInstance f = (ImageInstance) instances.get( i );
+        for ( ImageInstance f : instances ) {
             if ( f.delete( deleteExternalInstances ) ) {
                 deletedInstances.add( f );
             } else {
@@ -515,7 +500,7 @@ public class PhotoInfo {
     HashSet changeListeners = null;
     
     
-    private int uid;
+    private Integer uid;
     
     /**
      * Describe timeAccuracy here.
@@ -541,15 +526,35 @@ public class PhotoInfo {
      * Describe origFname here.
      */
     private String origFname;
+
+    /**
+     Set the (local) id for this photo.
+     @param uid New id.
+     */    
+    void setId( Integer uid ) {
+        this.uid = uid;
+    }
+    
+    @Id 
+    @GeneratedValue( generator = "PhotoIdGen", strategy = GenerationType.TABLE )
+    @TableGenerator( name="PhotoIdGen", table="unique_keys", pkColumnName="id_name", 
+                     pkColumnValue="hibernate_seq", valueColumnName="next_val" )
+    @Column( name = "photo_id" )
+    public Integer getId() {
+        return uid;
+    }
+     
+    public void setUid( int uid ) {
+        this.uid = Integer.valueOf( uid );
+    }
     
     /**
      Returns the uid of the object
+     @deprecated
      */
+    @Transient
     public int getUid() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
-        return uid;
+        return uid.intValue();
     }
     
     /**
@@ -557,16 +562,11 @@ public class PhotoInfo {
      @param i The new instance
      */
     public void addInstance( ImageInstance i ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        txw.lock( i, Transaction.WRITE );
         instances.add( i );
-        i.setPhotoUid(  uid );
+        i.setPhoto( this );
         if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
             origInstanceHash = i.getHash();
-        }
-        txw.commit();
-        
+        }        
     }
     
     /**
@@ -578,9 +578,6 @@ public class PhotoInfo {
      @see ImageInstance class documentation for details.
      */
     public ImageInstance addInstance( VolumeBase volume, File instanceFile, int instanceType ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        // Vector origInstances = getInstances();
         ImageInstance instance = ImageInstance.create( volume, instanceFile, this, instanceType );
         instances.add( instance );
         
@@ -598,29 +595,23 @@ public class PhotoInfo {
             // them may be displaying the default thumbnail
             modified();
         }
-        txw.commit();
         return instance;
     }
-    
-    public void removeInstance( int instanceNum )  throws IndexOutOfBoundsException {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        ImageInstance instance = null;
-        try {
-            instance = (ImageInstance) getInstances().get(instanceNum );
-        } catch ( IndexOutOfBoundsException e ) {
-            txw.abort();
-            throw e;
-        }
-        txw.lock( this, Transaction.WRITE );
-        txw.lock( instance, Transaction.WRITE );
-        instances.remove( instance );
-        instance.delete();
-        txw.commit();
+
+    /**
+     Remove an instance from this photo. Also remove any file system resources 
+     held by the instance in question.
+     @param i The instance that will be deleted.
+     */
+    public void removeInstance( ImageInstance i ) {
+        instances.remove( i );
+        i.delete();
     }
     
     /**
      Returns the number of instances of this photo that are stored in database
      */
+    @Transient
     public int getNumInstances() {
         return instances.size();
     }
@@ -629,21 +620,20 @@ public class PhotoInfo {
     /**
      Returns the arrayList that contains all instances of this file.
      */
-    public Vector getInstances() {
+    @OneToMany(cascade  = { CascadeType.PERSIST, CascadeType.MERGE },
+               mappedBy = "photo")
+    @org.hibernate.annotations.Cascade({
+               org.hibernate.annotations.CascadeType.SAVE_UPDATE })
+    public Set<ImageInstance> getInstances() {
         return instances;
     }
     
-    Vector instances = null;
-    
-    /**
-     Return a single image instance based on its order number
-     @param instanceNum Number of the instance to return
-     @throws IndexOutOfBoundsException if instanceNum is < 0 or >= the number of instances
-     */
-    public ImageInstance getInstance( int instanceNum ) throws IndexOutOfBoundsException {
-        ImageInstance instance =  (ImageInstance) getInstances().get(instanceNum );
-        return instance;
+    public void setInstances( Set<ImageInstance> v ) {
+        instances = v;
     }
+    
+    Set<ImageInstance> instances = new HashSet<ImageInstance>();
+    
     
     /**
      Returns a thumbnail of this image. If no thumbnail instance is yetavailable, creates a
@@ -653,6 +643,7 @@ public class PhotoInfo {
      a default thumbnail image.
      @return Thumbnail of this photo or default thumbnail if no photo instances available
      */
+    @Transient
     public Thumbnail getThumbnail() {
         log.debug( "getThumbnail: entry, Finding thumbnail for " + uid );
         if ( thumbnail == null ) {
@@ -679,14 +670,13 @@ public class PhotoInfo {
      one if there is no thumbnail already created.
      @return Thumbnail for this photo or null if none is found.
      */
-    
+    @Transient
     public Thumbnail getExistingThumbnail() {
         if ( thumbnail == null ) {
             log.debug( "Finding thumbnail from database" );
             // First try to find an instance from existing instances
             ImageInstance original = null;
-            for ( int n = 0; n < instances.size(); n++ ) {
-                ImageInstance instance = (ImageInstance) instances.get( n );
+            for ( ImageInstance instance : instances ) {
                 if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
                         && matchesCurrentSettings( instance ) ) {
                     File f = instance.getImageFile();
@@ -722,6 +712,7 @@ public class PhotoInfo {
      */
     Thumbnail oldThumbnail = null;
     
+    @Transient
     public Thumbnail getOldThumbnail() {
         return oldThumbnail;
     }
@@ -745,18 +736,15 @@ public class PhotoInfo {
      */
     private void purgeInvalidInstances() {
         log.debug( "entry: purgeInvalidInstances" );
-        Vector purgeList = new Vector();
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance instance = (ImageInstance) instances.get( n );
+        List<ImageInstance> purgeList = new ArrayList<ImageInstance>();
+        for ( ImageInstance instance : instances ) {
             if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
                     && !matchesCurrentSettings( instance ) ) {
                 purgeList.add( instance );
             }
         }
         log.debug( "Deleting " + purgeList.size() + " instances" );
-        Iterator iter = purgeList.iterator();
-        while ( iter.hasNext() ) {
-            ImageInstance i = (ImageInstance) iter.next();
+        for ( ImageInstance i : purgeList ) {
             ODMGXAWrapper txw = new ODMGXAWrapper();
             txw.lock( this, Transaction.WRITE );
             txw.lock( i, Transaction.WRITE );
@@ -837,8 +825,7 @@ public class PhotoInfo {
         
         // Find the original image to use as a staring point
         ImageInstance original = null;
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance instance = (ImageInstance) instances.get( n );
+        for ( ImageInstance instance : instances ) {
             if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL
                     && instance.getImageFile() != null 
                     && instance.getImageFile().exists() ) {
@@ -1041,8 +1028,7 @@ public class PhotoInfo {
         
         // Find the original image to use as a staring point
         ImageInstance original = null;
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance instance = (ImageInstance) instances.get( n );
+        for ( ImageInstance instance : instances ) {
             if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL
                     && instance.getImageFile() != null 
                     && instance.getImageFile().exists() ) {
@@ -1200,6 +1186,8 @@ public class PhotoInfo {
      */
     byte origInstanceHash[] = null;
     
+    @Column( name = "hash" )
+    // @org.hibernate.annotations.Type( type = "varbinary" )
     public byte[] getOrigInstanceHash() {
         return (origInstanceHash != null) ? ((byte[])origInstanceHash.clone()) : null;
     }
@@ -1211,9 +1199,11 @@ public class PhotoInfo {
     protected void setOrigInstanceHash( byte[] hash ) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
-        origInstanceHash = (byte[]) hash.clone();
+        // origInstanceHash = (byte[]) hash.clone();
+        origInstanceHash = hash;
         txw.commit();
     }
+    
     
     java.util.Date shootTime;
     
@@ -1222,6 +1212,8 @@ public class PhotoInfo {
      null (to mean that the time is unspecified)1
      @return value of shootTime.
      */
+    @Column( name = "shoot_time" )
+    @Temporal( value = TemporalType.TIMESTAMP )
     public java.util.Date getShootTime() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1258,7 +1250,8 @@ public class PhotoInfo {
      
      @return The timeAccuracty value
      */
-    public final double getTimeAccuracy() {
+    @Column( name = "time_accuracy")
+    public double getTimeAccuracy() {
         return timeAccuracy;
     }
     
@@ -1270,41 +1263,19 @@ public class PhotoInfo {
      
      * @param newTimeAccuracy The new TimeAccuracy value.
      */
-    public final void setTimeAccuracy(final double newTimeAccuracy) {
+    public void setTimeAccuracy(final double newTimeAccuracy) {
         this.timeAccuracy = newTimeAccuracy;
     }
     
     
-    String desc;
-    
-    /**
-     * Get the value of desc.
-     * @return value of desc.
-     */
-    public String getDesc() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
-        return desc;
-    }
-    
-    /**
-     * Set the value of desc.
-     * @param v  Value to assign to desc.
-     */
-    public void setDesc(String  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        this.desc = v;
-        modified();
-        txw.commit();
-    }
+ 
     double FStop;
     
     /**
      * Get the value of FStop.
      * @return value of FStop.
      */
+    @Column( name = "f_stop" )
     public double getFStop() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1329,6 +1300,7 @@ public class PhotoInfo {
      * Get the value of focalLength.
      * @return value of focalLength.
      */
+    @Column( name = "focal_length" )
     public double getFocalLength() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1353,6 +1325,7 @@ public class PhotoInfo {
      * Get the value of shootingPlace.
      * @return value of shootingPlace.
      */
+    @Column( name = "shooting_place" )
     public String getShootingPlace() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1378,6 +1351,7 @@ public class PhotoInfo {
      * Get the value of photographer.
      * @return value of photographer.
      */
+    @Column( name = "photographer" )
     public String getPhotographer() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1403,6 +1377,7 @@ public class PhotoInfo {
      * Get the value of shutterSpeed.
      * @return value of shutterSpeed.
      */
+    @Column( name = "shutter_speed" )
     public double getShutterSpeed() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1427,6 +1402,7 @@ public class PhotoInfo {
      * Get the value of camera.
      * @return value of camera.
      */
+    @Column( name = "camera" )
     public String getCamera() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1452,6 +1428,7 @@ public class PhotoInfo {
      * Get the value of lens.
      * @return value of lens.
      */
+    @Column( name = "lens" )
     public String getLens() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1477,6 +1454,7 @@ public class PhotoInfo {
      * Get the value of film.
      * @return value of film.
      */
+    @Column( name = "film" )
     public String getFilm() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1502,6 +1480,7 @@ public class PhotoInfo {
      * Get the value of filmSpeed.
      * @return value of filmSpeed.
      */
+    @Column( name = "film_speed" )
     public int getFilmSpeed() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1528,6 +1507,7 @@ public class PhotoInfo {
      indicate that the image should be rotated clockwise.
      @return value of prefRotation.
      */
+    @Column( name = "pref_rotation" )
     public double getPrefRotation() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1583,6 +1563,15 @@ public class PhotoInfo {
     /**
      Get the preferred crop bounds of the original image
      */
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.CropRectUserType" )
+    @org.hibernate.annotations.Columns( 
+        columns = {
+            @Column( name = "clip_xmin" ),
+            @Column( name = "clip_xmax" ),
+            @Column( name = "clip_ymin" ),
+            @Column( name = "clip_ymax", length = 4 )
+        } 
+    )
     public Rectangle2D getCropBounds() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         checkCropBounds();
@@ -1598,8 +1587,9 @@ public class PhotoInfo {
      @param cropBounds New crop bounds
      */
     public void setCropBounds( Rectangle2D cropBounds ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
+        if ( cropBounds == null ) {
+            cropBounds = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
+        }
         if ( !cropBounds.equals( getCropBounds() ) ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
@@ -1611,7 +1601,6 @@ public class PhotoInfo {
         cropMaxY = cropBounds.getMaxY();
         checkCropBounds();
         modified();
-        txw.commit();
     }
     
     
@@ -1656,6 +1645,8 @@ public class PhotoInfo {
      Get currently preferred color channe?l mapping.
      @return The current color channel mapping
      */
+    // TODO: Do mapping for these
+    @Transient
     public ChannelMapOperation getColorChannelMapping() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1681,8 +1672,6 @@ public class PhotoInfo {
      */
     public void setRawSettings( RawConversionSettings s ) {
         log.debug( "entry: setRawSettings()" );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         RawConversionSettings settings = null;
         if ( s != null ) {
             if ( !s.equals( rawSettings ) ) {
@@ -1690,14 +1679,6 @@ public class PhotoInfo {
                 purgeInvalidInstances();
             }
             settings =  s.clone();
-            Database db = ODMG.getODMGDatabase();
-            db.makePersistent( settings );
-            RawConversionSettings oldSettings = rawSettings;
-            txw.lock( settings, Transaction.WRITE );
-            if ( oldSettings != null ) {
-                txw.lock( oldSettings, Transaction.WRITE );
-                db.deletePersistent( oldSettings );
-            }
         } else {
             // s is null so this should not be raw image
             if ( rawSettings != null ) {
@@ -1707,8 +1688,6 @@ public class PhotoInfo {
             }
         }
         rawSettings = settings;
-        modified();
-        txw.commit();
         log.debug( "exit: setRawSettings()" );
     }
 
@@ -1716,6 +1695,10 @@ public class PhotoInfo {
      Get the current raw conversion settings.
      @return Current settings or <code>null</code> if this is not a raw image.     
      */
+    @OneToOne( cascade = CascadeType.ALL )
+    @org.hibernate.annotations.Cascade({
+               org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
+    @JoinColumn( name = "rawconv_id" )
     public RawConversionSettings getRawSettings() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1723,16 +1706,13 @@ public class PhotoInfo {
         return rawSettings;
     }
 
-    public int getRawSettingsId() {
-        return rawSettingsId;
-    }
-    
     String description;
     
     /**
      * Get the value of description.
      * @return value of description.
      */
+    @Column( name = "description" )
     public String getDescription() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.READ );
@@ -1764,7 +1744,8 @@ public class PhotoInfo {
      *
      * @return an <code>int</code> value
      */
-    public final int getQuality() {
+    @Column( name = "photo_quality" )
+    public int getQuality() {
         return quality;
     }
     
@@ -1783,7 +1764,7 @@ public class PhotoInfo {
      *
      * @param newQuality The new Quality value.
      */
-    public final void setQuality(final int newQuality) {
+    public void setQuality(final int newQuality) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.quality = newQuality;
@@ -1795,7 +1776,9 @@ public class PhotoInfo {
      Returns the time when this photo (=metadata of it) was last modified
      * @return a <code>Date</code> value
      */
-    public final java.util.Date getLastModified() {
+    @Column( name = "last_modified" )
+    @Temporal(value = TemporalType.TIMESTAMP )
+    public java.util.Date getLastModified() {
         return lastModified != null ? (java.util.Date) lastModified.clone() : null;
     }
     
@@ -1812,7 +1795,8 @@ public class PhotoInfo {
      *
      * @return a <code>String</code> value
      */
-    public final String getTechNotes() {
+    @Column( name = "tech_notes" )
+    public String getTechNotes() {
         return techNotes;
     }
     
@@ -1821,7 +1805,7 @@ public class PhotoInfo {
      *
      * @param newTechNotes The new TechNotes value.
      */
-    public final void setTechNotes(final String newTechNotes) {
+    public void setTechNotes( String newTechNotes ) {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
         this.techNotes = newTechNotes;
@@ -1834,7 +1818,8 @@ public class PhotoInfo {
      
      * @return a <code>String</code> value
      */
-    public final String getOrigFname() {
+    @Column( name = "orig_fname" )
+    public String getOrigFname() {
         return origFname;
     }
     
@@ -1845,7 +1830,7 @@ public class PhotoInfo {
      @throws IllegalArgumentException if the given file name is longer than
      {@link #ORIG_FNAME_LENGTH}
      */
-    public final void setOrigFname(final String newFname) {
+    public void setOrigFname(final String newFname) {
         checkStringProperty( "OrigFname", newFname, ORIG_FNAME_LENGTH );
         ODMGXAWrapper txw = new ODMGXAWrapper();
         txw.lock( this, Transaction.WRITE );
@@ -1858,16 +1843,12 @@ public class PhotoInfo {
     /**
      List of folders this photo belongs to
      */
-    Collection folders = null;
+    Set<PhotoFolder> folders = new HashSet<PhotoFolder>();
     
     /**
      This is called by PhotoFolder when the photo is added to a folder
      */
     public void addedToFolder( PhotoFolder folder ) {
-        if ( folders == null ) {
-            folders = new Vector();
-        }
-        
         folders.add( folder );
     }
     
@@ -1876,7 +1857,7 @@ public class PhotoInfo {
      */
     public void removedFromFolder( PhotoFolder folder ) {
         if ( folders == null ) {
-            folders = new Vector();
+            folders = new HashSet<PhotoFolder>();
         }
         
         folders.remove( folder );
@@ -1886,12 +1867,14 @@ public class PhotoInfo {
     /**
      Returns a collection that contains all folders the photo belongs to
      */
-    public Collection getFolders() {
-        Vector foldersCopy = new Vector();
-        if ( folders != null ) {
-            foldersCopy = new Vector( folders );
-        }
-        return foldersCopy;
+    // TODO: implement mapping of folders
+    @ManyToMany( mappedBy = "photos" )
+    public Set<PhotoFolder> getFolders() {
+        return folders;
+    }
+    
+    protected void setFolders( Set<PhotoFolder> newFolders ) {
+        folders = newFolders;    
     }
     
     static private boolean isEqual( Object o1, Object o2 ) {
@@ -1906,7 +1889,7 @@ public class PhotoInfo {
     }
     
     /**
-     Checks that a string is no longer tha tmaximum length allowed for it
+     Checks that a string is no longer that maximum length allowed for it
      @param propertyName The porperty name used in error message
      @param value the new value
      @param maxLength Maximum length for the string
@@ -1951,7 +1934,7 @@ public class PhotoInfo {
     }
     
     public int hashCode() {
-        return uid;
+        return uuid.hashCode();
     }
 
 

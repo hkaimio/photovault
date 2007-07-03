@@ -21,40 +21,41 @@
 package org.photovault.folder;
 
 import junit.framework.*;
-import org.odmg.*;
+import org.hibernate.Query;
+import org.hibernate.Session;
 import java.util.*;
 import java.sql.*;
 import java.io.*;
-import org.odmg.Database;
-import org.odmg.Implementation;
-import org.apache.ojb.odmg.*;
+import org.hibernate.Transaction;
 import org.photovault.dbhelper.ImageDb;
-import org.photovault.dbhelper.ODMG;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.common.PhotovaultSettings;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoFolder extends PhotovaultTestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolder.class.getName() );
 
-    Implementation odmg = null;
-    Database db = null;
+    String testImgDir = "testfiles";
+    PhotoFolderDAO folderDAO = new PhotoFolderDAOHibernate();
+    Session session = null;
     Transaction tx = null;
-  String testImgDir = "testfiles";
-  
+    
     /**
        Sets up the test environment. retrieves from database the hierarchy with 
        "subfolderTest" as root and creates a TreeModel from it
     */
     public void setUp() {
-	odmg = ODMG.getODMGImplementation();
+        session = HibernateUtil.getSessionFactory().getCurrentSession();
+        tx = session.beginTransaction();
     }
 
     public void tearDown() {
+        tx.commit();
     }
 
     public static Test suite() {
@@ -72,26 +73,25 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     public void testCreate() {
 	
 	PhotoFolder folder = PhotoFolder.create( "Top", null );
-	Transaction tx = odmg.newTransaction();
-	log.debug( "Changing folder name for " + folder.getFolderId() );
-	tx.begin();
+        folderDAO.makePersistent( folder );
+        folderDAO.flush();
+        assertMatchesDb( folder, session );
+        
+        log.debug( "Changing folder name for " + folder.getFolderId() );
 	folder.setName( "testTop" );
-	tx.commit();
 	log.debug( "Folder name changed" );
 	
 	// Try to find the object from DB
 	List folders = null;
 	try {
-	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = " + folder.getFolderId() );
-	    folders = (List) query.execute();
+	    folders = session.createQuery("from PhotoFolder where id = :id" ).
+                    setInteger( "id", folder.getFolderId() ).list();
 	} catch ( Exception e ) {
 	    fail( e.getMessage() );
 	}
 
-	Iterator iter = folders.iterator();
-	while ( iter.hasNext() ) {
-	    PhotoFolder folder2 = (PhotoFolder) iter.next();
+        for ( Object o : folders ) {
+            PhotoFolder folder2 = (PhotoFolder) o;
 	    log.debug( "found top, id = " + folder2.getFolderId() );
 	    assertEquals( "Folder name does not match", folder2.getName(), "testTop" );
 	    log.debug( "Modifying desc" );
@@ -101,31 +101,9 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     
     // Tests the retrieval of existing folder from database
     public void testRetrieve() {
-	List folders = null;
-	Transaction tx = odmg.newTransaction();
-	tx.begin();
-	try {
-	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName() + " where folderId = 1" );
-	    folders = (List) query.execute();
-	    tx.commit();
-	} catch ( Exception e ) {
-	    tx.abort();
-	    fail( e.getMessage() );
-	}
-
-	Iterator iter = folders.iterator();
-	boolean found = false;
-	while ( iter.hasNext() ) {
-	    PhotoFolder folder = (PhotoFolder) iter.next();
-	    if ( folder.getName().equals( "Top" ) ) {
-		found = true;
-		log.debug( "found top, id = " + folder.getFolderId() );
-		assertEquals( "Folder with id 1 should be the top", folder.getName(), "Top" );
-	    }
-	}
-	assertTrue( "Top folder not found", found );
-        
+        List folders = null;
+        PhotoFolder folder = folderDAO.findById( 1, false );
+        assertMatchesDb( folder, session );
     }
 
     
@@ -142,45 +120,37 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	} catch ( PhotoNotFoundException e ) {
 	    fail( "Could not find photo: " + e.getMessage() );
 	}
-
+        
 	PhotoFolder folder = null;
-	// Create a folder for the photo
-	try {
-	    folder = PhotoFolder.create( "PhotoAdditionTest", PhotoFolder.getRoot() );
-	    folder.addPhoto( photo );
-	    
-	    assertEquals( "Photo not visible in folders' photo count", folder.getPhotoCount(), 1 );
-	} finally {
-	    // Clean up the test folder
-	    PhotoFolder parent = folder.getParentFolder();
-	    parent.removeSubfolder( folder );
-	    photo.delete();
-	}
+        // Create a folder for the photo
+        PhotoFolder root = folderDAO.findRootFolder();
+        folder = PhotoFolder.create( "PhotoAdditionTest", root );
+        folderDAO.makePersistent( folder );
+        folder.addPhoto( photo );
+        folderDAO.flush();
+        assertMatchesDb( folder, session );
+        
+        assertEquals( "Photo not visible in folders' photo count", folder.getPhotoCount(), 1 );
+        
+        // Clean up the test folder
+        PhotoFolder parent = folder.getParentFolder();
+        parent.removeSubfolder( folder );
+        folderDAO.makeTransient( folder );
     }
 
 
     public void testPhotoRetrieval() {
 	// Find the corrent test case
-	List folders = null;
-	Transaction tx = odmg.newTransaction();
-	tx.begin();
-	try {
-	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName() + " where name = \"testPhotoRetrieval\"" );
-	    folders = (List) query.execute();
-	    tx.commit();
-	} catch ( Exception e ) {
-	    tx.abort();
-	    fail( e.getMessage() );
-	}
-	PhotoFolder folder = (PhotoFolder) folders.get(0);
-
-	assertEquals( "Number of photos in folder does not match", 2, folder.getPhotoCount() );
+        List folders = null;
+        Query q = session.createQuery( "from PhotoFolder where name = :name" );
+        q.setString( "name", "testPhotoRetrieval" );
+        folders = q.list();
+        PhotoFolder folder = (PhotoFolder) folders.get(0);
+        assertMatchesDb( folder, session );
 	
 	// Check that the folder content is OK
 	boolean found = false;
-	for ( int i = 0; i < folder.getPhotoCount(); i++ ) {
-	    PhotoInfo photo = folder.getPhoto( i );
+	for (PhotoInfo photo : folder.getPhotos() ) {
 	    if ( photo.getDescription().equals( "testPhotoRetrieval1" ) ) {
 		found = true;
 	    }
@@ -199,19 +169,20 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     public void testPersistence() {
 	// Test creation of a new folder
 	PhotoFolder f = PhotoFolder.create( "persistenceTest", null );
+        folderDAO.makePersistent( f );
+        folderDAO.flush();
 	assertMatchesDb( f );
 
 	// Test modifications without existing transaction context
 	f.setName( "test name 2" );
 	f.setDescription( "Description" );
+        folderDAO.flush();
 	assertMatchesDb( f );
 
 	// Tets modifications in transaction context
-	Transaction tx = odmg.newTransaction();
-	tx.begin();
 	f.setName( "test name 3" );
 	f.setDescription( "desc 3" );
-	tx.commit();
+        folderDAO.flush();
 	assertMatchesDb( f );
 
     }
@@ -220,36 +191,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
        Utility
     */
     void assertMatchesDb( PhotoFolder folder ) {
-	int id = folder.getFolderId();
-	String sql = "select * from photo_collections where collection_id = " + id;
-	Statement stmt = null;
-	ResultSet rs = null;
-	try {
-	    stmt = ImageDb.getConnection().createStatement();
-	    rs = stmt.executeQuery( sql );
-	    if ( !rs.next() ) {
-		fail( "rrecord not found" );
-	    }
-	    assertEquals( "name doesn't match", folder.getName(), rs.getString( "collection_name" ) );
-	    assertEquals( "description doesn't match", folder.getDescription(), rs.getString( "collection_desc" ) );
-	} catch ( SQLException e ) {
-	    fail( e.getMessage() );
-	} finally {
-	    if ( rs != null ) {
-		try {
-		    rs.close();
-		} catch ( Exception e ) {
-		    fail( e.getMessage() );
-		}
-	    }
-	    if ( stmt != null ) {
-		try {
-		    stmt.close();
-		} catch ( Exception e ) {
-		    fail( e.getMessage() );
-		}
-	    }
-	}
+        assertMatchesDb( folder, session );
     }
 	
 
@@ -259,36 +201,25 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
        Test that subfolders are created correctly
     */
     public void testSubfolders() {
-	List folders = null;
-	Transaction tx = odmg.newTransaction();
-	tx.begin();
-	try {
-	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName()  + " where name = \"subfolderTest\"" );
-	    folders = (List) query.execute();
-	    tx.commit();
-	} catch ( Exception e ) {
-	    tx.abort();
-	    fail( e.getMessage() );
-	}
-	
-	PhotoFolder topFolder = (PhotoFolder) folders.get( 0 );
+        Query q = session.createQuery( "from PhotoFolder where name = :name" );
+        q.setString("name", "subfolderTest" );
+	PhotoFolder topFolder = (PhotoFolder) q.uniqueResult();
 	assertEquals( "Top folder name invalid", "subfolderTest",topFolder.getName() );
 	assertEquals( "topFolder should have 4 subfolders", 4, topFolder.getSubfolderCount() );
 
 	String[] subfolderNames = {"Subfolder1", "Subfolder2", "Subfolder3", "Subfolder4"};
-	// Check that all subfolder are found
-	for ( int n = 0; n < topFolder.getSubfolderCount(); n++ ) {
-	    PhotoFolder subfolder = topFolder.getSubfolder( n );
-	    assertEquals( "Subfolder name incorrect", subfolderNames[n], subfolder.getName() );
-	}
 
 	// Check subfolder addition
 	PhotoFolder newFolder = PhotoFolder.create( "Subfolder5", topFolder );
+        folderDAO.flush();
 	assertEquals( "New subfolder added", 5, topFolder.getSubfolderCount() );
+        assertMatchesDb( topFolder, session );
+        assertMatchesDb( newFolder, session );
 
 	newFolder.delete();
-	assertEquals( "Subfolder deleted", 4, topFolder.getSubfolderCount() );
+        folderDAO.makeTransient( newFolder );
+        folderDAO.flush();
+        assertEquals( "Subfolder deleted", 4, topFolder.getSubfolderCount() );
     }
 
     class TestListener implements PhotoFolderChangeListener {
@@ -401,6 +332,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     */
     public void testPhotoDelete() {
 	PhotoFolder folder = PhotoFolder.create( "testListener", null );
+        folderDAO.makePersistent( folder );
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
 	PhotoInfo photo = null;
@@ -411,7 +343,10 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	}
 
 	folder.addPhoto( photo );
+        folderDAO.flush();
 	photo.delete();
+        folderDAO.flush();
+        // TOOD: CHEC DATABASE STATE!!!
 	assertEquals( "After deleting the photo there should be no photos in the folder",
 		      folder.getPhotoCount(), 0 );
 	
@@ -422,9 +357,12 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
        instance all the time.
     */
     public void testGetRoot() {
-	PhotoFolder root1 = PhotoFolder.getRoot();
-	PhotoFolder root2 = PhotoFolder.getRoot();
+	PhotoFolder root1 = folderDAO.findRootFolder();
+	PhotoFolder root2 = folderDAO.findRootFolder();
 	assertTrue( "several instances of root created", root1==root2 );
+        
+        assertEquals( root1.getName(), "Top" );
+        assertNull( root1.getParentFolder() );
     }
     
 
