@@ -20,9 +20,10 @@
 
 package org.photovault.imginfo;
 
-import org.apache.ojb.broker.query.Criteria;
+import org.hibernate.Criteria;
+import org.hibernate.Hibernate;
+import org.hibernate.criterion.Restrictions;
 import org.photovault.imginfo.FuzzyDate;
-import org.apache.ojb.broker.query.Criteria;
 
 public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {
 
@@ -90,18 +91,20 @@ public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {
 				     +", " + accuracyField.getName() + ")",
 				     date.getMaxDate() );
 	    */
-            crit.addSql( "subdate("+dateField.getName()
-                        + ", " + accuracyField.getName() + ") >= \"" + date.getMinDate() + "\"" );
-            crit.addSql( "subdate("+dateField.getName()
-                        + ", " + accuracyField.getName() + ") <= \"" + date.getMaxDate() + "\"" );
+             String gtclauseCertain = "{fn TIMESTAMPADD(SQL_TSI_SECOND, CAST( -3600*24*{alias}." + accuracyField.getColumnName() + " AS INT)"
+		+", {alias}." + dateField.getColumnName() + ")} >= ?";
+            crit.add( Restrictions.sqlRestriction( gtclauseCertain, date.getMinDate(), Hibernate.TIMESTAMP ) );
+	    String ltclauseCertain = "{fn TIMESTAMPADD(SQL_TSI_SECOND, CAST( 3600*24*{alias}." + accuracyField.getColumnName() + " AS INT)"
+		+", {alias}." + dateField.getColumnName() + ")} <= ?";
+            crit.add( Restrictions.sqlRestriction( ltclauseCertain, date.getMaxDate(), Hibernate.TIMESTAMP ) );
             break;
 	case INCLUDE_PROBABLE:
 	    log.debug( "INCLUDE_PROBABLE" );
-	    crit.addBetween( dateField.getName(),
+	    crit.add( Restrictions.between( dateField.getName(),
 			     date.getMinDate(),
-			     date.getMaxDate() );
-            crit.addLessOrEqualThan( accuracyField.getName(),
-				     new Double( date.getAccuracy() ) );
+			     date.getMaxDate() ) );
+            crit.add( Restrictions.le( accuracyField.getName(),
+				     new Double( date.getAccuracy() ) ) );
 	    break;
 
 	case INCLUDE_POSSIBLE:
@@ -109,15 +112,15 @@ public class QueryFuzzyTimeCriteria implements QueryFieldCriteria {
              * Include photos whose time range intersects with the query range
              */
 	    log.debug( "INCLUDE_POSSIBLE" );
-	    String gtclause = "adddate("+dateField.getName()
-		+", " + accuracyField.getName() + ")";
-	    crit.addGreaterOrEqualThan( gtclause,
-					date.getMinDate() );
+	    String gtclause = "{fn TIMESTAMPADD(SQL_TSI_SECOND, CAST( 3600*24*{alias}." + accuracyField.getColumnName() + " AS INT)"
+		+", {alias}." + dateField.getColumnName() + ")} >= ?";
+	    crit.add( Restrictions.sqlRestriction( gtclause,
+					date.getMinDate(), Hibernate.TIMESTAMP ) );
 	    log.debug( gtclause + " >= " + date.getMinDate() );
-	    String ltclause = "subdate("+dateField.getName()
-		+", " + accuracyField.getName() + ")";
-	    crit.addLessOrEqualThan( ltclause,
-				     date.getMaxDate() );
+	    String ltclause = "{fn TIMESTAMPADD(SQL_TSI_SECOND, CAST( -3600*24*{alias}." + accuracyField.getColumnName() + " AS INT)"
+		+", {alias}." + dateField.getColumnName() + ")} <= ?";
+	    crit.add( Restrictions.sqlRestriction( ltclause,
+				     date.getMaxDate(), Hibernate.TIMESTAMP ) );
 	    log.debug( ltclause + " <= " + date.getMaxDate() );
 	    break;
 	default:

@@ -19,7 +19,10 @@
 */
   
 package org.photovault.imginfo;
-import org.apache.ojb.broker.query.Criteria;
+
+import org.hibernate.Criteria;
+import org.hibernate.Hibernate;
+import org.hibernate.criterion.Restrictions;
 
 public class QueryFulltextCriteria implements QueryFieldCriteria {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( QueryFulltextCriteria.class.getName() );
@@ -40,7 +43,7 @@ public class QueryFulltextCriteria implements QueryFieldCriteria {
     public void setupQuery( Criteria crit ) {
 	String sql = "MATCH(" + field.getName() + ") AGAINST('" + text + "')";
 	log.debug( sql );
-	crit.addSql( sql );
+        crit.add( Restrictions.sqlRestriction( "MATCH(" + field.getName() + ") AGAINST( ? )", text, Hibernate.STRING ) );
 	log.debug( "Added" );
     }
 

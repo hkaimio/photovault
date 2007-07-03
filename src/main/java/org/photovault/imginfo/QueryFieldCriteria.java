@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,7 +20,9 @@
 
 package org.photovault.imginfo;
 
-import org.apache.ojb.broker.query.Criteria;
+import org.hibernate.Criteria;
+
+
 
 interface QueryFieldCriteria {
 

@@ -27,12 +27,24 @@ public class QueryField {
 
     public QueryField( String fieldName ) {
 	this.fieldName = fieldName;
+	this.columnName = fieldName;
     }
 
+    public QueryField( String fieldName, String columnName ) {
+	this.fieldName = fieldName;
+	this.columnName = columnName;
+        
+    }
+    
     public String getName() {
 	return fieldName;
     }
     
+    public String getColumnName() {
+        return columnName;
+    }
+    
     String fieldName;
+    String columnName;
 }
     
