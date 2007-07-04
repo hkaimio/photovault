@@ -203,7 +203,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	PhotoQuery q = new PhotoQuery();
         q.setSession( session );
 
-        q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "*Lassi*" );
+        q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "%Lassi%" );
 	boolean[] expected3 = { true, true, false, false };
 	checkResults( q, expected3 );
     }

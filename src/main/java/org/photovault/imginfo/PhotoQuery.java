@@ -122,13 +122,6 @@ public class PhotoQuery implements PhotoCollection {
     public void limitToFolder( PhotoFolder folder ) {
 	limitFolder = folder;
     }
-    
-    /**
-       Returns the type of criteria set for certain field
-    */
-    public int getCriteriaType( int field ) {
-	return 0;
-    }
 
     /**
        Clears all criterias from the query
@@ -163,8 +156,8 @@ public class PhotoQuery implements PhotoCollection {
 	    }
 
 	    if ( limitFolder != null ) {
- 		Collection folders = getSubfolders( limitFolder );
- 		crit.add( Restrictions.in( "folders", folders ) );
+ 		Collection folders = getSubfolderIds( limitFolder );
+ 		crit.createCriteria( "folders" ).add( Restrictions.in( "folderId", folders ));
 	    }
 	    
 	    Collection result = crit.list();
@@ -180,20 +173,27 @@ public class PhotoQuery implements PhotoCollection {
     
 
     /**
-       Returns a list of folderIds of all subfolders of a certain folder
+       Create a list of folderIds in a given folder hierarchy
+     @param folder root folder of the hierarchy
+     @return List of ids of all folders in the hierarchy
     */
 
-    private List<PhotoFolder> getSubfolders( PhotoFolder folder ) {
-        List<PhotoFolder> folders = new ArrayList<PhotoFolder>();
-        folders.add( folder );
-	appendSubfolders( folders, folder );
+    private List<Integer> getSubfolderIds( PhotoFolder folder ) {
+        List<Integer> folders = new ArrayList<Integer>();
+        folders.add( folder.getFolderId() );
+	appendSubfolderIds( folders, folder );
 	return folders;
     }
 
-    private void appendSubfolders( List<PhotoFolder> folders, PhotoFolder folder ) {
+    /**
+     Append folder ids of given folder to a list
+     @param folders List to which the ids are added
+     @param folder Root folder for the hierarchy     
+     */
+    private void appendSubfolderIds( List<Integer> folders, PhotoFolder folder ) {
 	for ( PhotoFolder subfolder : folder.getSubfolders() ) {
-	    folders.add( subfolder );
-	    appendSubfolders( folders, subfolder );
+	    folders.add( subfolder.getFolderId() );
+	    appendSubfolderIds( folders, subfolder );
 	}
     }
 
@@ -260,9 +260,25 @@ public class PhotoQuery implements PhotoCollection {
 	}
     }
 
+    /**
+     True if the photos collection is dirty and must fe requeried from database
+     */
     boolean queryModified;
+    
+    /**
+     Photos found by the query
+     */
     Vector photos = null;
+    
+    /**
+     Listeners that will be notified about changes to this query
+     */
     Vector listeners = null;
+    
+    /**
+     If not null, limit query results to photos that belong to this folder or
+     any of its subfolders.
+     */
     PhotoFolder limitFolder = null;
 
     public static final int FIELD_SHOOTING_TIME          = 0;
