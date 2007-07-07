@@ -408,7 +408,7 @@
    </nbjpdastart>
    <java fork="true" classname="org.photovault.swingui.Photovault">
     <jvmarg value="-Xmx${heap.max_size}M"/>
-    <jvmarg value="-XX:+PrintGCDetails"/>
+    <!--<jvmarg value="-XX:+PrintGCDetails"/>-->
     <jvmarg value="${run.jvmargs}"/>
     <jvmarg value="-Xdebug"/>
     <jvmarg value="-Xnoagent"/>

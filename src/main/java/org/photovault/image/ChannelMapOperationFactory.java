@@ -21,9 +21,13 @@
 package org.photovault.image;
 
 import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.apache.commons.digester.Digester;
+import org.xml.sax.SAXException;
 
 /**
  Factory class used to crete ChannelMapOperation objects (which are immutable)
@@ -61,6 +65,30 @@ public class ChannelMapOperationFactory {
         }
     } 
     
+    /**
+     Create a ChannelMapOperation object from XML data in database. This is 
+     intended mostly for Hibernate use.
+     @param data The raw data from database field used for cunstruction the 
+     channel mapping.
+     */
+    public static ChannelMapOperation createFromXmlData( byte[] data ) {
+        if ( data == null ) {
+            return null;
+        }
+        String xmlStr = new String( data );
+        Digester d = new Digester();
+        d.addRuleSet( new ChannelMapRuleSet() );
+        ChannelMapOperationFactory f;
+        try {
+            f = (ChannelMapOperationFactory) d.parse(new StringReader(xmlStr));
+        } catch (IOException ex) {
+            return null;
+        } catch (SAXException ex) {
+            return null;
+        }
+        return f.create();
+    }
+
     /**
      Map from channel name to the respective curve.
      */

@@ -25,7 +25,6 @@ import java.awt.Dimension;
 import java.util.Collection;
 import javax.media.jai.JAI;
 import javax.swing.UIManager;
-import org.odmg.*;
 import javax.swing.JOptionPane;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.SchemaUpdateAction;
@@ -36,6 +35,7 @@ import java.net.URL;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.swingui.db.DbSettingsDlg;
 
 /**
@@ -67,7 +67,10 @@ public class Photovault implements SchemaUpdateListener {
             throw new PhotovaultException( "Could not find dbname for configuration " + db );
         }
         
-        ODMG.initODMG( user, passwd, db );
+        HibernateUtil.init( user, passwd, db );
+        
+        // TODO: Hack...
+        HibernateUtil.getSessionFactory().getCurrentSession().beginTransaction();
         log.debug( "Connection succesful!!!" );
         // Login is succesfull
         // ld.setVisible( false );

@@ -24,15 +24,20 @@ package org.photovault.folder;
 import java.lang.UnsupportedOperationException;
 import java.lang.UnsupportedOperationException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Fetch;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.Sort;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
@@ -53,6 +58,17 @@ public class PhotoFolder implements PhotoCollection {
      Maximum length of the "name" property
      */
     static public final int NAME_LENGTH = 30;
+    
+    public static class PhotoFolderComparator implements Comparator<PhotoFolder> {
+        public int compare(PhotoFolder o1, PhotoFolder o2) {
+            String name1 = o1.getName();
+            String name2 = o2.getName();
+            if ( name1 == null ) name1 = "";
+            if ( name2 == null ) name2 = "";
+            return name1.compareTo( name2 );
+        }
+        
+    }
     
     public PhotoFolder() {
 	//	subfolders = new Vector();
@@ -191,11 +207,7 @@ public class PhotoFolder implements PhotoCollection {
 	if ( photos == null || num >= photos.size() ) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
-	if ( photos instanceof List ) {
-	    return (PhotoInfo) ((List)photos).get( num );
-	}
-	log.warn( "Cannot currently find photos if collection is not a list" );
-	return null;
+        return photos.toArray( new PhotoInfo[photos.size()] )[num];
     }
 
     /**
@@ -235,27 +247,26 @@ public class PhotoFolder implements PhotoCollection {
 	}
 	return subfolders.size();
     }
-
+    
     /**
-       Returns s subfolder with given order number.
-    */
+     Returns s subfolder with given order number.
+     TODO: This is awfully inefficient but {@link PhotoFolderTreeModel}
+     needs random access to this collection
+     */
     public PhotoFolder getSubfolder( int num ) {
-	if ( subfolders == null || num >= subfolders.size() ) {
-	    throw new ArrayIndexOutOfBoundsException();
-	}
-	if ( subfolders instanceof List ) {
-	    return (PhotoFolder) ((List)subfolders).get( num );
-	}
-	log.warn( "Cannot currently find subfolders if collection si not a list" );
-	return null;
+        if ( subfolders == null || num >= subfolders.size() ) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        //
+        return subfolders.toArray( new PhotoFolder[subfolders.size()] )[num];
     }
-
+    
     /**
-       Adds a new subfolder to this folder. This method is called by setParentFolder().
-    */
+     Adds a new subfolder to this folder. This method is called by setParentFolder().
+     */
     protected void addSubfolder( PhotoFolder subfolder ) {
 	if ( subfolders == null ) {
-	    subfolders = new HashSet<PhotoFolder>();
+	    subfolders = new TreeSet<PhotoFolder>();
 	}
         subfolder.parent = this;
 	subfolders.add( subfolder );
@@ -281,10 +292,12 @@ public class PhotoFolder implements PhotoCollection {
     @OneToMany( mappedBy="parentFolder", cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )
     @org.hibernate.annotations.Cascade({
                org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
-    public Set<PhotoFolder> getSubfolders() {
+    @org.hibernate.annotations.Sort( type=org.hibernate.annotations.SortType.COMPARATOR,
+               comparator=PhotoFolder.PhotoFolderComparator.class )
+    public SortedSet<PhotoFolder> getSubfolders() {
         return subfolders;
     }    
-    protected void setSubfolders( Set<PhotoFolder> newSubfolders ) {
+    protected void setSubfolders( SortedSet<PhotoFolder> newSubfolders ) {
         subfolders = newSubfolders;
         modified();
 	subfolderStructureChanged( this );        
@@ -293,7 +306,7 @@ public class PhotoFolder implements PhotoCollection {
     /**
        All subfolders for this folder
     */
-    Set<PhotoFolder> subfolders = new HashSet<PhotoFolder>();
+    SortedSet<PhotoFolder> subfolders = new TreeSet<PhotoFolder>();
     
     /**
        Returns the parent of this folder or null if this is a top-level folder
@@ -301,6 +314,8 @@ public class PhotoFolder implements PhotoCollection {
     @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
     @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
     @JoinColumn( name = "parent", nullable = true )
+    // This is needed since OJB set parent to 0 for the root folder.
+    @org.hibernate.annotations.NotFound( action = org.hibernate.annotations.NotFoundAction.IGNORE )
     public PhotoFolder getParentFolder() {
 	return parent;
     }

@@ -44,12 +44,18 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     JPopupMenu popup = null;
     PhotoFolder selected = null;
     
+    /**
+     Data access to folders in database
+     TODO: CHeck where this should be managed!!!
+     */
+    PhotoFolderDAO folderDAO = new PhotoFolderDAOHibernate();
+    
     public PhotoFolderTree() {
 	super();
 	model = new PhotoFolderTreeModel();
-	PhotoFolder root = PhotoFolder.getRoot();
+	PhotoFolder root = folderDAO.findRootFolder();
 	log.warn( "Root folder" + root );
-	model.setRoot( root );
+	// model.setRoot( root );
 	createUI();
     }
 

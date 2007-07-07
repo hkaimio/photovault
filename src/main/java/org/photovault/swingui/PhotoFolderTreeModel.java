@@ -39,6 +39,12 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
     FolderNodeMapper nodeMapper = null;
     
     /**
+     Data access to the folder hierarchy in AWT event thread
+     TODO: Hibernate session scope needs more thinking
+     */
+    PhotoFolderDAO folderDAO = null;
+    
+    /**
      Constructs the tee model
      @param mapper The {@link FolderNodeMapper} object used to map folder hierarchy 
                    to objects that represent the nodes in tree.
@@ -107,6 +113,12 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
      */
     public Object getRoot()
     {
+        if ( rootFolder == null ) {
+            if ( folderDAO == null ) {
+                folderDAO = new PhotoFolderDAOHibernate();
+            }
+            rootFolder = folderDAO.findRootFolder();
+        }
 	return nodeMapper.mapFolderToNode( rootFolder );
     }
 

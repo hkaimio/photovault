@@ -19,6 +19,7 @@
 */
 
 package org.photovault.persistence;
+import java.io.File;
 import org.hibernate.*;
 import org.hibernate.cfg.*;
 import org.photovault.common.PVDatabase;
@@ -36,29 +37,32 @@ public class HibernateUtil {
             AnnotationConfiguration cfg = new AnnotationConfiguration();
             cfg.configure();
             if ( dbDesc.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
-//                connDesc.setDriver( "org.apache.derby.jdbc.EmbeddedDriver" );
-//                connDesc.setDbms( "derby" );
-//                connDesc.setSubProtocol( "derby" );
-//                connDesc.setDbAlias( "photovault" );
-//                File derbyDir = new File( dbDesc.getEmbeddedDirectory(), "derby" );
-//                System.setProperty( "derby.system.home", derbyDir.getAbsolutePath()  );
-//                if ( ( user != null && user.length() != 0 ) ||
-//                        ( passwd != null && passwd.length() != 0 ) )  {
-//                    throw new PhotovaultException( "No username or password allowed for Derby database" );
-//                }
+                cfg.setProperty( "hibernate.connection.driver_class", 
+                        "org.apache.derby.jdbc.EmbeddedDriver" );
+                cfg.setProperty( "hibernate.dialect", 
+                        "org.hibernate.dialect.DerbyDialect" );
+                cfg.setProperty( "hibernate.connection.url", 
+                        "jdbc:derby:photovault;create=true" );
+                File derbyDir = new File( dbDesc.getEmbeddedDirectory(), "derby" );
+                System.setProperty( "derby.system.home", derbyDir.getAbsolutePath()  );
+                if ( ( user != null && user.length() != 0 ) ||
+                        ( passwd != null && passwd.length() != 0 ) )  {
+                    throw new PhotovaultException( "No username or password allowed for Derby database" );
+                }
             } else {
                 // This is a MySQL database
-//                String dbhost = dbDesc.getHost();
-//                String dbname = dbDesc.getDbName();
-//                connDesc.setDbAlias( "//" + dbhost + "/" + dbname );
-//                connDesc.setUserName( user );
-//                connDesc.setPassWord( passwd );
-//                connDesc.setDriver( "com.mysql.jdbc.Driver" );
-//                connDesc.setDbms( "MySQL" );
-//                connDesc.setSubProtocol( "mysql" );
+                String dbhost = dbDesc.getHost();
+                String dbname = dbDesc.getDbName();
+                cfg.setProperty( "hibernate.connection.driver_class", 
+                        "com.mysql.jdbc.Driver" );
+                cfg.setProperty( "hibernate.dialect", 
+                        "org.hibernate.dialect.MysqlDialect" );
+                cfg.setProperty( "hibernate.connection.url", 
+                        "jdbc:mysql://" + dbhost + "/" + dbname );
+                cfg.setProperty( "hibernate.connection.username", user );
+                cfg.setProperty( "hibernate.connection.password", passwd );
             }
             
-            cfg.addAnnotatedClass( org.photovault.imginfo.PhotoInfo.class );
             sessionFactory = cfg.buildSessionFactory();
         } catch (Throwable ex) {
             throw new ExceptionInInitializerError(ex);

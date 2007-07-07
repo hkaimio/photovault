@@ -46,6 +46,7 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
 import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
@@ -1654,6 +1655,24 @@ public class PhotoInfo implements java.io.Serializable {
         return channelMap;
     }
     
+    /**
+     Get the XML data for color channel mapping that is stored into database field.
+     */
+    @Column( name = "channel_map" )
+    protected byte[] getColorChannelMappingXmlData() {
+        String xmlStr = this.channelMap.getAsXml();
+        byte[] data = xmlStr.getBytes();
+        return data;
+    }
+
+    /**
+     Set the color channel mapping based on XML data read from database field. For
+     Hibernate use.
+     @param data The data read from database.
+     */
+    protected void setColorChannelMappingXmlData( byte[] data ) {
+        channelMap = ChannelMapOperationFactory.createFromXmlData( data );
+    }
     
     /**
      Raw conversion settings or <code>null</code> if no raw image is available
@@ -1661,9 +1680,13 @@ public class PhotoInfo implements java.io.Serializable {
     RawConversionSettings rawSettings = null;
     
     /**
-     OJB database identified for the raw settings
+     Get the current raw conversion settings.
+     @return Current settings or <code>null</code> if this is not a raw image.     
      */
-    int rawSettingsId;
+    @Transient
+    public RawConversionSettings getRawSettings() {
+        return rawSettings;
+    }
     
     /**
      Set the raw conversion settings for this photo
@@ -1690,22 +1713,35 @@ public class PhotoInfo implements java.io.Serializable {
         rawSettings = settings;
         log.debug( "exit: setRawSettings()" );
     }
+    
 
+    
     /**
-     Get the current raw conversion settings.
+     Special getter for rawSettings for persistence frameworks. Hibernate first sets
+     the reference to associated entities and only then sets the properties of 
+     the entity. But rawSettings is immutable and really a value type so this 
+     violates the assumption in setRawSettings() function that rawSettings won't change
+     after the call, which allows Photovault to clone the objetc there.
+     @todo RawConversionSettings should be changed to value component when 
+     doing next non-backwards compatible schema change.
      @return Current settings or <code>null</code> if this is not a raw image.     
      */
     @OneToOne( cascade = CascadeType.ALL )
     @org.hibernate.annotations.Cascade({
                org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
     @JoinColumn( name = "rawconv_id" )
-    public RawConversionSettings getRawSettings() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
+    // This is needed since OJB sets rawconv_id to 0 if there is none.
+    @org.hibernate.annotations.NotFound( action = org.hibernate.annotations.NotFoundAction.IGNORE )    
+    protected RawConversionSettings getRawSettingsHibernate() {
         return rawSettings;
     }
+    
+    protected void setRawSettingsHibernate( RawConversionSettings s ) {
+        this.rawSettings = s;
+    }
 
+               
+               
     String description;
     
     /**

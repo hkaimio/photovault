@@ -26,6 +26,7 @@ import javax.persistence.*;
  * @author Harri Kaimio
  */
 @Entity
+@org.hibernate.annotations.Entity( mutable = false )
 @Table( name = "dcraw_settings" )
 public class RawConversionSettings implements Cloneable {
     
@@ -172,7 +173,7 @@ public class RawConversionSettings implements Cloneable {
         return evCorr;
     }
 
-    protected void setEvCorr( int newEv ) {
+    protected void setEvCorr( double newEv ) {
         this.evCorr = newEv;
     }
 

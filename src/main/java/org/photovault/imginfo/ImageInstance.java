@@ -37,6 +37,7 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.image.ChannelMapOperation;
 import javax.persistence.*;
+import org.photovault.image.ChannelMapOperationFactory;
 
 /**
  This class abstracts a single instance of a image that is stored in a file.
@@ -873,6 +874,8 @@ public class ImageInstance {
     @org.hibernate.annotations.Cascade({
         org.hibernate.annotations.CascadeType.SAVE_UPDATE })
     @JoinColumn( name = "rawconv_id" )
+    // In old databases (created by OJB rawconv_id can be 0 if no settings are present
+    @org.hibernate.annotations.NotFound( action = org.hibernate.annotations.NotFoundAction.IGNORE )        
     public RawConversionSettings getRawSettings() {
         return rawSettings;
     }
@@ -906,6 +909,26 @@ public class ImageInstance {
         txw.commit();
         return channelMap;
     }
+    
+    /**
+     Get the XML data for color channel mapping that is stored into database field.
+     */    
+    @Column( name = "channel_map" )
+    protected byte[] getColorChannelMappingXmlData() {
+        String xmlStr = this.channelMap.getAsXml();
+        byte[] data = xmlStr.getBytes();
+        return data;
+    }
+    
+    /**
+     Set the color channel mapping based on XML data read from database field. For
+     Hibernate use.
+     @param data The data read from database.
+     */
+    protected void setColorChannelMappingXmlData( byte[] data ) {
+        channelMap = ChannelMapOperationFactory.createFromXmlData( data );
+    }
+    
     
     PhotoInfo photo = null;
     
