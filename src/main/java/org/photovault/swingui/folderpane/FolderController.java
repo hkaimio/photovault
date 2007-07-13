@@ -38,6 +38,8 @@ public class FolderController extends FieldController {
     PhotoFolderTreeModel treeModel;
     FolderToFolderNodeMapper nodeMapper;
     
+    PhotoFolderDAO folderDAO = null;
+    
     public FolderController( PhotoInfo[] model ) {
 	super( model );
 	addedToFolders = new HashSet();
@@ -177,7 +179,11 @@ public class FolderController extends FieldController {
          */
         nodeMapper = new FolderToFolderNodeMapper( model );
         treeModel = new PhotoFolderTreeModel( nodeMapper );
-        treeModel.setRoot( PhotoFolder.getRoot() );        
+        if ( folderDAO == null ) {
+            folderDAO = new PhotoFolderDAOHibernate();
+        }
+        PhotoFolder root = folderDAO.findRootFolder();
+        treeModel.setRoot( root );        
         if ( model != null ) {
             // Add all photos in the model to folder tree
             for ( int n = 0; n < model.length; n++ ) {

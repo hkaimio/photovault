@@ -183,29 +183,30 @@ public class ColorProfileDesc {
     /**
      * Get all known ICC prodiles
      * @return Collection containing all known profiles
+     @todo Implement with Hibernate
      */
     static public Collection getAllProfiles() {
-        log.debug( "Fetching all color profiles" );
-        String oql = "select colorProfiles from " + ColorProfileDesc.class.getName() + 
-                " where id > 0";
-        List profiles = null;
-        
-        // Get transaction context
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( oql );
-            txw.flush();
-            profiles = (List) query.execute();
-            txw.commit();
-        } catch (Exception e ) {
-            log.warn( "Error fetching records: " + e.getMessage() );
-            e.printStackTrace();
-            txw.abort();
-            return null;
-        }
+//        log.debug( "Fetching all color profiles" );
+//        String oql = "select colorProfiles from " + ColorProfileDesc.class.getName() + 
+//                " where id > 0";
+       List profiles = null;
+//        
+//        // Get transaction context
+//        ODMGXAWrapper txw = new ODMGXAWrapper();
+//        Implementation odmg = ODMG.getODMGImplementation();
+//        
+//        try {
+//            OQLQuery query = odmg.newOQLQuery();
+//            query.create( oql );
+//            txw.flush();
+//            profiles = (List) query.execute();
+//            txw.commit();
+//        } catch (Exception e ) {
+//            log.warn( "Error fetching records: " + e.getMessage() );
+//            e.printStackTrace();
+//            txw.abort();
+//            return null;
+//        }
         return profiles;
     }
 

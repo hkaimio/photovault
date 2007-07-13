@@ -24,8 +24,12 @@ import com.sun.media.jai.util.SunTileCache;
 import java.awt.Dimension;
 import java.util.Collection;
 import javax.media.jai.JAI;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.JOptionPane;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.context.ManagedSessionContext;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.SchemaUpdateAction;
 import org.photovault.common.SchemaUpdateEvent;
@@ -51,6 +55,8 @@ public class Photovault implements SchemaUpdateListener {
     public Photovault() {
 	settings = PhotovaultSettings.getSettings();
     }
+    
+    Session currentSession  = null;
 
     private void login( LoginDlg ld ) throws PhotovaultException {
 	boolean success = false;
@@ -70,7 +76,8 @@ public class Photovault implements SchemaUpdateListener {
         HibernateUtil.init( user, passwd, db );
         
         // TODO: Hack...
-        HibernateUtil.getSessionFactory().getCurrentSession().beginTransaction();
+        currentSession = HibernateUtil.getSessionFactory().openSession();
+        ManagedSessionContext.bind( (org.hibernate.classic.Session) currentSession );
         log.debug( "Connection succesful!!!" );
         // Login is succesfull
         // ld.setVisible( false );
@@ -110,7 +117,7 @@ public class Photovault implements SchemaUpdateListener {
      initJai() method calls JAI.setTileCache which causes a static dependency to
      JAI. If the method was part of Photovault class Java VM would fail to load
      the class which is not acceptable since the class must give the user instructions
-     how to install JAI if it is not installed. So the method must be isoalted to
+     how to install JAI if it is not installed. So the method must be isolated to
      its own class.
      */
     static class JaiInitializer {
@@ -183,6 +190,11 @@ public class Photovault implements SchemaUpdateListener {
                         JOptionPane.showMessageDialog( null, e.getMessage(), 
                                 "Login error", JOptionPane.ERROR_MESSAGE );
                     }
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            ManagedSessionContext.bind( (org.hibernate.classic.Session) currentSession);
+                        }
+                    });
                     break;
                 default:
                     log.error( "Unknown return code form LoginDlg.showDialog(): " + retval );

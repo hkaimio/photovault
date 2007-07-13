@@ -27,6 +27,7 @@ import org.photovault.imginfo.*;
 import java.util.*;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoQuery;
+import org.photovault.persistence.HibernateUtil;
 
 /**
    QueryPane implements the container inlcudes the UI componets used to edit the queiry parameters
@@ -132,7 +133,8 @@ public class QueryPane extends JPanel implements ActionListener {
 
     
     protected void updateQuery() {
-
+        // TODO: Could this be set somewhere else?
+        query.setSession( HibernateUtil.getSessionFactory().getCurrentSession() );
 	query.clear();
 	String photographer = basicFields.getPhotographer();
 	if( photographer.length() > 0 ) {
