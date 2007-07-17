@@ -915,8 +915,11 @@ public class ImageInstance {
      */    
     @Column( name = "channel_map" )
     protected byte[] getColorChannelMappingXmlData() {
-        String xmlStr = this.channelMap.getAsXml();
-        byte[] data = xmlStr.getBytes();
+        byte[] data = null;
+        if ( channelMap != null ) {
+            String xmlStr = this.channelMap.getAsXml();
+            data = xmlStr.getBytes();
+        }
         return data;
     }
     

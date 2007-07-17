@@ -27,6 +27,10 @@ import java.util.*;
 import java.sql.*;
 import java.io.*;
 import org.hibernate.Transaction;
+import org.hibernate.context.ManagedSessionContext;
+import org.photovault.command.Command;
+import org.photovault.command.CommandException;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.dbhelper.ImageDb;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
@@ -50,12 +54,14 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
        "subfolderTest" as root and creates a TreeModel from it
     */
     public void setUp() {
-        session = HibernateUtil.getSessionFactory().getCurrentSession();
+        session = HibernateUtil.getSessionFactory().openSession();
+        ManagedSessionContext.bind( (org.hibernate.classic.Session) session);
         tx = session.beginTransaction();
     }
 
     public void tearDown() {
         tx.commit();
+        session.close();
     }
 
     public static Test suite() {
@@ -185,6 +191,32 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         folderDAO.flush();
 	assertMatchesDb( f );
 
+    }
+    
+    public void testCreateCommand() {
+        PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( null );
+        CreatePhotoFolderCommand createCmd = new CreatePhotoFolderCommand( null, "command create", "desc" );
+        try {
+            cmdHandler.executeCommand( createCmd );
+        } catch (CommandException ex) {
+            fail( ex.getMessage() );
+        }
+        PhotoFolder createdFolder = createCmd.getCreatedFolder();
+        assertMatchesDb( createdFolder );
+        
+        ChangePhotoFolderCommand changeCmd = new ChangePhotoFolderCommand( createdFolder );
+        changeCmd.setName( "Name 2" );
+        changeCmd.setDescription( "Decription 2" );
+        changeCmd.setParent( folderDAO.findRootFolder() );        
+        try {
+            cmdHandler.executeCommand( changeCmd );
+        } catch (CommandException ex) {
+            fail( ex.getMessage() );
+        }
+        PhotoFolder changedFolder = changeCmd.getChangedFolder();
+        PhotoFolder f = (PhotoFolder) session.merge( changedFolder );
+        assertEquals( "Name 2", f.getName() );
+	assertMatchesDb( f );
     }
     
     /**

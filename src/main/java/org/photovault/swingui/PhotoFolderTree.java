@@ -21,15 +21,23 @@
 
 package org.photovault.swingui;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
+import org.photovault.command.CommandException;
+import org.photovault.command.CommandHandler;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.imginfo.*;
 import org.photovault.folder.*;
 import java.util.*;
+import org.photovault.persistence.HibernateUtil;
 
 /**
    PhotoFolderTree is a control for displaying a tree structure of a PhotoFolder and its subfolders.
@@ -49,6 +57,7 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
      TODO: CHeck where this should be managed!!!
      */
     PhotoFolderDAO folderDAO = new PhotoFolderDAOHibernate();
+    CommandHandler cmdHandler = new PhotovaultCommandHandler( null );
     
     public PhotoFolderTree() {
 	super();
@@ -219,8 +228,26 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
                                 + PhotoFolder.NAME_LENGTH + " characters",
                                 "Too long name", JOptionPane.ERROR_MESSAGE, null );
                     } else {
-                        PhotoFolder newFolder = PhotoFolder.create( newName, selected );
-                        ready = true;
+                        CreatePhotoFolderCommand createCmd =
+                                new CreatePhotoFolderCommand( selected, newName, "" );
+                        try {
+                            cmdHandler.executeCommand( createCmd );
+                            PhotoFolder createdFolder = createCmd.getCreatedFolder();
+                            
+                            // Merge changes to current persistence context
+                            // and send event to the tree.
+                            PhotoFolder mergedFolder = (PhotoFolder) HibernateUtil.getSessionFactory().
+                                    getCurrentSession().merge( createCmd.getCreatedFolder()  );
+                            model.structureChanged( new PhotoFolderEvent( selected, selected, null ) );
+                            
+                            ready = true;
+                        } catch (CommandException ex) {
+                        JOptionPane.showMessageDialog( this,
+                                "Error happened while creating the folder:\n"
+                                + ex.getMessage(),
+                                "Error creating folder", JOptionPane.ERROR_MESSAGE, null );
+
+                        } 
                     }
                 } else {
                     // User pressed Cancel
@@ -240,8 +267,22 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 						"Delete folder", JOptionPane.YES_NO_OPTION,
 						JOptionPane.WARNING_MESSAGE, null )
 		 == JOptionPane.YES_OPTION ) {
-		selected.delete();
-		selected = null;
+                DeletePhotoFolderCommand deleteCmd = new DeletePhotoFolderCommand( selected );
+                try {
+                    cmdHandler.executeCommand( deleteCmd );
+                } catch ( CommandException e ) {
+                        JOptionPane.showMessageDialog( this,
+                                "Error occurred while deleting folder: \n"
+                                + e.getMessage(),
+                                "Error deleting folder",
+                                JOptionPane.ERROR_MESSAGE, null );
+                    
+                }
+                PhotoFolder parent = deleteCmd.getParentFolder();
+                PhotoFolder mergedFolder = (PhotoFolder) HibernateUtil.getSessionFactory().
+                        getCurrentSession().merge( parent );
+                model.structureChanged( new PhotoFolderEvent( mergedFolder, mergedFolder, null ) );                
+                selected = null;
 		fireSelectionChangeEvent();
 	    }
 	}
@@ -255,18 +296,23 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
                         "Rename folder", JOptionPane.PLAIN_MESSAGE,
                         null, null, origName );
                 if ( newName != null ) {
-                    PhotoFolder f = selected;
+                    ChangePhotoFolderCommand changeCmd = new ChangePhotoFolderCommand( selected );
+                    changeCmd.setName( newName );
                     try {
-                        f.setName( newName );
-                        ready = true;
-                    } catch ( IllegalArgumentException e ) {
+                        cmdHandler.executeCommand( changeCmd );
+                        PhotoFolder changedFolder = changeCmd.getChangedFolder();
+                        PhotoFolder mergedFolder = (PhotoFolder) HibernateUtil.getSessionFactory().
+                                getCurrentSession().merge( changedFolder  );
+                        model.photoCollectionChanged( new PhotoFolderEvent( mergedFolder, mergedFolder, null ) );                        
+                    } catch ( CommandException e ) {
                         JOptionPane.showMessageDialog( this,
-                                "Folder name cannot be longer than "
-                                + PhotoFolder.NAME_LENGTH + " characters",
-                                "Too long name",
+                                "Error occurred while changing folder name: \n"
+                                + e.getMessage(),
+                                "Error changing folder name",
                                 JOptionPane.ERROR_MESSAGE, null );
                     }
                     log.debug( "Changed name to " + newName );
+                    ready = true;
                 } else {
                     ready = true;
                 }
@@ -274,6 +320,23 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
         }
     }
     
+    /**
+     Helper method for writing the folder hierarchy
+     @param w Writer into which this hierarchy is written
+     @param root root folder of the hierarchy
+     @param indent Indentation of the top folder
+     */
+    
+    private void debugPrintFolderTree( Writer w, PhotoFolder root, int indent ) 
+            throws IOException {
+        String strIndent = "                                 ".substring( 0, indent );
+        w.write( strIndent );
+        w.write( getName() );
+        w.write( "\n" );
+        for ( PhotoFolder f : root.getSubfolders() ) {
+            debugPrintFolderTree( w, f, indent+2 );
+        }        
+    }
     
     public static void main( String[] args ) {
 	org.apache.log4j.BasicConfigurator.configure();

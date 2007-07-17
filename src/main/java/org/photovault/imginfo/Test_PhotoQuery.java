@@ -26,6 +26,8 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.photovault.folder.*;
 import org.photovault.imginfo.FuzzyDate;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 
@@ -37,6 +39,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     Vector uids = null;
     PhotoFolder folder = null;
     PhotoFolder subfolder = null;
+    DAOFactory daoFactory = DAOFactory.instance( HibernateDAOFactory.class );
     PhotoInfoDAO photoDAO = null;
     PhotoFolderDAO folderDAO = null;
     Session session = null;
@@ -44,8 +47,8 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     
     public void setUp() {
         session = HibernateUtil.getSessionFactory().getCurrentSession();
-        photoDAO =  new PhotoInfoDAOHibernate();
-        folderDAO = new PhotoFolderDAOHibernate();
+        photoDAO = daoFactory.getPhotoInfoDAO();
+        folderDAO = daoFactory.getPhotoFolderDAO();
         tx = session.beginTransaction();
         
 	// Create several photos with different shooting dates

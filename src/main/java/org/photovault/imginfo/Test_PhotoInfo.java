@@ -31,6 +31,8 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 
@@ -42,7 +44,8 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     Session session = null;
     Transaction tx = null;
     
-    PhotoInfoDAO photoDAO = new PhotoInfoDAOHibernate();
+    DAOFactory daoFactory = DAOFactory.instance( HibernateDAOFactory.class );
+    PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
     
     /**
      * Default constructor to set up OJB environment

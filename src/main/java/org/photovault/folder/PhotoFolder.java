@@ -269,7 +269,7 @@ public class PhotoFolder implements PhotoCollection {
 	    subfolders = new TreeSet<PhotoFolder>();
 	}
         subfolder.parent = this;
-	subfolders.add( subfolder );
+	getSubfolders().add( subfolder );
 	modified();
         subfolder.modified();
 	// Inform all parents & their that the structure has changed
@@ -283,7 +283,7 @@ public class PhotoFolder implements PhotoCollection {
 	if ( subfolder == null ) {
 	    return;
 	}
-	subfolders.remove( subfolder );
+	getSubfolders().remove( subfolder );
 	modified();
 	// Inform all parents & their that the structure has changed
 	subfolderStructureChanged( this );
@@ -335,7 +335,7 @@ public class PhotoFolder implements PhotoCollection {
 	}
 	this.parent = newParent;
 	if ( parent != null ) {
-	    parent.subfolders.add( this );
+	    parent.getSubfolders().add( this );
 	    subfolderStructureChanged( parent );
             parent.modified();            
 	}
