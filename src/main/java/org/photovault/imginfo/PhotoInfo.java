@@ -646,6 +646,41 @@ public class PhotoInfo {
     }
     
     /**
+     Find instance that is preferred for using in particular situatin. This function 
+     seeks for an isntance that has at least a given resolution and has certain
+     operations already applied.
+     */
+    public ImageInstance getPreferredInstance( EnumSet<ImageOperations> requiredOpers,
+            EnumSet<ImageOperations> allowedOpers, int minWidth, int minHeight ) {
+        ImageInstance preferred = null;
+        EnumSet<ImageOperations> appliedPreferred = null;
+        
+        Vector instances = getInstances();
+        for ( Object o : instances ) {
+            ImageInstance i = (ImageInstance) o;
+            File f = i.getImageFile();
+            if ( f != null && f.exists() && i.getWidth() >= minWidth &&
+                    i.getHeight() >= minHeight ) {
+                EnumSet<ImageOperations> applied = i.getAppliedOperations();
+                if ( applied.containsAll( requiredOpers ) && 
+                        allowedOpers.containsAll( applied ) && 
+                        isConsistentWithCurrentSettings( i ) ) {
+                    
+                    // This is potential one
+                    if ( preferred == null ) {
+                        preferred = i;
+                        appliedPreferred = applied;
+                    } else if ( !appliedPreferred.containsAll( applied ) ) {
+                        preferred = i;
+                        appliedPreferred = applied;                        
+                    }
+                }
+            }
+        }
+        return preferred;
+    }
+    
+    /**
      Returns a thumbnail of this image. If no thumbnail instance is yetavailable, creates a
      new instance on the default volume. Otherwise loads an existing thumbnail instance. <p>
      
@@ -751,6 +786,9 @@ public class PhotoInfo {
             if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
                     && !matchesCurrentSettings( instance ) ) {
                 purgeList.add( instance );
+            } else if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED
+                    && !isConsistentWithCurrentSettings( instance ) ) {
+                purgeList.add( instance );                
             }
         }
         log.debug( "Deleting " + purgeList.size() + " instances" );
@@ -806,10 +844,51 @@ public class PhotoInfo {
                 && ( rawSettings == null || rawSettings.equals( instance.getRawSettings()));            
         }
         
-    /** Creates a new thumbnail for this image on specific volume
-     @param volume The volume in which the instance is to be created
+    
+    private boolean isConsistentWithCurrentSettings( ImageInstance instance ) {
+        EnumSet<ImageOperations> applied = instance.getAppliedOperations();
+        if ( applied.contains( ImageOperations.CROP ) && 
+                !(Math.abs(instance.getRotated() - prefRotation) < 0.0001
+                && instance.getCropBounds().equals( getCropBounds() ) ) ) {
+            return false;
+        }
+        if ( applied.contains( ImageOperations.COLOR_MAP ) && 
+                !(channelMap == null || channelMap.equals( instance.getColorChannelMapping() ) ) ) {
+            return false;
+        }
+        if ( applied.contains( ImageOperations.RAW_CONVERSION ) &&
+                !( rawSettings == null || rawSettings.equals( instance.getRawSettings() ) ) ) {
+            return false;
+        }
+        return true;
+                
+    }
+    
+    /**
+     Creates thumbnail & preview instances in given volume. The preview instance 
+     is created only if one does not exist currently or it is out of date.
+     TODO: Thiuis chould be refactored into a more generic and configurable 
+     framework for creating needed instances.
      */
     protected void createThumbnail( VolumeBase volume ) {
+        boolean recreatePreview = true;
+        EnumSet<ImageOperations> previewOps = EnumSet.of( 
+                ImageOperations.COLOR_MAP, 
+                ImageOperations.RAW_CONVERSION );
+        ImageInstance previewInstance = this.getPreferredInstance( EnumSet.noneOf( ImageOperations.class ),
+                previewOps, 1024, 1024 );
+        if ( previewInstance != null && 
+                previewInstance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED ) {
+            recreatePreview = false;
+        }
+        createThumbnail( volume, recreatePreview );
+    }
+    
+    /** Creates new thumbnail and preview instances for this image on specific volume
+     @param volume The volume in which the instance is to be created
+     @param createpreview, if <code>true</code> create also a preview image.
+     */
+    protected void createThumbnail( VolumeBase volume, boolean createPreview ) {
         
         log.debug( "Creating thumbnail for " + uid );
         ODMGXAWrapper txw = new ODMGXAWrapper();
@@ -836,23 +915,24 @@ public class PhotoInfo {
         
         
         // Find the original image to use as a staring point
-        ImageInstance original = null;
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance instance = (ImageInstance) instances.get( n );
-            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL
-                    && instance.getImageFile() != null 
-                    && instance.getImageFile().exists() ) {
-                original = instance;
-                txw.lock( original, Transaction.READ );
-                break;
-            }
+        EnumSet<ImageOperations> allowedOps = EnumSet.allOf( ImageOperations.class );            
+        if ( createPreview ) {
+            // We need to create also the preview image, so we need original.
+            allowedOps = EnumSet.noneOf( ImageOperations.class );
+            minInstanceWidth = 1024;
+            minInstanceHeight = 1024;
         }
+        
+        ImageInstance original = this.getPreferredInstance( EnumSet.noneOf( ImageOperations.class ),
+                allowedOps, minInstanceWidth, minInstanceHeight );
+        
         if ( original == null ) {
             // If there are no uncorrupted instances, no thumbnail can be created
             log.warn( "Error - no original image was found!!!" );
             txw.commit();
             return;
         }
+        txw.lock( original, Transaction.READ );
         log.debug( "Found original, reading it..." );
         
         /*
@@ -871,12 +951,12 @@ public class PhotoInfo {
         
         // Read the image
         RenderedImage thumbImage = null;
+        RenderedImage previewImage = null;
+        
         try {
             File imageFile = original.getImageFile();
             PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
             PhotovaultImage img = imgFactory.create( imageFile, false, false );
-            img.setCropBounds( this.getCropBounds() );
-            img.setRotation( prefRotation - original.getRotated() );
             if ( channelMap != null ) {
                 img.setColorAdjustment( channelMap );
             }
@@ -884,6 +964,18 @@ public class PhotoInfo {
                 RawImage ri = (RawImage) img;
                 ri.setRawSettings( rawSettings );
             }
+            if ( createPreview ) {
+                // Calculate preview image size
+                int previewWidth = img.getWidth();
+                int previewHeight = img.getHeight();
+                while ( previewWidth > 2048 || previewHeight > 2048 ) {
+                    previewWidth >>= 1;
+                    previewHeight >>=1;
+                }
+                previewImage = img.getRenderedImage( previewWidth, previewHeight, false );
+            }
+            img.setCropBounds( this.getCropBounds() );
+            img.setRotation( prefRotation - original.getRotated() );
             thumbImage = img.getRenderedImage( maxThumbWidth, maxThumbHeight, true );
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
@@ -929,6 +1021,30 @@ public class PhotoInfo {
         thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
         oldThumbnail = null;
         log.debug( "Thumbnail loaded" );
+        
+        if ( createPreview ) {
+            File previewFile = volume.getInstanceName( this, "jpg" );
+            try {
+                saveInstance( previewFile, previewImage );
+                if ( previewImage instanceof PlanarImage ) {
+                    ((PlanarImage)previewImage).dispose();
+                    System.gc();
+                }
+            } catch (PhotovaultException ex) {
+                log.error( "error writing preview for " + original.getImageFile().getAbsolutePath() +
+                        ": " + ex.getMessage() );
+                // TODO: If we abort here due to image writing problem we will have
+                // problems later with non-existing transaction. We should really
+                // rethink the error handling login in the whole function. Anyway, we
+                // haven't changed anything yet so we can safely commit the tx.
+                txw.commit();
+                return;
+            }
+            ImageInstance previewInstance = addInstance( volume, previewFile,
+                    ImageInstance.INSTANCE_TYPE_MODIFIED );
+            previewInstance.setColorChannelMapping( channelMap );
+            previewInstance.setRawSettings( rawSettings );
+        }
         txw.commit();
     }
     
