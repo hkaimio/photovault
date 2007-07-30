@@ -20,6 +20,7 @@
 
 package org.photovault.persistence;
 
+import org.hibernate.Session;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.folder.PhotoFolderDAOHibernate;
 import org.photovault.imginfo.ImageInstanceDAO;
@@ -41,10 +42,19 @@ public class HibernateDAOFactory extends DAOFactory {
     private GenericHibernateDAO instantiateDAO( Class daoClass ) {
         try {
             GenericHibernateDAO dao = (GenericHibernateDAO)daoClass.newInstance();
+            if ( session != null ) {
+                dao.setSession( session );
+            }
             return dao;
         } catch ( Exception e ) {
             throw new RuntimeException( "Could not instantiate DAO factory " + daoClass, e );
         }
+    }
+    
+    Session session = null;
+    
+    public void setSession( Session session ) {
+        this.session = session;
     }
     
     

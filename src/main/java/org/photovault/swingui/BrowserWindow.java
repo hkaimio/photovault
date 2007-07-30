@@ -37,6 +37,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.photovault.imginfo.indexer.ExtVolIndexer;
+import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.framework.DefaultEventListener;
 import org.photovault.swingui.indexer.IndexerFileChooser;
 import org.photovault.swingui.indexer.IndexerStatusDlg;
 import org.photovault.swingui.indexer.UpdateIndexAction;
@@ -85,7 +87,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	tabPane = new JTabbedPane();
 	queryPane = new QueryPane();
-	treePane = new PhotoFolderTree();
+        PhotoFolderTreeController treeCtrl = new PhotoFolderTreeController();
+	treePane = treeCtrl.folderTree;
 	tabPane.addTab( "Query", queryPane );
 	tabPane.addTab( "Folders", treePane );
 	//	viewPane = new TableCollectionView();
@@ -116,14 +119,16 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         /*
           If the selected folder is changed in treePane, switch to that immediately
          */
-        treePane.addPhotoFolderTreeListener( new PhotoFolderTreeListener() {
-            public void photoFolderTreeSelectionChanged( PhotoFolderTreeEvent e ) {
-                PhotoFolder f = e.getSelected();
+        
+        treeCtrl.registerEventListener( PhotoFolderTreeEvent.class,
+                new DefaultEventListener<PhotoFolder>(){
+            public void handleEvent(DefaultEvent<PhotoFolder> event) {
+                PhotoFolder f = event.getPayload();
                 if ( f != null ) {
                     viewPane.setCollection( f );
                 }
-            }
-        } );
+            }            
+        });
         
         // Create the split pane to display both of these components
         

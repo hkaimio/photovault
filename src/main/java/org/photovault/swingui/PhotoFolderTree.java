@@ -21,70 +21,36 @@
 
 package org.photovault.swingui;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.event.*;
-import javax.swing.event.*;
 import javax.swing.tree.*;
-import org.photovault.command.CommandException;
-import org.photovault.command.CommandHandler;
-import org.photovault.command.PhotovaultCommandHandler;
-import org.photovault.imginfo.*;
 import org.photovault.folder.*;
 import java.util.*;
-import org.photovault.persistence.HibernateUtil;
 
 /**
    PhotoFolderTree is a control for displaying a tree structure of a PhotoFolder and its subfolders.
 */
 
-public class PhotoFolderTree extends JPanel implements TreeSelectionListener, ActionListener {
+public class PhotoFolderTree extends JPanel {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoFolderTree.class.getName() );
-
+    
     JTree tree = null;
-    PhotoFolderTreeModel model = null;
     JScrollPane scrollPane = null;
     JPopupMenu popup = null;
-    PhotoFolder selected = null;
+    PhotoFolderTreeController ctrl = null;
     
-    /**
-     Data access to folders in database
-     TODO: CHeck where this should be managed!!!
-     */
-    PhotoFolderDAO folderDAO = new PhotoFolderDAOHibernate();
-    CommandHandler cmdHandler = new PhotovaultCommandHandler( null );
-    
-    public PhotoFolderTree() {
+    public PhotoFolderTree( PhotoFolderTreeController ctrl ) {
 	super();
-	model = new PhotoFolderTreeModel();
-	PhotoFolder root = folderDAO.findRootFolder();
-	log.warn( "Root folder" + root );
+        this.ctrl = ctrl;
 	// model.setRoot( root );
 	createUI();
     }
 
-    /**
-       Returns the currently selected PhotoFolder or <code>null</code> if none is selected.
-    */
-    public PhotoFolder getSelected() {
-	return selected;
-    }
     
-    public void setSelected( PhotoFolder folder ) {
-        Vector parents = new Vector();
-        parents.add( folder );
-        while ( (folder = folder.getParentFolder() ) != null ) {
-            parents.add( 0, folder );
-        }
-        TreePath path = new TreePath( parents.toArray() );
-        selected = folder;
-        tree.setSelectionPath( path );
-    }
 
     /**
        Adds a listener to listen for selection changes
@@ -100,22 +66,14 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	folderTreeListeners.remove( l );
     }
 
-    protected void fireSelectionChangeEvent() {
-	log.debug( "fireselectionChangedEvent " + selected );
-	Iterator iter = folderTreeListeners.iterator();
-	while ( iter.hasNext() ) {
-	    PhotoFolderTreeListener l = (PhotoFolderTreeListener) iter.next();
-	    l.photoFolderTreeSelectionChanged( new PhotoFolderTreeEvent( this, selected ) );
-	}
-    }
-    
+
     Vector folderTreeListeners = new Vector();
     
     private void createUI() {
 	setLayout( new BorderLayout() );
-	tree = new JTree( model );
+	tree = new JTree( ctrl.model );
 	tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
-	tree.addTreeSelectionListener( this );
+	tree.addTreeSelectionListener( ctrl );
 	DropTarget dropTarget = new DropTarget( tree, new PhotoTreeDropTargetListener( tree ) );
 	// 	tree.setTransferHandler( new PhotoCollectionTransferHandler(null) );
 	scrollPane = new JScrollPane( tree );
@@ -125,17 +83,14 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 	// Set up the popup menu
 	popup = new JPopupMenu();
         // TODO: implement folder properties
-//	JMenuItem propsItem = new JMenuItem( "Properties" );
-//	propsItem.addActionListener( this );
-//s	propsItem.setActionCommand( FOLDER_PROPS_CMD );
 	JMenuItem renameItem = new JMenuItem( "Rename" );
-	renameItem.addActionListener( this );
+	renameItem.addActionListener( ctrl );
 	renameItem.setActionCommand( FOLDER_RENAME_CMD );
 	JMenuItem deleteItem = new JMenuItem( "Delete" );
-	deleteItem.addActionListener( this );
+	deleteItem.addActionListener( ctrl );
 	deleteItem.setActionCommand( FOLDER_DELETE_CMD );
 	JMenuItem newFolderItem = new JMenuItem( "New folder..." );
-	newFolderItem.addActionListener( this );
+	newFolderItem.addActionListener( ctrl );
 	newFolderItem.setActionCommand( FOLDER_NEW_CMD );
 	popup.add( newFolderItem );
 	popup.add( renameItem );
@@ -144,7 +99,8 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
 
 	MouseListener popupListener = new PopupListener();
 	tree.addMouseListener( popupListener );
-	
+        
+
     }
 
     /**
@@ -171,154 +127,6 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
     static final String FOLDER_RENAME_CMD = "FOLDER_RENAME_CMD";
     static final String FOLDER_DELETE_CMD = "FOLDER_DELETE_CMD";
     static final String FOLDER_NEW_CMD = "FOLDER_NEW_CMD";
-
-
-    /**
-       Implementation of TreeSelectionListener interface. This method is called when tree selection changes
-    */
-
-    public void valueChanged( TreeSelectionEvent e ) {
-	selected = (PhotoFolder)tree.getLastSelectedPathComponent();
-	fireSelectionChangeEvent();
-	if ( selected != null ) {
-	    log.debug( "Tree selection changed, new selction = " + selected.toString() );
-	} else {
-	    log.debug( "Selected nothing!!" );
-	}
-    }
-    
-    /**
-     * ActionListener implementation, is called when a popup menu item is selected
-     * @param  e The event object
-     */
-    public void actionPerformed(ActionEvent e)
-    {
-	String cmd = e.getActionCommand();
-	if ( cmd == FOLDER_PROPS_CMD ) {
-	    showSelectionPropsDialog();
-	} else if ( cmd == FOLDER_NEW_CMD ) {
-	    createNewFolder();
-	} else if ( cmd == FOLDER_RENAME_CMD ) {
-	    renameSelectedFolder();
-	} else if ( cmd == FOLDER_DELETE_CMD ) {
-	    deleteSelectedFolder();
-	} else {
-	    log.warn( "Unknown action: " + cmd );
-	}
-    }
-
-    void showSelectionPropsDialog() {
-	log.warn( "Not implemented: showSelectionPropsDialog()" );
-    }
-
-    /**
-       Creates a new subfolder for the selected folder
-    */
-    void createNewFolder() {
-        if ( selected != null ) {
-            boolean ready = false;
-            while ( !ready ) {
-                String newName = (String) JOptionPane.showInputDialog( this, "Enter name for new folder",
-                        "New folder", JOptionPane.PLAIN_MESSAGE,
-                        null, null, "New folder" );
-                if ( newName != null ) {
-                    if ( newName.length() > PhotoFolder.NAME_LENGTH ) {
-                        JOptionPane.showMessageDialog( this,
-                                "Folder name cannot be longer than "
-                                + PhotoFolder.NAME_LENGTH + " characters",
-                                "Too long name", JOptionPane.ERROR_MESSAGE, null );
-                    } else {
-                        CreatePhotoFolderCommand createCmd =
-                                new CreatePhotoFolderCommand( selected, newName, "" );
-                        try {
-                            cmdHandler.executeCommand( createCmd );
-                            PhotoFolder createdFolder = createCmd.getCreatedFolder();
-                            
-                            // Merge changes to current persistence context
-                            // and send event to the tree.
-                            PhotoFolder mergedFolder = (PhotoFolder) HibernateUtil.getSessionFactory().
-                                    getCurrentSession().merge( createCmd.getCreatedFolder()  );
-                            model.structureChanged( new PhotoFolderEvent( selected, selected, null ) );
-                            
-                            ready = true;
-                        } catch (CommandException ex) {
-                        JOptionPane.showMessageDialog( this,
-                                "Error happened while creating the folder:\n"
-                                + ex.getMessage(),
-                                "Error creating folder", JOptionPane.ERROR_MESSAGE, null );
-
-                        } 
-                    }
-                } else {
-                    // User pressed Cancel
-                    ready = true;
-                }
-            }
-        }
-    }
-    
-    /**
-       Deletes the selected folder
-    */
-    void deleteSelectedFolder() {
-	if ( selected != null ) {
-	    // Ask for confirmation
-	    if ( JOptionPane.showConfirmDialog( this, "Delete folder " + selected.getName() + "?",
-						"Delete folder", JOptionPane.YES_NO_OPTION,
-						JOptionPane.WARNING_MESSAGE, null )
-		 == JOptionPane.YES_OPTION ) {
-                DeletePhotoFolderCommand deleteCmd = new DeletePhotoFolderCommand( selected );
-                try {
-                    cmdHandler.executeCommand( deleteCmd );
-                } catch ( CommandException e ) {
-                        JOptionPane.showMessageDialog( this,
-                                "Error occurred while deleting folder: \n"
-                                + e.getMessage(),
-                                "Error deleting folder",
-                                JOptionPane.ERROR_MESSAGE, null );
-                    
-                }
-                PhotoFolder parent = deleteCmd.getParentFolder();
-                PhotoFolder mergedFolder = (PhotoFolder) HibernateUtil.getSessionFactory().
-                        getCurrentSession().merge( parent );
-                model.structureChanged( new PhotoFolderEvent( mergedFolder, mergedFolder, null ) );                
-                selected = null;
-		fireSelectionChangeEvent();
-	    }
-	}
-    }
-    void renameSelectedFolder() {
-	if ( selected != null ) {
-	    String origName = selected.getName();
-            boolean ready = false;
-            while ( !ready ) {
-                String newName = (String) JOptionPane.showInputDialog( this, "Enter new name",
-                        "Rename folder", JOptionPane.PLAIN_MESSAGE,
-                        null, null, origName );
-                if ( newName != null ) {
-                    ChangePhotoFolderCommand changeCmd = new ChangePhotoFolderCommand( selected );
-                    changeCmd.setName( newName );
-                    try {
-                        cmdHandler.executeCommand( changeCmd );
-                        PhotoFolder changedFolder = changeCmd.getChangedFolder();
-                        PhotoFolder mergedFolder = (PhotoFolder) HibernateUtil.getSessionFactory().
-                                getCurrentSession().merge( changedFolder  );
-                        model.photoCollectionChanged( new PhotoFolderEvent( mergedFolder, mergedFolder, null ) );                        
-                    } catch ( CommandException e ) {
-                        JOptionPane.showMessageDialog( this,
-                                "Error occurred while changing folder name: \n"
-                                + e.getMessage(),
-                                "Error changing folder name",
-                                JOptionPane.ERROR_MESSAGE, null );
-                    }
-                    log.debug( "Changed name to " + newName );
-                    ready = true;
-                } else {
-                    ready = true;
-                }
-            }
-        }
-    }
     
     /**
      Helper method for writing the folder hierarchy
@@ -336,27 +144,6 @@ public class PhotoFolderTree extends JPanel implements TreeSelectionListener, Ac
         for ( PhotoFolder f : root.getSubfolders() ) {
             debugPrintFolderTree( w, f, indent+2 );
         }        
-    }
-    
-    public static void main( String[] args ) {
-	org.apache.log4j.BasicConfigurator.configure();
-	log.setLevel( org.apache.log4j.Level.DEBUG );
-	org.apache.log4j.Logger folderLog = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
-	folderLog.setLevel( org.apache.log4j.Level.DEBUG );
-	
-	JFrame frame = new JFrame( "PhotoFoldertree test" );
-	PhotoFolderTree view = new PhotoFolderTree();
-	frame.getContentPane().add( view, BorderLayout.CENTER );
-	frame.addWindowListener(new WindowAdapter() {
-		public void windowClosing(WindowEvent e) {
-		    System.exit(0);
-		}
-	    } );
-
-		
-	frame.pack();
-	frame.setVisible( true );
-
     }
 }
 

@@ -24,7 +24,6 @@ import org.photovault.common.PhotovaultException;
 
 /**
   Exception thrown by {@link Command} if its execution fails.
- 
  */
 public class CommandException extends PhotovaultException {
     

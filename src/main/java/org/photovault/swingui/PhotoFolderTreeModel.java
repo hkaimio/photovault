@@ -27,6 +27,7 @@ import javax.swing.tree.*;
 import javax.swing.event.*;
 import org.photovault.imginfo.*;
 import java.util.*;
+import org.photovault.persistence.DAOFactory;
 
 
 /**
@@ -38,10 +39,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 
     FolderNodeMapper nodeMapper = null;
     
-    /**
-     Data access to the folder hierarchy in AWT event thread
-     TODO: Hibernate session scope needs more thinking
-     */
+    PhotoFolderTreeController ctrl = null;
     PhotoFolderDAO folderDAO = null;
     
     /**
@@ -62,6 +60,10 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
     public PhotoFolderTreeModel() {
         super();
         nodeMapper = new DefaultFolderNodeMapper();
+    }
+    
+    public void setController( PhotoFolderTreeController c ) {
+        ctrl = c;
     }
     
     /**
@@ -115,7 +117,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
     {
         if ( rootFolder == null ) {
             if ( folderDAO == null ) {
-                folderDAO = new PhotoFolderDAOHibernate();
+                folderDAO = ctrl.getDAOFactory().getPhotoFolderDAO();
             }
             rootFolder = folderDAO.findRootFolder();
         }

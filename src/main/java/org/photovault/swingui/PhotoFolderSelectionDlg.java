@@ -48,7 +48,8 @@ public class PhotoFolderSelectionDlg extends JDialog {
     }
 
     PhotoFolderTree tree = null;
-
+    PhotoFolderTreeController treeCtrl = null;
+    
     PhotoFolder selectedFolder = null;
 
     /**
@@ -63,7 +64,8 @@ public class PhotoFolderSelectionDlg extends JDialog {
        Creates the UI components needed for this dialog.
     */
     protected void createUI() {
-	tree = new PhotoFolderTree();
+        treeCtrl = new PhotoFolderTreeController();
+	tree = treeCtrl.folderTree;
 	getContentPane().add( tree, BorderLayout.NORTH );
 
 	// Create a pane for the buttols
@@ -71,7 +73,7 @@ public class PhotoFolderSelectionDlg extends JDialog {
 	okBtn.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
 		    try {
-			selectedFolder = tree.getSelected();
+			selectedFolder = treeCtrl.getSelected();
 		    } catch ( Exception ex ) {
 			log.warn( "problem while saving changes: " + ex.getMessage() );
 		    }
