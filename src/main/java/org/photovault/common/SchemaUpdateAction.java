@@ -23,10 +23,14 @@ package org.photovault.common;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import javax.sql.DataSource;
+import org.apache.commons.beanutils.DynaBean;
 import org.apache.ddlutils.DynaSqlException;
 import org.apache.ddlutils.Platform;
 import org.apache.ddlutils.PlatformFactory;
@@ -39,12 +43,16 @@ import org.apache.ojb.broker.metadata.ConnectionRepository;
 import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
 import org.apache.ojb.broker.metadata.MetadataManager;
 import org.apache.ojb.broker.accesslayer.LookupException;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.odmg.Implementation;
 import org.odmg.OQLQuery;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.persistence.HibernateUtil;
 
 /**
  SchemaUpdateAction updates the database schema created by an earlier version of 
@@ -80,14 +88,11 @@ public class SchemaUpdateAction {
         int oldVersion = db.getSchemaVersion();
         
         // Find needed information fr DdlUtils
-        ConnectionRepository cr = MetadataManager.getInstance().connectionRepository();
-        PBKey connKey = cr.getStandardPBKeyForJcdAlias( "pv" );
-        JdbcConnectionDescriptor connDesc = cr.getDescriptor( connKey );
-        String jdbcDriver = connDesc.getDriver();
+        Session session = HibernateUtil.getSessionFactory().openSession();
         Platform platform = null;
-        if ( jdbcDriver.equals( "org.apache.derby.jdbc.EmbeddedDriver" ) ) {
+        if ( db.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
             platform = PlatformFactory.createNewPlatformInstance( "derby" );            
-        } else if ( jdbcDriver.equals( "com.mysql.jdbc.Driver" ) ){
+        } else if ( db.getInstanceType() == PVDatabase.TYPE_SERVER ) {
             platform = PlatformFactory.createNewPlatformInstance( "mysql" );
         }
         platform.getPlatformInfo().setDelimiterToken( "" );
@@ -99,10 +104,9 @@ public class SchemaUpdateAction {
         Database dbModel = dbio.read( new InputStreamReader( schemaIS ) );
         
         // Alter tables to match corrent schema
-        PersistenceBroker broker = PersistenceBrokerFactory.createPersistenceBroker( connKey );
-        broker.beginTransaction();
+        Transaction tx = session.beginTransaction();
+        Connection con = session.connection();
         try {
-            Connection con = broker.serviceConnectionManager().getConnection();
             /*
              TODO:
              Derby alter table statements created by DdlUtils have wrong syntax. 
@@ -115,19 +119,46 @@ public class SchemaUpdateAction {
              platform.alterTables( con, dbModel, false, true, true );
         } catch (DynaSqlException ex) {
             ex.printStackTrace();
-        } catch ( LookupException ex ) {
-            ex.printStackTrace();
-        }
-        broker.commitTransaction();
-        broker.close();
+        } 
         
         if ( oldVersion < 4 ) {
             // In older version hashcolumn was not included in schema so we must fill it.
             createHashes();
         }
-
+        
+        if ( oldVersion < 10 ) {
+            // Initialize Hibernate sequence generators
+            Query q = session.createQuery( "select max( rs.rawSettingId ) from RawConversionSettings rs" );
+            int maxRawSettingId = (Integer) q.uniqueResult();
+            q = session.createQuery( "select max( photo.id ) from PhotoInfo photo" );
+            int maxPhotoId = (Integer) q.uniqueResult();
+            q = session.createQuery( "select max( folder.folderId ) from PhotoFolder folder" );
+            int maxFolderId = (Integer) q.uniqueResult();
+            DynaBean dbInfo = dbModel.createDynaBeanFor( "unique_keys", false );
+            dbInfo.set( "id_name", "hibernate_seq" );
+            dbInfo.set( "next_val", new Integer( maxPhotoId+1 ) );
+            platform.insert( con, dbModel, dbInfo );
+            dbInfo.set( "id_name", "rawconv_id_gen" );
+            dbInfo.set( "next_val", new Integer( maxRawSettingId+1 ) );
+            platform.insert( con, dbModel, dbInfo );
+            dbInfo.set( "id_name", "folder_id_gen" );
+            dbInfo.set( "next_val", new Integer( maxFolderId+1 ) );
+            platform.insert( con, dbModel, dbInfo );
+            
+            try {
+                Statement stmt = con.createStatement();
+                stmt.executeUpdate( "insert into unique_keys(hibernate_seq, values ( \"hibernate_seq\", " + (maxPhotoId+1) + " )" );
+                stmt.close();
+            } catch (SQLException sqlex) {
+                sqlex.printStackTrace();
+            }
+        }
         DbInfo info = DbInfo.getDbInfo();
+        info = (DbInfo) session.merge( info );
         info.setVersion( db.CURRENT_SCHEMA_VERSION );
+        session.flush();
+        tx.commit();
+        session.close();
         
         fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_COMPLETE, 100 ) ); 
     
