@@ -21,6 +21,7 @@
 package org.photovault.imginfo;
 
 import java.util.List;
+import java.util.UUID;
 import org.hibernate.Query;
 import org.photovault.persistence.GenericHibernateDAO;
 
@@ -45,6 +46,12 @@ public class PhotoInfoDAOHibernate
 
     public List<PhotoInfo> findPhotosWithHash(byte[] hash) {
         throw new UnsupportedOperationException( "findPhotosWithHash not yet implemented");
+    }
+
+    public PhotoInfo findBuUUID(UUID uuid) {
+        Query q = getSession().createQuery( "from PhotoInfo where uuid = :uuid" );
+        q.setParameter("uuid", uuid );
+        return (PhotoInfo) q.uniqueResult();        
     }
     
 }

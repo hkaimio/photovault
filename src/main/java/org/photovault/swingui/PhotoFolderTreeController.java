@@ -140,7 +140,7 @@ public class PhotoFolderTreeController extends PersistenceController implements 
                         PhotoFolder mergedFolder = (PhotoFolder) getPersistenceContext().merge( parent );
                         model.structureChanged( new PhotoFolderEvent(mergedFolder, mergedFolder, null) );
                         selected = null;
-                        fireEvent( new PhotoFolderTreeEvent(selected) );
+                        fireEvent( new PhotoFolderTreeEvent(this, selected) );
                     }
                 }              
             }
@@ -171,6 +171,6 @@ public class PhotoFolderTreeController extends PersistenceController implements 
     
     public void valueChanged(TreeSelectionEvent e) {
         selected = (PhotoFolder) folderTree.tree.getLastSelectedPathComponent();
-        fireEvent( new PhotoFolderTreeEvent(selected) );
+        fireEvent( new PhotoFolderTreeEvent(this, selected) );
     }        
 }

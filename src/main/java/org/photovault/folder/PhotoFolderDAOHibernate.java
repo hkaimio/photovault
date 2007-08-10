@@ -42,7 +42,7 @@ public class PhotoFolderDAOHibernate
     }
 
     public PhotoFolder findByUUID(UUID uuid) {
-        Query q = getSession().createQuery( "from PhtoFolder where uuid = :uuid" );
+        Query q = getSession().createQuery( "from PhotoFolder where uuid = :uuid" );
         q.setParameter("uuid", uuid );
         return (PhotoFolder) q.uniqueResult();
     }

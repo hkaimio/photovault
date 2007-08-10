@@ -32,6 +32,9 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.Toolkit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoCollection;
@@ -75,6 +78,8 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.TransferHandler;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.imginfo.Volume;
+import org.photovault.imginfo.VolumeBase;
 
 
 
@@ -110,11 +115,12 @@ public class PhotoCollectionThumbView
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoCollectionThumbView.class.getName() );
     
+    PhotoViewController ctrl;
     /**
      Default constructor
      */
     public PhotoCollectionThumbView() {
-        this( null );
+        this( null, null );
     }
     
     /**
@@ -122,8 +128,9 @@ public class PhotoCollectionThumbView
      @param collection Initial collection to show. If this collection is nonempty,
      select the first photo in it when creating the control.
      */
-    public PhotoCollectionThumbView( PhotoCollection collection ) {
+    public PhotoCollectionThumbView( PhotoViewController ctrl, PhotoCollection collection ) {
         super();
+        this.ctrl = ctrl;
         if ( collection != null ) {
             photoCollection = new SortedPhotoCollection( collection );
         }
@@ -131,12 +138,13 @@ public class PhotoCollectionThumbView
         if ( collection != null && collection.getPhotoCount() > 0 ) {
             selection.add( collection.getPhoto( 0 ) );
         }
-	thumbCreatorThread = new ThumbCreatorThread( this );
-	thumbCreatorThread.start();
+//	thumbCreatorThread = new ThumbCreatorThread( this );
+//	thumbCreatorThread.start();
     }
 
-    ThumbCreatorThread thumbCreatorThread;
+    // ThumbCreatorThread thumbCreatorThread;
     
+    PhotoInstanceCreator lastInstanceCreator;
     
     /**
      * Returns the currently displayed photo collection or <code>null</code> if none specified 
@@ -205,6 +213,24 @@ public class PhotoCollectionThumbView
         return photoOrderComparator;
     }
     
+    public void setPhotos( List photos ) {
+        for ( PhotoInfo photo : this.photos ) {
+	    photo.removeChangeListener( this );
+	}
+	
+	photos.clear();
+	
+        for ( Object o : photos ) {
+            PhotoInfo photo = (PhotoInfo) o;
+	    photo.addChangeListener( this );
+	    photos.add( photo );
+	}
+    }
+    
+    public List<PhotoInfo> getPhotos() {
+        return Collections.unmodifiableList( photos );
+    }
+    
     /**
        Removes all change listeners this photo has added, repopulates the photos array
        from current photoCollection and adds change listeners to all photos in it.
@@ -217,7 +243,7 @@ public class PhotoCollectionThumbView
 	    photo.removeChangeListener( this );
 	}
 	
-	photos.removeAllElements();
+	photos.clear();
 	
 	// Add the change listeners to all photos so that we are aware of modifications
 	for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
@@ -229,7 +255,7 @@ public class PhotoCollectionThumbView
     
 
     PhotoCollection collection;
-    Vector photos = new Vector();
+    List<PhotoInfo> photos = new ArrayList<PhotoInfo>();
 
     
     /**
@@ -367,30 +393,38 @@ public class PhotoCollectionThumbView
         
         ImageIcon rotateCWIcon = getIcon( "rotate_cw.png" );
         rotateCWAction =
-                new RotateSelectedPhotoAction( this, 90, "Rotate 90 deg CW",
-                rotateCWIcon, "Rotates the selected photo clockwise",
-                KeyEvent.VK_R );
-        rotateCWAction.putValue( AbstractAction.ACCELERATOR_KEY, 
-                KeyStroke.getKeyStroke( KeyEvent.VK_R, 
+                new RotateSelectedPhotoAction( ctrl, 90 );
+        JMenuItem rotateCW = new JMenuItem( "Rotate 90 deg CW", rotateCWIcon );
+        rotateCW.setMnemonic( KeyEvent.VK_R );
+        rotateCW.setToolTipText( "Rotates the selected photo clockwise" );
+        rotateCW.setActionCommand( "rotate_cw");
+        rotateCW.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_R, 
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
-        JMenuItem rotateCW = new JMenuItem( rotateCWAction );
+        rotateCW.addActionListener( ctrl );
         
         ImageIcon rotateCCWIcon = getIcon( "rotate_ccw.png" );
         rotateCCWAction
-                = new RotateSelectedPhotoAction( this, 270, "Rotate 90 deg CCW",
-                rotateCCWIcon,
-                "Rotates the selected photo counterclockwise",
-                KeyEvent.VK_W );
-        rotateCCWAction.putValue( AbstractAction.ACCELERATOR_KEY, 
-                KeyStroke.getKeyStroke( KeyEvent.VK_L, 
+                = new RotateSelectedPhotoAction( ctrl, 270 );
+        JMenuItem rotateCCW = new JMenuItem( "Rotate 90 deg CCW", rotateCCWIcon );
+        rotateCCW.setMnemonic( KeyEvent.VK_L );
+        rotateCCW.setToolTipText( "Rotates the selected photo counterclockwise" );
+        rotateCCW.setActionCommand( "rotate_ccw");
+        rotateCCW.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_L, 
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
-        JMenuItem rotateCCW = new JMenuItem( rotateCCWAction );
+        rotateCCW.addActionListener( ctrl );
         
         ImageIcon rotate180Icon = getIcon( "rotate_180.png" );
         rotate180degAction
-                = new RotateSelectedPhotoAction( this, 180, "Rotate 180 deg",
-                rotate180Icon, "Rotates the selected photo 180 degrees", KeyEvent.VK_T );
-        JMenuItem rotate180deg = new JMenuItem( rotate180degAction );
+                = new RotateSelectedPhotoAction( ctrl, 180 );
+        JMenuItem rotate180deg = new JMenuItem( "Rotate 180 deg", rotate180Icon );
+        rotate180deg.setMnemonic( KeyEvent.VK_T );
+        rotate180deg.setToolTipText( "Rotates the selected photo 180 degrees" );
+        rotate180deg.setActionCommand( "rotate_180");
+        rotate180deg.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_T, 
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
+        rotate180deg.addActionListener( ctrl );
+
+        
         JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
         addToFolder.addActionListener( this );
         addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
@@ -664,11 +698,18 @@ public class PhotoCollectionThumbView
             }
 
             // The photo does not have a thumbnail, so request one to be created
-            if ( !thumbCreatorThread.isBusy() ) {
-                log.debug( "Create thumbnail for " + photo.getUid() );
-                thumbCreatorThread.createThumbnail( photo );
-                log.debug( "Thumbnail request submitted" );
-            }            
+            if ( lastInstanceCreator == null ) {
+                lastInstanceCreator = new PhotoInstanceCreator( this, 
+                        ctrl.getDAOFactory().getPhotoInfoDAO(), photo, 
+                        (Volume) VolumeBase.getDefaultVolume()  );
+                lastInstanceCreator.execute();
+            }
+            
+//            if ( !thumbCreatorThread.isBusy() ) {
+//                log.debug( "Create thumbnail for " + photo.getUid() );
+//                thumbCreatorThread.createThumbnail( photo );
+//                log.debug( "Thumbnail request submitted" );
+//            }            
         }
         thumbReadyTime = System.currentTimeMillis();
         
@@ -971,6 +1012,7 @@ public class PhotoCollectionThumbView
     */
     public void thumbnailCreated( PhotoInfo photo ) {
 	log.debug( "thumbnailCreated for " + photo.getUid() );
+        photo = (PhotoInfo) ctrl.getPersistenceContext().merge( photo );
 	repaintPhoto( photo );
 
 	Container parent = getParent();
@@ -1003,17 +1045,17 @@ public class PhotoCollectionThumbView
 		}		    
 	    }
 	}
-	if ( nextPhoto != null && !thumbCreatorThread.isBusy() ) {
-	    final PhotoInfo p = nextPhoto;
-// 	    SwingUtilities.invokeLater( new Runnable() {
-// 		    public void run() {
-	    log.debug( "Making request for the next thumbail, " + p.getUid() );
-			thumbCreatorThread.createThumbnail( p );
-	    log.debug( "request submitted" );
-// 		    }
-// 		});
-	}
-
+	if ( nextPhoto != null ) {
+                lastInstanceCreator = new PhotoInstanceCreator( this, 
+                        ctrl.getDAOFactory().getPhotoInfoDAO(), nextPhoto, 
+                        (Volume) VolumeBase.getDefaultVolume()  );
+                lastInstanceCreator.execute();
+//                log.debug( "Making request for the next thumbail, " + p.getUid() );
+//                thumbCreatorThread.createThumbnail( p );
+//                log.debug( "request submitted" );
+	} else {
+            lastInstanceCreator = null;
+        }
     }
     
     /**

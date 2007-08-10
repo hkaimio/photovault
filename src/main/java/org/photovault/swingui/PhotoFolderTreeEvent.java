@@ -26,7 +26,7 @@ import org.photovault.folder.*;
 import org.photovault.swingui.framework.DefaultEvent;
 
 public class PhotoFolderTreeEvent extends DefaultEvent<PhotoFolder> {
-    public PhotoFolderTreeEvent(  PhotoFolder selected ) {
-	super( selected );
+    public PhotoFolderTreeEvent( Object source, PhotoFolder selected ) {
+	super( source, selected );
     }
 }

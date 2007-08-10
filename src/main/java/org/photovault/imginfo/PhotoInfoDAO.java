@@ -21,6 +21,7 @@
 package org.photovault.imginfo;
 
 import java.util.List;
+import java.util.UUID;
 import org.photovault.persistence.GenericDAO;
 
 /**
@@ -28,6 +29,14 @@ import org.photovault.persistence.GenericDAO;
  * @author harri
  */
 public interface PhotoInfoDAO extends GenericDAO<PhotoInfo, Integer> {
+    
+    /**
+     Find photo with given UUID
+     @param uuid UUID to look for
+     @return The photo with given UUID or <code>null</code> if not found
+     */
+    PhotoInfo findBuUUID( UUID uuid );
+    
     /**
      Find photos whose original instance file has a given MD5 hash
      @param hash The hash code to search for

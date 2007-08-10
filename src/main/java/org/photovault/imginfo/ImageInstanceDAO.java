@@ -34,4 +34,6 @@ public interface ImageInstanceDAO extends GenericDAO<ImageInstance, ImageInstanc
      @return All known instances of p.
      */
     List findPhotoInstances(PhotoInfo p);
+    
+    ImageInstance getExistingInstance( VolumeBase volume, String fname );
 }

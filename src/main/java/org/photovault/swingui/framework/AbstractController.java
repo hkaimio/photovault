@@ -40,6 +40,8 @@
 
 package org.photovault.swingui.framework;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -151,6 +153,17 @@ public abstract class AbstractController implements ActionListener, WindowListen
         source.setActionCommand(actionCommand);
         source.addActionListener(this);
         this.actions.put(actionCommand, action);
+        final String cmd = actionCommand;
+        final AbstractController ctrl = this;
+        // TODO: Is this really needed???
+        action.addPropertyChangeListener( new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ( evt.getPropertyName().equals( "enabled" ) ) {
+                    fireEvent( new ActionStateChangeEvent( ctrl, cmd, (Boolean) evt.getNewValue() ) );
+                }
+            }
+            
+        });
     }
 
     /**

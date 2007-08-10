@@ -46,7 +46,7 @@ import org.photovault.image.ChannelMapOperationFactory;
 @Entity
 @Table( name="image_instances" )
 @IdClass( ImageInstance.InstanceId.class )
-public class ImageInstance {
+public class ImageInstance implements ImageInstanceModifier {
     
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ImageInstance.class.getName() );
     
@@ -113,7 +113,16 @@ public class ImageInstance {
         this.fname = newFname;
     }
     
-    
+    /**
+     The the Hibernate ID for this instance.
+     */
+    @Transient
+    InstanceId getHibernateId() {
+        InstanceId id = new InstanceId();
+        id.setFname( this.getFname() );
+        id.setVolume_id( this.getVolume_id() );
+        return id;
+    }
     
     
     /**
@@ -870,7 +879,7 @@ public class ImageInstance {
      @return Current settings or <code>null</code> if instance was not created
      from a raw image.
      */
-    @OneToOne( cascade = CascadeType.ALL )
+    @ManyToOne( cascade = CascadeType.ALL )
     @org.hibernate.annotations.Cascade({
         org.hibernate.annotations.CascadeType.SAVE_UPDATE })
     @JoinColumn( name = "rawconv_id" )

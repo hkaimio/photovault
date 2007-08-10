@@ -40,6 +40,7 @@
 
 package org.photovault.swingui.framework;
 
+import java.util.EventObject;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -50,17 +51,21 @@ import java.util.HashSet;
  *
  * @author Christian Bauer
  */
-public class DefaultEvent<PAYLOAD> {
+public class DefaultEvent<PAYLOAD> extends EventObject {
 
     PAYLOAD payload;
     Set<AbstractController> firedInControllers = new HashSet<AbstractController>();
 
-    public DefaultEvent() {}
+    public DefaultEvent( Object source ) {
+        super( source );
+    }
+    
 
-    public DefaultEvent(PAYLOAD payload) {
+    public DefaultEvent(Object source, PAYLOAD payload) {
+        super( source );
         this.payload = payload;
     }
-
+    
     public PAYLOAD getPayload() {
         return payload;
     }

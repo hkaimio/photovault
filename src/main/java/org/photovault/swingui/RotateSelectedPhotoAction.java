@@ -28,52 +28,65 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
+import org.hibernate.Session;
+import org.photovault.command.CommandException;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.swingui.framework.DataAccessAction;
 
 /**
   This action class rotates the selected images by the specified amount. In practice,
  for cropped photos the rotation must be in 90 degrees increments - otherwise the 
  effect of rotation is unspecified
 */
-class RotateSelectedPhotoAction extends AbstractAction implements SelectionChangeListener {
+class RotateSelectedPhotoAction extends DataAccessAction implements SelectionChangeListener {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( RotateSelectedPhotoAction.class.getName() );
 
+    PhotoViewController ctrl;
+    double rot;
+    
+    
     /**
        Constructor.
        @param view The view this action object is associated with. 
     */
-    public RotateSelectedPhotoAction( PhotoCollectionThumbView view, 
-				      double r,
-				      String text, ImageIcon icon,
-				      String desc, int mnemonic) {
-	super( text, icon );
-	this.view = view;
-	putValue(SHORT_DESCRIPTION, desc);
-        putValue(MNEMONIC_KEY, new Integer( mnemonic ) );
-	view.addSelectionChangeListener( this );
-	setEnabled( view.getSelectedCount() > 0 );
+    public RotateSelectedPhotoAction( PhotoViewController ctrl, 
+				      double r ) {
+	// super( text, icon );
+        super();
+	this.ctrl = ctrl;
 	rot = r;
     }
 
     public void selectionChanged( SelectionChangeEvent e ) {
-	setEnabled( view.getSelectedCount() > 0 );
+	setEnabled( ctrl.getSelection().size() > 0 );
     }
     
-    public void actionPerformed( ActionEvent ev ) {
-        Collection selectedPhotos = view.getSelection();
+    public void actionPerformed( ActionEvent ev, Session session ) {
+        Collection selectedPhotos = ctrl.getSelection();
+        PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( null );
         Iterator iter = selectedPhotos.iterator();
         while ( iter.hasNext() ) {
             PhotoInfo photo = (PhotoInfo) iter.next();
             if ( photo != null ) {
+                ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( photo.getId() );
                 double curRot = photo.getPrefRotation();
-                photo.setPrefRotation( curRot + rot );
+                cmd.setPrefRotation( curRot + rot );
                 Rectangle2D origCrop = photo.getCropBounds();
                 Rectangle2D newCrop = calcNewCrop( origCrop );
-                photo.setCropBounds( newCrop );
+                cmd.setCropBounds( newCrop );
+                try {
+                    cmdHandler.executeCommand( cmd );
+                    PhotoInfo[] changedPhotos = cmd.getChangedPhotos().toArray( new PhotoInfo[1] );
+                    photo = ctrl.getDAOFactory().getPhotoInfoDAO().makePersistent( changedPhotos[0] );
+                } catch (CommandException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
+        session.flush();
     }
 
     /**
@@ -101,6 +114,4 @@ class RotateSelectedPhotoAction extends AbstractAction implements SelectionChang
         return newCrop;
     }
     
-    PhotoCollectionThumbView view;
-    double rot;
 }

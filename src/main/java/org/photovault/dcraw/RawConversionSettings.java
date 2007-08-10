@@ -462,17 +462,18 @@ public class RawConversionSettings implements Cloneable {
         } catch (CloneNotSupportedException ex) {
             return null;
         }
-        s.blueGreenRatio = blueGreenRatio;
-        s.redGreenRatio = redGreenRatio;
-        s.daylightBlueGreenRatio = daylightBlueGreenRatio;
-        s.daylightRedGreenRatio = daylightRedGreenRatio;
-        s.evCorr = evCorr;
-        s.hlightComp = hlightComp;
-        s.useEmbeddedICCProfile = useEmbeddedICCProfile;
-        s.colorProfile = colorProfile;
-        s.white = white;
-        s.black = black;
-        s.whiteBalanceType = whiteBalanceType;
+        s.rawSettingId = 0;
+//        s.blueGreenRatio = blueGreenRatio;
+//        s.redGreenRatio = redGreenRatio;
+//        s.daylightBlueGreenRatio = daylightBlueGreenRatio;
+//        s.daylightRedGreenRatio = daylightRedGreenRatio;
+//        s.evCorr = evCorr;
+//        s.hlightComp = hlightComp;
+//        s.useEmbeddedICCProfile = useEmbeddedICCProfile;
+//        s.colorProfile = colorProfile;
+//        s.white = white;
+//        s.black = black;
+//        s.whiteBalanceType = whiteBalanceType;
         return s;
     }
     

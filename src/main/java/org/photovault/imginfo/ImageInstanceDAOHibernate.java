@@ -42,4 +42,12 @@ public class ImageInstanceDAOHibernate
         return q.list();
     }
     
+    public ImageInstance getExistingInstance( VolumeBase volume, String fname ) {
+        ImageInstance.InstanceId id = new ImageInstance.InstanceId();
+        id.setFname( fname );
+        id.setVolume_id( volume.getName() );
+        return (ImageInstance) getSession().get( ImageInstance.class, id );
+    }
+    
+    
 }

@@ -60,9 +60,9 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
 	Collection selectedPhotos = view.getSelection();
         PhotoList photos = new PhotoList( selectedPhotos );
         BrowserWindow w = new BrowserWindow( photos );
-        w.setShowCollectionPane( false );
-        w.setupLayoutNoThumbs();
-        w.setVisible( true );
+//        w.setShowCollectionPane( false );
+//        w.setupLayoutNoThumbs();
+//        w.setVisible( true );
     }
 
     PhotoCollectionThumbView view;

@@ -50,6 +50,10 @@ import java.awt.event.ActionEvent;
  */
 public abstract class DefaultAction extends AbstractAction {
     
+    public DefaultAction() {
+        super();
+    }
+    
     public void executeInController(AbstractController controller, ActionEvent event) {
         actionPerformed(event);
     }

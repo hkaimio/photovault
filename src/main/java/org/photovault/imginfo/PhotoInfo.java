@@ -532,7 +532,7 @@ public class PhotoInfo implements java.io.Serializable {
      Set the (local) id for this photo.
      @param uid New id.
      */    
-    void setId( Integer uid ) {
+    public void setId( Integer uid ) {
         this.uid = uid;
     }
     
@@ -762,6 +762,8 @@ public class PhotoInfo implements java.io.Serializable {
      @param height height of the image
      @param pixelAspect Aspect ratio of a single pixel (width/height)
      @return aspect ratio (width/height)
+     
+     @deprecated Use {@link PhotoInstanceCreator} instead
      */
     private double getAspect( int width, int height, double pixelAspect ) {
         return height > 0
@@ -776,6 +778,8 @@ public class PhotoInfo implements java.io.Serializable {
      @param minWidth Minimun width needed for creating a thumbnail
      @param minHeight Minimum height needed for creating a thumbnail
      @param origAspect Aspect ratio of the original image
+
+     @deprecated Use {@link PhotoInstanceCreator} instead
      */
     private boolean isOkForThumbCreation( int width, int height,
             int minWidth, int minHeight, double origAspect, double aspectAccuracy ) {
@@ -797,6 +801,9 @@ public class PhotoInfo implements java.io.Serializable {
         
     /** Creates a new thumbnail for this image on specific volume
      @param volume The volume in which the instance is to be created
+
+     @deprecated Use {@link PhotoInstanceCreator} instead
+     
      */
     protected void createThumbnail( VolumeBase volume ) {
         
@@ -1535,7 +1542,7 @@ public class PhotoInfo implements java.io.Serializable {
         if ( v != prefRotation ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
-            purgeInvalidInstances();
+            // purgeInvalidInstances();
         }
         this.prefRotation = v;
         modified();
@@ -1594,7 +1601,7 @@ public class PhotoInfo implements java.io.Serializable {
         if ( !cropBounds.equals( getCropBounds() ) ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
-            purgeInvalidInstances();            
+            // purgeInvalidInstances();            
         }
         cropMinX = cropBounds.getMinX();
         cropMinY = cropBounds.getMinY();
@@ -1729,7 +1736,7 @@ public class PhotoInfo implements java.io.Serializable {
      doing next non-backwards compatible schema change.
      @return Current settings or <code>null</code> if this is not a raw image.     
      */
-    @OneToOne( cascade = CascadeType.ALL )
+    @ManyToOne( cascade = CascadeType.ALL )
     @org.hibernate.annotations.Cascade({
                org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
     @JoinColumn( name = "rawconv_id" )
