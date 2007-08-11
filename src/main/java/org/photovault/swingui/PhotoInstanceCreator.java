@@ -227,7 +227,7 @@ public class PhotoInstanceCreator extends SwingWorker {
      */
     public void done() {
         if ( createCmd != null ) {
-            PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( null );
+            PhotovaultCommandHandler cmdHandler = view.ctrl.getCommandHandler();
             try {
                 cmdHandler.executeCommand( createCmd );
                 if ( this.staleInstances.size() > 0 ) {

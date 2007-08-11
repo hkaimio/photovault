@@ -66,7 +66,7 @@ class RotateSelectedPhotoAction extends DataAccessAction implements SelectionCha
     
     public void actionPerformed( ActionEvent ev, Session session ) {
         Collection selectedPhotos = ctrl.getSelection();
-        PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( null );
+        PhotovaultCommandHandler cmdHandler = ctrl.getCommandHandler();
         Iterator iter = selectedPhotos.iterator();
         while ( iter.hasNext() ) {
             PhotoInfo photo = (PhotoInfo) iter.next();

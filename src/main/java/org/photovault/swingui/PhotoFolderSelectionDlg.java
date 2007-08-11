@@ -23,6 +23,7 @@ package org.photovault.swingui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.imginfo.*;
 import java.io.*;
 import org.photovault.folder.*;
@@ -65,6 +66,7 @@ public class PhotoFolderSelectionDlg extends JDialog {
     */
     protected void createUI() {
         treeCtrl = new PhotoFolderTreeController();
+        treeCtrl.setCommandHandler( new PhotovaultCommandHandler( null ) );
 	tree = treeCtrl.folderTree;
 	getContentPane().add( tree, BorderLayout.NORTH );
 

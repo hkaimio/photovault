@@ -8,6 +8,7 @@ package org.photovault.swingui.indexer;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.swingui.PhotoFolderTree;
 import org.photovault.swingui.PhotoFolderTreeController;
@@ -23,6 +24,7 @@ public class IndexerSetupDlg extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         treeCtrl = new PhotoFolderTreeController();
+        treeCtrl.setCommandHandler( new PhotovaultCommandHandler( null ) );        
         // TODO: FIX!!!
         folderTree = treeCtrl.folderTree;
         folderTree.setPreferredSize( folderTreePane.getSize() );

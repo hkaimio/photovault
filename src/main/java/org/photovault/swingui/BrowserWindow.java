@@ -25,6 +25,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
@@ -89,7 +90,9 @@ public class BrowserWindow extends JFrame {
 	tabPane = new JTabbedPane();
 	queryPane = new QueryPane();
         PhotoFolderTreeController treeCtrl = new PhotoFolderTreeController();
+        treeCtrl.setCommandHandler( new PhotovaultCommandHandler( null ) );
         viewCtrl = new PhotoViewController( this, null );
+        viewCtrl.setCommandHandler( treeCtrl.getCommandHandler() );
 	treePane = treeCtrl.folderTree;
         viewPane = viewCtrl.getThumbPane();
         previewPane = viewCtrl.getPreviewPane();

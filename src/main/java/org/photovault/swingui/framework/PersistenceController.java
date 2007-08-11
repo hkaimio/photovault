@@ -47,6 +47,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.awt.*;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 
@@ -195,6 +196,16 @@ public abstract class PersistenceController extends AbstractController {
     protected void finalActionExecute() {
         log.debug("Unbinding current persistence context from Hibernate");
         ManagedSessionContext.unbind(HibernateUtil.getSessionFactory());
+    }
+    
+    PhotovaultCommandHandler commandHandler = null;
+    
+    public PhotovaultCommandHandler getCommandHandler() {
+        return commandHandler;
+    }
+    
+    public void setCommandHandler( PhotovaultCommandHandler c ) {
+        commandHandler = c;
     }
 
 }
