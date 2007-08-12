@@ -218,6 +218,16 @@ public class PhotoInstanceCreator extends SwingWorker {
         createCmd.setRotated( prefRotation );
         createCmd.setRawSettings( rawSettings );
         createCmd.setColorChannelMapping( channelMap );
+        PhotovaultCommandHandler cmdHandler = view.ctrl.getCommandHandler();
+        try {
+            cmdHandler.executeCommand( createCmd );
+            if ( this.staleInstances.size() > 0 ) {
+                DeleteImageInstanceCommand deleteCmd = new DeleteImageInstanceCommand( staleInstances );
+                cmdHandler.executeCommand( deleteCmd );
+            }
+        } catch (CommandException ex) {
+            ex.printStackTrace();
+        }
         return null;
     }
     
@@ -226,20 +236,7 @@ public class PhotoInstanceCreator extends SwingWorker {
      been saved. Persist the image instance in and merge changes to current context
      */
     public void done() {
-        if ( createCmd != null ) {
-            PhotovaultCommandHandler cmdHandler = view.ctrl.getCommandHandler();
-            try {
-                cmdHandler.executeCommand( createCmd );
-                if ( this.staleInstances.size() > 0 ) {
-                    DeleteImageInstanceCommand deleteCmd = new DeleteImageInstanceCommand( staleInstances );
-                    cmdHandler.executeCommand( deleteCmd );
-                }
-            } catch (CommandException ex) {
-                ex.printStackTrace();
-            }
-        }
-        PhotoInfo changedPhoto = photoDAO.makePersistent( createCmd.getChangedPhoto() );
-        view.thumbnailCreated( changedPhoto );
+        view.thumbnailCreated( photo );
     }
     
     private boolean matchesCurrentSettings( ImageInstance instance ) {

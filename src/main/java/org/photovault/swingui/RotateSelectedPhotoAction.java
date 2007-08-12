@@ -79,8 +79,8 @@ class RotateSelectedPhotoAction extends DataAccessAction implements SelectionCha
                 cmd.setCropBounds( newCrop );
                 try {
                     cmdHandler.executeCommand( cmd );
-                    PhotoInfo[] changedPhotos = cmd.getChangedPhotos().toArray( new PhotoInfo[1] );
-                    photo = ctrl.getDAOFactory().getPhotoInfoDAO().makePersistent( changedPhotos[0] );
+//                    PhotoInfo[] changedPhotos = cmd.getChangedPhotos().toArray( new PhotoInfo[1] );
+//                    photo = ctrl.getDAOFactory().getPhotoInfoDAO().makePersistent( changedPhotos[0] );
                 } catch (CommandException ex) {
                     ex.printStackTrace();
                 }

@@ -28,18 +28,20 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.FileNotFoundException;
 import java.util.Collection;
-import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
-import org.hibernate.Query;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.folder.PhotoFolderModifiedEvent;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.imginfo.PhotoInfoModifiedEvent;
 import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.framework.DefaultEventListener;
 import org.photovault.swingui.framework.PersistenceController;
 
 /**
@@ -93,6 +95,32 @@ public class PhotoViewController extends PersistenceController {
         collectionPane.add( thumbScroll );
         collectionPane.add( previewPane );
         setupLayoutPreviewWithHorizontalIcons();
+        
+        /*
+         Register action so that we are notified of changes to currently 
+         displayed folder
+         */
+        registerEventListener( PhotoFolderModifiedEvent.class, new DefaultEventListener<PhotoFolder>() {
+            public void handleEvent(DefaultEvent<PhotoFolder> event) {
+                PhotoCollection currentCollection = getCollection();
+                if ( currentCollection != null && 
+                        currentCollection instanceof PhotoFolder ) {
+                    if ( ((PhotoFolder)currentCollection).getFolderId() == event.getPayload().getFolderId() ) {
+                        getPersistenceContext().merge( event.getPayload() );
+                    }
+                }
+            }
+        });
+        
+        registerEventListener( PhotoInfoModifiedEvent.class, new DefaultEventListener<PhotoInfo>() {
+            public void handleEvent(DefaultEvent<PhotoInfo> event) {
+                /*
+                 TODO: We should chech whether the photo is already part of this 
+                 context
+                 */
+                PhotoInfo p = (PhotoInfo) getPersistenceContext().merge( event.getPayload()  );
+            }
+        });
     }
     
     /**

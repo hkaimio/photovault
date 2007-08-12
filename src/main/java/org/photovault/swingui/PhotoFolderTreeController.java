@@ -14,9 +14,12 @@ import org.photovault.folder.ChangePhotoFolderCommand;
 import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.folder.DeletePhotoFolderCommand;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderModifiedEvent;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.folder.PhotoFolderEvent;
 import org.photovault.swingui.framework.DataAccessAction;
+import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.framework.DefaultEventListener;
 import org.photovault.swingui.framework.PersistenceController;
 
 
@@ -32,7 +35,6 @@ public class PhotoFolderTreeController extends PersistenceController implements 
      */
     
     PhotoFolderDAO folderDAO;
-    CommandHandler cmdHandler = new PhotovaultCommandHandler(null);
     
     public PhotoFolderTreeController() {
         super();
@@ -58,14 +60,8 @@ public class PhotoFolderTreeController extends PersistenceController implements 
                             }  else {
                                 CreatePhotoFolderCommand createCmd = new CreatePhotoFolderCommand( selected, newName, "" );
                                 try {
-                                    cmdHandler.executeCommand( createCmd );
+                                    getCommandHandler().executeCommand( createCmd );
                                     PhotoFolder createdFolder = createCmd.getCreatedFolder();
-                                    
-                                    // Merge changes to current persistence context
-                                    // and send event to the tree.
-                                    PhotoFolder mergedFolder = (PhotoFolder) getPersistenceContext().merge( createCmd.getCreatedFolder()  );
-                                    model.structureChanged( new PhotoFolderEvent(selected, selected, null) );
-                                    
                                     ready = true;
                                 }  catch (CommandException ex) {
                                     JOptionPane.showMessageDialog( folderTree,
@@ -97,7 +93,7 @@ public class PhotoFolderTreeController extends PersistenceController implements 
                             ChangePhotoFolderCommand changeCmd = new ChangePhotoFolderCommand( selected );
                             changeCmd.setName( newName );
                             try {
-                                cmdHandler.executeCommand( changeCmd );
+                                getCommandHandler().executeCommand( changeCmd );
                                 PhotoFolder changedFolder = changeCmd.getChangedFolder();
                                 PhotoFolder mergedFolder = (PhotoFolder) getPersistenceContext().merge( changedFolder  );
                                 model.photoCollectionChanged( new PhotoFolderEvent(mergedFolder, mergedFolder, null) );
@@ -115,40 +111,44 @@ public class PhotoFolderTreeController extends PersistenceController implements 
                     }
                 }
             }
-            });
+        });
         
         registerAction( PhotoFolderTree.FOLDER_DELETE_CMD, new DataAccessAction(){
             public void actionPerformed(ActionEvent actionEvent, Session currentSession) {
                 if (selected != null) {
                     // Ask for confirmation
                     if (JOptionPane.showConfirmDialog( folderTree, "Delete folder " + selected.getName() + "?",
-                                "Delete folder", JOptionPane.YES_NO_OPTION,
-                                JOptionPane.WARNING_MESSAGE, null )
-                                 == JOptionPane.YES_OPTION) {
+                            "Delete folder", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE, null )
+                            == JOptionPane.YES_OPTION) {
                         DeletePhotoFolderCommand deleteCmd = new DeletePhotoFolderCommand( selected );
                         try {
-                            cmdHandler.executeCommand( deleteCmd );
+                            getCommandHandler().executeCommand( deleteCmd );
                         } catch (CommandException e) {
                             JOptionPane.showMessageDialog( folderTree,
                                     "Error occurred while deleting folder: \n"
-                                        + e.getMessage(),
+                                    + e.getMessage(),
                                     "Error deleting folder",
                                     JOptionPane.ERROR_MESSAGE, null );
                             
                         }
-                        PhotoFolder parent = deleteCmd.getParentFolder();
-                        PhotoFolder mergedFolder = (PhotoFolder) getPersistenceContext().merge( parent );
-                        model.structureChanged( new PhotoFolderEvent(mergedFolder, mergedFolder, null) );
-                        selected = null;
-                        fireEvent( new PhotoFolderTreeEvent(this, selected) );
                     }
-                }              
+                }
             }
-            });
+        });
+        
+        this.registerEventListener( PhotoFolderModifiedEvent.class, new DefaultEventListener<PhotoFolder>() {
+            public void handleEvent( DefaultEvent<PhotoFolder> evt ) {
+                // Merge changes to current persistence context
+                // and send event to the tree.
+                PhotoFolder mergedFolder = (PhotoFolder) getPersistenceContext().merge( evt.getPayload() );
+                model.structureChanged( new PhotoFolderEvent(selected, selected, null) );
+            }
+        });
     }
     
     /**
-      Returns the currently selected PhotoFolder or <code>null</code> if none is selected.
+     Returns the currently selected PhotoFolder or <code>null</code> if none is selected.
      */
     public PhotoFolder getSelected() {
         return selected;

@@ -20,9 +20,14 @@
 
 package org.photovault.command;
 
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import org.hibernate.EmptyInterceptor;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.context.ManagedSessionContext;
+import org.hibernate.type.Type;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
@@ -47,9 +52,11 @@ public class PhotovaultCommandHandler implements CommandHandler {
     public DataAccessCommand executeCommand(DataAccessCommand command) 
             throws CommandException {
         Session commandSession = session;
+        ChangeInterceptor changeInterceptor = null;
         boolean shouldCloseSession = false;
         if ( commandSession == null ) {
-            commandSession = HibernateUtil.getSessionFactory().openSession();
+            changeInterceptor = new ChangeInterceptor();
+            commandSession = HibernateUtil.getSessionFactory().openSession( changeInterceptor );
             shouldCloseSession = true;
         }
         Session oldSession = ManagedSessionContext.bind( (org.hibernate.classic.Session) commandSession);
@@ -68,7 +75,66 @@ public class PhotovaultCommandHandler implements CommandHandler {
         } else {
             ManagedSessionContext.unbind( HibernateUtil.getSessionFactory() );
         }
+        
+        if ( changeInterceptor != null ) {
+            for ( Object o : changeInterceptor.getChangedObjects() ) {
+                fireChangeEvent( o );
+            }
+        }
         return command;
+    }
+        
+    Set<CommandChangeListener> listeners = new HashSet<CommandChangeListener>();
+    
+    public void addChangeListener( CommandChangeListener l ) {
+        listeners.add( l );
+    }
+    
+    public void removeChangeListener( CommandChangeListener l ) {
+        listeners.remove( l );
+    }
+    
+    private void fireChangeEvent( Object o ) {
+        for ( CommandChangeListener l : listeners ) {
+            l.entityChanged( o );
+        }
+    }
+    
+    static class ChangeInterceptor extends EmptyInterceptor {
+        
+        Set changedObjects = new HashSet();
+        
+        public void onDelete(Object entity,
+                Serializable id,
+                Object[] state,
+                String[] propertyNames,
+                Type[] types) {
+            changedObjects.add( entity );
+        }
+
+        public boolean onSave(Object entity,
+                Serializable id,
+                Object[] state,
+                String[] propertyNames,
+                Type[] types) {
+            changedObjects.add( entity );
+            return false;
+        }
+
+        public boolean onFlushDirty(Object entity,
+                Serializable id,
+                Object[] state,
+                Object[] prevousState,
+                String[] propertyNames,
+                Type[] types) {
+            changedObjects.add( entity );
+            return false;
+        }
+        
+        public Set getChangedObjects()  {
+            return changedObjects;
+        }
+
     }
     
 }

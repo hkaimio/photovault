@@ -40,6 +40,7 @@
 
 package org.photovault.swingui.framework;
 
+import javax.swing.SwingUtilities;
 import org.hibernate.Session;
 import org.hibernate.FlushMode;
 import org.hibernate.context.ManagedSessionContext;
@@ -47,7 +48,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.awt.*;
+import org.photovault.command.CommandChangeListener;
 import org.photovault.command.PhotovaultCommandHandler;
+import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderModifiedEvent;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoModifiedEvent;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 
@@ -94,7 +100,8 @@ import org.photovault.persistence.HibernateUtil;
  * @see swingdemo.framework.DataAccessAction
  * @author Christian Bauer
  */
-public abstract class PersistenceController extends AbstractController {
+public abstract class PersistenceController extends AbstractController
+        implements CommandChangeListener {
 
     private static Log log = LogFactory.getLog(PersistenceController.class);
 
@@ -205,7 +212,28 @@ public abstract class PersistenceController extends AbstractController {
     }
     
     public void setCommandHandler( PhotovaultCommandHandler c ) {
+        if ( commandHandler != null ) {
+            commandHandler.removeChangeListener( this );
+        }
         commandHandler = c;
+        c.addChangeListener( this );
     }
-
+    
+    public void entityChanged( Object o ) {
+        DefaultEvent e = null;
+        if ( o instanceof PhotoInfo ) {
+            e = new PhotoInfoModifiedEvent( this, (PhotoInfo) o );
+        } else if ( o instanceof PhotoFolder ) {
+            e = new PhotoFolderModifiedEvent( this, (PhotoFolder) o );
+        } 
+        final PersistenceController ttish = this;
+        final DefaultEvent evt = e;
+        if ( e != null ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    ttish.fireEventGlobal( evt );
+                }
+            });
+        }
+    }
 }
