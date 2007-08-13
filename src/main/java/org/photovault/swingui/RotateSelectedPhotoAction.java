@@ -86,7 +86,6 @@ class RotateSelectedPhotoAction extends DataAccessAction implements SelectionCha
                 }
             }
         }
-        session.flush();
     }
 
     /**

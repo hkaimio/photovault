@@ -1,5 +1,6 @@
 package org.photovault.swingui;
 
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.util.Vector;
 import javax.swing.JOptionPane;
@@ -8,8 +9,6 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import org.hibernate.Session;
 import org.photovault.command.CommandException;
-import org.photovault.command.CommandHandler;
-import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.folder.ChangePhotoFolderCommand;
 import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.folder.DeletePhotoFolderCommand;
@@ -17,6 +16,7 @@ import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderModifiedEvent;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.folder.PhotoFolderEvent;
+import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DataAccessAction;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
@@ -36,8 +36,8 @@ public class PhotoFolderTreeController extends PersistenceController implements 
     
     PhotoFolderDAO folderDAO;
     
-    public PhotoFolderTreeController() {
-        super();
+    public PhotoFolderTreeController( Container view, AbstractController parent ) {
+        super( view, parent );
         folderDAO = getDAOFactory().getPhotoFolderDAO();
         model = new PhotoFolderTreeModel();
         model.setController( this );

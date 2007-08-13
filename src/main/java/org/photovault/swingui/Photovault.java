@@ -28,26 +28,25 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.context.ManagedSessionContext;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.SchemaUpdateAction;
 import org.photovault.common.SchemaUpdateEvent;
 import org.photovault.common.SchemaUpdateListener;
-import org.photovault.dbhelper.ODMG;
 import java.net.URL;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.swingui.db.DbSettingsDlg;
+import org.photovault.swingui.framework.AbstractController;
 
 /**
    Main class for the photovault application
 */
 
 
-public class Photovault implements SchemaUpdateListener {
+public class Photovault extends AbstractController implements SchemaUpdateListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Photovault.class.getName() );
 
     PhotovaultSettings settings = null;
@@ -184,7 +183,7 @@ public class Photovault implements SchemaUpdateListener {
                     try {
                         login( login ); 
                         loginOK = true;
-                        BrowserWindow wnd = new BrowserWindow();
+                        BrowserWindow wnd = new BrowserWindow( this, null );
                         wnd.setTitle( "Photovault - " + login.getDb() );
                     } catch( PhotovaultException e ) {
                         JOptionPane.showMessageDialog( null, e.getMessage(), 

@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.photovault.imginfo.indexer.ExtVolIndexer;
+import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DefaultAction;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
@@ -45,33 +46,33 @@ import org.photovault.swingui.indexer.IndexerFileChooser;
 import org.photovault.swingui.indexer.IndexerStatusDlg;
 import org.photovault.swingui.indexer.UpdateIndexAction;
 
-public class BrowserWindow extends JFrame {
+public class BrowserWindow extends AbstractController {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
 
+    JFrame window;
+    
     PhotoViewController viewCtrl = null;
-    public BrowserWindow() {
-        this( null );
+    public BrowserWindow( AbstractController parent ) {
+        this( parent, null );
     }
+    
     
     /**
        Constructor
     */
-    public BrowserWindow( final PhotoCollection initialCollection ) {
-        super( "Photovault Browser");
-//        SwingUtilities.invokeLater(new java.lang.Runnable() {
-//            public void run() {
-                createUI( null );
-                if ( initialCollection != null ) {
-                    viewPane.setCollection( initialCollection );
-                    SwingUtilities.invokeLater(new java.lang.Runnable() {
-                        public void run() {
-                            viewPane.selectFirstPhoto();
-                        }
-                    });
+    public BrowserWindow( AbstractController parent, final PhotoCollection initialCollection ) {
+        super( parent );
+        window = new JFrame( "Photovault Browser");
+        createUI( null );
+        if ( initialCollection != null ) {
+            viewPane.setCollection( initialCollection );
+            SwingUtilities.invokeLater(new java.lang.Runnable() {
+                public void run() {
+                    viewPane.selectFirstPhoto();
                 }
-//            }
-//        });
+            });
+        }
         
     }
     
@@ -86,12 +87,12 @@ public class BrowserWindow extends JFrame {
     }
     
     protected void createUI( PhotoCollection collection ) {
-        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        window.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	tabPane = new JTabbedPane();
 	queryPane = new QueryPane();
-        PhotoFolderTreeController treeCtrl = new PhotoFolderTreeController();
+        PhotoFolderTreeController treeCtrl = new PhotoFolderTreeController( window, this );
         treeCtrl.setCommandHandler( new PhotovaultCommandHandler( null ) );
-        viewCtrl = new PhotoViewController( this, null );
+        viewCtrl = new PhotoViewController( window, this );
         viewCtrl.setCommandHandler( treeCtrl.getCommandHandler() );
 	treePane = treeCtrl.folderTree;
         viewPane = viewCtrl.getThumbPane();
@@ -138,7 +139,7 @@ public class BrowserWindow extends JFrame {
                 
 	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );
         split.putClientProperty( JSplitPane.ONE_TOUCH_EXPANDABLE_PROPERTY, new Boolean( true ) );
-        Container cp = getContentPane();
+        Container cp = window.getContentPane();
 	cp.setLayout( new BorderLayout() );
 	cp.add( split, BorderLayout.CENTER );
 
@@ -212,7 +213,7 @@ public class BrowserWindow extends JFrame {
         
 	// Create the menu bar & menus
 	JMenuBar menuBar = new JMenuBar();
-	setJMenuBar( menuBar );
+	window.setJMenuBar( menuBar );
 	// File menu
 	JMenu fileMenu = new JMenu( "File" );
 	fileMenu.setMnemonic(KeyEvent.VK_F);
@@ -222,7 +223,7 @@ public class BrowserWindow extends JFrame {
         newWindowItem.setIcon( getIcon( "window_new.png" ) );
 	newWindowItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
-		    BrowserWindow br = new BrowserWindow();
+		    BrowserWindow br = new BrowserWindow( getParentController(), null );
 		    //		    br.setVisible( true );
 		}
 	    });
@@ -328,8 +329,8 @@ public class BrowserWindow extends JFrame {
         
         menuBar.add( Box.createHorizontalGlue() );
         menuBar.add( aboutMenu );
-	pack();
-	setVisible( true );
+	window.pack();
+	window.setVisible( true );
     }
     
     /**
@@ -433,12 +434,12 @@ public class BrowserWindow extends JFrame {
 	fc.setAccessory( new ImagePreview( fc ) );
 	fc.setMultiSelectionEnabled( true );
 	
-	int retval = fc.showDialog( this, "Import" );
+	int retval = fc.showDialog( window, "Import" );
 	if ( retval == JFileChooser.APPROVE_OPTION ) {
 	    // Add the selected file to the database and allow user to edit its attributes
 	    final File[] files = fc.getSelectedFiles();
 
-	    final ProgressDlg pdlg = new ProgressDlg( this, true );
+	    final ProgressDlg pdlg = new ProgressDlg( window, true );
 	    
 	    // Add all the selected files to DB
 	    final PhotoInfo[] photos = new PhotoInfo[files.length];
@@ -462,7 +463,7 @@ public class BrowserWindow extends JFrame {
 	    pdlg.setVisible( true );
 	    
 	    // Show editor dialog for the added photos
-	    PhotoInfoDlg dlg = new PhotoInfoDlg( this, false, photos );
+	    PhotoInfoDlg dlg = new PhotoInfoDlg( window, false, photos );
 	    dlg.showDialog();
 	}
     }
@@ -475,7 +476,7 @@ public class BrowserWindow extends JFrame {
     protected void indexDir() {
 	IndexerFileChooser fc = new IndexerFileChooser();
         fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
-        int retval = fc.showDialog( this, "Select directory to index" );
+        int retval = fc.showDialog( window, "Select directory to index" );
         if ( retval == JFileChooser.APPROVE_OPTION ) {
             File dir = fc.getSelectedFile();
             
@@ -484,13 +485,13 @@ public class BrowserWindow extends JFrame {
             try {
                 prevVolume = VolumeBase.getVolumeOfFile( dir );
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog( this, "Problem reading directory: " 
+                JOptionPane.showMessageDialog( window, "Problem reading directory: " 
                         + ex.getMessage(), "Photovault error", 
                         JOptionPane.ERROR_MESSAGE );
                 return;                
             }
             if ( prevVolume != null ) {
-                JOptionPane.showMessageDialog( this, "Directory " + dir.getAbsolutePath() +
+                JOptionPane.showMessageDialog( window, "Directory " + dir.getAbsolutePath() +
                         "\n has already been indexed to Photovault.", "Already indexed", 
                         JOptionPane.ERROR_MESSAGE );
                 return;
@@ -534,10 +535,18 @@ public class BrowserWindow extends JFrame {
             settings.saveConfig();
             
             // Show status dialog & index the directory
-            IndexerStatusDlg statusDlg = new IndexerStatusDlg( this, false );
+            IndexerStatusDlg statusDlg = new IndexerStatusDlg( window, false );
             statusDlg.setVisible( true );
             statusDlg.runIndexer( indexer );
         }
+    }
+
+    /**
+     Set the title of this window.
+     @param title The new title.
+     */
+    void setTitle(String title) {
+        window.setTitle( title );
     }
     
     protected JTabbedPane tabPane = null;

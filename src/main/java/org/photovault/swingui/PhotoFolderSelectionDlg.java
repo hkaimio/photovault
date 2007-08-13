@@ -65,7 +65,8 @@ public class PhotoFolderSelectionDlg extends JDialog {
        Creates the UI components needed for this dialog.
     */
     protected void createUI() {
-        treeCtrl = new PhotoFolderTreeController();
+        // TODO: fix correct controller here!!!
+        treeCtrl = new PhotoFolderTreeController( null, null );
         treeCtrl.setCommandHandler( new PhotovaultCommandHandler( null ) );
 	tree = treeCtrl.folderTree;
 	getContentPane().add( tree, BorderLayout.NORTH );

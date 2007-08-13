@@ -23,7 +23,8 @@ public class IndexerSetupDlg extends javax.swing.JDialog {
     public IndexerSetupDlg(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        treeCtrl = new PhotoFolderTreeController();
+        // TODO: Fix container & parent controller!!!
+        treeCtrl = new PhotoFolderTreeController(null, null );
         treeCtrl.setCommandHandler( new PhotovaultCommandHandler( null ) );        
         // TODO: FIX!!!
         folderTree = treeCtrl.folderTree;

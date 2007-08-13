@@ -167,7 +167,7 @@ public abstract class AbstractController implements ActionListener, WindowListen
     }
 
     /**
-     Register an action that can be executed by this controller. Thi method does 
+     Register an action that can be executed by this controller. This method does 
      not register the controller as a listener for the action, so this must be 
      done elsewhere.
      
