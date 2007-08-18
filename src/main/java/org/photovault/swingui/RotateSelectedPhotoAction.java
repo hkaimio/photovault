@@ -32,13 +32,15 @@ import org.photovault.command.CommandHandler;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.framework.DataAccessAction;
+import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.framework.DefaultEventListener;
 
 /**
   This action class rotates the selected images by the specified amount. In practice,
  for cropped photos the rotation must be in 90 degrees increments - otherwise the 
  effect of rotation is unspecified
 */
-class RotateSelectedPhotoAction extends DataAccessAction implements SelectionChangeListener {
+class RotateSelectedPhotoAction extends DataAccessAction {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( RotateSelectedPhotoAction.class.getName() );
 
@@ -58,12 +60,27 @@ class RotateSelectedPhotoAction extends DataAccessAction implements SelectionCha
         putValue(MNEMONIC_KEY, new Integer( mnemonic ) );
 	this.ctrl = ctrl;
 	rot = r;
+        ctrl.registerEventListener( SelectionChangeEvent.class, 
+                new DefaultEventListener<SelectionChangeEvent>() {
+            public void handleEvent(DefaultEvent<SelectionChangeEvent> event) {
+                selectionChanged();
+            }
+        });
     }
 
-    public void selectionChanged( SelectionChangeEvent e ) {
+    /**
+     Called by controller when selection is changed. Disable action if no photos
+     are selected.
+     */
+    public void selectionChanged() {
 	setEnabled( ctrl.getSelection().size() > 0 );
     }
     
+    /**
+     Called by controller when this action is performed
+     @param ev the action event (not used)
+     @paran session Session in which the action should be executed.
+     */
     public void actionPerformed( ActionEvent ev, Session session ) {
         Collection selectedPhotos = ctrl.getSelection();
         CommandHandler cmdHandler = ctrl.getCommandHandler();
