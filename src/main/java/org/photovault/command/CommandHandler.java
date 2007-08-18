@@ -37,4 +37,8 @@ public interface CommandHandler {
      */
     public DataAccessCommand executeCommand( DataAccessCommand command ) 
         throws CommandException;
+
+    void addChangeListener(CommandChangeListener l);
+
+    void removeChangeListener(CommandChangeListener l);
 }

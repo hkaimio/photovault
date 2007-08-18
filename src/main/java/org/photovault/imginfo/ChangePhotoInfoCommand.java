@@ -295,12 +295,12 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             }
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
             for ( PhotoFolder folder : addedToFolders ) {
-                folderDAO.makePersistent( folder );
-                photo.addedToFolder( folder );
+                folder = folderDAO.findById( folder.getFolderId(), false );
+                folder.addPhoto ( photo );
             }
             for ( PhotoFolder folder : removedFromFolders ) {
-                folderDAO.makePersistent( folder );
-                photo.removedFromFolder( folder );
+                folder = folderDAO.findById( folder.getFolderId(), false );
+                folder.removePhoto( photo );
             }
         }
     }

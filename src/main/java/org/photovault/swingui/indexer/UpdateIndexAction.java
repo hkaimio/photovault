@@ -40,6 +40,7 @@ import org.photovault.imginfo.indexer.ExtVolIndexerEvent;
 import org.photovault.imginfo.indexer.ExtVolIndexerListener;
 import org.photovault.swingui.StatusChangeEvent;
 import org.photovault.swingui.StatusChangeListener;
+import org.photovault.swingui.framework.AbstractController;
 
 /**
  * Class control the updating of indexed external volumes. When this action is 
@@ -51,12 +52,15 @@ import org.photovault.swingui.StatusChangeListener;
 public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerListener {
     
     /** Creates a new instance of UpdateIndexAction */
-    public UpdateIndexAction( String text, ImageIcon icon, String desc, 
+    public UpdateIndexAction( AbstractController ctrl, String text, ImageIcon icon, String desc, 
             int mnemonic) {
         super( text, icon );
+        this.ctrl = ctrl;
 	putValue(SHORT_DESCRIPTION, desc);
         putValue(MNEMONIC_KEY, new Integer( mnemonic) );
     }
+    
+    AbstractController ctrl;
     
     /**
      * List of volumes to index. After indexing of a volume has started it will be 
@@ -100,6 +104,7 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
             errorFiles.clear();
             vol = (ExternalVolume)volumes.get(0);
             ExtVolIndexer indexer = new ExtVolIndexer( vol );
+            indexer.setCommandHandler( ctrl.getCommandHandler() );
             volumes.remove( vol );
             indexer.addIndexerListener( this );
             Thread t = new Thread( indexer );

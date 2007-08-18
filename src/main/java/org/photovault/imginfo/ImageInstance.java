@@ -117,7 +117,7 @@ public class ImageInstance implements ImageInstanceModifier {
      The the Hibernate ID for this instance.
      */
     @Transient
-    InstanceId getHibernateId() {
+    public InstanceId getHibernateId() {
         InstanceId id = new InstanceId();
         id.setFname( this.getFname() );
         id.setVolume_id( this.getVolume_id() );
@@ -621,7 +621,7 @@ public class ImageInstance implements ImageInstanceModifier {
      Set the time this instance was last checked for consistency
      @param newCheckTime The last check time.
      */
-    protected void setCheckTime( java.util.Date newCheckTime ) {
+    public void setCheckTime( java.util.Date newCheckTime ) {
         this.checkTime = newCheckTime;
     }
     

@@ -49,6 +49,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.awt.*;
 import org.photovault.command.CommandChangeListener;
+import org.photovault.command.CommandHandler;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderModifiedEvent;
@@ -100,8 +101,7 @@ import org.photovault.persistence.HibernateUtil;
  * @see swingdemo.framework.DataAccessAction
  * @author Christian Bauer
  */
-public abstract class PersistenceController extends AbstractController
-        implements CommandChangeListener {
+public abstract class PersistenceController extends AbstractController {
 
     private static Log log = LogFactory.getLog(PersistenceController.class);
 
@@ -205,35 +205,4 @@ public abstract class PersistenceController extends AbstractController
         ManagedSessionContext.unbind(HibernateUtil.getSessionFactory());
     }
     
-    PhotovaultCommandHandler commandHandler = null;
-    
-    public PhotovaultCommandHandler getCommandHandler() {
-        return commandHandler;
-    }
-    
-    public void setCommandHandler( PhotovaultCommandHandler c ) {
-        if ( commandHandler != null ) {
-            commandHandler.removeChangeListener( this );
-        }
-        commandHandler = c;
-        c.addChangeListener( this );
-    }
-    
-    public void entityChanged( Object o ) {
-        DefaultEvent e = null;
-        if ( o instanceof PhotoInfo ) {
-            e = new PhotoInfoModifiedEvent( this, (PhotoInfo) o );
-        } else if ( o instanceof PhotoFolder ) {
-            e = new PhotoFolderModifiedEvent( this, (PhotoFolder) o );
-        } 
-        final PersistenceController ttish = this;
-        final DefaultEvent evt = e;
-        if ( e != null ) {
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    ttish.fireEventGlobal( evt );
-                }
-            });
-        }
-    }
 }

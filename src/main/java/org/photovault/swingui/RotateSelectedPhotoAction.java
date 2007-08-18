@@ -22,15 +22,12 @@ package org.photovault.swingui;
 
 
 import java.awt.geom.Rectangle2D;
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 import org.hibernate.Session;
 import org.photovault.command.CommandException;
-import org.photovault.command.PhotovaultCommandHandler;
+import org.photovault.command.CommandHandler;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.framework.DataAccessAction;
@@ -66,7 +63,7 @@ class RotateSelectedPhotoAction extends DataAccessAction implements SelectionCha
     
     public void actionPerformed( ActionEvent ev, Session session ) {
         Collection selectedPhotos = ctrl.getSelection();
-        PhotovaultCommandHandler cmdHandler = ctrl.getCommandHandler();
+        CommandHandler cmdHandler = ctrl.getCommandHandler();
         Iterator iter = selectedPhotos.iterator();
         while ( iter.hasNext() ) {
             PhotoInfo photo = (PhotoInfo) iter.next();

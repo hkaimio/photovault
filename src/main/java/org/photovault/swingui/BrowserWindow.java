@@ -25,6 +25,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import org.photovault.command.CommandException;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultException;
@@ -91,9 +92,7 @@ public class BrowserWindow extends AbstractController {
 	tabPane = new JTabbedPane();
 	queryPane = new QueryPane();
         PhotoFolderTreeController treeCtrl = new PhotoFolderTreeController( window, this );
-        treeCtrl.setCommandHandler( new PhotovaultCommandHandler( null ) );
         viewCtrl = new PhotoViewController( window, this );
-        viewCtrl.setCommandHandler( treeCtrl.getCommandHandler() );
 	treePane = treeCtrl.folderTree;
         viewPane = viewCtrl.getThumbPane();
         previewPane = viewCtrl.getPreviewPane();
@@ -173,7 +172,7 @@ public class BrowserWindow extends AbstractController {
                 "Import new image into database" );
 
                 ImageIcon updateIcon = getIcon( "update_indexed_dirs.png" );
-        updateIndexAction = new UpdateIndexAction( "Update indexed dirs",
+        updateIndexAction = new UpdateIndexAction( viewCtrl, "Update indexed dirs",
                 updateIcon, "Check for changes in previously indexed directories",
                 KeyEvent.VK_U );
         
@@ -518,17 +517,26 @@ public class BrowserWindow extends AbstractController {
             
             // Set up the indexer
             ExtVolIndexer indexer = new ExtVolIndexer( v );
+            indexer.setCommandHandler( viewCtrl.getCommandHandler() );
             PhotoFolder parentFolder = fc.getExtvolParentFolder();
+            PhotoFolderDAO folderDAO = viewCtrl.getDAOFactory().getPhotoFolderDAO();
             if ( parentFolder == null ) {
-                parentFolder = PhotoFolder.getRoot();
+                parentFolder = folderDAO.findRootFolder();
             }
             String rootFolderName = "extvol_" + dir.getName();
             if ( rootFolderName.length() > PhotoFolder.NAME_LENGTH ) {
                 rootFolderName = rootFolderName.substring( 0, PhotoFolder.NAME_LENGTH );
             }
-            PhotoFolder topFolder = PhotoFolder.create( rootFolderName, 
-                    parentFolder );
-            topFolder.setDescription( "Indexed from " + dir.getAbsolutePath() );
+            
+            CreatePhotoFolderCommand folderCmd = 
+                    new CreatePhotoFolderCommand( parentFolder, 
+                    rootFolderName, "" );
+            try {
+                viewCtrl.getCommandHandler().executeCommand( folderCmd );
+            } catch (CommandException ex) {
+                ex.printStackTrace();
+            }
+            PhotoFolder topFolder = folderCmd.getCreatedFolder();
             indexer.setTopFolder( topFolder );
 
             // Save the configuration of the new volume

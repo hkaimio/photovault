@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -31,20 +31,34 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
+import java.util.UUID;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.query.Criteria;
 import org.apache.ojb.broker.query.QueryByCriteria;
 import org.apache.ojb.odmg.HasBroker;
+import org.hibernate.Session;
+import org.hibernate.context.ManagedSessionContext;
 import org.odmg.Implementation;
 import org.odmg.Transaction;
+import org.photovault.command.CommandException;
+import org.photovault.command.CommandHandler;
+import org.photovault.command.DataAccessCommand;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
+import org.photovault.folder.CreatePhotoFolderCommand;
+import org.photovault.folder.DeletePhotoFolderCommand;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.imginfo.ChangePhotoInfoCommand;
+import org.photovault.imginfo.CreateImageInstanceCommand;
+import org.photovault.imginfo.DeleteImageInstanceCommand;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.ImageInstance;
+import org.photovault.imginfo.ImageInstanceDAO;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoNotFoundException;
+import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 
 /**
  ExtVolIndexer implements a background task for indexing all files in an
@@ -64,18 +78,24 @@ public class ExtVolIndexer implements Runnable {
     public ExtVolIndexer( ExternalVolume vol ) {
         volume = vol;
         if ( vol.getFolderId() >= 0 ) {
-            topFolder = PhotoFolder.getFolderById( vol.getFolderId() );
+            topFolderId = vol.getFolderId();
         }
     }
     
     /** The volume that is indexed by this instance */
     ExternalVolume volume = null;
     
+    CommandHandler commandHandler = null;
+    
+    public void setCommandHandler( CommandHandler ch ) {
+        commandHandler = ch;
+    }
+    
     /**
      Folder used as top of created folder gierarchy or <code>null</code>
      if no folders should be created
      */
-    private PhotoFolder topFolder = null;
+    private Integer topFolderId = null;
     
     private ExtVolIndexerEvent currentEvent = null;
     
@@ -158,6 +178,20 @@ public class ExtVolIndexer implements Runnable {
         }
     }
     
+    static class UpdateInstanceCheckTimeCommand extends DataAccessCommand {
+        public UpdateInstanceCheckTimeCommand( ImageInstance i ) {
+            this.id = i.getHibernateId();
+        }
+        
+        ImageInstance.InstanceId id;
+        
+        public void execute() throws CommandException {
+            ImageInstanceDAO instDAO = daoFactory.getImageInstanceDAO();
+            ImageInstance i = instDAO.findById( id, false );
+            i.setCheckTime( new Date() );
+        }
+    }
+    
     /**
      Indexes a single file to Photovault database.
      <ul>
@@ -178,52 +212,45 @@ public class ExtVolIndexer implements Runnable {
      @return The PhotoInfo object this file was added to or <code>null</code>
      if Photovault was not able to index this file.
      */
-    PhotoInfo indexFile( File f ) {
+    PhotoInfo indexFile( File f, DAOFactory daoFactory ) {
         log.debug( "entry: indexFile " + f.getAbsolutePath() );
         currentEvent.setIndexedFile( f );
         indexedFileCount++;
         
+        ImageInstanceDAO instDAO = daoFactory.getImageInstanceDAO();
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         // Check if the instance already exists n database
-        ImageInstance oldInstance = null;
-        try {
-            oldInstance = ImageInstance.retrieve( volume, 
-                    volume.mapFileToVolumeRelativeName(f ) );
-        } catch ( PhotoNotFoundException e ) {
-            // No action, there just were no matching instances in database
-        }
+        ImageInstance oldInstance = instDAO.getExistingInstance( volume, volume.mapFileToVolumeRelativeName(f ) );
         if ( oldInstance != null ) {
+            log.debug( "found old instance" );
             // There is an existing instance, check whether the data matches
             if ( oldInstance.doConsistencyCheck() ) {
-                PhotoInfo photo = null;
-                try {
-                    photo = PhotoInfo.retrievePhotoInfo(oldInstance.getPhotoUid());
-                } catch (PhotoNotFoundException ex) {
-                    ex.printStackTrace();
-                }
+                PhotoInfo photo = oldInstance.getPhoto();
+                log.debug( "old isntaqnce consistent, photo " + photo.getId() );
                 return photo;
             } else {
-                PhotoInfo photo = null;
+                log.debug( "old instance not consistent with file, deleting" );
+                DeleteImageInstanceCommand deleteCmd = new DeleteImageInstanceCommand( oldInstance, false );
                 try {
-                    photo = PhotoInfo.retrievePhotoInfo(oldInstance.getPhotoUid());
-                } catch (PhotoNotFoundException ex) {
+                    commandHandler.executeCommand( deleteCmd );
+                } catch (CommandException ex) {
                     ex.printStackTrace();
                 }
-                photo.removeInstance( oldInstance );
             }
         }
         
         
         // Check whether this is really an image file
         
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        ImageInstance instance = null;
+        CreateImageInstanceCommand createCmd = null;
         try {
-            instance = ImageInstance.create( volume, f );
+            createCmd = new CreateImageInstanceCommand( volume, f );
         } catch ( Exception e ) {
             currentEvent.setResult( ExtVolIndexerEvent.RESULT_ERROR );
             return null;
         }
-        if ( instance == null ) {
+        if ( createCmd.getImageInstance() == null ) {
+            log.debug( f.getName() + " was not image" );
             currentEvent.setResult( ExtVolIndexerEvent.RESULT_NOT_IMAGE );
             /*
              ImageInstance already aborts transaction if reading image file
@@ -231,34 +258,36 @@ public class ExtVolIndexer implements Runnable {
              */
             return null;
         }
-        byte[] hash = instance.getHash();
+        byte[] hash = createCmd.getImageInstance().getHash();
         
         // Check whether there is already an image instance with the same hash
-        PhotoInfo matchingPhotos[] = PhotoInfo.retrieveByOrigHash( hash );
+        List matchingPhotos = photoDAO.findPhotosWithOriginalHash( hash );
         PhotoInfo photo = null;
-        if ( matchingPhotos != null && matchingPhotos.length > 0 ) {
+        if ( matchingPhotos != null && matchingPhotos.size() > 0 ) {
             // If yes then get the PhotoInfo and add this file as an instance with
             // the same type as the one with same hash. If only PhotoInfo with no
             // instances add as original for that
-            photo = matchingPhotos[0];
-            photo.addInstance( instance );
+            photo = (PhotoInfo) matchingPhotos.get( 0 );
+            log.debug( "Photo " + photo.getId() + " has matching hash" );
+            createCmd.setPhoto( photo );
             currentEvent.setResult( ExtVolIndexerEvent.RESULT_NEW_INSTANCE );
             newInstanceCount++;
         } else {
-            photo = PhotoInfo.create();
-            photo.addInstance( instance );
-            photo.updateFromOriginalFile();
-            txw.flush();
-            // Create a thumbnail for this photo
-            photo.getThumbnail();
+            // No photo that matches instance file hash found
+            // Create a new photo object
             currentEvent.setResult( ExtVolIndexerEvent.RESULT_NEW_PHOTO );
             newInstanceCount++;
             newPhotoCount++;
         }
-        currentEvent.setPhoto( photo );
-        txw.commit();
+        try {
+            commandHandler.executeCommand( createCmd );
+        } catch (CommandException ex) {
+            log.error( "Error indexing file " + f.getAbsolutePath() + ": " + ex.getMessage() );
+            ex.printStackTrace();
+        }
+        currentEvent.setPhoto( createCmd.getChangedPhoto() );
         log.debug( "exit: indexFile " + f.getAbsolutePath() );
-        return photo;
+        return createCmd.getChangedPhoto();
     }
     
     /**
@@ -288,28 +317,32 @@ public class ExtVolIndexer implements Runnable {
          Maintain information how many instances for the photos that were previously 
          added to the folder is found
          */
-        HashMap photoInstanceCounts = new HashMap();
-        HashSet foldersNotFound = new HashSet();
+        HashMap<Integer,Integer> photoInstanceCounts = new HashMap<Integer,Integer>();
+        HashSet<UUID> foldersNotFound = new HashSet<UUID>();
         if ( folder != null ) {
-            for ( int n = 0; n < folder.getPhotoCount(); n++ ) {
-                photoInstanceCounts.put( folder.getPhoto( n ), new Integer( 0 ) );
+            for ( PhotoInfo photo : folder.getPhotos() ) {
+                photoInstanceCounts.put( photo.getId(), new Integer( 0 ) );
             }
-            for ( int n = 0; n < folder.getSubfolderCount(); n++ ) {
-                foldersNotFound.add( folder.getSubfolder( n ) );
+            for ( PhotoFolder f : folder.getSubfolders() ) {
+                foldersNotFound.add(f.getUUID() );
             }
         }
         
         
         
-        File files[] = dir.listFiles();
+        File entries[] = dir.listFiles();
         // Count the files
+        List<File> files = new ArrayList<File>();
+        List<File> subdirs = new ArrayList<File>();
         int fileCount = 0;
         int subdirCount = 0;
-        for ( int n = 0; n < files.length; n++ ) {
-            if ( files[n].isDirectory() ) {
+        for ( File entry : entries ) {
+            if ( entry.isDirectory() ) {
                 subdirCount++;
+                subdirs.add( entry );
             } else {
                 fileCount++;
+                files.add( entry );
             }
         }
 
@@ -318,59 +351,39 @@ public class ExtVolIndexer implements Runnable {
         
         int nFile = 0;
         int nDir = 0;
-        for ( int n = 0; n < files.length; n++ ) {
-            File f = files[n];
-            if ( f.isDirectory() ) {
-                // Create the matching folder
-                PhotoFolder subfolder = null;
-                if ( folder != null ) {
-                    String folderName = f.getName();
-                    if ( folderName.length() > PhotoFolder.NAME_LENGTH ) {
-                        folderName = folderName.substring( 0, PhotoFolder.NAME_LENGTH );
-                    }
-                    subfolder = findSubfolderByName( folder, folderName );
-                    if ( subfolder == null ) {
-                        subfolder = PhotoFolder.create( folderName, folder );
-                        newFolderCount++;
+        // Index first files in this directory
+        for ( File f : files ) {
+            if ( f.canRead() ) {
+                currentEvent = new ExtVolIndexerEvent( this );
+                Session photoSession = HibernateUtil.getSessionFactory().openSession();
+                Session oldSession = ManagedSessionContext.bind( (org.hibernate.classic.Session) photoSession);
+                PhotoInfo p = indexFile( f, DAOFactory.instance( HibernateDAOFactory.class ) );
+                photoSession.close();
+                ManagedSessionContext.bind( (org.hibernate.classic.Session) oldSession);
+                if ( p != null ) {
+                    if ( photoInstanceCounts.containsKey( p.getId() ) ) {
+                        log.debug( "Photo is already in folder" ); 
+                        // The photo is already in this folder
+                        int refCount = photoInstanceCounts.get( p.getId() ).intValue();
+                        photoInstanceCounts.remove( p.getId() );
+                        photoInstanceCounts.put( p.getId(), new Integer( refCount+1 ));
                     } else {
-                        foldersNotFound.remove( subfolder );
-                    }
-                }
-                /*
-                 Calclate the start & end percentages to use when indexing this
-                 directory. Formula goes so that we estimate that to index current
-                 dirctory completely we must index files in subDirCount+1 directories
-                 (all subdirs + current directory). So we divide endPercent - startPercent
-                 into this many steps)
-                 */
-                
-                int subdirStart = c.getProgress();
-                nDir++;
-                c.setProcessedSubdirs( nDir );
-                int subdirEnd = c.getProgress();
-                indexDirectory( f, subfolder, subdirStart, subdirEnd );
-                percentComplete = c.getProgress();
-            } else {
-                if ( f.canRead() ) {
-                    currentEvent = new ExtVolIndexerEvent( this );
-                    PhotoInfo p = indexFile( f );
-                    if ( p != null ) {
-                        if ( photoInstanceCounts.containsKey( p ) ) {
-                            // The photo is already in this folder
-                            int refCount = ((Integer)photoInstanceCounts.get( p ) ).intValue();
-                            photoInstanceCounts.remove( p );
-                            photoInstanceCounts.put( p, new Integer( refCount+1 ));
-                        } else {
-                            // The photo is not yet in this folder
-                            folder.addPhoto( p );
-                            photoInstanceCounts.put( p, new Integer( 1 ));
+                        // The photo is not yet in this folder
+                        log.debug( "adding photo " + p.getId() + " to folder " + folder.getFolderId() );
+                        ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( p.getId() );
+                        cmd.addToFolder( folder );
+                        try {
+                            commandHandler.executeCommand( cmd );
+                        } catch (CommandException ex) {
+                            ex.printStackTrace();
                         }
+                        photoInstanceCounts.put( p.getId(), new Integer( 1 ));
                     }
-                    nFile++;
-                    c.setProcessedFiles( nFile );
-                    percentComplete = c.getProgress();
-                    notifyListeners( currentEvent );
                 }
+                nFile++;
+                c.setProcessedFiles( nFile );
+                percentComplete = c.getProgress();
+                notifyListeners( currentEvent );
             }
         }
         
@@ -378,21 +391,97 @@ public class ExtVolIndexer implements Runnable {
          Check if some of the photos that were in folder before were not found in 
          this directory
          */
+        
         Iterator iter = photoInstanceCounts.keySet().iterator();
+        Set<Integer> photoIdsNotFound = new HashSet<Integer>();
         while ( iter.hasNext() ) {
-            PhotoInfo p = (PhotoInfo ) iter.next();
-            int refCount = ((Integer)photoInstanceCounts.get( p )).intValue();
+            Integer photoId = (Integer) iter.next();
+            int refCount = ((Integer)photoInstanceCounts.get( photoId )).intValue();
             if ( refCount == 0 ) {
-                folder.removePhoto( p );
+                photoIdsNotFound.add( photoId );
+                log.debug( "photo " + photoId + " not found during indexing" );
             }
+        }        
+        ChangePhotoInfoCommand removeFromFolderCmd = new ChangePhotoInfoCommand( photoIdsNotFound );
+        removeFromFolderCmd.removeFromFolder( folder );
+        try {
+            log.debug( "Deleting unseen photos" );
+            commandHandler.executeCommand( removeFromFolderCmd );
+        } catch (CommandException ex) {
+            ex.printStackTrace();
         }
+        
+        // Index now all subdirectories
+        for ( File subdir : subdirs ) {
+            // Create the matching folder
+            PhotoFolder subfolder = null;
+            if ( folder != null ) {
+                String folderName = subdir.getName();
+                if ( folderName.length() > PhotoFolder.NAME_LENGTH ) {
+                    folderName = folderName.substring( 0, PhotoFolder.NAME_LENGTH );
+                }
+                subfolder = findSubfolderByName( folder, folderName );
+                if ( subfolder == null ) {
+                    CreatePhotoFolderCommand createFolder = 
+                            new CreatePhotoFolderCommand( folder, folderName,
+                            "imported from " + subdir.getAbsolutePath() );
+                    try {
+                        commandHandler.executeCommand( createFolder );
+                    } catch (CommandException ex) {
+                        ex.printStackTrace();
+                    }
+                    subfolder = createFolder.getCreatedFolder();
+                    newFolderCount++;
+                } else {
+                    foldersNotFound.remove( subfolder.getUUID() );
+                }
+            }
+            /*
+             Calclate the start & end percentages to use when indexing this
+             directory. Formula goes so that we estimate that to index current
+             dirctory completely we must index files in subDirCount+1 directories
+             (all subdirs + current directory). So we divide endPercent - startPercent
+             into this many steps)
+             */
+
+            int subdirStart = c.getProgress();
+            nDir++;
+            c.setProcessedSubdirs( nDir );
+            int subdirEnd = c.getProgress();
+            indexDirectory( subdir, subfolder, subdirStart, subdirEnd );
+            percentComplete = c.getProgress();
+        }
+        
+
         
         // Delete folders that were not anymore found
          
         iter = foldersNotFound.iterator();
         while ( iter.hasNext() ) {
             PhotoFolder subfolder = (PhotoFolder)iter.next();
-            subfolder.delete();
+            DeletePhotoFolderCommand deleteFolderCmd = new DeletePhotoFolderCommand( subfolder );
+            try {
+                commandHandler.executeCommand( deleteFolderCmd );
+            } catch (CommandException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void removeStaleInstances( PhotoInfo p, ExternalVolume vol ) {
+        List<ImageInstance> staleInstances = new ArrayList<ImageInstance>();
+        for ( ImageInstance i : p.getInstances() ) {
+            if ( i.getVolume() == vol && !i.getImageFile().exists() ) {
+                staleInstances.add( i );
+            }
+            if ( staleInstances.size() > 0 ) {
+                DeleteImageInstanceCommand deleteCmd = new DeleteImageInstanceCommand( staleInstances, true );
+                try {
+                    commandHandler.executeCommand( deleteCmd );
+                } catch (CommandException ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
     }
     
@@ -450,7 +539,7 @@ public class ExtVolIndexer implements Runnable {
      should be created.
      */
     public void setTopFolder(PhotoFolder topFolder) {
-        this.topFolder = topFolder;
+        this.topFolderId = topFolder.getFolderId();
         if ( volume != null ) {
             volume.setFolderId( topFolder.getFolderId() );
         }
@@ -482,10 +571,20 @@ public class ExtVolIndexer implements Runnable {
      Run the actual indexing operation.
      */
     public void run() {
+        Session photoSession = null;
+        Session oldSession = null;
         try {
+            photoSession = HibernateUtil.getSessionFactory().openSession();
+            oldSession = ManagedSessionContext.bind( (org.hibernate.classic.Session) photoSession);
+            
             startTime = new Date();
+            PhotoFolder topFolder = null;
+            if ( topFolderId != null ) {
+                DAOFactory daoFactory = DAOFactory.instance( HibernateDAOFactory.class );
+                topFolder = daoFactory.getPhotoFolderDAO().findById( topFolderId, false );
+            }
             indexDirectory( volume.getBaseDir(), topFolder, 0, 100 );
-            cleanupInstances();
+            // cleanupInstances();
             notifyListenersIndexingComplete();
         } catch( Throwable t ) {
             StringWriter strw = new StringWriter();
@@ -495,6 +594,11 @@ public class ExtVolIndexer implements Runnable {
             log.error( strw.toString() );   
             log.error( t );
             notifyListenersIndexingError( t.getMessage() );
+        } finally {
+            if ( photoSession != null ) {
+                photoSession.close();
+            }
+                ManagedSessionContext.bind( (org.hibernate.classic.Session) oldSession);                
         }
     }
     

@@ -53,6 +53,7 @@ import java.awt.event.WindowEvent;
 import java.util.*;
 
 import javax.swing.*;
+import org.photovault.command.CommandHandler;
 
 /**
  * Abstract superclass for building a hierarchical controller structure (HMVC).
@@ -295,6 +296,30 @@ public abstract class AbstractController implements ActionListener, WindowListen
     public void windowDeiconified(WindowEvent windowEvent) {}
     public void windowActivated(WindowEvent windowEvent) {}
     public void windowDeactivated(WindowEvent windowEvent) {}
+
+    /**
+     Command handler used for executing commands in this controller
+     */
+    protected CommandHandler commandHandler = null;
+    
+    /**
+     Get the command handler that is used with this controller
+     */
+    public CommandHandler getCommandHandler() {
+        CommandHandler ret = commandHandler;
+        if ( ret == null && getParentController() != null ) {
+            ret = getParentController().getCommandHandler();
+        }
+        return ret;
+    }
+
+    /**
+     Set the command handler associated with this controller
+     */
+    public void setCommandHandler(CommandHandler c) {
+        commandHandler = c;
+    }
+    
 
 }
 

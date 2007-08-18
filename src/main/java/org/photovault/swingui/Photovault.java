@@ -29,6 +29,8 @@ import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import org.hibernate.Session;
 import org.hibernate.context.ManagedSessionContext;
+import org.photovault.command.CommandChangeListener;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.SchemaUpdateAction;
 import org.photovault.common.SchemaUpdateEvent;
@@ -37,22 +39,31 @@ import java.net.URL;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
+import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderModifiedEvent;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoModifiedEvent;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.swingui.db.DbSettingsDlg;
 import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.framework.PersistenceController;
 
 /**
    Main class for the photovault application
 */
 
 
-public class Photovault extends AbstractController implements SchemaUpdateListener {
+public class Photovault extends AbstractController implements SchemaUpdateListener, CommandChangeListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Photovault.class.getName() );
 
     PhotovaultSettings settings = null;
 
     public Photovault() {
 	settings = PhotovaultSettings.getSettings();
+        setCommandHandler( new PhotovaultCommandHandler( null ) );
+        commandHandler.addChangeListener( this );
+
     }
     
     Session currentSession  = null;
@@ -312,6 +323,30 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
     public void schemaUpdateStatusChanged(SchemaUpdateEvent e) {
         System.out.println( "Phase " + e.getPhase()+ ", " + e.getPercentComplete() + "%" );
     }
+
+    /**
+     Called by commandHandler when a command has changed an entity. Fires global 
+     event to subcontrollers.
+     @param o The changed entity
+     */
+    public void entityChanged( Object o ) {
+        DefaultEvent e = null;
+        if ( o instanceof PhotoInfo ) {
+            e = new PhotoInfoModifiedEvent( this, (PhotoInfo) o );
+        } else if ( o instanceof PhotoFolder ) {
+            e = new PhotoFolderModifiedEvent( this, (PhotoFolder) o );
+        } 
+        final AbstractController ttish = this;
+        final DefaultEvent evt = e;
+        if ( e != null ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    ttish.fireEventGlobal( evt );
+                }
+            });
+        }
+    }
+    
 
 }
 

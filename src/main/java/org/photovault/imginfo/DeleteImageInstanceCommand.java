@@ -34,23 +34,33 @@ public class DeleteImageInstanceCommand extends DataAccessCommand {
     
     Set<ImageInstance.InstanceId> ids = new HashSet<ImageInstance.InstanceId>();
     
-    /** Creates a new instance of DeleteImageInstanceCommand */
-    public DeleteImageInstanceCommand( ImageInstance instance ) {
+    /** 
+     Creates a new instance of DeleteImageInstanceCommand 
+     @param instance The instance that will be deleted by this command
+     @param deleteFiles If true, the instance files will be deleted when executing the
+     command
+     */
+    public DeleteImageInstanceCommand( ImageInstance instance, boolean deleteFile ) {
         ids.add( instance.getHibernateId() );
+        deleteFiles = deleteFile;
     }
     
     /** Creates a new instance of DeleteImageInstanceCommand */
-    public DeleteImageInstanceCommand( ImageInstance[] instances ) {
+    public DeleteImageInstanceCommand( ImageInstance[] instances, boolean deleteFiles ) {
         for ( ImageInstance i : instances ) {
             ids.add( i.getHibernateId() );
         }
+        this.deleteFiles = deleteFiles;
     }
+    
+    boolean deleteFiles = true;
 
     /** Creates a new instance of DeleteImageInstanceCommand */
-    public DeleteImageInstanceCommand( Collection<ImageInstance> instances ) {
+    public DeleteImageInstanceCommand( Collection<ImageInstance> instances, boolean deleteFiles ) {
         for ( ImageInstance i : instances ) {
             ids.add( i.getHibernateId() );
         }
+        this.deleteFiles = deleteFiles;
     }
 
     public void execute() throws CommandException {
@@ -60,7 +70,7 @@ public class DeleteImageInstanceCommand extends DataAccessCommand {
             PhotoInfo p = i.getPhoto();
             p.removeInstance( i );
             File f = i.getImageFile();
-            if ( f != null && f.exists() ) {
+            if ( deleteFiles && f != null && f.exists() ) {
                 f.delete();
             }
             instDAO.makeTransient( i );

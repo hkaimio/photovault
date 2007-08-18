@@ -33,7 +33,9 @@ import org.photovault.image.ChannelMapOperation;
 
 /**
  Command that creates a new instance to database based on image file and/or
- information provided via function calls.
+ information provided via function calls. USer of this class can specify a {@link 
+ PhotoInfo} - if one is given the instance will be added to this photo. Otherwise
+ a new PhotoInfo object is created and the instance added to it.
  
  */
 public class CreateImageInstanceCommand extends DataAccessCommand
@@ -90,9 +92,6 @@ public class CreateImageInstanceCommand extends DataAccessCommand
     }
     
     public void execute() throws CommandException {
-        if ( photoId == null ) {
-            throw new CommandException( "No photo specified" );
-        }
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageInstanceDAO instDAO = daoFactory.getImageInstanceDAO();
         /*
@@ -106,8 +105,16 @@ public class CreateImageInstanceCommand extends DataAccessCommand
             existingPhoto.removeInstance( existingInstance );
             instDAO.makeTransient( existingInstance );
         }
-        photo = photoDAO.findById( photoId, false );
+        if ( photoId != null ) {
+            photo = photoDAO.findById( photoId, false );
+        } else {
+            photo = PhotoInfo.create();
+            photo = photoDAO.makePersistent( photo );
+        }
         photo.addInstance( instance );
+        if ( photoId == null ) {
+            photo.updateFromOriginalFile();
+        }
         // instDAO.makePersistent( instance );
     }
 
@@ -141,6 +148,7 @@ public class CreateImageInstanceCommand extends DataAccessCommand
 
     public void setPhoto(PhotoInfo photo) {
         instance.setPhoto( photo );
+        photoId = photo.getId();
     }
 
     public void setRawSettings(RawConversionSettings s) {

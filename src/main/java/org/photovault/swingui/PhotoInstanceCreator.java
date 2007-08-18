@@ -40,6 +40,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jdesktop.swingworker.SwingWorker;
 import org.photovault.command.CommandException;
+import org.photovault.command.CommandHandler;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
@@ -218,11 +219,11 @@ public class PhotoInstanceCreator extends SwingWorker {
         createCmd.setRotated( prefRotation );
         createCmd.setRawSettings( rawSettings );
         createCmd.setColorChannelMapping( channelMap );
-        PhotovaultCommandHandler cmdHandler = view.ctrl.getCommandHandler();
+        CommandHandler cmdHandler = view.ctrl.getCommandHandler();
         try {
             cmdHandler.executeCommand( createCmd );
             if ( this.staleInstances.size() > 0 ) {
-                DeleteImageInstanceCommand deleteCmd = new DeleteImageInstanceCommand( staleInstances );
+                DeleteImageInstanceCommand deleteCmd = new DeleteImageInstanceCommand( staleInstances, true );
                 cmdHandler.executeCommand( deleteCmd );
             }
         } catch (CommandException ex) {

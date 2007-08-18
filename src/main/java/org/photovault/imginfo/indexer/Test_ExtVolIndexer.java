@@ -25,17 +25,29 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.context.ManagedSessionContext;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.FileUtils;
 import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 
 /**
@@ -44,18 +56,29 @@ import org.photovault.test.PhotovaultTestCase;
  */
 public class Test_ExtVolIndexer extends PhotovaultTestCase {
     
+    private static Log log = LogFactory.getLog( Test_ExtVolIndexer.class );
+
     /** Creates a new instance of Test_ExtVolIndexer */
     public Test_ExtVolIndexer() {
     }
+    
+    
+    DAOFactory daoFactory = DAOFactory.instance( HibernateDAOFactory.class );
+    Session session = null;
+    File testfile1 = null;
+    File testfile2 = null;
+    File testfile3 = null;
     
     /**
      Sets up the directory hiearchy used in test cases. Also deletes all th photos
      used in test from database so that hash lookups give expected results
      */
     public void setUp() {
-        File testfile1 = null;
-        File testfile2 = null;
-        File testfile3 = null;
+        log.debug( "entry: setUp" );
+        session = HibernateUtil.getSessionFactory().openSession();
+        ManagedSessionContext.bind( (org.hibernate.classic.Session) session );
+        ((HibernateDAOFactory) daoFactory).setSession( session );
+        Transaction tx = session.beginTransaction();
         try {
             // Create the directories
             extVolDir = File.createTempFile( "pv_indexer_test_", "" );
@@ -83,54 +106,70 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         }
         
         // Create top folder for indexed files
-        topFolder = PhotoFolder.create( "ExtVolTest", PhotoFolder.getRoot() );
+        PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
+        topFolder = PhotoFolder.create( "ExtVolTest", null );
+        folderDAO.makePersistent( topFolder );
+        topFolder.reparentFolder( folderDAO.findRootFolder() );
         
         // Remove the test files from database if they are already there
         hash1 = ImageInstance.calcHash( testfile1 );
-        PhotoInfo photos1[] = PhotoInfo.retrieveByOrigHash( hash1 );
-        if ( photos1 != null ) {
-            for ( int n = 0; n < photos1.length; n++ ) {
-                photos1[n].delete();
+        List photos1 = photoDAO.findPhotosWithOriginalHash( hash1 );
+        if ( photos1.size() > 0 ) {
+            for ( Object o : photos1 ) {
+                photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
-        hash2 = ImageInstance.calcHash( testfile2);
-        PhotoInfo photos2[] = PhotoInfo.retrieveByOrigHash( hash2 );
-        if ( photos2 != null ) {
-            for ( int n = 0; n < photos2.length; n++ ) {
-                photos2[n].delete();
+        hash2 = ImageInstance.calcHash( testfile2 );
+        List photos2 = photoDAO.findPhotosWithOriginalHash( hash2 );
+        if ( photos2.size() > 0 ) {
+            for ( Object o : photos2 ) {
+                photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
-        hash3 = ImageInstance.calcHash( testfile3);
-        PhotoInfo photos3[] = PhotoInfo.retrieveByOrigHash( hash3 );
-        if ( photos3 != null ) {
-            for ( int n = 0; n < photos3.length; n++ ) {
-                photos3[n].delete();
+        hash3 = ImageInstance.calcHash( testfile3 );
+        List photos3 = photoDAO.findPhotosWithOriginalHash( hash3 );
+        if ( photos3.size() > 0 ) {
+            for ( Object o : photos3 ) {
+                photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
+        session.flush();
+        tx.commit();
+        log.debug( "exit: setUp" );
     }
 
     public void tearDown() {
+        log.debug( "entry: tearDown" );
         FileUtils.deleteTree( extVolDir );
+        PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();        
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();        
         topFolder.delete();
-
-        PhotoInfo photos1[] = PhotoInfo.retrieveByOrigHash( hash1 );
-        if ( photos1 != null ) {
-            for ( int n = 0; n < photos1.length; n++ ) {
-                photos1[n].delete();
+        folderDAO.makeTransient( topFolder );        
+        
+        // Remove the test files from database if they are already there
+        hash1 = ImageInstance.calcHash( testfile1 );
+        List photos1 = photoDAO.findPhotosWithOriginalHash( hash1 );
+        if ( photos1.size() > 0 ) {
+            for ( Object o : photos1 ) {
+                photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
-        PhotoInfo photos2[] = PhotoInfo.retrieveByOrigHash( hash2 );
-        if ( photos2 != null ) {
-            for ( int n = 0; n < photos2.length; n++ ) {
-                photos2[n].delete();
+        hash2 = ImageInstance.calcHash( testfile2 );
+        List photos2 = photoDAO.findPhotosWithOriginalHash( hash2 );
+        if ( photos2.size() > 0 ) {
+            for ( Object o : photos2 ) {
+                photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
-        PhotoInfo photos3[] = PhotoInfo.retrieveByOrigHash( hash3 );
-        if ( photos3 != null ) {
-            for ( int n = 0; n < photos3.length; n++ ) {
-                photos3[n].delete();
+        hash3 = ImageInstance.calcHash( testfile3 );
+        List photos3 = photoDAO.findPhotosWithOriginalHash( hash3 );
+        if ( photos3.size() > 0 ) {
+            for ( Object o : photos3 ) {
+                photoDAO.makeTransient( (PhotoInfo) o );
             }
-        }        
+        }
+        log.debug( "exit: tearDown" );
     }
     
     File extVolDir = null;
@@ -182,33 +221,33 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         }
         ExtVolIndexer indexer = new ExtVolIndexer( v );
         indexer.setTopFolder( topFolder );
+        indexer.setCommandHandler( new PhotovaultCommandHandler( null ) );
         TestListener l = new TestListener();
         indexer.addIndexerListener( l );
         
         assertEquals( "Indexing not started -> completeness must be 0", 
                 0, indexer.getPercentComplete() );
         assertNull( "StartTime must be null before starting", indexer.getStartTime() );
+        log.debug( "running index #1" );
         indexer.run();
-        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
-            fail( "Still in transaction" );
-        }
+        log.debug( "done" );
         
+        session.clear();
+        log.debug( "Cleared session" );
+        PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
+        topFolder = folderDAO.findById( topFolder.getFolderId(), false );
         // Check that all the files can be found
-        PhotoInfo[] photos1 = PhotoInfo.retrieveByOrigHash( hash1 );
-        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
-            fail( "Still in transaction" );
-        }
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
+        List photos1 = photoDAO.findPhotosWithOriginalHash( hash1 );
         assertNotNull( "photos1 = null", photos1 );
-        assertEquals( "Only 1 photo per picture should be found", 1, photos1.length );
-        PhotoInfo p1 = photos1[0];
-        assertEquals( "2 instances should be found in photo 1", 2, p1.getNumInstances() );
-        PhotoInfo[] photos2 = PhotoInfo.retrieveByOrigHash( hash2 );
-        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
-            fail( "Still in transaction" );
-        }
-        assertEquals( "1 photo per picture should be found", 1, photos2.length );
-        PhotoInfo p2 = photos2[0];
-        assertEquals( "3 instances should be found in photo 2", 3, p2.getNumInstances() );
+        assertEquals( "Only 1 photo per picture should be found", 1, photos1.size() );
+        PhotoInfo p1 = (PhotoInfo) photos1.get(0);
+        assertEquals( "2 instances should be found in photo 1", 1, p1.getNumInstances() );
+        List photos2 = photoDAO.findPhotosWithOriginalHash( hash2 );
+        assertNotNull( "photos1 = null", photos2 );
+        assertEquals( "Only 1 photo per picture should be found", 1, photos2.size() );
+        PhotoInfo p2 = (PhotoInfo) photos2.get(0);
+        assertEquals( "3 instances should be found in photo 1", 2, p2.getNumInstances() );
 
         // Check that both instances of p2 can be found
         boolean found[] = {false, false};
@@ -224,9 +263,6 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
             assertTrue( "Photo " + n + " not found", found[n] );
         } 
         
-        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
-            fail( "Still in transaction" );
-        }
         // Check that the folders have the correct photos
         PhotoInfo[] photosInTopFolder = { p1, p2 };
         assertFolderHasPhotos( topFolder, photosInTopFolder );
@@ -244,12 +280,9 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         
         assertEquals( "Indexing complete 100%", 100, indexer.getPercentComplete() );
         assertNotNull( "StartTime still null", indexer.getStartTime() );
-
-        if ( ODMG.getODMGImplementation().currentTransaction() != null ) {
-            fail( "Still in transaction" );
-        }
             
         // Next, let's make some modifications to the external volume
+        log.debug( "modifying volume" );
         try {
             // New file
             File testfile3 = new File( "testfiles", "test3.jpg" ); 
@@ -269,24 +302,36 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         
         indexer = new ExtVolIndexer( v );
         indexer.setTopFolder( topFolder );
+        indexer.setCommandHandler( new PhotovaultCommandHandler( null ) );
+        
         l = new TestListener();
         indexer.addIndexerListener( l );
     
         assertEquals( "Indexing not started -> completeness must be 0", 
                 0, indexer.getPercentComplete() );
         assertNull( "StartTime must be null before starting", indexer.getStartTime() );
+        log.debug( "indeing round #2" );
         indexer.run();
-
+        log.debug( "indexing done" );
+        
+        // Clear session cache
+        session.clear();
+        log.debug( "session cleared" );
+        folderDAO = daoFactory.getPhotoFolderDAO();
+        topFolder = folderDAO.findById( topFolder.getFolderId(), false );
+        
         // Check that the folders have the correct photos
 
-        PhotoInfo[] photos3 = PhotoInfo.retrieveByOrigHash( hash3 );
-        assertEquals( "1 photo per picture should be found", 1, photos3.length );
-        PhotoInfo p3 = photos3[0];        
+        List photos3 = photoDAO.findPhotosWithOriginalHash( hash3 );
+        assertEquals( "1 photo per picture should be found", 1, photos3.size() );
+        PhotoInfo p3 = (PhotoInfo) photos3.get( 0 );        
         PhotoInfo photosInTopFolder2[] = { p3 };
         assertFolderHasPhotos( topFolder, photosInTopFolder2 );
         assertEquals( "More than 1 subfolder in topFolder", 1, topFolder.getSubfolderCount() );
         subFolder = topFolder.getSubfolder( 0 );
         assertEquals( "Subfolder name not correct", "test", subFolder.getName() );
+        photos2 = photoDAO.findPhotosWithOriginalHash( hash2 );
+        p2 = (PhotoInfo) photos2.get( 0 );
         PhotoInfo[] photosInSubFolder2 = { p2 };
         assertFolderHasPhotos( subFolder, photosInSubFolder2 );   
         Collection p2folders = p2.getFolders();
@@ -298,9 +343,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         for ( int n = 0; n < photos.length; n++ ) {
             found[n] = false;
         }
-        int numPhotosInFolder = folder.getPhotoCount();
-        for ( int i = 0; i < numPhotosInFolder; i++ ) {
-            PhotoInfo p = folder.getPhoto( i );
+        for ( PhotoInfo p : folder.getPhotos() ) {
             for ( int n = 0; n < photos.length; n++ ) {
                 if ( p == photos[n] ) {
                     found[n] = true;
@@ -309,7 +352,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         }
         for ( int n = 0; n < photos.length; n++ ) {
             if ( !found[n] ) {
-                fail( "Photo " + n + ": " + photos[n].getUid() + " not found in folder " 
+                fail( "Photo " + n + ": " + photos[n].getId() + " not found in folder " 
                         +  folder.getName() );
             }
         }

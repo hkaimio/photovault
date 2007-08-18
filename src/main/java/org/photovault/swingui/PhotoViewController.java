@@ -32,6 +32,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import org.photovault.command.CommandHandler;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.folder.PhotoFolderModifiedEvent;
@@ -119,6 +120,15 @@ public class PhotoViewController extends PersistenceController {
                  context
                  */
                 PhotoInfo p = (PhotoInfo) getPersistenceContext().merge( event.getPayload()  );
+            }
+        });
+        registerEventListener( PhotoFolderModifiedEvent.class, new DefaultEventListener<PhotoFolder>() {
+            public void handleEvent(DefaultEvent<PhotoFolder> event) {
+                PhotoCollection currentCollection = thumbPane.getCollection();
+                if ( currentCollection instanceof PhotoFolder && 
+                        ((PhotoFolder)currentCollection).getFolderId() == event.getPayload().getFolderId() ) {
+                    getPersistenceContext().merge( event.getPayload()  );
+                }
             }
         });
     }
