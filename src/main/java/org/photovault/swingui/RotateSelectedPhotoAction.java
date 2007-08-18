@@ -25,6 +25,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.event.*;
 import java.util.Collection;
 import java.util.Iterator;
+import javax.swing.ImageIcon;
 import org.hibernate.Session;
 import org.photovault.command.CommandException;
 import org.photovault.command.CommandHandler;
@@ -50,9 +51,11 @@ class RotateSelectedPhotoAction extends DataAccessAction implements SelectionCha
        @param view The view this action object is associated with. 
     */
     public RotateSelectedPhotoAction( PhotoViewController ctrl, 
-				      double r ) {
-	// super( text, icon );
-        super();
+				      double r, String text, ImageIcon icon,
+                                      String desc, int mnemonic ) {
+	super( text, icon );
+        putValue(SHORT_DESCRIPTION, desc);
+        putValue(MNEMONIC_KEY, new Integer( mnemonic ) );
 	this.ctrl = ctrl;
 	rot = r;
     }

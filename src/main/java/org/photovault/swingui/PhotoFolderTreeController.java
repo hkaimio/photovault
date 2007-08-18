@@ -9,7 +9,6 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import org.hibernate.Session;
 import org.photovault.command.CommandException;
-import org.photovault.command.CommandHandler;
 import org.photovault.folder.ChangePhotoFolderCommand;
 import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.folder.DeletePhotoFolderCommand;

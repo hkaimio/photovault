@@ -236,6 +236,23 @@ public abstract class AbstractController implements ActionListener, WindowListen
             getParentController().fireEvent(event, global);
         }
     }
+    
+    /**
+     Get an {@link ActionAdapter} that can be bind to Swing component and 
+     fires the given action command in this controller
+     @param actionCommand The action command that will be performed by this adapter
+     @return Adapter to command registered to this action.
+     */
+    public Action getActionAdapter( String actionCommand ) {
+        Action action = actions.get( actionCommand );
+        Action adapter = null;
+        if ( action != null ) {
+            adapter = new ActionAdapter( action, actionCommand, this );
+        } else if ( parentController != null ) {
+            adapter = parentController.getActionAdapter( actionCommand );
+        } 
+        return adapter;
+    }
 
     /**
      * Executes an action if it has been registered for this controller, otherwise passes it up the chain.
@@ -250,7 +267,8 @@ public abstract class AbstractController implements ActionListener, WindowListen
 
         try {
             AbstractButton button = (AbstractButton)actionEvent.getSource();
-            String actionCommand = button.getActionCommand();
+            // String actionCommand = button.getActionCommand();
+            String actionCommand = actionEvent.getActionCommand();
             DefaultAction action = actions.get(actionCommand);
 
             if (action != null) {

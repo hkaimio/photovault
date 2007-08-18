@@ -51,7 +51,15 @@ import java.awt.event.ActionEvent;
 public abstract class DefaultAction extends AbstractAction {
     
     public DefaultAction() {
-        super();
+        this( null, null );
+    }
+    
+    public DefaultAction( String name ) {
+        this( name, null );
+    }
+    
+    public DefaultAction( String name, Icon icon ) {
+        super( name, icon );
     }
     
     public void executeInController(AbstractController controller, ActionEvent event) {

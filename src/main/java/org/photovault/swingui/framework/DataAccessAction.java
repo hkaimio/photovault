@@ -40,6 +40,7 @@
 
 package org.photovault.swingui.framework;
 
+import javax.swing.ImageIcon;
 import org.photovault.persistence.HibernateUtil;
 import org.hibernate.Session;
 import org.apache.commons.logging.Log;
@@ -56,7 +57,17 @@ public abstract class DataAccessAction extends DefaultAction {
 
     private static Log log = LogFactory.getLog(DataAccessAction.class);
 
-    public DataAccessAction() {}
+    public DataAccessAction() { 
+        this( null, null );
+    }
+    
+    public DataAccessAction( String name ) {
+        this( name, null );
+    }
+    
+    public DataAccessAction( String name, ImageIcon icon ) {
+        super( name, icon );
+    }
 
     public void actionPerformed(ActionEvent actionEvent) {
         actionPerformed(actionEvent, HibernateUtil.getSessionFactory().getCurrentSession());

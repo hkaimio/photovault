@@ -253,7 +253,6 @@ public class PhotoCollectionThumbView
 	}
     }	
     
-
     PhotoCollection collection;
     List<PhotoInfo> photos = new ArrayList<PhotoInfo>();
 
@@ -391,39 +390,10 @@ public class PhotoCollectionThumbView
                 KeyEvent.VK_S );
         JMenuItem showItem = new JMenuItem( showSelectedPhotoAction );
         
-        ImageIcon rotateCWIcon = getIcon( "rotate_cw.png" );
-        rotateCWAction =
-                new RotateSelectedPhotoAction( ctrl, 90 );
-        JMenuItem rotateCW = new JMenuItem( "Rotate 90 deg CW", rotateCWIcon );
-        rotateCW.setMnemonic( KeyEvent.VK_R );
-        rotateCW.setToolTipText( "Rotates the selected photo clockwise" );
-        rotateCW.setActionCommand( "rotate_cw");
-        rotateCW.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_R, 
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
-        rotateCW.addActionListener( ctrl );
         
-        ImageIcon rotateCCWIcon = getIcon( "rotate_ccw.png" );
-        rotateCCWAction
-                = new RotateSelectedPhotoAction( ctrl, 270 );
-        JMenuItem rotateCCW = new JMenuItem( "Rotate 90 deg CCW", rotateCCWIcon );
-        rotateCCW.setMnemonic( KeyEvent.VK_L );
-        rotateCCW.setToolTipText( "Rotates the selected photo counterclockwise" );
-        rotateCCW.setActionCommand( "rotate_ccw");
-        rotateCCW.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_L, 
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
-        rotateCCW.addActionListener( ctrl );
-        
-        ImageIcon rotate180Icon = getIcon( "rotate_180.png" );
-        rotate180degAction
-                = new RotateSelectedPhotoAction( ctrl, 180 );
-        JMenuItem rotate180deg = new JMenuItem( "Rotate 180 deg", rotate180Icon );
-        rotate180deg.setMnemonic( KeyEvent.VK_T );
-        rotate180deg.setToolTipText( "Rotates the selected photo 180 degrees" );
-        rotate180deg.setActionCommand( "rotate_180");
-        rotate180deg.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_T, 
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
-        rotate180deg.addActionListener( ctrl );
-
+        JMenuItem rotateCW = new JMenuItem( ctrl.getActionAdapter( "rotate_cw" ) );
+        JMenuItem rotateCCW = new JMenuItem( ctrl.getActionAdapter( "rotate_ccw" ) );
+        JMenuItem rotate180deg = new JMenuItem( ctrl.getActionAdapter( "rotate_180" ) );        
         
         JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
         addToFolder.addActionListener( this );

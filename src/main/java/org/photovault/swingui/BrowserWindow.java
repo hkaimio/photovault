@@ -315,9 +315,9 @@ public class BrowserWindow extends AbstractController {
 
 	imageMenu.add( new JMenuItem( viewPane.getEditSelectionPropsAction() ) );
 	imageMenu.add( new JMenuItem( viewPane.getShowSelectedPhotoAction() ) );
-	imageMenu.add( new JMenuItem( viewPane.getRotateCWActionAction() ) );
-	imageMenu.add( new JMenuItem( viewPane.getRotateCCWActionAction() ) );
-	imageMenu.add( new JMenuItem( viewPane.getRotate180degActionAction() ) );
+	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_cw" ) ) );
+	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_ccw" ) ) );
+	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_180" ) ) );
         imageMenu.add( new JMenuItem( previewPane.getCropAction() ) );
         imageMenu.add( new JMenuItem( viewPane.getEditSelectionColorsAction() ) );
         imageMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
@@ -349,11 +349,11 @@ public class BrowserWindow extends AbstractController {
         JButton deleteBtn = new JButton( viewPane.getDeleteSelectedAction() );
         deleteBtn.setText( "" );
         
-        JButton rotCWBtn = new JButton( viewPane.getRotateCWActionAction() );
+        JButton rotCWBtn = new JButton( viewCtrl.getActionAdapter("rotate_cw" ) );
         rotCWBtn.setText( "" );
-        JButton rotCCWBtn = new JButton( viewPane.getRotateCCWActionAction() );
+        JButton rotCCWBtn = new JButton( viewCtrl.getActionAdapter( "rotate_ccw" ) );
         rotCCWBtn.setText( "" );
-        JButton rot180Btn = new JButton( viewPane.getRotate180degActionAction() );
+        JButton rot180Btn = new JButton( viewCtrl.getActionAdapter( "rotate_180" ) );
         rot180Btn.setText( "" );
         JButton cropBtn = new JButton( previewPane.getCropAction() );
         cropBtn.setText( "" );

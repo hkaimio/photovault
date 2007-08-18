@@ -26,8 +26,10 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
 import java.util.Collection;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -72,10 +74,20 @@ public class PhotoViewController extends PersistenceController {
         super( view, parentController );
         photoDAO = getDAOFactory().getPhotoInfoDAO();
         folderDAO = getDAOFactory().getPhotoFolderDAO();
-        
-        registerAction( "rotate_cw", new RotateSelectedPhotoAction( this, 90 ) );
-        registerAction( "rotate_ccw", new RotateSelectedPhotoAction( this, 270 ) );
-        registerAction( "rotate_180", new RotateSelectedPhotoAction( this, 180 ) );
+        ImageIcon rotateCWIcon = getIcon( "rotate_cw.png" );
+        ImageIcon rotateCCWIcon = getIcon( "rotate_ccw.png" );
+        ImageIcon rotate180DegIcon = getIcon( "rotate_180.png" );
+
+
+        registerAction( "rotate_cw", new RotateSelectedPhotoAction( this, 90, 
+                "Rotate CW",  rotateCWIcon, 
+                "Rotates the selected photo 90 degrees clockwise", KeyEvent.VK_R ) );        
+        registerAction( "rotate_ccw", new RotateSelectedPhotoAction( this, 270,
+                "Rotate CCW",  rotateCCWIcon, 
+                "Rotates the selected photo 90 degrees counterclockwise", KeyEvent.VK_L ) );
+        registerAction( "rotate_180", new RotateSelectedPhotoAction( this, 180,
+                "Rotate 180 degrees",  rotate180DegIcon, 
+                "Rotates the selected photo 180 degrees counterclockwise", KeyEvent.VK_T  ) );
         
         // Create the UI controls
 	thumbPane = new PhotoCollectionThumbView( this, null );
@@ -319,5 +331,24 @@ public class PhotoViewController extends PersistenceController {
     
     PhotoCollection getCollection() {
         return thumbPane.getCollection();
+    }    
+    
+    /**
+     Loads an icon using class loader of this class
+     @param resouceName Name of the icon reosurce to load
+     @return The icon or <code>null</code> if no image was found using the given
+     resource name.
+     */
+    private ImageIcon getIcon( String resourceName ) {
+        ImageIcon icon = null;
+        java.net.URL iconURL = PhotoViewController.class.getClassLoader().getResource(
+                resourceName );
+        if ( iconURL != null ) {
+            icon = new ImageIcon( iconURL );
+        }
+        return icon;
     }
+    
+    
+
 }
