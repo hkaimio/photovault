@@ -96,7 +96,7 @@ public class PhotoViewController extends PersistenceController {
                 thumbSelectionChanged( e );
             }            
         });
-        previewPane = new JAIPhotoViewer();
+        previewPane = new JAIPhotoViewer( this );
         
         // Create the split pane to display both of these components
         

@@ -170,15 +170,14 @@ public class BrowserWindow extends AbstractController {
         
         importAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Import new image into database" );
-
-                ImageIcon updateIcon = getIcon( "update_indexed_dirs.png" );
+        
+        ImageIcon updateIcon = getIcon( "update_indexed_dirs.png" );
         updateIndexAction = new UpdateIndexAction( viewCtrl, "Update indexed dirs",
                 updateIcon, "Check for changes in previously indexed directories",
                 KeyEvent.VK_U );
         
         ImageIcon previewTopIcon = getIcon( "view_preview_top.png" );
-//        previewTopAction = new DefaultAction( "Preview on top", previewTopIcon ) {
-        previewTopAction = new DefaultAction() {
+        DefaultAction previewTopAction = new DefaultAction( "Preview on top", previewTopIcon ) {
             public void actionPerformed( ActionEvent e ) {
                 viewCtrl.setupLayoutPreviewWithHorizontalIcons();
             }
@@ -186,9 +185,10 @@ public class BrowserWindow extends AbstractController {
         previewTopAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show preview on top of thumbnails" );
         previewTopAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_T );
+        this.registerAction( "view_preview_top", previewTopAction );
         
         ImageIcon previewRightIcon = getIcon( "view_preview_right.png" );
-        previewRightAction = new AbstractAction( "Preview on right", previewRightIcon ) {
+        DefaultAction previewRightAction = new DefaultAction( "Preview on right", previewRightIcon ) {
             public void actionPerformed( ActionEvent e ) {
                 viewCtrl.setupLayoutPreviewWithVerticalIcons();
             }
@@ -196,9 +196,10 @@ public class BrowserWindow extends AbstractController {
         previewRightAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show preview on right of thumbnails" );
         previewRightAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_R );
+        this.registerAction( "view_preview_right", previewRightAction );
 
         ImageIcon previewNoneIcon = getIcon( "view_no_preview.png" );
-        previewNoneAction = new AbstractAction( "No preview", previewNoneIcon ) {
+        DefaultAction previewNoneAction = new DefaultAction( "No preview", previewNoneIcon ) {
             public void actionPerformed( ActionEvent e ) {
                 viewCtrl.setupLayoutNoPreview();
             }
@@ -206,6 +207,7 @@ public class BrowserWindow extends AbstractController {
         previewNoneAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show no preview image" );
         previewNoneAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_O );
+        this.registerAction( "view_no_preview", previewNoneAction );
         
         JToolBar tb = createToolbar();
         cp.add( tb, BorderLayout.NORTH );
@@ -364,11 +366,11 @@ public class BrowserWindow extends AbstractController {
         nextBtn.setText( "" );
         JButton prevBtn = new JButton( viewPane.getSelectPreviousAction() );
         prevBtn.setText( "" );
-        JButton previewRightBtn = new JButton( previewRightAction );
+        JButton previewRightBtn = new JButton( getActionAdapter( "view_preview_right" ) );
         previewRightBtn.setText( "" );
-        JButton previewTopBtn = new JButton( previewTopAction );
+        JButton previewTopBtn = new JButton( getActionAdapter( "view_preview_top" ) );
         previewTopBtn.setText( "" );
-        JButton previewNoneBtn = new JButton( previewNoneAction );
+        JButton previewNoneBtn = new JButton( getActionAdapter( "view_no_preview" ) );
         previewNoneBtn.setText( "" );
         
 	ZoomComboBox zoomCombo = new ZoomComboBox( previewPane );
@@ -583,18 +585,6 @@ public class BrowserWindow extends AbstractController {
      Action that updates all external volumes in current database.
      */
     UpdateIndexAction updateIndexAction;
-    /**
-     Action that sets the preview window on top of thumbnails
-     */
-    AbstractAction previewTopAction;
-    /**
-     Action that sets the preview window on right side of thumbnails
-     */
-    AbstractAction previewRightAction;
-     /**
-     Action that hides the preview window
-     */
-    AbstractAction previewNoneAction;
     /**
      *Status bar for this window
      */

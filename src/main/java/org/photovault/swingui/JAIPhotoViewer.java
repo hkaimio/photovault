@@ -20,32 +20,21 @@
 
 package org.photovault.swingui;
 
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import javax.media.jai.RenderedOp;
+import org.photovault.command.CommandException;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.dcraw.RawImageChangeEvent;
 import org.photovault.dcraw.RawImageChangeListener;
-import org.photovault.image.ChannelMapOperation;
-import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
-import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
 import org.photovault.imginfo.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.*;
-import javax.imageio.ImageIO;
 import java.io.*;
-import java.awt.geom.AffineTransform;
-import java.text.*;
 import java.util.*;
-import javax.media.jai.PlanarImage;
-import javax.media.jai.JAI;
 import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
@@ -59,12 +48,15 @@ public class JAIPhotoViewer extends JPanel implements
         RawImageChangeListener {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JAIPhotoViewer.class.getName() );
 
-    public JAIPhotoViewer() {
+    public JAIPhotoViewer( PhotoViewController ctrl ) {
 	super();
+        this.ctrl = ctrl;
 	createUI();
 	
     }
 
+    PhotoViewController ctrl;
+    
     public void createUI() {
 	setLayout( new BorderLayout() );
         addComponentListener( this );
@@ -318,8 +310,17 @@ public class JAIPhotoViewer extends JPanel implements
     }
 
     public void cropAreaChanged(CropAreaChangeEvent evt) {
-        photo.setPrefRotation( evt.getRotation() );
-        photo.setCropBounds( evt.getCropArea() );
+        ChangePhotoInfoCommand changeCmd = new ChangePhotoInfoCommand( photo.getId() );
+        changeCmd.setPrefRotation( evt.getRotation() );
+        changeCmd.setCropBounds( evt.getCropArea() );
+        try {
+            ctrl.getCommandHandler().executeCommand( changeCmd );
+        } catch (CommandException ex) {
+            log.error( ex.getMessage() );
+            JOptionPane.showMessageDialog( this, 
+                    "Error while storing new crop settings:\n" + ex.getMessage(), 
+                    "Crop error", JOptionPane.ERROR_MESSAGE );
+        }
         imageView.setDrawCropped( true );
     }
 
