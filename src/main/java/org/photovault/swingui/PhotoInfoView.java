@@ -24,11 +24,17 @@ import javax.swing.tree.TreePath;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
+import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import javax.swing.tree.TreeModel;
 
 public interface PhotoInfoView {
+    
+    public void setField( ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue );
+    public void setFieldMultivalued( ChangePhotoInfoCommand.PhotoInfoFields field, boolean isMultivalued );
+    public Object getField( ChangePhotoInfoCommand.PhotoInfoFields field );
+    
     public void setPhotographer( String newValue );
     public String getPhotographer();
     public void setPhotographerMultivalued( boolean mv );
@@ -38,9 +44,9 @@ public interface PhotoInfoView {
     public void setQuality( Number quality );
     public Number getQuality();
     public void setQualityMultivalued( boolean mv );
-    public void setShootPlace( String newValue );
-    public String getShootPlace();
-    public void setShootPlaceMultivalued( boolean mv );
+    public void setShootingPlace( String newValue );
+    public String getShootingPlace();
+    public void setShootingPlaceMultivalued( boolean mv );
     public void setFocalLength( Number newValue );
     public Number getFocalLength();
     public void setFocalLengthMultivalued( boolean mv );
@@ -59,9 +65,9 @@ public interface PhotoInfoView {
     public void setDescription( String newValue );
     public String getDescription();
     public void setDescriptionMultivalued( boolean mv );
-    public void setTechNote( String newValue );
-    public String getTechNote();
-    public void setTechNoteMultivalued( boolean mv );
+    public void setTechNotes( String newValue );
+    public String getTechNotes();
+    public void setTechNotesMultivalued( boolean mv );
     public void setShutterSpeed( Number newValue );
     public Number getShutterSpeed();
     public void setShutterSpeedMultivalued( boolean mv );

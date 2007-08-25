@@ -84,7 +84,7 @@ class EditSelectionPropsAction extends AbstractAction implements SelectionChange
         }
 
         if (propertyDlg == null ) {
-            propertyDlg = new PhotoInfoDlg( frame, false, selectedPhotos );
+            propertyDlg = new PhotoInfoDlg( view.ctrl, frame, false, selectedPhotos );
         } else {
             propertyDlg.setPhotos( selectedPhotos );
         }

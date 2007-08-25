@@ -58,6 +58,7 @@ import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.image.ImageRenderingListener;
 import org.photovault.image.PhotovaultImage;
+import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
@@ -1174,14 +1175,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public void setQualityMultivalued(boolean mv) {
     }
 
-    public void setShootPlace(String newValue) {
+    public void setShootingPlace(String newValue) {
     }
 
-    public String getShootPlace() {
+    public String getShootingPlace() {
         return null;
     }
 
-    public void setShootPlaceMultivalued(boolean mv) {
+    public void setShootingPlaceMultivalued(boolean mv) {
     }
 
     public void setFocalLength(Number newValue) {
@@ -1244,14 +1245,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public void setDescriptionMultivalued(boolean mv) {
     }
 
-    public void setTechNote(String newValue) {
+    public void setTechNotes(String newValue) {
     }
 
-    public String getTechNote() {
+    public String getTechNotes() {
         return null;
     }
 
-    public void setTechNoteMultivalued(boolean mv) {
+    public void setTechNotesMultivalued(boolean mv) {
     }
 
     public void setShutterSpeed(Number newValue) {
@@ -1574,6 +1575,19 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
         // Update color curves with histogram data from this image.
         showCurve( currentColorCurve );
+    }
+
+    public void setField(ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue) {
+        // TODO: implement
+    }
+
+    public void setFieldMultivalued(ChangePhotoInfoCommand.PhotoInfoFields field, boolean isMultivalued) {
+        // TODO: implement
+    }
+
+    public Object getField(ChangePhotoInfoCommand.PhotoInfoFields field) {
+        // TODO: Implement
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

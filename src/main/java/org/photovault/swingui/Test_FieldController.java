@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -24,11 +24,13 @@ import com.sun.jdori.common.query.tree.ThisExpr;
 import java.io.*;
 import junit.framework.*;
 import java.util.*;
+import org.photovault.command.CommandException;
+import org.photovault.command.DataAccessCommand;
 
 public class Test_FieldController extends TestCase {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_FieldController.class.getName() );
 
-    private class TestObject {
+    static public class TestObject {
 	public String field;
 	public boolean isMultivalued;
         public Object[] values = null;
@@ -42,14 +44,25 @@ public class Test_FieldController extends TestCase {
 	    return field;
 	}
 
-	public void setMultivalued( boolean mv, Object[] values ) {
+	public void setFieldMultivalued( boolean mv ) {
 	    isMultivalued = mv;
-            this.values = values;
+            // this.values = values;
 	}
+    }
+    
+    static public class TestCommand extends DataAccessCommand {
+        public void execute() throws CommandException {
+        }
+        
+        public void setField( Object value ) {
+            this.field = value;
+        }
+        
+        Object field = null;
     }
 
     private TestObject testObject = null;
-    private FieldController fieldCtrl = null;
+    private FieldController<TestObject,TestCommand> fieldCtrl = null;
     private Collection views = null;
     private TestObject view1 = null;
     private TestObject view2 = null;
@@ -62,32 +75,7 @@ public class Test_FieldController extends TestCase {
 	view2 = new TestObject();
 	views.add( view2 );
 	
-	fieldCtrl = new  FieldController ( testObject ) {
-		protected void setModelValue( Object modelObject ) {
-		    TestObject obj = (TestObject) modelObject;
-		    obj.setField( (String) value );
-		}
-		protected Object getModelValue( Object modelObject ) {
-		    TestObject obj = (TestObject) modelObject;
-		    return obj.getField();
-		}
-		protected void updateView( Object view ) {
-		    TestObject obj = (TestObject) view;
-		    obj.setField( (String) value );
-		}
-
-		protected void updateViewMultivalueState( Object view ) {
-		    TestObject obj = (TestObject) view;
-		    obj.setMultivalued( isMultiValued, valueSet.toArray() );
-
-		}
-
-		protected void updateValue( Object view ) {
-		    TestObject obj = (TestObject) view;
-		    value = obj.getField();
-		    
-		}
-	    };
+	fieldCtrl = new  FieldController<TestObject, TestCommand> ( "field", testObject );
 	fieldCtrl.setViews( views );
     }
 
@@ -99,9 +87,10 @@ public class Test_FieldController extends TestCase {
 	assertEquals( "Modification in controller not yet saved", new String(), testObject.getField() );
 	assertEquals( "Movifications not carried to views", "Moi", view1.getField() );
 	
-	fieldCtrl.save();
+        TestCommand cmd = new TestCommand();
+	fieldCtrl.save( cmd );
 
-	assertEquals( "Modification not saved correctly", "Moi", testObject.getField() );
+	assertEquals( "Modification not saved correctly", "Moi", cmd.field );
 	assertFalse( "isModified should be false after save", fieldCtrl.isModified() );
     }
 
@@ -109,8 +98,10 @@ public class Test_FieldController extends TestCase {
 
 	// Set the test object field to some new value so that we detect attempt to save	
 	testObject.setField( "New value" );
-	fieldCtrl.save();
-	assertEquals( "Saving wihtout modification should not change model object!!!", "New value", testObject.getField() );
+        TestCommand cmd = new TestCommand();
+	fieldCtrl.save( cmd );
+        assertNull( cmd.field );
+        assertEquals( "Saving wihtout modification should not change model object!!!", "New value", testObject.getField() );
 
     }
 
@@ -133,6 +124,7 @@ public class Test_FieldController extends TestCase {
 	assertEquals( "view3 not updated to match model", "value1", view3.getField() );
     }
     
+    // TODO: how should this behave after migrating to commands usage???
     public void testNullModel() {
 	fieldCtrl.setModel( null );
 	fieldCtrl.setValue( "Moi" );
@@ -140,12 +132,14 @@ public class Test_FieldController extends TestCase {
 	assertEquals( "Modification not OK", "Moi", fieldCtrl.getValue() );
 
 	// saving the ctrl should not crash
-	fieldCtrl.save();
+        TestCommand cmd = new TestCommand();
+	fieldCtrl.save( cmd );        
 	
 	// Set the new model but preserve field controller state. After this the model can be saved
 	fieldCtrl.setModel( testObject, true );
-	fieldCtrl.save();
-	assertEquals( "Modification not saved correctly", "Moi", testObject.getField() );
+        cmd = new TestCommand();
+	fieldCtrl.save( cmd );
+        assertEquals( "Modification not saved correctly", "Moi", cmd.field );
 	assertFalse( "isModified should be false after save", fieldCtrl.isModified() );
     }
 
@@ -162,10 +156,10 @@ public class Test_FieldController extends TestCase {
     }
 
     public void testMultiModel() {
-	Object[] model = new Object[2];
-	model[0] = testObject;
+	List<TestObject> model = new ArrayList<TestObject>();
+	model.add( testObject );
 	TestObject model2 = new TestObject();
-	model[1] = model2;
+	model.add(  model2 );
 
 	testObject.setField( "Value" );
 	model2.setField( "Value" );
@@ -174,22 +168,23 @@ public class Test_FieldController extends TestCase {
 	assertEquals( "Field controller not updated when values are equal", "Value", fieldCtrl.getValue() );
 
 	fieldCtrl.setValue( "Value2" );
-	fieldCtrl.save();
-	assertEquals( "model not changed", "Value2", testObject.getField() );
-	assertEquals( "model not changed", "Value2", model2.getField() );
+        TestCommand cmd = new TestCommand();
+	fieldCtrl.save( cmd );
+        assertEquals( "model not changed", "Value2", cmd.field );
 
 	// Check that if model values differ they are not copied to controller
 	model2.setField( "Value3" );
 	fieldCtrl.setModel( model, false );
 	assertEquals( "model value should be null if there are several alterantives", null, fieldCtrl.getValue() );
-	fieldCtrl.save();
-	assertEquals( "model changed", "Value2", testObject.getField() );
-	assertEquals( "model changed", "Value3", model2.getField() );
+        cmd = new TestCommand();
+	fieldCtrl.save( cmd );
+        assertNull( "model changed", cmd.field );
+	// assertEquals( "model changed", "Value3", model2.getField() );
 	
 	fieldCtrl.setValue( "Value4" );
-	fieldCtrl.save();
-	assertEquals( "model not changed", "Value4", testObject.getField() );
-	assertEquals( "model not changed", "Value4", model2.getField() );
+        cmd = new TestCommand();
+	fieldCtrl.save( cmd );
+	assertEquals( "model not changed", "Value4", cmd.field );
 
 	// Check that a null value does not cause problems
 	testObject.setField( null );
@@ -197,27 +192,28 @@ public class Test_FieldController extends TestCase {
 	assertEquals( "model value should be null if there are several alterantives", null, fieldCtrl.getValue() );
         assertTrue( view1.isMultivalued );
         boolean nullFound = false;
-        for ( Object o : view1.values ) {
-            if ( o == null ) {
-                nullFound = true;
-                break;
-            }
-        }
-        assertTrue( nullFound );
+//        for ( Object o : view1.values ) {
+//            if ( o == null ) {
+//                nullFound = true;
+//                break;
+//            }
+//        }
+//        assertTrue( nullFound );
         
+        view1.isMultivalued = false;
 	testObject.setField( "Value5" );
 	model2.setField( null );
 	fieldCtrl.setModel( model, false );
 	assertEquals( "model value should be null if there are several alternatives", null, fieldCtrl.getValue() );
         assertTrue( view1.isMultivalued );
-        nullFound = false;
-        for ( Object o : view1.values ) {
-            if ( o != null && o.equals( "Value5" ) ) {
-                nullFound = true;
-                break;
-            }
-        }
-        assertTrue( nullFound );
+//        nullFound = false;
+//        for ( Object o : view1.values ) {
+//            if ( o != null && o.equals( "Value5" ) ) {
+//                nullFound = true;
+//                break;
+//            }
+//        }
+//        assertTrue( nullFound );
 	
     }
     

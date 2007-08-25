@@ -23,15 +23,20 @@ package org.photovault.imginfo;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
+import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 
@@ -42,6 +47,8 @@ import org.photovault.folder.PhotoFolderDAO;
  
  */
 public class ChangePhotoInfoCommand extends DataAccessCommand {
+    
+    static Log log = LogFactory.getLog( ChangePhotoInfoCommand.class );
     
     /**
      Fields in PhotoInfo
@@ -66,8 +73,15 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         SHUTTER_SPEED( "shutterSpeed", Double.class ),
         TECH_NOTES( "techNotes", String.class ),
         TIME_ACCURACY( "timeAccuracy", Double.class ),
-        UUID( "UUID", UUID.class );
-        
+        UUID( "UUID", UUID.class ),
+        RAW_BLACK_LEVEL( "", Integer.class ),
+        RAW_WHITE_LEVEL( "", Integer.class ),
+        RAW_EV_CORR( "", Double.class ),
+        RAW_HLIGHT_COMP( "", Double.class ),
+        RAW_CTEMP( "", Double.class ),
+        RAW_GREEN( "", Double.class ),
+        RAW_COLOR_PROFILE( "", Double.class );
+
         PhotoInfoFields( String name, Class type ) {
             this.name = name;
             this.type = type;
@@ -161,6 +175,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      @param newValue New value for the field.
      */
     public void setField( PhotoInfoFields field, Object newValue ) {
+        log.debug( "setField " + field + ": " + newValue );
         changedFields.put( field, newValue );
     }
     
@@ -170,6 +185,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      executed or <code>null</code> if the field will be left unchanged.
      */
     public Object getField( PhotoInfoFields field ) {
+        log.debug( "getField " + field  );
         return changedFields.get( field );
     }
     
@@ -265,6 +281,24 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      Execute the command.
      */
     public void execute() throws CommandException {
+        StringBuffer debugMsg = null;
+        if ( log.isDebugEnabled() ) {
+            debugMsg = new StringBuffer();
+            debugMsg.append( "execute()" );
+            boolean isFirst = true;
+            for ( Integer id : photoIds ) {
+                debugMsg.append( isFirst ? "Photo ids: " : ", " );
+                debugMsg.append( id );
+            }
+            debugMsg.append( "\n" );
+            debugMsg.append( "Changed values:\n" );
+            for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
+                PhotoInfoFields field = e.getKey();
+                Object value = e.getValue();
+                debugMsg.append( field ).append( ": " ).append( value ).append( "\n" );
+            }
+            log.debug( debugMsg );
+        }
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
         if ( photoIds.size() == 0 ) {
@@ -277,20 +311,46 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             }
         }
         changedPhotos = new HashSet<PhotoInfo>();
-        
+        Set<PhotoInfoFields> rawSettingsFields = 
+                EnumSet.range( PhotoInfoFields.RAW_BLACK_LEVEL, PhotoInfoFields.RAW_COLOR_PROFILE);
         for ( PhotoInfo photo : photos ) {
             /*
-             Ensure that this photo is persistence & the isntance belongs to 
+             Ensure that this photo is persistence & the instance belongs to 
              current persistence context
              */
             changedPhotos.add( photo );
+            RawSettingsFactory rawSettingsFactory = null;
             for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
                 PhotoInfoFields field = e.getKey();
                 Object value = e.getValue();
+                if ( !rawSettingsFields.contains( field ) ) {
+                    try {
+                        PropertyUtils.setProperty( photo, field.getName(), value );
+                    } catch ( Exception ex) {
+                        log.error( "Exception while executing command", ex );
+                        throw new CommandException( "Error while executing command: " + ex.getMessage() );
+                    }
+                } else {
+                    // This is a raw setting field, we must use factory for changing it
+                    if ( rawSettingsFactory == null ) {
+                        rawSettingsFactory = new RawSettingsFactory( photo.getRawSettings() );
+                    }
+                    try {
+                        PropertyUtils.setProperty( rawSettingsFactory, field.getName(), value );
+                    } catch ( Exception ex) {
+                        log.error( "Exception while executing command", ex );
+                        throw new CommandException( "Error while executing command: " + ex.getMessage() );
+                    }
+                    
+                }
+                
+            }
+            if ( rawSettingsFactory != null ) {
                 try {
-                    PropertyUtils.setProperty( photo, field.getName(), value );
-                } catch ( Exception ex) {
-                    throw new CommandException( "Error while executing command: " + ex.getMessage() );
+                    photo.setRawSettings( rawSettingsFactory.create() );
+                } catch (PhotovaultException ex) {
+                    log.error( "Exception while executing command", ex );
+                    ex.printStackTrace();
                 }
             }
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();

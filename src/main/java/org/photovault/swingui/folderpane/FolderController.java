@@ -20,8 +20,10 @@
 
 package org.photovault.swingui.folderpane;
 
+import java.util.ArrayList;
 import java.util.Vector;
 import javax.swing.tree.*;
+import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.*;
@@ -31,7 +33,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import org.photovault.folder.*;
 
-public class FolderController extends FieldController {
+public class FolderController extends FieldController<PhotoInfo, ChangePhotoInfoCommand> {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FolderController.class.getName() );
 
@@ -41,14 +43,14 @@ public class FolderController extends FieldController {
     PhotoFolderDAO folderDAO = null;
     
     public FolderController( PhotoInfo[] model ) {
-	super( model );
+	super( "folders", model );
 	addedToFolders = new HashSet();
 	removedFromFolders = new HashSet();
         expandedFolders = new HashSet();
         initTree();
     }
 
-    protected void setModelValue( Object model ) {
+    protected void setModelValue( PhotoInfo model ) {
     }
 
     protected Object getModelValue( Object model ) {
@@ -108,7 +110,10 @@ public class FolderController extends FieldController {
     }
 
     public void setModel( Object[] model, boolean preserveState ) {
-	this.model = model;
+	this.model = new ArrayList<PhotoInfo>();
+        for ( Object o : model ) {
+            this.model.add( (PhotoInfo) o);
+        }
 	if ( !preserveState && addedToFolders != null  ) {
 	    addedToFolders.clear();
 	    removedFromFolders.clear();
@@ -117,9 +122,9 @@ public class FolderController extends FieldController {
 	initTree();
     }
 
-    HashSet addedToFolders;
-    HashSet removedFromFolders;
-    HashSet expandedFolders;
+    HashSet<PhotoFolder> addedToFolders;
+    HashSet<PhotoFolder> removedFromFolders;
+    HashSet<PhotoFolder> expandedFolders;
     
     /**
        Mark all photos in model so that they will be added to specified folder
@@ -147,21 +152,13 @@ public class FolderController extends FieldController {
     /**
        Saves all modifications to database
     */
-    public void save() {
-	Iterator iter = addedToFolders.iterator();
-	while ( iter.hasNext() ) {
-	    PhotoFolder folder = (PhotoFolder) iter.next();
-	    for ( int n = 0; n < model.length; n++ ) {
-		folder.addPhoto( (PhotoInfo) model[n] );
-	    }
-	}
-	iter = removedFromFolders.iterator();
-	while ( iter.hasNext() ) {
-	    PhotoFolder folder = (PhotoFolder) iter.next();
-	    for ( int n = 0; n < model.length; n++ ) {
-		folder.removePhoto( (PhotoInfo) model[n] );
-	    }
-	}	
+    public void save( ChangePhotoInfoCommand cmd ) {
+        for ( PhotoFolder f : addedToFolders ) {
+            cmd.addToFolder( f );
+        }
+        for ( PhotoFolder f : removedFromFolders ) {
+            cmd.removeFromFolder( f );
+        }
     }
     
     /**
@@ -177,7 +174,8 @@ public class FolderController extends FieldController {
          TODO: Currently this is called several times while initializing the dialog.
          Optimize!!!
          */
-        nodeMapper = new FolderToFolderNodeMapper( model );
+        Object[] modelArray = (model != null ) ? model.toArray() : null;
+        nodeMapper = new FolderToFolderNodeMapper( modelArray );
         treeModel = new PhotoFolderTreeModel( nodeMapper );
         if ( folderDAO == null ) {
             folderDAO = new PhotoFolderDAOHibernate();
@@ -186,12 +184,12 @@ public class FolderController extends FieldController {
         treeModel.setRoot( root );        
         if ( model != null ) {
             // Add all photos in the model to folder tree
-            for ( int n = 0; n < model.length; n++ ) {
+            for ( PhotoInfo p : model ) {
                 // if the model is empty it can contain a null
                 // TODO: this is IMHO a hack - passing null up to this point is certainly
                 // not elegant and there might be even more error opportunities
-                if ( model[n] != null ) {
-                    addPhotoToTree( (PhotoInfo) model[n] );
+                if ( p!= null ) {
+                    addPhotoToTree( p );
                 }
             }
         }

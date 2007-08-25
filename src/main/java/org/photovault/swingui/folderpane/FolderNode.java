@@ -36,7 +36,7 @@ import java.util.*;
  * to get the node representation for DefaultMutableTree, since the representation 
  * needs information from both field model and PhotoFolder. However almost all 
  * processing is done in @see FolderController - it might be more logical to 
- * encapsulate also the relean logic here.
+ * encapsulate also the relevant logic here.
  */
 
 class FolderNode {

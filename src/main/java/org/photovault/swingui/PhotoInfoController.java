@@ -20,6 +20,8 @@
 
 package org.photovault.swingui;
 
+import java.lang.reflect.InvocationTargetException;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.odmg.LockNotGrantedException;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dbhelper.ODMGXAWrapper;
@@ -54,9 +56,21 @@ public class PhotoInfoController {
      Default constructor
      */
     public PhotoInfoController() {
-        modelFields = new HashMap();
-        views = new Vector();
-        initModelFields();
+//        modelFields = new HashMap();
+        views = new ArrayList<PhotoInfoView>();
+        cmd = new ChangePhotoInfoCommand();
+//        initModelFields();
+    }
+    
+    static class PhotoInfoFieldCtrl extends FieldController<PhotoInfo,ChangePhotoInfoCommand> {
+        PhotoInfoFieldCtrl( String field, PhotoInfo m ) {
+            super( field, m );
+        }
+
+        PhotoInfoFieldCtrl( String field, PhotoInfo[] m ) {
+            super( field, m );
+        }
+        
     }
     
     /**
@@ -70,12 +84,9 @@ public class PhotoInfoController {
          * @param field Field that is controlled bu this object
          */
         public RawSettingFieldCtrl( Object model, String field ) {
-            super( model );
-            this.field = field;
+            super(  field, model );
         }
-        
-        final String field;
-        
+                
         /**
          * This must be overridden by derived classes to set the raw settings field in the
          * RawSettingsFactory that will be used for creating new settings for controlled 
@@ -156,7 +167,7 @@ public class PhotoInfoController {
          * @param curveName Name of the generated curve
          */
         public ColorCurveCtrl( Object model, String curveName ) {
-            super( model );
+            super( "", model );
             this.name = curveName;
         }
         
@@ -208,366 +219,76 @@ public class PhotoInfoController {
      It will contain one FieldController object for each fields in the model.
      */
     protected void initModelFields() {
-        modelFields.put( PHOTOGRAPHER, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                obj.setPhotographer( (String) value );
-            }
-            protected Object getModelValue( Object model ) {
-                if ( model == null ) {
-                    return null;
-                }
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getPhotographer();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setPhotographer( (String) value );
-            }
-            
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setPhotographerMultivalued( isMultiValued );
-                
-            }
-            
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getPhotographer();
-            }
-        });
+        modelFields.put( PHOTOGRAPHER, new PhotoInfoFieldCtrl( "photographer", photos ) );
         
-        modelFields.put( FUZZY_DATE, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
+        modelFields.put( FUZZY_DATE, new PhotoInfoFieldCtrl( "", photos ) {
+            protected void setModelValue( ChangePhotoInfoCommand obj ) {
                 log.debug( "FUZZY_DATE - setModeValue ({}) " );
-                PhotoInfo obj = (PhotoInfo) model;
                 FuzzyDate fd = (FuzzyDate) value;
                 if ( fd != null ) {
                     obj.setShootTime( fd.getDate() );
                     obj.setTimeAccuracy( fd.getAccuracy() );
                 } else {
                     obj.setShootTime( null );
-                    obj.setTimeAccuracy( 0 );
+                    obj.setTimeAccuracy( 0.0 );
                 }
             }
-            protected Object getModelValue( Object model ) {
+            
+            protected Object getModelValue( PhotoInfo obj ) {
                 log.debug( "FUZZY_DATE - getModeValue ({}) " );
-                PhotoInfo obj = (PhotoInfo) model;
                 Date date = obj.getShootTime();
                 double accuracy = obj.getTimeAccuracy();
                 return new FuzzyDate( date, accuracy );
             }
-            protected void updateView( Object view ) {
-                log.debug( "FUZZY_DATE - updateView ({}) " );
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFuzzyDate( (FuzzyDate) value );
+            
+            protected void updateView( Object o ) {
+                PhotoInfoView view = (PhotoInfoView) o;
+                view.setFuzzyDate( (FuzzyDate) value);                
             }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFuzzyDateMultivalued( isMultiValued );
-                
+
+            protected void updateViewMultivalueState( Object o ) {
+                PhotoInfoView view = (PhotoInfoView) o;
+                view.setFuzzyDateMultivalued( isMultiValued );
             }
-            protected void updateValue( Object view ) {
-                log.debug( "FUZZY_DATE - updateValue ({}) " );
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getFuzzyDate();
-            }
+
         });
         
-        modelFields.put( QUALITY, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
+        modelFields.put( QUALITY, new PhotoInfoFieldCtrl( "quality", photos ) {
+            protected void setModelValue( ChangePhotoInfoCommand obj ) {
                 if ( value != null ) {
                     obj.setQuality( ((Number)value).intValue() );
                 } else {
                     obj.setQuality( 0 );
                 }
             }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return new Double( obj.getQuality() );
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setQuality( (Number)value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setQualityMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value =  obj.getQuality();
-            }
         });
         
         
-        modelFields.put( SHOOTING_PLACE, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                obj.setShootingPlace( (String) value );
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getShootingPlace();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setShootPlace( (String) value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setShootPlaceMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getShootPlace();
-            }
-        });
+        modelFields.put( SHOOTING_PLACE, new PhotoInfoFieldCtrl( "shootingPlace", photos ) );
         
-        modelFields.put( CAMERA_MODEL, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                obj.setCamera( (String) value );
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getCamera();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setCamera( (String) value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setCameraMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getCamera();
-            }
-        });
+        modelFields.put( CAMERA_MODEL, new PhotoInfoFieldCtrl( "camera", photos ) );
+        modelFields.put( FILM_TYPE, new PhotoInfoFieldCtrl( "film", photos ) );
         
-        modelFields.put( FILM_TYPE, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                obj.setFilm( (String) value );
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getFilm();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFilm( (String) value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFilmMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getFilm();
-            }
-        });
+        modelFields.put( LENS_TYPE, new PhotoInfoFieldCtrl( "lens", photos ) );
         
-        modelFields.put( LENS_TYPE, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                obj.setLens( (String) value );
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getLens();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setLens( (String) value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setLensMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getLens();
-            }
-        });
+        modelFields.put( DESCRIPTION, new PhotoInfoFieldCtrl( "description", photos ) );
         
-        modelFields.put( DESCRIPTION, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                obj.setDescription( (String) value );
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getDescription();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setDescription( (String) value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setDescriptionMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getDescription();
-            }
-        });
+        modelFields.put( TECHNOTE, new PhotoInfoFieldCtrl( "techNotes", photos ) );
         
-        modelFields.put( TECHNOTE, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                obj.setTechNotes( (String) value );
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getTechNotes();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setTechNote( (String) value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setTechNoteMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getTechNote();
-            }
-        });
+        modelFields.put( F_STOP, new PhotoInfoFieldCtrl( "FStop", photos ) );
         
+        modelFields.put( SHUTTER_SPEED, new PhotoInfoFieldCtrl( "shutterSpeed", photos ) );
         
+        modelFields.put( FOCAL_LENGTH, new PhotoInfoFieldCtrl( "focalLength", photos ) );
         
-        
-        modelFields.put( F_STOP, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                if ( value != null ) {
-                    obj.setFStop( ((Number)value).doubleValue() );
-                } else {
-                    obj.setFStop( 0 );
-                }
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return new Double( obj.getFStop() );
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFStop( (Number)value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFStopMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value =  obj.getFStop();
-            }
-        });
-        
-        modelFields.put( SHUTTER_SPEED, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                if ( value != null ) {
-                    obj.setShutterSpeed( ((Number)value).doubleValue() );
-                } else {
-                    obj.setShutterSpeed( 0 );
-                }
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return new Double( obj.getShutterSpeed() );
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setShutterSpeed( (Number)value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setShutterSpeedMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value =  obj.getShutterSpeed();
-            }
-        });
-        
-        modelFields.put( FOCAL_LENGTH, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                if ( value != null ) {
-                    obj.setFocalLength( ((Number)value).doubleValue() );
-                } else {
-                    obj.setFocalLength( 0 );
-                }
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return new Double( obj.getFocalLength() );
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFocalLength( (Number)value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFocalLengthMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value =  obj.getFocalLength();
-            }
-        });
-        
-        modelFields.put( FILM_SPEED, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                if ( value != null ) {
-                    obj.setFilmSpeed( ((Number)value).intValue() );
-                } else {
-                    obj.setFilmSpeed( 0 );
-                }
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return new Double( obj.getFilmSpeed() );
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFilmSpeed( (Number)value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setFilmSpeedMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value =  obj.getFilmSpeed();
-            }
-        });
-        
-        modelFields.put( RAW_SETTINGS, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
+        modelFields.put( FILM_SPEED, new PhotoInfoFieldCtrl( "filmSpeed", photos ) );
+/*        
+ 
+        modelFields.put( RAW_SETTINGS, new FieldController<PhotoInfo,ChangePhotoInfoCommand>( "rawSettings", photos ) {
+            protected void setModelValue( ChangePhotoInfoCommand obj ) {
                 obj.setRawSettings( (RawConversionSettings) value );
             }
-            protected Object getModelValue( Object model ) {
+            protected Object getModelValue( PhotoInfo model ) {
                 PhotoInfo obj = (PhotoInfo) model;
                 return obj.getRawSettings();
             }
@@ -739,37 +460,15 @@ public class PhotoInfoController {
             }
         });
         
-        modelFields.put( COLOR_MAPPING, new FieldController( photos ) {
-            protected void setModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                obj.setColorChannelMapping( (ChannelMapOperation) value );
-            }
-            protected Object getModelValue( Object model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getColorChannelMapping();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setColorChannelMapping( (ChannelMapOperation) value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setColorChannelMappingMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getColorChannelMapping();
-            }
-        });
-        
+        modelFields.put( COLOR_MAPPING, new FieldController<PhotoInfo,ChangePhotoInfoCommand>( "colorChannelMapping", photos ));
+ */       
         /*
          TODO: Yes, this is a hack since preview image is not saved to model
          at any point. Perhaps PhotoInofController should offer a generic
          communication mechanism between views?
          */
-        modelFields.put( PREVIEW_IMAGE, new FieldController( photos ) {
-           protected void setModelValue( Object model ) {
+        modelFields.put( PREVIEW_IMAGE, new PhotoInfoFieldCtrl( "preview", photos ) {
+           protected void setModelValue( ChangePhotoInfoCommand model ) {
                // This is intended only as an information for other views
            } 
             protected Object getModelValue( Object model ) {
@@ -794,21 +493,23 @@ public class PhotoInfoController {
             }
         });
         
+/*        
         modelFields.put( COLOR_CURVE_VALUE, new ColorCurveCtrl( photos, "value" ) );
         modelFields.put( COLOR_CURVE_RED, new ColorCurveCtrl( photos, "red" ) );
         modelFields.put( COLOR_CURVE_GREEN, new ColorCurveCtrl( photos, "green" ) );
         modelFields.put( COLOR_CURVE_BLUE, new ColorCurveCtrl( photos, "blue" ) );
         modelFields.put( COLOR_CURVE_SATURATION, new ColorCurveCtrl( photos, "saturation" ) );
-        
+*/        
+/*
         folderCtrl = new FolderController( photos );
         modelFields.put( PHOTO_FOLDERS, folderCtrl );
-        
+*/        
         // TODO: Add other fields
         
         // Init the views in the fields
         Iterator iter = modelFields.values().iterator();
         while( iter.hasNext() ) {
-            FieldController fieldCtrl = (FieldController) iter.next();
+            PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) iter.next();
             fieldCtrl.setViews( views );
         }
     }
@@ -817,7 +518,7 @@ public class PhotoInfoController {
     protected PhotoInfo[] photos = null;
     protected boolean isCreatingNew = true;
     
-    protected Collection views = null;
+    protected Collection<PhotoInfoView> views = null;
     
     /**
      Sets the PhotoInfo record that will be edited
@@ -831,8 +532,11 @@ public class PhotoInfoController {
         }
         this.photos = new PhotoInfo[1];
         photos[0] = photo;
-        
-        changeModelInFields( isCreatingNew );
+        cmd = new ChangePhotoInfoCommand( photo.getId() );
+        for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
+            updateViews( null, f );
+        }
+        // changeModelInFields( isCreatingNew );
     }
     
     /**
@@ -844,7 +548,17 @@ public class PhotoInfoController {
         this.photos = photos;
         // If we are editing several photos simultaneously we certainly are not creating a new photo...
         isCreatingNew = false;
-        changeModelInFields( isCreatingNew );
+        List<Integer> photoIds = new ArrayList<Integer>();
+        if ( photos != null ) {
+            for ( PhotoInfo p : photos ) {
+                photoIds.add( p.getId() );
+            }
+        }
+        this.cmd = new ChangePhotoInfoCommand( photoIds );
+        for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
+            updateViews( null, f );
+        }
+        // changeModelInFields( isCreatingNew );
     }
     
     /**
@@ -863,26 +577,9 @@ public class PhotoInfoController {
      */
     public void addView( PhotoInfoView view ) {
         views.add( view );
-        // Inform all field controllers that the views collection has changed
-        Iterator iter = modelFields.values().iterator();
-        while( iter.hasNext() ) {
-            FieldController fieldCtrl = (FieldController) iter.next();
-            fieldCtrl.updateAllViews();
+        for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
+            updateViews( null, f );
         }
-        
-    }
-    
-    protected void changeModelInFields( boolean preserveFieldState ) {
-        // Inform all fields that the model has changed
-        Iterator fieldIter = modelFields.values().iterator();
-        while ( fieldIter.hasNext() ) {
-            FieldController fieldCtrl = (FieldController) fieldIter.next();
-            // If we are creating a new photo we will copy the current field values to it.
-            fieldCtrl.setModel( photos, preserveFieldState );
-        }
-        // Model has changed, reset also raw settings
-        rawFactories.clear();
-        colorMappingFactories.clear();
     }
     
     /**
@@ -922,37 +619,39 @@ public class PhotoInfoController {
     
     FolderController folderCtrl;
     
+    public ChangePhotoInfoCommand getChangeCommand() {
+        return cmd;
+    }
+    
     /**
      Save the modifications made to the PhotoInfo record
      @throws PhotovaultException if an error occurs during save (most likely 
      the photo was locked by another operation. In this case the transaction 
      is canceled.
      @throws PhotoNotFoundException if the original image cound not be located
+     *@deprecated TODO: delete this method
      */
     public void save() throws PhotoNotFoundException, PhotovaultException {
         // Get a transaction context (whole saving operation should be done in a single transaction)
-        ODMGXAWrapper txw = new ODMGXAWrapper();
         try {
             // Check if we already have a PhotoInfo object to control
+            ChangePhotoInfoCommand changeCmd = null;
             if ( isCreatingNew ) {
-                photos = new PhotoInfo[1];
-                if ( originalFile != null ) {
-                    photos[0] = PhotoInfo.addToDB( originalFile );
-                } else {
-                    photos[0] = PhotoInfo.create();
-                }
-                
-                // Set the model to all fields but preserve field state so that it is changed to the photoInfo
-                // object
-                changeModelInFields( true );
+                changeCmd = new ChangePhotoInfoCommand();
                 isCreatingNew = false;
+            } else {
+                Integer photoIds[] = new Integer[photos.length];
+                for ( int n = 0 ; n < photos.length; n++ ) {
+                    photoIds[n] = photos[n].getId();
+                }
+                changeCmd = new ChangePhotoInfoCommand( photoIds );
             }
             
             // Inform all fields that the modifications should be saved to model
             Iterator fieldIter = modelFields.values().iterator();
             while ( fieldIter.hasNext() ) {
-                FieldController fieldCtrl = (FieldController) fieldIter.next();
-                fieldCtrl.save();
+                PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) fieldIter.next();
+                fieldCtrl.save( changeCmd );
             }
             
             // Update the raw settings if any field affecting them has been changed
@@ -985,24 +684,15 @@ public class PhotoInfoController {
                 }
             }
         } catch ( LockNotGrantedException e ) {
-            txw.abort();
             throw new PhotovaultException( "Photo locked for other use", e );
         }
-        txw.commit();
     }
     
     /**
      Discards modifications done after last save
      */
     public void discard() {
-        // Setting the model again causes all fields to reread field values from model
-        Iterator fieldIter = modelFields.values().iterator();
-        while ( fieldIter.hasNext() ) {
-            FieldController fieldCtrl = (FieldController) fieldIter.next();
-            fieldCtrl.setModel( photos, false );
-        }
-        rawFactories.clear();
-        colorMappingFactories.clear();
+        setPhotos( photos );
     }
     
     /**
@@ -1052,12 +742,76 @@ public class PhotoInfoController {
     File originalFile = null;
     
     public void setField( String field, Object value ) {
-        FieldController fieldCtrl = (FieldController) modelFields.get( field );
+        PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
         if ( fieldCtrl != null ) {
             fieldCtrl.setValue( value );
         } else {
             log.warn( "No field " + field );
         }
+    }
+    
+    ChangePhotoInfoCommand cmd;
+    public void setField( ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue ) {
+        StringBuffer debugMsg = new StringBuffer();
+        debugMsg.append( "setField " ).append( field ).append( ": ").append( newValue );
+        Set fieldValues = getFieldValues( field ); 
+        debugMsg.append( "\nOld values: [");
+        boolean first = true;
+        for ( Object oldValue : fieldValues ) {
+            if ( !first ) debugMsg.append( ", " );
+            debugMsg.append( oldValue );
+            first = false;
+        }
+        debugMsg.append( "]" );
+        log.debug( debugMsg.toString() );
+        cmd.setField( field, newValue );
+        for ( PhotoInfoView view : views ) {
+            view.setField( field, newValue );
+            view.setFieldMultivalued( field, false );
+        }
+    }
+    
+    public Set getFieldValues( ChangePhotoInfoCommand.PhotoInfoFields field ) {
+        Set values = new HashSet();
+        Object value = cmd.getField( field );
+        if ( value != null ) {
+            values.add( value );
+        } else if ( photos != null) {            
+            for ( PhotoInfo p : photos ) {
+                try {
+                    value = PropertyUtils.getProperty( p, field.getName() );
+                } catch (Exception ex) {
+                    log.error( ex.getMessage() );
+                    ex.printStackTrace();
+                } 
+                values.add( value );
+            }
+        }
+        return values;
+    }
+    
+    private void updateViews( PhotoInfoView src, ChangePhotoInfoCommand.PhotoInfoFields field ) {
+        Set values = getFieldValues( field );
+        Object value = null;
+        boolean isMultivalued = true;
+        if ( values.size() == 1 ) {
+            value = values.toArray()[0];
+            isMultivalued = false;
+        }
+        for ( PhotoInfoView view : views ) {
+            if ( view != src ) {
+                view.setField( field, value );
+                view.setFieldMultivalued( field, isMultivalued );
+            }
+        }
+    }
+    
+    public void viewChanged( PhotoInfoView view, ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue ) {
+        Set fieldValues = getFieldValues( field );
+        if ( fieldValues.size() != 1 || !fieldValues.contains( newValue ) ) {
+            cmd.setField( field, newValue );
+        }
+        updateViews( view, field );
     }
     
     /**
@@ -1068,13 +822,15 @@ public class PhotoInfoController {
      @deprecated Use viewChanged( view, field ) instead.
      */
     public void viewChanged( PhotoInfoView view, String field, Object newValue ) {
-        FieldController fieldCtrl = (FieldController) modelFields.get( field );
+        PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
         if ( fieldCtrl != null ) {
             fieldCtrl.viewChanged( view, newValue );
         } else {
             log.warn( "No field " + field );
         }
     }
+    
+    
     
     /**
      This method must be called by a view when it has been changed
@@ -1083,7 +839,7 @@ public class PhotoInfoController {
      */
     
     public void viewChanged( PhotoInfoView view, String field ) {
-        FieldController fieldCtrl = (FieldController) modelFields.get( field );
+        PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
         if ( fieldCtrl != null ) {
             fieldCtrl.viewChanged( view );
         } else {
@@ -1099,7 +855,7 @@ public class PhotoInfoController {
     
     public Object getField( String field ) {
         Object value = null;
-        FieldController fieldCtrl = (FieldController) modelFields.get( field );
+        PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
         if ( fieldCtrl != null ) {
             value = fieldCtrl.getValue();
         }

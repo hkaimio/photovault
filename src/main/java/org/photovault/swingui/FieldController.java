@@ -20,8 +20,12 @@
 
 package org.photovault.swingui;
 
+import java.beans.PropertyDescriptor;
 import java.lang.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
+import org.apache.commons.beanutils.PropertyUtils;
 
 /**
    FieldController is an abstract helper class for implementing the controller logic and mapping between
@@ -29,21 +33,30 @@ import java.util.*;
    track of whether the field has been modified and how to set and get the values for the field
 */
 
-public abstract class FieldController {
+public class FieldController<T, CHANGE_CMD> {
 
     /** Constructor
 	@param model The object whose field is controlled
     */
-    public FieldController( Object model ) {
-	this.model = new Object[1];
-	this.model[0] = model;
+    public FieldController( String field, T model ) {
+	this.model = new ArrayList();
+        this.field = field;
+	this.model.add( model );
 	if ( model != null ) {
 	    value = getModelValue( model );
 	} 
     }
 
-    public FieldController( Object[] model ) {
-	setModel( model, false );
+    public FieldController( String field, T[] model ) {
+	this.field = field;
+        List<T> m = null;
+        if ( model != null ) {
+            m = new ArrayList<T>( model.length );
+            for ( T o : model ) {
+                m.add( o );
+            }
+        }
+        setModel( m, false );
     }
     
     /**
@@ -76,9 +89,9 @@ public abstract class FieldController {
        be written to the new model. This is useful when starting with null model (if it has not yet been created).
        If false, the controller state is changed to match the new model.
     */
-    public void setModel( Object model, boolean preserveState ) {
-	Object[] modelArr = new Object[1];
-	modelArr[0] = model;
+    public void setModel( T model, boolean preserveState ) {
+	List<T> modelArr = new ArrayList<T>();
+	modelArr.add( model );
 	setModel( modelArr, preserveState );
     }
 
@@ -86,16 +99,16 @@ public abstract class FieldController {
        Sets a new model for the object and discard any changes made after the field was last saved
        @param model The new model
     */
-    public void setModel( Object model ) {
+    public void setModel( T model ) {
 	setModel( model, false );
     }
 
     /**
-       Sets a model that consists of several identical obejcts. If all the objects have an equal value
+       Sets a model that consists of several obejcts. If all the objects have an equal value
        the model value will be the same. However, if the value differs in some of the objects
        the controller value will be null until the controller is modified.
     */
-    public void setModel( Object[] model, boolean preserveState ) {
+    public void setModel( List<T> model, boolean preserveState ) {
 	this.model = model;
         valueSet = new HashSet();
 	if ( preserveState ) {
@@ -107,12 +120,12 @@ public abstract class FieldController {
 	    isMultiValued = false;
 	    Object valueCandidate = null;
 	    if ( model != null ) {
-		if ( model[0] != null ) {
-		    valueCandidate = getModelValue( model[0] );
+		if ( model.get( 0 ) != null ) {
+		    valueCandidate = getModelValue( model.get( 0 ) );
                     valueSet.add( valueCandidate );
 		}
-		for ( int n = 1; n < model.length; n++ ) {
-		    Object modelObjectValue = getModelValue( model[n] );
+		for ( T o : model ) {
+		    Object modelObjectValue = getModelValue( o );
                     if ( !valueSet.contains( modelObjectValue ) ) {
                         valueSet.add( modelObjectValue );
                     }
@@ -180,19 +193,16 @@ public abstract class FieldController {
     }
 
     /**
-       Save any changes to the model
+      Save any changes to the model
+      @param cmd The {@link Command} object used for changing the models
     */
-    public void save() {
-	if ( model != null ) {
-	    if ( modified ) {
-		for ( int n = 0; n < model.length; n++ ) {
-		    if ( model[n] != null ) {
-			setModelValue( model[n] );
-		    }
-		}
-	    }
-	    modified = false;
-	}
+    public void save( CHANGE_CMD cmd ) {
+        if ( model != null ) {
+            if ( modified ) {
+                setModelValue( cmd );
+            }
+            modified = false;
+        }
     }
 
     
@@ -215,31 +225,90 @@ public abstract class FieldController {
     
     /**
        This abstract method must be overridden in derived classes to set the value stored in value to
-       the controlled field in model.
+       the command used for changing model
+     *@param cmd The {@link Command} object used for setting new value for model
     */
-    protected abstract void setModelValue( Object modelObject );
+    protected void setModelValue( CHANGE_CMD cmd ) {
+        if ( cmd == null ) {
+            return;
+        }
+        try {
+            PropertyUtils.setProperty( cmd, field, value );
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+        } catch (NoSuchMethodException ex) {
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        }
+    }
 
     /** This abstract method must be overridden in derived classes to return current value of the model's
 	field that is controlled by this object.
     */
-    protected abstract Object getModelValue( Object modelObject );
+    protected Object getModelValue( Object modelObject ) {
+        if ( modelObject == null ) {
+            return null;
+        }
+        try {
+            return PropertyUtils.getProperty( modelObject, field );
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+        } catch (NoSuchMethodException ex) {
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
 
     /** This abstract method must be overridden to update the associated view.
      */
-    protected abstract void updateView( Object view );
+    protected void updateView( Object view ) {
+        try {
+            PropertyUtils.setProperty( view, field, value );        
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+        } catch (NoSuchMethodException ex) {
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        }        
+    }
 
     /**a
        This abstract method must be overridden to update the contorller value from the view
     */
-    protected abstract void updateValue( Object view );
+    protected void updateValue( Object view ) {
+        try {
+            value = PropertyUtils.getProperty( view, field );        
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+        } catch (NoSuchMethodException ex) {
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        }        
+    };
 
     /** This abstract method must be overridden to update view when isMultiValued changes */
-    protected abstract void updateViewMultivalueState( Object view );
+    protected void updateViewMultivalueState( Object view ) {
+        try {
+            PropertyUtils.setProperty( view, field + "Multivalued", isMultiValued );                
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+        } catch (NoSuchMethodException ex) {
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        }                
+    };
 
     /**
        Array of th eobjects that comprise the model
     */
-    protected Object[] model = null;
+    protected List<T> model = null;
+    protected String field = null;
     protected Object value;
     protected Set valueSet = new HashSet();
     protected Collection views = null;

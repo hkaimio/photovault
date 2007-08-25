@@ -25,6 +25,8 @@ import java.awt.*;
 import java.awt.event.*;
 import org.photovault.imginfo.*;
 import java.io.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.PhotoInfo;
 
 
@@ -33,7 +35,7 @@ import org.photovault.imginfo.PhotoInfo;
 */
 
 public class PhotoInfoDlg extends JDialog {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoDlg.class.getName() );
+    static Log log = LogFactory.getLog( PhotoInfoDlg.class.getName() );
 
     static final String DIALOG_TITLE = "Edit photo info";
     /**
@@ -41,22 +43,25 @@ public class PhotoInfoDlg extends JDialog {
        @param owner Owner of the dialog
        @param modal If true, a modal dialog is created
     */
-    public PhotoInfoDlg( Frame owner, boolean modal, PhotoInfo photo ) {
+    public PhotoInfoDlg( PhotoViewController masterCtrl, Frame owner, boolean modal, PhotoInfo photo ) {
 	super( owner, DIALOG_TITLE, modal );
+        this.masterCtrl = masterCtrl;
 	ctrl = new PhotoInfoController();
 	    
 	createUI();
 	ctrl.setPhoto( photo );
     }
 
-    public PhotoInfoDlg( Frame owner, boolean modal, PhotoInfo[] photos ) {
+    public PhotoInfoDlg( PhotoViewController masterCtrl, Frame owner, boolean modal, PhotoInfo[] photos ) {
 	super( owner, DIALOG_TITLE, modal );
+        this.masterCtrl = masterCtrl;
 	ctrl = new PhotoInfoController();
 	    
 	createUI();
 	ctrl.setPhotos( photos );
     }
 
+    PhotoViewController masterCtrl;
 
     /**
        Creates the UI components needed for this dialog.
@@ -70,7 +75,8 @@ public class PhotoInfoDlg extends JDialog {
 	okBtn.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent e ) {
                 try {
-                    ctrl.save();
+                    ChangePhotoInfoCommand cmd = ctrl.getChangeCommand();
+                    masterCtrl.getCommandHandler().executeCommand( cmd );
                     photoChanged = true;
                     setVisible( false );
                 } catch ( Exception ex ) {
@@ -89,7 +95,8 @@ public class PhotoInfoDlg extends JDialog {
         applyBtn.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent e ) {
                 try {
-                    ctrl.save();
+                    ChangePhotoInfoCommand cmd = ctrl.getChangeCommand();
+                    masterCtrl.getCommandHandler().executeCommand( cmd );
                     photoChanged = true;
                 } catch ( Exception ex ) {
                     JOptionPane.showMessageDialog(
@@ -194,7 +201,7 @@ public class PhotoInfoDlg extends JDialog {
             }
 	    });
 	JButton button = new JButton("Edit photo");	
-	final PhotoInfoDlg dlg = new PhotoInfoDlg( f, true, photo );
+	final PhotoInfoDlg dlg = new PhotoInfoDlg( null, f, true, photo );
 	button.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    log.info( "Showing the dialog" );

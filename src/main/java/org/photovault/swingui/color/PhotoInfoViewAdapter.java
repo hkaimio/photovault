@@ -20,12 +20,17 @@
 
 package org.photovault.swingui.color;
 
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
 import org.photovault.image.PhotovaultImage;
+import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.swingui.PhotoInfoController;
 import org.photovault.swingui.PhotoInfoView;
@@ -40,6 +45,7 @@ import org.photovault.swingui.PreviewImageView;
  proof.
  */
 public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
+    private static Log log = LogFactory.getLog( PhotoInfoViewAdapter.class );
     
     PhotoInfoController c;
     
@@ -85,14 +91,14 @@ public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
     public void setQualityMultivalued(boolean mv) {
     }
 
-    public void setShootPlace(String newValue) {
+    public void setShootingPlace(String newValue) {
     }
 
-    public String getShootPlace() {
+    public String getShootingPlace() {
         return null;
     }
 
-    public void setShootPlaceMultivalued(boolean mv) {
+    public void setShootingPlaceMultivalued(boolean mv) {
     }
 
     public void setFocalLength(Number newValue) {
@@ -155,14 +161,14 @@ public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
     public void setDescriptionMultivalued(boolean mv) {
     }
 
-    public void setTechNote(String newValue) {
+    public void setTechNotes(String newValue) {
     }
 
-    public String getTechNote() {
+    public String getTechNotes() {
         return null;
     }
 
-    public void setTechNoteMultivalued(boolean mv) {
+    public void setTechNotesMultivalued(boolean mv) {
     }
 
     public void setShutterSpeed(Number newValue) {
@@ -227,5 +233,50 @@ public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
     public PhotovaultImage getPreviewImage() {
         return null;
     }
+
+    public Object getField(ChangePhotoInfoCommand.PhotoInfoFields field) {
+        Object value = null;
+        String propertyName = field.getName();
+        try {
+            value = PropertyUtils.getProperty( this, propertyName );
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot get property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+        return value;
+    }
+
+
+    public void setField(ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue) {
+        String propertyName = field.getName();
+        try {
+            PropertyUtils.setProperty( this, propertyName, newValue );
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot set property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+    }
     
+    public void setFieldMultivalued(ChangePhotoInfoCommand.PhotoInfoFields field, boolean isMultivalued) {
+        String propertyName = field.getName() + "Multivalued";
+        try {
+            PropertyUtils.setProperty( this, propertyName, isMultivalued );
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot set property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+    }
+        
 }
