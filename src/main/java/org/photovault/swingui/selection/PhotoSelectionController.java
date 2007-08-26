@@ -20,11 +20,15 @@
 
 package org.photovault.swingui.selection;
 
+import java.awt.event.ActionEvent;
+import javax.swing.JOptionPane;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.classic.Session;
 import org.odmg.LockNotGrantedException;
+import org.photovault.command.CommandException;
+import org.photovault.command.DataAccessCommand;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
@@ -39,6 +43,9 @@ import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.*;
 import org.photovault.swingui.folderpane.FolderController;
 import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DataAccessAction;
+import org.photovault.swingui.framework.DefaultAction;
+import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.PersistenceController;
 
 /**
@@ -70,6 +77,18 @@ public class PhotoSelectionController extends PersistenceController {
         views = new ArrayList<PhotoSelectionView>();
         cmd = new ChangePhotoInfoCommand();
         folderCtrl = new FolderController( this );
+
+        this.registerAction( "save", new DataAccessAction( "Save" ) {
+            public void actionPerformed( ActionEvent ev, org.hibernate.Session session ) {
+                save();
+            }
+        });
+        
+        this.registerAction( "discard", new DataAccessAction( "Discard" ) {
+            public void actionPerformed( ActionEvent ev, org.hibernate.Session session ) {
+                discard();
+            }            
+        });
     }
 
     FolderController folderCtrl = null;
@@ -343,73 +362,24 @@ public class PhotoSelectionController extends PersistenceController {
     
     /**
      Save the modifications made to the PhotoInfo record
-     @throws PhotovaultException if an error occurs during save (most likely 
-     the photo was locked by another operation. In this case the transaction 
-     is canceled.
-     @throws PhotoNotFoundException if the original image cound not be located
-     *@deprecated TODO: delete this method
      */
-    public void save() throws PhotoNotFoundException, PhotovaultException {
+    protected void save() {
         // Get a transaction context (whole saving operation should be done in a single transaction)
         try {
-            // Check if we already have a PhotoInfo object to control
-            ChangePhotoInfoCommand changeCmd = null;
-            if ( isCreatingNew ) {
-                changeCmd = new ChangePhotoInfoCommand();
-                isCreatingNew = false;
-            } else {
-                Integer photoIds[] = new Integer[photos.length];
-                for ( int n = 0 ; n < photos.length; n++ ) {
-                    photoIds[n] = photos[n].getId();
-                }
-                changeCmd = new ChangePhotoInfoCommand( photoIds );
-            }
-            
-            // Inform all fields that the modifications should be saved to model
-            Iterator fieldIter = modelFields.values().iterator();
-            while ( fieldIter.hasNext() ) {
-                PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) fieldIter.next();
-                fieldCtrl.save( changeCmd );
-            }
-            
-            // Update the raw settings if any field affecting them has been changed
-            if ( isRawSettingsChanged ) {
-                Iterator rawIter = rawFactories.entrySet().iterator();
-                while ( rawIter.hasNext() ) {
-                    Map.Entry e = (Map.Entry) rawIter.next();
-                    PhotoInfo p = (PhotoInfo) e.getKey();
-                    RawSettingsFactory f = (RawSettingsFactory) e.getValue();
-                    RawConversionSettings r = null;
-                    try {
-                        r = f.create();
-                    } catch (PhotovaultException ex) {
-                        ex.printStackTrace();
-                    }
-                    p.setRawSettings( r );
-                }
-            }
-
-            // Update the color mapping if any field affecting them has been changed
-            if ( isColorMappingChanged ) {
-                Iterator colorIter = colorMappingFactories.entrySet().iterator();
-                while ( colorIter.hasNext() ) {
-                    Map.Entry e = (Map.Entry) colorIter.next();
-                    PhotoInfo p = (PhotoInfo) e.getKey();
-                    ChannelMapOperationFactory f = (ChannelMapOperationFactory) e.getValue();
-                    ChannelMapOperation o = null;
-                    o = f.create();
-                    p.setColorChannelMapping( o );
-                }
-            }
-        } catch ( LockNotGrantedException e ) {
-            throw new PhotovaultException( "Photo locked for other use", e );
+            getCommandHandler().executeCommand( cmd );
+        } catch( CommandException e ) {
+            log.error ( "Exception while saving: ", e );
+            JOptionPane.showMessageDialog( getView(), 
+                    "Error while saving changes:\n" + e.getMessage(), 
+                    "Save Error", JOptionPane.ERROR_MESSAGE );
         }
+        setPhotos( photos );
     }
     
     /**
      Discards modifications done after last save
      */
-    public void discard() {
+    protected void discard() {
         setPhotos( photos );
     }
     
@@ -469,25 +439,6 @@ public class PhotoSelectionController extends PersistenceController {
     }
     
     ChangePhotoInfoCommand cmd;
-    public void setField( ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue ) {
-        StringBuffer debugMsg = new StringBuffer();
-        debugMsg.append( "setField " ).append( field ).append( ": ").append( newValue );
-        Set fieldValues = getFieldValues( field ); 
-        debugMsg.append( "\nOld values: [");
-        boolean first = true;
-        for ( Object oldValue : fieldValues ) {
-            if ( !first ) debugMsg.append( ", " );
-            debugMsg.append( oldValue );
-            first = false;
-        }
-        debugMsg.append( "]" );
-        log.debug( debugMsg.toString() );
-        cmd.setField( field, newValue );
-        for ( PhotoSelectionView view : views ) {
-            view.setField( field, newValue );
-            view.setFieldMultivalued( field, false );
-        }
-    }
     
     public Set getFieldValues( ChangePhotoInfoCommand.PhotoInfoFields field ) {
         Set values = new HashSet();
@@ -519,8 +470,8 @@ public class PhotoSelectionController extends PersistenceController {
         for ( PhotoSelectionView view : views ) {
             if ( view != src ) {
                 view.setField( field, value );
-                view.setFieldMultivalued( field, isMultivalued );
             }
+            view.setFieldMultivalued( field, isMultivalued );
         }
     }
     

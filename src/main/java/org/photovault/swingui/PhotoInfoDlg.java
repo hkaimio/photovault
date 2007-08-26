@@ -23,11 +23,14 @@ package org.photovault.swingui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import org.hibernate.classic.Session;
 import org.photovault.imginfo.*;
 import java.io.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DataAccessAction;
 import org.photovault.swingui.selection.PhotoSelectionController;
 
 
@@ -35,7 +38,7 @@ import org.photovault.swingui.selection.PhotoSelectionController;
    PhotoInfoDlg is a simple wrapper that wraps a PhotoInfoeditor to a diaplog frame.
 */
 
-public class PhotoInfoDlg extends JDialog {
+public class PhotoInfoDlg extends PhotoSelectionController {
     static Log log = LogFactory.getLog( PhotoInfoDlg.class.getName() );
 
     static final String DIALOG_TITLE = "Edit photo info";
@@ -44,87 +47,103 @@ public class PhotoInfoDlg extends JDialog {
        @param owner Owner of the dialog
        @param modal If true, a modal dialog is created
     */
-    public PhotoInfoDlg( PhotoViewController masterCtrl, Frame owner, boolean modal, PhotoInfo photo ) {
-	super( owner, DIALOG_TITLE, modal );
-        this.masterCtrl = masterCtrl;
-	ctrl = new PhotoSelectionController( masterCtrl );
-	    
-	createUI();
-	ctrl.setPhoto( photo );
+    public PhotoInfoDlg( AbstractController parent, Session session, boolean modal, PhotoInfo photo ) {
+        super( parent, session );
+        createUI();
+	setPhoto( photo );
     }
 
-    public PhotoInfoDlg( PhotoViewController masterCtrl, Frame owner, boolean modal, PhotoInfo[] photos ) {
-	super( owner, DIALOG_TITLE, modal );
-        this.masterCtrl = masterCtrl;
-	ctrl = new PhotoSelectionController( masterCtrl );
-	    
+    public PhotoInfoDlg( PhotoViewController parent, Session session, boolean modal, PhotoInfo[] photos ) {
+	super( parent, session );
 	createUI();
-	ctrl.setPhotos( photos );
+        setPhotos( photos );
     }
 
     PhotoViewController masterCtrl;
-
+    JDialog dialogWindow = null;
+    
     /**
        Creates the UI components needed for this dialog.
     */
     protected void createUI() {
-	editor = new PhotoInfoEditor( ctrl );
-	getContentPane().add( editor, BorderLayout.NORTH );
+        Container parentView = getParentController().getView();
+        Window wnd = SwingUtilities.getWindowAncestor( parentView );
+        dialogWindow = new JDialog( (Frame) wnd );
+        editor = new PhotoInfoEditor( this );
+        addView( editor );
+        dialogWindow.getContentPane().add( editor, BorderLayout.NORTH );
 	final PhotoInfoDlg staticThis = this;
         
-	JButton okBtn = new JButton( "OK" );
-	okBtn.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent e ) {
-                try {
-                    ChangePhotoInfoCommand cmd = ctrl.getChangeCommand();
-                    masterCtrl.getCommandHandler().executeCommand( cmd );
-                    photoChanged = true;
-                    setVisible( false );
-                } catch ( Exception ex ) {
-                    JOptionPane.showMessageDialog(
-                            staticThis,
-                            "Error while saving changes: \n" + ex.getMessage(),
-                            "Error saving changes",
-                            JOptionPane.ERROR_MESSAGE,
-                            null );
-                    log.warn( "problem while saving changes: " + ex.getMessage() );
-                }
+        registerAction( "save_close", new DataAccessAction( "OK" ) {
+            public void actionPerformed(ActionEvent actionEvent, 
+                    org.hibernate.Session currentSession) {
+                save();
+                dialogWindow.setVisible( false );
             }
-        } );
+            
+        });
+        registerAction( "discard_close", new DataAccessAction( "Cancel" ) {
+            public void actionPerformed(ActionEvent actionEvent, 
+                    org.hibernate.Session currentSession) {
+                discard();
+                dialogWindow.setVisible( false );
+            }
+            
+        });
+        
+	JButton okBtn = new JButton( this.getActionAdapter( "save_close" ) );
+//	okBtn.addActionListener( new ActionListener() {
+//            public void actionPerformed( ActionEvent e ) {
+//                try {
+//                    ChangePhotoInfoCommand cmd = ctrl.getChangeCommand();
+//                    masterCtrl.getCommandHandler().executeCommand( cmd );
+//                    photoChanged = true;
+//                    setVisible( false );
+//                } catch ( Exception ex ) {
+//                    JOptionPane.showMessageDialog(
+//                            staticThis,
+//                            "Error while saving changes: \n" + ex.getMessage(),
+//                            "Error saving changes",
+//                            JOptionPane.ERROR_MESSAGE,
+//                            null );
+//                    log.warn( "problem while saving changes: " + ex.getMessage() );
+//                }
+//            }
+//        } );
 
-        JButton applyBtn = new JButton( "Apply" );
-        applyBtn.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent e ) {
-                try {
-                    ChangePhotoInfoCommand cmd = ctrl.getChangeCommand();
-                    masterCtrl.getCommandHandler().executeCommand( cmd );
-                    photoChanged = true;
-                } catch ( Exception ex ) {
-                    JOptionPane.showMessageDialog(
-                            staticThis,
-                            "Error while saving changes: \n" + ex.getMessage(),
-                            "Error saving changes",
-                            JOptionPane.ERROR_MESSAGE,
-                            null );
-                    log.warn( "problem while saving changes: " + ex.getMessage() );
-                }
-            }
-        } );
+        JButton applyBtn = new JButton( getActionAdapter( "save" ) );
+//        applyBtn.addActionListener( new ActionListener() {
+//            public void actionPerformed( ActionEvent e ) {
+//                try {
+//                    ChangePhotoInfoCommand cmd = ctrl.getChangeCommand();
+//                    masterCtrl.getCommandHandler().executeCommand( cmd );
+//                    photoChanged = true;
+//                } catch ( Exception ex ) {
+//                    JOptionPane.showMessageDialog(
+//                            staticThis,
+//                            "Error while saving changes: \n" + ex.getMessage(),
+//                            "Error saving changes",
+//                            JOptionPane.ERROR_MESSAGE,
+//                            null );
+//                    log.warn( "problem while saving changes: " + ex.getMessage() );
+//                }
+//            }
+//        } );
         
-        JButton discardBtn = new JButton( "Discard" );
-        discardBtn.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent e ) {
-                ctrl.discard();
-            }
-        } );
+        JButton discardBtn = new JButton( getActionAdapter( "discard" ) );
+//        discardBtn.addActionListener( new ActionListener() {
+//            public void actionPerformed( ActionEvent e ) {
+//                ctrl.discard();
+//            }
+//        } );
         
-        JButton closeBtn = new JButton( "Close" );
-        closeBtn.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent e ) {
-                ctrl.discard();
-                setVisible( false );
-            }
-        } );
+        JButton closeBtn = new JButton( getActionAdapter( "discard_close" ) );
+//        closeBtn.addActionListener( new ActionListener() {
+//            public void actionPerformed( ActionEvent e ) {
+//                ctrl.discard();
+//                setVisible( false );
+//            }
+//        } );
 	    
 	JPanel buttonPane = new JPanel();
 	buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
@@ -137,11 +156,11 @@ public class PhotoInfoDlg extends JDialog {
 	buttonPane.add(discardBtn);
 	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 	buttonPane.add(closeBtn);
-	getContentPane().add( buttonPane, BorderLayout.SOUTH );
+	dialogWindow.getContentPane().add( buttonPane, BorderLayout.SOUTH );
 
-	getRootPane().setDefaultButton( applyBtn );
+	dialogWindow.getRootPane().setDefaultButton( applyBtn );
 
-	pack();
+	dialogWindow.pack();
     }
 
     /**
@@ -151,76 +170,9 @@ public class PhotoInfoDlg extends JDialog {
 	
     public boolean showDialog() {
 	photoChanged = false;
-	setVisible( true );
+	dialogWindow.setVisible( true );
 	return photoChanged;
     }
-
-    public void setPhoto( PhotoInfo photo ) {
-	ctrl.setPhoto( photo );
-    }
-
-    public void setPhotos( PhotoInfo[] photos ) {
-	ctrl.setPhotos( photos );
-    }
-
-  /**
-       Simple main program to aid running & testing this dialog without invoking application
-    */
-    public static void main( String[] args ) {
-	try {
-	    org.apache.log4j.lf5.DefaultLF5Configurator.configure();
-	} catch ( Exception e ) {}
-	log.info( "Starting application" );
-
-	// Parse the arguments
-	PhotoInfo photo = null;
-	log.debug( "Number of args" + args.length );
-	log.debug( args.toString() );
-	if ( args.length == 2 ) {
-	    if ( args[0].equals( "-f" ) ) {
-		File f = new File( args[1] );
-		try {
-		    log.debug( "Getting file " + f.getPath() );
-		    photo = PhotoInfo.addToDB( f );
-		} catch ( Exception e ) {
-		    log.warn( e.getMessage() );
-		}
-	    } else if ( args[0].equals( "-id" ) ) {
-		try {
-		    int id = Integer.parseInt( args[1] );
-		    log.debug( "Getting photo " + id );
-		    photo = PhotoInfo.retrievePhotoInfo( id );
-		} catch ( Exception e ) {
-		    log.warn( e.getMessage() );
-		}
-	    }
-	}
-	JFrame f = new JFrame("PhotoInfoDlg test");
-        f.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                 System.exit(0);
-            }
-	    });
-	JButton button = new JButton("Edit photo");	
-	final PhotoInfoDlg dlg = new PhotoInfoDlg( null, f, true, photo );
-	button.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    log.info( "Showing the dialog" );
-		    boolean modified = dlg.showDialog();
-		    log.info( "back from showDialog()" );
-		}
-	    });
-
-	
-        JPanel contentPane = new JPanel();
-        f.setContentPane(contentPane);
-	contentPane.add( button);
-	f.pack();
-	f.setVisible( true );
-    }
-	
-	
-    
 
     PhotoInfoEditor editor = null;
     PhotoSelectionController ctrl = null;
@@ -230,6 +182,10 @@ public class PhotoInfoDlg extends JDialog {
     boolean photoChanged = false;
     public boolean isPhotoChanged() {
 	return photoChanged;
+    }
+
+    boolean isVisible() {
+        return dialogWindow.isVisible();
     }
 
 }

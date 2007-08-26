@@ -510,17 +510,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     FolderTreePane folderTreePane = null;
     
     public void actionPerformed( ActionEvent evt ) {
-	if ( evt.getActionCommand().equals( "save" ) ) {
-	    try {
-		ctrl.save();
-	    } catch ( Exception e ) {
-		log.warn( "exception while saving" + e.getMessage() );
-		e.printStackTrace();
-	    }
-	} else if ( evt.getActionCommand().equals( "discard" ) ) {
-	    log.debug( "Discarding data" );
-	    ctrl.discard();
-	} else if ( evt.getSource() == qualityField ) {
+	if ( evt.getSource() == qualityField ) {
 	    log.debug( "quality changed"  );
 	    // If getQuality returns null this action event is generated
 	    // by the controller that is setting up quality field to display

@@ -25,6 +25,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Collection;
 import java.util.Iterator;
+import org.hibernate.classic.Session;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 
@@ -84,12 +85,12 @@ class EditSelectionPropsAction extends AbstractAction implements SelectionChange
         }
 
         if (propertyDlg == null ) {
-            propertyDlg = new PhotoInfoDlg( view.ctrl, frame, false, selectedPhotos );
+            propertyDlg = new PhotoInfoDlg( view.ctrl, (Session) view.ctrl.getPersistenceContext(), false, selectedPhotos );
         } else {
             propertyDlg.setPhotos( selectedPhotos );
         }
 
-        propertyDlg.showDialog();
+            propertyDlg.showDialog();
     }
 
     PhotoCollectionThumbView view;
