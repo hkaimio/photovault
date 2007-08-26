@@ -28,6 +28,7 @@ import java.io.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.swingui.selection.PhotoInfoController;
 
 
 /**

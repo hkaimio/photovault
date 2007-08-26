@@ -26,6 +26,7 @@ import java.util.*;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
+import org.photovault.swingui.selection.PhotoInfoController;
 import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoInfoController extends PhotovaultTestCase {

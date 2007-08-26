@@ -48,6 +48,7 @@ import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.folderpane.FolderTreePane;
+import org.photovault.swingui.selection.PhotoInfoController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.

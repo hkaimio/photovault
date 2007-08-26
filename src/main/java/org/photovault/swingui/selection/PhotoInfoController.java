@@ -18,7 +18,7 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-package org.photovault.swingui;
+package org.photovault.swingui.selection;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
@@ -35,10 +35,9 @@ import java.io.*;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
+import org.photovault.swingui.*;
 import org.photovault.swingui.folderpane.FolderController;
 import org.photovault.swingui.framework.PersistenceController;
-import org.photovault.swingui.selection.PhotoSelectionView;
-
 
 /**
  PhotoInfoController contains the application logic for creating and editing 

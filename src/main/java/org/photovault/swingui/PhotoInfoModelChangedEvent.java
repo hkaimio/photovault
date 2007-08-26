@@ -21,6 +21,7 @@
 package org.photovault.swingui;
 
 import java.util.*;
+import org.photovault.swingui.selection.PhotoInfoController;
 
 /**
    Event that is send to PhotoInfoListeners when the model (i.e. PhotoInfo obejct) controlled by

@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import org.photovault.folder.*;
 import org.photovault.swingui.framework.PersistenceController;
+import org.photovault.swingui.selection.PhotoInfoController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 
 public class FolderController {

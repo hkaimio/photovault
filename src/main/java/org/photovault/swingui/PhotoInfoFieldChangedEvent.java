@@ -21,6 +21,7 @@
 package org.photovault.swingui;
 
 import java.util.*;
+import org.photovault.swingui.selection.PhotoInfoController;
 
 
 public class PhotoInfoFieldChangedEvent extends EventObject {

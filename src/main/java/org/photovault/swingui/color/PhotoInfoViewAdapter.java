@@ -32,7 +32,7 @@ import org.photovault.image.ColorCurve;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
-import org.photovault.swingui.PhotoInfoController;
+import org.photovault.swingui.selection.PhotoInfoController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.PreviewImageView;
 
