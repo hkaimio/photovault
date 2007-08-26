@@ -23,6 +23,7 @@ package org.photovault.swingui.selection;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.classic.Session;
 import org.odmg.LockNotGrantedException;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
@@ -37,6 +38,7 @@ import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.*;
 import org.photovault.swingui.folderpane.FolderController;
+import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.PersistenceController;
 
 /**
@@ -45,21 +47,30 @@ import org.photovault.swingui.framework.PersistenceController;
  * pattern.
  */
 
-public class PhotoSelectionController {
+public class PhotoSelectionController extends PersistenceController {
     
     static Log log = LogFactory.getLog( PhotoSelectionController.class.getName() );
     
     /**
-     Default constructor
+     Construct a new PhotoSelectionCOntroller that has its own persistence context       
+     @param parent Parent of this controller
      */
-    public PhotoSelectionController( PersistenceController ctrl ) {
-        persistenceCtrl = ctrl;
-        views = new ArrayList<PhotoSelectionView>();
-        cmd = new ChangePhotoInfoCommand();
-        folderCtrl = new FolderController( this, persistenceCtrl );
+    public PhotoSelectionController( AbstractController parent ) {
+        this( parent, null );
     }
     
-    PersistenceController persistenceCtrl;
+    /**
+     * Constructs a new PhotoSelectionController that joins an existing
+     * persistence context.
+     * @param parent Parent of this controller
+     * @param persistenceContext The persistence context to join
+     */
+    public PhotoSelectionController( AbstractController parent, Session persistenceContext ) {
+        super( parent, persistenceContext );
+        views = new ArrayList<PhotoSelectionView>();
+        cmd = new ChangePhotoInfoCommand();
+        folderCtrl = new FolderController( this );
+    }
 
     FolderController folderCtrl = null;
     
@@ -233,13 +244,13 @@ public class PhotoSelectionController {
             isCreatingNew = true;
         }
         this.photos = new PhotoInfo[1];
-        photos[0] = photo;
+        photos[0] = (PhotoInfo) getPersistenceContext().merge( photo );
         cmd = new ChangePhotoInfoCommand( photo.getId() );
         for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
         
-        folderCtrl.setPhotos( photos, false );
+        folderCtrl.setPhotos( this.photos, false );
     }
     
     /**
@@ -248,7 +259,11 @@ public class PhotoSelectionController {
      value is changed in a view, the new value is updated to all controlled objects.
      */
     public void setPhotos( PhotoInfo[] photos ) {
-        this.photos = photos;
+        // Ensure that the photo instances belong to our persistence context
+        this.photos = new PhotoInfo[photos.length];
+        for ( int n = 0; n < photos.length; n++ ) {
+            this.photos[n] = (PhotoInfo) getPersistenceContext().merge( photos[n] );
+        }
         // If we are editing several photos simultaneously we certainly are not creating a new photo...
         isCreatingNew = false;
         List<Integer> photoIds = new ArrayList<Integer>();
@@ -261,7 +276,7 @@ public class PhotoSelectionController {
         for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
-        folderCtrl.setPhotos( photos, false );
+        folderCtrl.setPhotos( this.photos, false );
     }
     
     /**

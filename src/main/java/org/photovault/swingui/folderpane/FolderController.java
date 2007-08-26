@@ -23,6 +23,8 @@ package org.photovault.swingui.folderpane;
 import java.util.ArrayList;
 import java.util.Vector;
 import javax.swing.tree.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoInfo;
@@ -38,18 +40,16 @@ import org.photovault.swingui.selection.PhotoSelectionView;
 
 public class FolderController {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FolderController.class.getName() );
+    Log log = LogFactory.getLog( FolderController.class.getName() );
 
     PhotoFolderTreeModel treeModel;
     FolderToFolderNodeMapper nodeMapper;
     
     PhotoFolderDAO folderDAO = null;
     PhotoSelectionController parentCtrl;
-    PersistenceController persCtrl;
     
-    public FolderController( PhotoSelectionController parentCtrl, PersistenceController persCtrl ) {
+    public FolderController( PhotoSelectionController parentCtrl ) {
 	this.parentCtrl = parentCtrl;
-        this.persCtrl = persCtrl;
         addedToFolders = new HashSet();
 	removedFromFolders = new HashSet();
         expandedFolders = new HashSet();
@@ -155,7 +155,7 @@ public class FolderController {
         nodeMapper = new FolderToFolderNodeMapper( photos );
         treeModel = new PhotoFolderTreeModel( nodeMapper );
         if ( folderDAO == null ) {
-            folderDAO = persCtrl.getDAOFactory().getPhotoFolderDAO();
+            folderDAO = parentCtrl.getDAOFactory().getPhotoFolderDAO();
         }
         PhotoFolder root = folderDAO.findRootFolder();
         treeModel.setRoot( root );        
