@@ -20,27 +20,24 @@
 
 package org.photovault.swingui;
 
-import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.odmg.LockNotGrantedException;
 import org.photovault.common.PhotovaultException;
-import org.photovault.dbhelper.ODMGXAWrapper;
-import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
-import org.photovault.image.PhotovaultImage;
-import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import java.io.*;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.folderpane.FolderController;
-import org.apache.log4j.Logger;
 import org.photovault.swingui.framework.PersistenceController;
+import org.photovault.swingui.selection.PhotoSelectionView;
 
 
 /**
@@ -51,14 +48,14 @@ import org.photovault.swingui.framework.PersistenceController;
 
 public class PhotoInfoController {
     
-    static Logger log = Logger.getLogger( PhotoInfoController.class.getName() );
+    static Log log = LogFactory.getLog( PhotoInfoController.class.getName() );
     
     /**
      Default constructor
      */
     public PhotoInfoController( PersistenceController ctrl ) {
         persistenceCtrl = ctrl;
-        views = new ArrayList<PhotoInfoView>();
+        views = new ArrayList<PhotoSelectionView>();
         cmd = new ChangePhotoInfoCommand();
         folderCtrl = new FolderController( this, persistenceCtrl );
     }
@@ -197,22 +194,22 @@ public class PhotoInfoController {
         }
         
         protected void updateView( Object view ) {
-            if ( view instanceof PhotoInfoView ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
+            if ( view instanceof PhotoSelectionView ) {
+                PhotoSelectionView obj = (PhotoSelectionView) view;
                 obj.setColorChannelCurve( name, (ColorCurve) value );
             }
         }
         protected void updateViewMultivalueState( Object view ) {
-            if ( view instanceof PhotoInfoView ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
+            if ( view instanceof PhotoSelectionView ) {
+                PhotoSelectionView obj = (PhotoSelectionView) view;
                 obj.setColorChannelMultivalued( name, isMultiValued, 
                         ( valueSet != null ) ? 
                             (ColorCurve[]) valueSet.toArray( new ColorCurve[0] ) : null );
             }
         }
         protected void updateValue( Object view ) {
-            if ( view instanceof PhotoInfoView ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
+            if ( view instanceof PhotoSelectionView ) {
+                PhotoSelectionView obj = (PhotoSelectionView) view;
                 value = obj.getColorChannelCurve( name );
             }
         }
@@ -224,7 +221,7 @@ public class PhotoInfoController {
     protected PhotoInfo[] photos = null;
     protected boolean isCreatingNew = true;
     
-    protected Collection<PhotoInfoView> views = null;
+    protected Collection<PhotoSelectionView> views = null;
     
     /**
      Sets the PhotoInfo record that will be edited
@@ -272,7 +269,7 @@ public class PhotoInfoController {
      Sets the view that is contorlled by this object
      @param view The controlled view
      */
-    public void setView( PhotoInfoView view ) {
+    public void setView( PhotoSelectionView view ) {
         views.clear();
         addView( view );
         folderCtrl.setViews( views );
@@ -283,7 +280,7 @@ public class PhotoInfoController {
      TODO: Only the new view should be set to match the model.
      @param view The view to add.
      */
-    public void addView( PhotoInfoView view ) {
+    public void addView( PhotoSelectionView view ) {
         views.add( view );
         for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
             updateViews( null, f );
@@ -472,7 +469,7 @@ public class PhotoInfoController {
         debugMsg.append( "]" );
         log.debug( debugMsg.toString() );
         cmd.setField( field, newValue );
-        for ( PhotoInfoView view : views ) {
+        for ( PhotoSelectionView view : views ) {
             view.setField( field, newValue );
             view.setFieldMultivalued( field, false );
         }
@@ -497,7 +494,7 @@ public class PhotoInfoController {
         return values;
     }
     
-    private void updateViews( PhotoInfoView src, ChangePhotoInfoCommand.PhotoInfoFields field ) {
+    private void updateViews( PhotoSelectionView src, ChangePhotoInfoCommand.PhotoInfoFields field ) {
         Set values = getFieldValues( field );
         Object value = null;
         boolean isMultivalued = true;
@@ -505,7 +502,7 @@ public class PhotoInfoController {
             value = values.toArray()[0];
             isMultivalued = false;
         }
-        for ( PhotoInfoView view : views ) {
+        for ( PhotoSelectionView view : views ) {
             if ( view != src ) {
                 view.setField( field, value );
                 view.setFieldMultivalued( field, isMultivalued );
@@ -513,7 +510,7 @@ public class PhotoInfoController {
         }
     }
     
-    public void viewChanged( PhotoInfoView view, ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue ) {
+    public void viewChanged( PhotoSelectionView view, ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue ) {
         Set fieldValues = getFieldValues( field );
         if ( fieldValues.size() != 1 || !fieldValues.contains( newValue ) ) {
             cmd.setField( field, newValue );
@@ -528,7 +525,7 @@ public class PhotoInfoController {
      @param newValue New value for the field
      @deprecated Use viewChanged( view, field ) instead.
      */
-    public void viewChanged( PhotoInfoView view, String field, Object newValue ) {
+    public void viewChanged( PhotoSelectionView view, String field, Object newValue ) {
         PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
         if ( fieldCtrl != null ) {
             fieldCtrl.viewChanged( view, newValue );
@@ -545,7 +542,7 @@ public class PhotoInfoController {
      @param field The field that has been changed
      */
     
-    public void viewChanged( PhotoInfoView view, String field ) {
+    public void viewChanged( PhotoSelectionView view, String field ) {
         PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
         if ( fieldCtrl != null ) {
             fieldCtrl.viewChanged( view );

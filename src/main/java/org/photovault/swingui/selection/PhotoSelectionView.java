@@ -18,7 +18,7 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 
-package org.photovault.swingui;
+package org.photovault.swingui.selection;
 
 import javax.swing.tree.TreePath;
 import org.photovault.dcraw.RawConversionSettings;
@@ -29,7 +29,7 @@ import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import javax.swing.tree.TreeModel;
 
-public interface PhotoInfoView {
+public interface PhotoSelectionView {
     
     public void setField( ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue );
     public void setFieldMultivalued( ChangePhotoInfoCommand.PhotoInfoFields field, boolean isMultivalued );

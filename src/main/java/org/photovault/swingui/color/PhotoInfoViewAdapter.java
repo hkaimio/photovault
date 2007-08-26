@@ -33,7 +33,7 @@ import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.swingui.PhotoInfoController;
-import org.photovault.swingui.PhotoInfoView;
+import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.PreviewImageView;
 
 /**
@@ -44,7 +44,7 @@ import org.photovault.swingui.PreviewImageView;
  In future PhotoInfoView should be refactored, using this class is more future 
  proof.
  */
-public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
+public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageView {
     private static Log log = LogFactory.getLog( PhotoInfoViewAdapter.class );
     
     PhotoInfoController c;

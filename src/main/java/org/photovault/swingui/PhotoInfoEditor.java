@@ -48,12 +48,13 @@ import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.folderpane.FolderTreePane;
+import org.photovault.swingui.selection.PhotoSelectionView;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
     Use can either edit an existing record or create a completely new record.
 */
 
-public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionListener, DocumentListener, PropertyChangeListener {
+public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, ActionListener, DocumentListener, PropertyChangeListener {
 
     static Log log = LogFactory.getLog( PhotoInfoEditor.class );
 

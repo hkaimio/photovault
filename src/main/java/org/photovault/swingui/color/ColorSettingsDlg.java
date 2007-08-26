@@ -64,7 +64,7 @@ import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.JAIPhotoViewer;
 import org.photovault.swingui.PhotoInfoController;
-import org.photovault.swingui.PhotoInfoView;
+import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.PhotoViewChangeEvent;
 import org.photovault.swingui.PhotoViewChangeListener;
 import org.photovault.swingui.PreviewImageView;

@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import org.photovault.folder.*;
 import org.photovault.swingui.framework.PersistenceController;
+import org.photovault.swingui.selection.PhotoSelectionView;
 
 public class FolderController {
 
@@ -54,7 +55,7 @@ public class FolderController {
         initTree();
     }
 
-    Collection<PhotoInfoView> views = null;
+    Collection<PhotoSelectionView> views = null;
     
     public void setViews( Collection views ) {
 	this.views = views;
@@ -62,7 +63,7 @@ public class FolderController {
     }
 
     public void updateAllViews() {
-        for( PhotoInfoView view : views ) {
+        for( PhotoSelectionView view : views ) {
             view.setFolderTreeModel( treeModel );
         }
         expandTreePaths();
@@ -82,7 +83,7 @@ public class FolderController {
                 TreePath path = new TreePath( parents.toArray() );
                 Iterator viewIter = views.iterator();
                 while ( viewIter.hasNext() ) {
-                    PhotoInfoView view = (PhotoInfoView) viewIter.next();
+                    PhotoSelectionView view = (PhotoSelectionView) viewIter.next();
                     view.expandFolderTreePath( path );
                 }
             }
