@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import org.photovault.folder.*;
 import org.photovault.swingui.framework.PersistenceController;
-import org.photovault.swingui.selection.PhotoInfoController;
+import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 
 public class FolderController {
@@ -44,10 +44,10 @@ public class FolderController {
     FolderToFolderNodeMapper nodeMapper;
     
     PhotoFolderDAO folderDAO = null;
-    PhotoInfoController parentCtrl;
+    PhotoSelectionController parentCtrl;
     PersistenceController persCtrl;
     
-    public FolderController( PhotoInfoController parentCtrl, PersistenceController persCtrl ) {
+    public FolderController( PhotoSelectionController parentCtrl, PersistenceController persCtrl ) {
 	this.parentCtrl = parentCtrl;
         this.persCtrl = persCtrl;
         addedToFolders = new HashSet();

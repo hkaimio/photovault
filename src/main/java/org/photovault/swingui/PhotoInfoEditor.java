@@ -48,7 +48,7 @@ import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.folderpane.FolderTreePane;
-import org.photovault.swingui.selection.PhotoInfoController;
+import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
@@ -62,7 +62,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     static Color multiValueColor = Color.LIGHT_GRAY;
     static Color singleValueColor = Color.WHITE;
 
-    public PhotoInfoEditor( PhotoInfoController ctrl ) {
+    public PhotoInfoEditor( PhotoSelectionController ctrl ) {
 	super();
 	this.ctrl = ctrl;
 	createUI();
@@ -526,7 +526,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	    // by the controller that is setting up quality field to display
 	    // model with multiple quality values.
 	    if ( getQuality() != null ) {
-		ctrl.viewChanged( this, PhotoInfoController.QUALITY );
+		ctrl.viewChanged( this, PhotoSelectionController.QUALITY );
 	    }
 	}
     }
@@ -722,6 +722,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
         }
     }
 
-    private PhotoInfoController ctrl = null;
+    private PhotoSelectionController ctrl = null;
     private static final String FIELD = "FIELD";
 }

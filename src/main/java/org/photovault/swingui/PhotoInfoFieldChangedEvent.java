@@ -21,17 +21,18 @@
 package org.photovault.swingui;
 
 import java.util.*;
-import org.photovault.swingui.selection.PhotoInfoController;
+import org.photovault.swingui.selection.PhotoSelectionController;
 
 
 public class PhotoInfoFieldChangedEvent extends EventObject {
 
     /**
-       Constructor.
-       @param source Source of the event @see java.util.EventObject documentation.
-       @param field The modified field, from constants defined in PhotoInfoController
-    */
-    public PhotoInfoFieldChangedEvent( PhotoInfoController source, String field ) {
+     *       Constructor.
+     * 
+     * @param source Source of the event @see java.util.EventObject documentation.
+     * @param field The modified field, from constants defined in PhotoInfoContPhotoSelectionController
+     */
+    public PhotoInfoFieldChangedEvent( PhotoSelectionController source, String field ) {
 	super( source );
 	modifiedField = field;
     }

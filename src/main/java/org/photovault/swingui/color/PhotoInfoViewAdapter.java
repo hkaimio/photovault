@@ -32,32 +32,32 @@ import org.photovault.image.ColorCurve;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
-import org.photovault.swingui.selection.PhotoInfoController;
+import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.PreviewImageView;
 
 /**
- Adapter class for getting notifications from some PhotoInfoController generated 
- events. Just implements {@link PhotoInfoView} with empty methods so that it is 
- easier to use when only a few methods are needed.
- <p> 
- In future PhotoInfoView should be refactored, using this class is more future 
- proof.
+ * Adapter class for getting notifications from some PhotoSelectionController generated 
+ * events. Just implements {@link PhotoInfoView} with empty methods so that it is 
+ * easier to use when only a few methods are needed.
+ * <p> 
+ * In future PhotoInfoView should be refactored, using this class is more future 
+ * proof.
  */
 public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageView {
     private static Log log = LogFactory.getLog( PhotoInfoViewAdapter.class );
     
-    PhotoInfoController c;
+    PhotoSelectionController c;
     
     /**
      * Creates a new instance of PhotoInfoViewAdapter
      */
-    public PhotoInfoViewAdapter( PhotoInfoController c ) {
+    public PhotoInfoViewAdapter( PhotoSelectionController c ) {
         this.c = c;
         c.addView( this );
     }
     
-    public PhotoInfoController getController() {
+    public PhotoSelectionController getController() {
         return c;
     }
 

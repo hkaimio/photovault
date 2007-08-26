@@ -63,7 +63,7 @@ import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.JAIPhotoViewer;
-import org.photovault.swingui.selection.PhotoInfoController;
+import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.PhotoViewChangeEvent;
 import org.photovault.swingui.PhotoViewChangeListener;
@@ -92,7 +92,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public ColorSettingsDlg(java.awt.Frame parent, boolean modal, PhotoInfo[] photos ) {
         super(parent, modal);
         initComponents();
-        ctrl = new PhotoInfoController( null );
+        ctrl = new PhotoSelectionController( null );
         ctrl.setView( this );
         ctrl.setPhotos( photos );
         checkIsRawPhoto();
@@ -116,7 +116,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public ColorSettingsDlg(java.awt.Frame parent, boolean modal, PhotoInfo photo ) {
         super(parent, modal);
         initComponents();
-        ctrl = new PhotoInfoController( null );
+        ctrl = new PhotoSelectionController( null );
         ctrl.setPhoto( photo );
         ctrl.setView( this );
         checkIsRawPhoto();
@@ -125,7 +125,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     /**
      Controller for the photos that will be edited
      */
-    PhotoInfoController ctrl = null;
+    PhotoSelectionController ctrl = null;
     RawConversionSettings rawSettings = null;
     
     /**
@@ -618,7 +618,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newGain = Math.pow( 2, greenEv );
         if ( Math.abs( newGain - this.greenGain ) > 0.005 ) {
             greenGain= newGain;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_GREEN );
+            ctrl.viewChanged( this, PhotoSelectionController.RAW_GREEN );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setGreenGain( newGain );
@@ -643,7 +643,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newCTemp = ctempSlider.getValue();
         if ( Math.abs( newCTemp - this.colorTemp ) > 10 ) {
             colorTemp= newCTemp;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_CTEMP );
+            ctrl.viewChanged( this, PhotoSelectionController.RAW_CTEMP );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setColorTemp( newCTemp );
@@ -663,7 +663,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         int newBlack = (int) blackLevelSlider.getValue();
         if ( Math.abs( newBlack - black ) > 0.05 ) {
             black = newBlack;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_BLACK_LEVEL );
+            ctrl.viewChanged( this, PhotoSelectionController.RAW_BLACK_LEVEL );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setBlack( newBlack );
@@ -684,7 +684,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newEv = evCorrSlider.getValue();
         if ( Math.abs( newEv - evCorr ) > 0.05 ) {
             evCorr = newEv;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_EV_CORR );
+            ctrl.viewChanged( this, PhotoSelectionController.RAW_EV_CORR );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setEvCorr( newEv );
@@ -704,7 +704,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newHlightComp = hlightCompSlider.getValue();
         if ( (Math.abs( newHlightComp - this.hlightComp ) > 0.001 ) ) {
             this.hlightComp = newHlightComp;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_HLIGHT_COMP );
+            ctrl.viewChanged( this, PhotoSelectionController.RAW_HLIGHT_COMP );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setHlightComp( newHlightComp );
@@ -730,7 +730,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ColorProfileDesc p = profiles[selectedId];
         if ( p != profile ) {
             profile = p;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_COLOR_PROFILE );
+            ctrl.viewChanged( this, PhotoSelectionController.RAW_COLOR_PROFILE );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setColorProfile( p );
@@ -807,19 +807,19 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         colorCurves[currentColorCurve] = c;
         switch ( currentColorCurve ) {
             case 0:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_VALUE );
+                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_VALUE );
                 break;
             case 1:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_RED );
+                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_RED );
                 break;
             case 2:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_GREEN );
+                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_GREEN );
                 break;
             case 3:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_BLUE );
+                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_BLUE );
                 break;
             case 4:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_SATURATION );
+                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_SATURATION );
                 break;                
             default:
                 // Should never happend
@@ -900,7 +900,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     static class PhotoViewerAdapter 
             extends PhotoInfoViewAdapter 
             implements PhotoViewChangeListener {
-        public PhotoViewerAdapter( JAIPhotoViewer preview, PhotoInfoController ctrl ) {
+        public PhotoViewerAdapter( JAIPhotoViewer preview, PhotoSelectionController ctrl ) {
             super( ctrl );
             this.previewCtrl = preview;
             preview.addViewChangeListener( this );
@@ -919,7 +919,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
 
         public void photoViewChanged(PhotoViewChangeEvent e) {
-            c.viewChanged( this, PhotoInfoController.PREVIEW_IMAGE );
+            c.viewChanged( this, PhotoSelectionController.PREVIEW_IMAGE );
         }
     }
     

@@ -28,7 +28,7 @@ import java.io.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.swingui.selection.PhotoInfoController;
+import org.photovault.swingui.selection.PhotoSelectionController;
 
 
 /**
@@ -47,7 +47,7 @@ public class PhotoInfoDlg extends JDialog {
     public PhotoInfoDlg( PhotoViewController masterCtrl, Frame owner, boolean modal, PhotoInfo photo ) {
 	super( owner, DIALOG_TITLE, modal );
         this.masterCtrl = masterCtrl;
-	ctrl = new PhotoInfoController( masterCtrl );
+	ctrl = new PhotoSelectionController( masterCtrl );
 	    
 	createUI();
 	ctrl.setPhoto( photo );
@@ -56,7 +56,7 @@ public class PhotoInfoDlg extends JDialog {
     public PhotoInfoDlg( PhotoViewController masterCtrl, Frame owner, boolean modal, PhotoInfo[] photos ) {
 	super( owner, DIALOG_TITLE, modal );
         this.masterCtrl = masterCtrl;
-	ctrl = new PhotoInfoController( masterCtrl );
+	ctrl = new PhotoSelectionController( masterCtrl );
 	    
 	createUI();
 	ctrl.setPhotos( photos );
@@ -223,7 +223,7 @@ public class PhotoInfoDlg extends JDialog {
     
 
     PhotoInfoEditor editor = null;
-    PhotoInfoController ctrl = null;
+    PhotoSelectionController ctrl = null;
     /**
        Indicates whether the photo inforamtion was changed (by pressing OK or Apply)
     */

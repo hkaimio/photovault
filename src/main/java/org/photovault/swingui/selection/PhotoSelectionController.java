@@ -40,19 +40,19 @@ import org.photovault.swingui.folderpane.FolderController;
 import org.photovault.swingui.framework.PersistenceController;
 
 /**
- PhotoInfoController contains the application logic for creating and editing 
- PhotoInfo records in database, i.e. it implements the controller role in MVC 
- pattern.
+ * PhotoSelectionController contains the application logic for creating and editing 
+ * PhotoInfo records in database, i.e. it implements the controller role in MVC 
+ * pattern.
  */
 
-public class PhotoInfoController {
+public class PhotoSelectionController {
     
-    static Log log = LogFactory.getLog( PhotoInfoController.class.getName() );
+    static Log log = LogFactory.getLog( PhotoSelectionController.class.getName() );
     
     /**
      Default constructor
      */
-    public PhotoInfoController( PersistenceController ctrl ) {
+    public PhotoSelectionController( PersistenceController ctrl ) {
         persistenceCtrl = ctrl;
         views = new ArrayList<PhotoSelectionView>();
         cmd = new ChangePhotoInfoCommand();

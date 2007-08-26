@@ -21,17 +21,17 @@
 package org.photovault.swingui;
 
 import java.util.*;
-import org.photovault.swingui.selection.PhotoInfoController;
+import org.photovault.swingui.selection.PhotoSelectionController;
 
 /**
-   Event that is send to PhotoInfoListeners when the model (i.e. PhotoInfo obejct) controlled by
-   PhotoInfoController object is changed
-*/
+ *   Event that is send to PhotoInfoListeners when the model (i.e. PhotoInfo obejct) controlled by
+ *   PhotoSelectionController object is changed
+ */
 public class PhotoInfoModelChangedEvent extends EventObject {
     /**
        Constructor
     */
-    public PhotoInfoModelChangedEvent( PhotoInfoController source ) {
+    public PhotoInfoModelChangedEvent( PhotoSelectionController source ) {
 	super ( source );
     }
 }
