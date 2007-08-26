@@ -92,7 +92,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public ColorSettingsDlg(java.awt.Frame parent, boolean modal, PhotoInfo[] photos ) {
         super(parent, modal);
         initComponents();
-        ctrl = new PhotoInfoController();
+        ctrl = new PhotoInfoController( null );
         ctrl.setView( this );
         ctrl.setPhotos( photos );
         checkIsRawPhoto();
@@ -116,7 +116,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public ColorSettingsDlg(java.awt.Frame parent, boolean modal, PhotoInfo photo ) {
         super(parent, modal);
         initComponents();
-        ctrl = new PhotoInfoController();
+        ctrl = new PhotoInfoController( null );
         ctrl.setPhoto( photo );
         ctrl.setView( this );
         checkIsRawPhoto();

@@ -40,6 +40,7 @@ import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.folderpane.FolderController;
 import org.apache.log4j.Logger;
+import org.photovault.swingui.framework.PersistenceController;
 
 
 /**
@@ -55,12 +56,16 @@ public class PhotoInfoController {
     /**
      Default constructor
      */
-    public PhotoInfoController() {
-//        modelFields = new HashMap();
+    public PhotoInfoController( PersistenceController ctrl ) {
+        persistenceCtrl = ctrl;
         views = new ArrayList<PhotoInfoView>();
         cmd = new ChangePhotoInfoCommand();
-//        initModelFields();
+        folderCtrl = new FolderController( this, persistenceCtrl );
     }
+    
+    PersistenceController persistenceCtrl;
+
+    FolderController folderCtrl = null;
     
     static class PhotoInfoFieldCtrl extends FieldController<PhotoInfo,ChangePhotoInfoCommand> {
         PhotoInfoFieldCtrl( String field, PhotoInfo m ) {
@@ -214,305 +219,6 @@ public class PhotoInfoController {
     };
 
     
-    /**
-     initModelFields() initializes the modelFields structure to match the model object.
-     It will contain one FieldController object for each fields in the model.
-     */
-    protected void initModelFields() {
-        modelFields.put( PHOTOGRAPHER, new PhotoInfoFieldCtrl( "photographer", photos ) );
-        
-        modelFields.put( FUZZY_DATE, new PhotoInfoFieldCtrl( "", photos ) {
-            protected void setModelValue( ChangePhotoInfoCommand obj ) {
-                log.debug( "FUZZY_DATE - setModeValue ({}) " );
-                FuzzyDate fd = (FuzzyDate) value;
-                if ( fd != null ) {
-                    obj.setShootTime( fd.getDate() );
-                    obj.setTimeAccuracy( fd.getAccuracy() );
-                } else {
-                    obj.setShootTime( null );
-                    obj.setTimeAccuracy( 0.0 );
-                }
-            }
-            
-            protected Object getModelValue( PhotoInfo obj ) {
-                log.debug( "FUZZY_DATE - getModeValue ({}) " );
-                Date date = obj.getShootTime();
-                double accuracy = obj.getTimeAccuracy();
-                return new FuzzyDate( date, accuracy );
-            }
-            
-            protected void updateView( Object o ) {
-                PhotoInfoView view = (PhotoInfoView) o;
-                view.setFuzzyDate( (FuzzyDate) value);                
-            }
-
-            protected void updateViewMultivalueState( Object o ) {
-                PhotoInfoView view = (PhotoInfoView) o;
-                view.setFuzzyDateMultivalued( isMultiValued );
-            }
-
-        });
-        
-        modelFields.put( QUALITY, new PhotoInfoFieldCtrl( "quality", photos ) {
-            protected void setModelValue( ChangePhotoInfoCommand obj ) {
-                if ( value != null ) {
-                    obj.setQuality( ((Number)value).intValue() );
-                } else {
-                    obj.setQuality( 0 );
-                }
-            }
-        });
-        
-        
-        modelFields.put( SHOOTING_PLACE, new PhotoInfoFieldCtrl( "shootingPlace", photos ) );
-        
-        modelFields.put( CAMERA_MODEL, new PhotoInfoFieldCtrl( "camera", photos ) );
-        modelFields.put( FILM_TYPE, new PhotoInfoFieldCtrl( "film", photos ) );
-        
-        modelFields.put( LENS_TYPE, new PhotoInfoFieldCtrl( "lens", photos ) );
-        
-        modelFields.put( DESCRIPTION, new PhotoInfoFieldCtrl( "description", photos ) );
-        
-        modelFields.put( TECHNOTE, new PhotoInfoFieldCtrl( "techNotes", photos ) );
-        
-        modelFields.put( F_STOP, new PhotoInfoFieldCtrl( "FStop", photos ) );
-        
-        modelFields.put( SHUTTER_SPEED, new PhotoInfoFieldCtrl( "shutterSpeed", photos ) );
-        
-        modelFields.put( FOCAL_LENGTH, new PhotoInfoFieldCtrl( "focalLength", photos ) );
-        
-        modelFields.put( FILM_SPEED, new PhotoInfoFieldCtrl( "filmSpeed", photos ) );
-/*        
- 
-        modelFields.put( RAW_SETTINGS, new FieldController<PhotoInfo,ChangePhotoInfoCommand>( "rawSettings", photos ) {
-            protected void setModelValue( ChangePhotoInfoCommand obj ) {
-                obj.setRawSettings( (RawConversionSettings) value );
-            }
-            protected Object getModelValue( PhotoInfo model ) {
-                PhotoInfo obj = (PhotoInfo) model;
-                return obj.getRawSettings();
-            }
-            protected void updateView( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setRawSettings( (RawConversionSettings) value );
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                obj.setRawSettingsMultivalued( isMultiValued );
-                
-            }
-            protected void updateValue( Object view ) {
-                PhotoInfoView obj = (PhotoInfoView) view;
-                value = obj.getRawSettings();
-            }
-        });
-        
-        // Raw setting fields
-        
-        modelFields.put( RAW_BLACK_LEVEL, new RawSettingFieldCtrl( photos, RAW_BLACK_LEVEL ) {
-            protected void doSetModelValue( RawSettingsFactory f, Object newValue ) {
-                if ( newValue != null ) {
-                    f.setBlack( ((Number)value).intValue() );
-                } else {
-                    f.setBlack( 0 );
-                }
-            }
-            protected Object doGetModelValue( RawConversionSettings r ) {
-                return new Integer( r.getBlack() );
-            }
-            protected void doSetViewValue( RawPhotoView view ) {
-                if ( value != null ) {
-                    view.setRawBlack( ((Number)value).intValue() );
-                } else {
-                    view.setRawBlack( 0 );
-                }
-            }
-            protected Object doGetViewValue( RawPhotoView view ) {
-                return new Integer( view.getRawBlack() );
-            }
-            protected void doSetViewMultivaluedState( RawPhotoView view ) {
-                view.setRawBlackMultivalued( isMultiValued, valueSet.toArray() );
-            }
-        });
-        
-        modelFields.put( RAW_EV_CORR, new RawSettingFieldCtrl( photos, RAW_EV_CORR ) {
-            protected void doSetModelValue( RawSettingsFactory f, Object newValue ) {
-                if ( newValue != null ) {
-                    f.setEvCorr( ((Number)value).doubleValue() );
-                } else {
-                    f.setEvCorr( 0 );
-                }
-            }
-            protected Object doGetModelValue( RawConversionSettings r ) {
-                return new Double( r.getEvCorr() );
-            }
-            protected void doSetViewValue( RawPhotoView view ) {
-                if ( value != null ) {
-                    view.setRawEvCorr( ((Number)value).doubleValue() );
-                } else {
-                    view.setRawEvCorr( 0.0 );
-                }
-            }
-            protected Object doGetViewValue( RawPhotoView view ) {
-                return new Double( view.getRawEvCorr() );
-            }
-            protected void doSetViewMultivaluedState( RawPhotoView view ) {
-                view.setRawEvCorrMultivalued( this.isMultiValued, valueSet.toArray() );
-            }
-        });
-        
-
-        modelFields.put( RAW_HLIGHT_COMP, new RawSettingFieldCtrl( photos, RAW_HLIGHT_COMP ) {
-            protected void doSetModelValue( RawSettingsFactory f, Object newValue ) {
-                if ( newValue != null ) {
-                    f.setHlightComp( ((Number)value).doubleValue() );
-                } else {
-                    f.setHlightComp( 0 );
-                }
-            }
-            protected Object doGetModelValue( RawConversionSettings r ) {
-                return new Double( r.getHighlightCompression() );
-            }
-            protected void doSetViewValue( RawPhotoView view ) {
-                if ( value != null ) {
-                    view.setRawHlightComp( ((Number)value).doubleValue() );
-                } else {
-                    view.setRawHlightComp( 0.0 );
-                }
-            }
-            protected Object doGetViewValue( RawPhotoView view ) {
-                return new Double( view.getRawHlightComp() );
-            }
-            protected void doSetViewMultivaluedState( RawPhotoView view ) {
-                view.setRawHlightCompMultivalued( this.isMultiValued, valueSet.toArray() );
-            }
-        });
-
-        modelFields.put( RAW_CTEMP, new RawSettingFieldCtrl( photos, RAW_CTEMP ) {
-            protected void doSetModelValue( RawSettingsFactory f, Object newValue ) {
-                if ( newValue != null ) {
-                    f.setColorTemp( ((Number)value).doubleValue() );
-                } else {
-                    f.setColorTemp( 0 );
-                }
-            }
-            protected Object doGetModelValue( RawConversionSettings r ) {
-                return new Double( r.getColorTemp() );
-            }
-            protected void doSetViewValue( RawPhotoView view ) {
-                if ( value != null ) {
-                    view.setRawColorTemp( ((Number)value).doubleValue() );
-                } else {
-                    view.setRawColorTemp( 0.0 );
-                }
-            }
-            protected Object doGetViewValue( RawPhotoView view ) {
-                return new Double( view.getRawColorTemp() );
-            }
-            protected void doSetViewMultivaluedState( RawPhotoView view ) {
-                view.setRawColorTempMultivalued( this.isMultiValued, valueSet.toArray() );
-            }
-        });        
-                        
-        modelFields.put( RAW_GREEN, new RawSettingFieldCtrl( photos, RAW_GREEN ) {
-            protected void doSetModelValue( RawSettingsFactory f, Object newValue ) {
-                if ( newValue != null ) {
-                    f.setGreenGain( ((Number)value).doubleValue() );
-                } else {
-                    f.setGreenGain( 0 );
-                }
-            }
-            protected Object doGetModelValue( RawConversionSettings r ) {
-                return new Double( r.getGreenGain() );
-            }
-            protected void doSetViewValue( RawPhotoView view ) {
-                if ( value != null ) {
-                    view.setRawGreenGain( ((Number)value).doubleValue() );
-                } else {
-                    view.setRawGreenGain( 0.0 );
-                }
-            }
-            protected Object doGetViewValue( RawPhotoView view ) {
-                return new Double( view.getRawGreenGain() );
-            }
-            protected void doSetViewMultivaluedState( RawPhotoView view ) {
-                view.setRawGreenGainMultivalued( this.isMultiValued, valueSet.toArray() );
-            }
-        });        
-        
-        modelFields.put( RAW_COLOR_PROFILE, new RawSettingFieldCtrl( photos, RAW_COLOR_PROFILE ) {
-            protected void doSetModelValue( RawSettingsFactory f, Object newValue ) {
-                f.setColorProfile( (ColorProfileDesc) newValue );
-            }
-            
-            protected Object doGetModelValue( RawConversionSettings r ) {
-                return r.getColorProfile();
-            }
-            
-            protected void doSetViewValue( RawPhotoView view ) {
-                view.setRawProfile( (ColorProfileDesc) value );
-            }
-            protected Object doGetViewValue( RawPhotoView view ) {
-                return view.getRawProfile();
-            }
-            protected void doSetViewMultivaluedState( RawPhotoView view ) {
-                view.setRawProfileMultivalued( this.isMultiValued, valueSet.toArray() );
-            }
-        });
-        
-        modelFields.put( COLOR_MAPPING, new FieldController<PhotoInfo,ChangePhotoInfoCommand>( "colorChannelMapping", photos ));
- */       
-        /*
-         TODO: Yes, this is a hack since preview image is not saved to model
-         at any point. Perhaps PhotoInofController should offer a generic
-         communication mechanism between views?
-         */
-        modelFields.put( PREVIEW_IMAGE, new PhotoInfoFieldCtrl( "preview", photos ) {
-           protected void setModelValue( ChangePhotoInfoCommand model ) {
-               // This is intended only as an information for other views
-           } 
-            protected Object getModelValue( Object model ) {
-                return null;
-            }
-            protected void updateView( Object view ) {
-                if ( view instanceof PreviewImageView ) {
-                    PreviewImageView obj = (PreviewImageView) view;
-                    obj.modelPreviewImageChanged( (PhotovaultImage) value );
-                }
-            }
-            protected void updateViewMultivalueState( Object view ) {
-                // no implementation
-            }
-            protected void updateValue( Object view ) {
-                if ( view instanceof PreviewImageView ) {
-                    PreviewImageView obj = (PreviewImageView) view;
-                    value = obj.getPreviewImage();
-                } else {
-                    value = null;
-                }
-            }
-        });
-        
-/*        
-        modelFields.put( COLOR_CURVE_VALUE, new ColorCurveCtrl( photos, "value" ) );
-        modelFields.put( COLOR_CURVE_RED, new ColorCurveCtrl( photos, "red" ) );
-        modelFields.put( COLOR_CURVE_GREEN, new ColorCurveCtrl( photos, "green" ) );
-        modelFields.put( COLOR_CURVE_BLUE, new ColorCurveCtrl( photos, "blue" ) );
-        modelFields.put( COLOR_CURVE_SATURATION, new ColorCurveCtrl( photos, "saturation" ) );
-*/        
-/*
-        folderCtrl = new FolderController( photos );
-        modelFields.put( PHOTO_FOLDERS, folderCtrl );
-*/        
-        // TODO: Add other fields
-        
-        // Init the views in the fields
-        Iterator iter = modelFields.values().iterator();
-        while( iter.hasNext() ) {
-            PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) iter.next();
-            fieldCtrl.setViews( views );
-        }
-    }
     
     
     protected PhotoInfo[] photos = null;
@@ -536,7 +242,8 @@ public class PhotoInfoController {
         for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
-        // changeModelInFields( isCreatingNew );
+        
+        folderCtrl.setPhotos( photos, false );
     }
     
     /**
@@ -558,7 +265,7 @@ public class PhotoInfoController {
         for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
-        // changeModelInFields( isCreatingNew );
+        folderCtrl.setPhotos( photos, false );
     }
     
     /**
@@ -568,6 +275,7 @@ public class PhotoInfoController {
     public void setView( PhotoInfoView view ) {
         views.clear();
         addView( view );
+        folderCtrl.setViews( views );
     }
     
     /**
@@ -580,6 +288,7 @@ public class PhotoInfoController {
         for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
+        folderCtrl.setViews( views );
     }
     
     /**
@@ -616,9 +325,7 @@ public class PhotoInfoController {
     public FolderController getFolderController() {
         return folderCtrl;
     }
-    
-    FolderController folderCtrl;
-    
+        
     public ChangePhotoInfoCommand getChangeCommand() {
         return cmd;
     }

@@ -46,7 +46,7 @@ public class PhotoInfoDlg extends JDialog {
     public PhotoInfoDlg( PhotoViewController masterCtrl, Frame owner, boolean modal, PhotoInfo photo ) {
 	super( owner, DIALOG_TITLE, modal );
         this.masterCtrl = masterCtrl;
-	ctrl = new PhotoInfoController();
+	ctrl = new PhotoInfoController( masterCtrl );
 	    
 	createUI();
 	ctrl.setPhoto( photo );
@@ -55,7 +55,7 @@ public class PhotoInfoDlg extends JDialog {
     public PhotoInfoDlg( PhotoViewController masterCtrl, Frame owner, boolean modal, PhotoInfo[] photos ) {
 	super( owner, DIALOG_TITLE, modal );
         this.masterCtrl = masterCtrl;
-	ctrl = new PhotoInfoController();
+	ctrl = new PhotoInfoController( masterCtrl );
 	    
 	createUI();
 	ctrl.setPhotos( photos );

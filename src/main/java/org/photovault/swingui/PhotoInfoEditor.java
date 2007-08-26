@@ -59,7 +59,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
     static Color multiValueColor = Color.LIGHT_GRAY;
     static Color singleValueColor = Color.WHITE;
-    s
+
     public PhotoInfoEditor( PhotoInfoController ctrl ) {
 	super();
 	this.ctrl = ctrl;
@@ -709,7 +709,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
             boolean isMultivalued) {
         String propertyName = field.getName() + "Multivalued";
         try {
-            PropertyUtils.setProperty( this, propertyName, isMultivalued );
+            PropertyUtils.setProperty( this, propertyName, isMultivalued ); 
         } catch (NoSuchMethodException ex) {
             log.error( "Cannot set property " + propertyName );
             ex.printStackTrace();

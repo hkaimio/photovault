@@ -464,7 +464,8 @@ public class BrowserWindow extends AbstractController {
 	    pdlg.setVisible( true );
 	    
 	    // Show editor dialog for the added photos
-	    PhotoInfoDlg dlg = new PhotoInfoDlg( window, false, photos );
+	    // PhotoInfoDlg dlg = new PhotoInfoDlg( window, false, photos );
+	    PhotoInfoDlg dlg = null;
 	    dlg.showDialog();
 	}
     }

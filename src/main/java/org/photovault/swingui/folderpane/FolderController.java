@@ -32,8 +32,9 @@ import java.util.HashSet;
 import java.util.Collection;
 import java.util.Iterator;
 import org.photovault.folder.*;
+import org.photovault.swingui.framework.PersistenceController;
 
-public class FolderController extends FieldController<PhotoInfo, ChangePhotoInfoCommand> {
+public class FolderController {
 
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FolderController.class.getName() );
 
@@ -41,42 +42,29 @@ public class FolderController extends FieldController<PhotoInfo, ChangePhotoInfo
     FolderToFolderNodeMapper nodeMapper;
     
     PhotoFolderDAO folderDAO = null;
+    PhotoInfoController parentCtrl;
+    PersistenceController persCtrl;
     
-    public FolderController( PhotoInfo[] model ) {
-	super( "folders", model );
-	addedToFolders = new HashSet();
+    public FolderController( PhotoInfoController parentCtrl, PersistenceController persCtrl ) {
+	this.parentCtrl = parentCtrl;
+        this.persCtrl = persCtrl;
+        addedToFolders = new HashSet();
 	removedFromFolders = new HashSet();
         expandedFolders = new HashSet();
         initTree();
     }
 
-    protected void setModelValue( PhotoInfo model ) {
-    }
-
-    protected Object getModelValue( Object model ) {
-	return null;
-    }
+    Collection<PhotoInfoView> views = null;
     
-    protected void updateView( Object view ) {
-    }
-    
-    protected void updateViewMultivalueState( Object view ) {
-    }
-    
-    protected void updateValue( Object view ) {
-    }
-
     public void setViews( Collection views ) {
 	this.views = views;
 	updateAllViews();
     }
 
     public void updateAllViews() {
-	Iterator iter = views.iterator();
-	while ( iter.hasNext() ) {
-	    PhotoInfoView view = (PhotoInfoView) iter.next();
-	    view.setFolderTreeModel( treeModel );
-	}
+        for( PhotoInfoView view : views ) {
+            view.setFolderTreeModel( treeModel );
+        }
         expandTreePaths();
     }
 
@@ -84,9 +72,7 @@ public class FolderController extends FieldController<PhotoInfo, ChangePhotoInfo
      Expand the paths to those folders that have photos in model
      */
     private void expandTreePaths() {
-        Iterator iter = expandedFolders.iterator();
-        while ( iter.hasNext() ) {
-            PhotoFolder folder = (PhotoFolder) iter.next();
+        for( PhotoFolder folder : expandedFolders ) {
             Vector parents = new Vector();
             // parents.add( nodeMapper.mapFolderToNode( folder ) );
             while ( (folder = folder.getParentFolder() ) != null ) {
@@ -109,11 +95,10 @@ public class FolderController extends FieldController<PhotoInfo, ChangePhotoInfo
 	return topNode;
     }
 
-    public void setModel( Object[] model, boolean preserveState ) {
-	this.model = new ArrayList<PhotoInfo>();
-        for ( Object o : model ) {
-            this.model.add( (PhotoInfo) o);
-        }
+    PhotoInfo[] photos = null;
+    
+    public void setPhotos( PhotoInfo[] photos, boolean preserveState ) {
+	this.photos = photos;
 	if ( !preserveState && addedToFolders != null  ) {
 	    addedToFolders.clear();
 	    removedFromFolders.clear();
@@ -135,6 +120,7 @@ public class FolderController extends FieldController<PhotoInfo, ChangePhotoInfo
 	removedFromFolders.remove( f );
 	FolderNode fn = (FolderNode)nodeMapper.mapFolderToNode( f );
 	fn.addAllPhotos();
+        parentCtrl.getChangeCommand().addToFolder( f );
     }
     
     /**
@@ -147,18 +133,7 @@ public class FolderController extends FieldController<PhotoInfo, ChangePhotoInfo
 	
         FolderNode fn = (FolderNode) nodeMapper.mapFolderToNode( f );
         fn.removeAllPhotos();  
-    }
-
-    /**
-       Saves all modifications to database
-    */
-    public void save( ChangePhotoInfoCommand cmd ) {
-        for ( PhotoFolder f : addedToFolders ) {
-            cmd.addToFolder( f );
-        }
-        for ( PhotoFolder f : removedFromFolders ) {
-            cmd.removeFromFolder( f );
-        }
+        parentCtrl.getChangeCommand().removeFromFolder( f );
     }
     
     /**
@@ -174,17 +149,17 @@ public class FolderController extends FieldController<PhotoInfo, ChangePhotoInfo
          TODO: Currently this is called several times while initializing the dialog.
          Optimize!!!
          */
-        Object[] modelArray = (model != null ) ? model.toArray() : null;
-        nodeMapper = new FolderToFolderNodeMapper( modelArray );
+        log.debug( "initTree()" );
+        nodeMapper = new FolderToFolderNodeMapper( photos );
         treeModel = new PhotoFolderTreeModel( nodeMapper );
         if ( folderDAO == null ) {
-            folderDAO = new PhotoFolderDAOHibernate();
+            folderDAO = persCtrl.getDAOFactory().getPhotoFolderDAO();
         }
         PhotoFolder root = folderDAO.findRootFolder();
         treeModel.setRoot( root );        
-        if ( model != null ) {
+        if ( photos != null ) {
             // Add all photos in the model to folder tree
-            for ( PhotoInfo p : model ) {
+            for ( PhotoInfo p : photos ) {
                 // if the model is empty it can contain a null
                 // TODO: this is IMHO a hack - passing null up to this point is certainly
                 // not elegant and there might be even more error opportunities

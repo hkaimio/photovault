@@ -189,6 +189,9 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         return changedFields.get( field );
     }
     
+    
+    
+    
     // Utility methods for setting fields
     
     public void setCamera( String newValue ) {
@@ -267,16 +270,40 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         setField( PhotoInfoFields.UUID, newValue );
     }
     
+    public enum FolderStates {
+        UNMODIFIED,
+        ADDED,
+        REMOVED
+    };
+    
+    /**
+     Instruct command to add all photos to given folder
+     @param folder The folder into which the photos will be added
+     */
     public void addToFolder( PhotoFolder folder ) {
         removedFromFolders.remove( folder );
         addedToFolders.add( folder );
     }
     
+    /**
+     Instruct command to add all photos to given folder
+     @param folder The folder into which the photos will be added
+     */
     public void removeFromFolder( PhotoFolder folder ) {
         addedToFolders.remove( folder );
         removedFromFolders.add( folder );
     }
     
+    
+    public FolderStates getFolderState( PhotoFolder folder ) {
+        if ( addedToFolders.contains( folder ) ) {
+            return FolderStates.ADDED;        
+        } else if ( removedFromFolders.contains( folder ) ) {
+            return FolderStates.REMOVED;
+        }
+        return FolderStates.UNMODIFIED;
+    }    
+        
     /**
      Execute the command.
      */
@@ -286,7 +313,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             debugMsg = new StringBuffer();
             debugMsg.append( "execute()" );
             boolean isFirst = true;
-            for ( Integer id : photoIds ) {
+            for ( Integer id : photoIds ) { 
                 debugMsg.append( isFirst ? "Photo ids: " : ", " );
                 debugMsg.append( id );
             }

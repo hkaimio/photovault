@@ -41,7 +41,7 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
 	photo.setPhotographer( "TESTIKUVAAJA" );
 	photo.setFStop( 5.6 );
 
-	ctrl = new PhotoInfoController();
+	ctrl = new PhotoInfoController( null );
     }
 
     public void tearDown() {
