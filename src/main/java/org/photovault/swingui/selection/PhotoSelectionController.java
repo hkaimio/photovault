@@ -273,15 +273,20 @@ public class PhotoSelectionController extends PersistenceController {
     }
     
     /**
-     Sets a group of PhotoInfo records that will be edited. If all of the records will have same value for a
-     certain field the views will display this value. Otherwise, <code>null</code> is displayed and if the
-     value is changed in a view, the new value is updated to all controlled objects.
+     Sets a group of PhotoInfo records that will be edited. If all of the 
+     records will have same value for a certain field the views will display 
+     this value. Otherwise, <code>null</code> is displayed and if the value 
+     is changed in a view, the new value is updated to all controlled objects.
      */
     public void setPhotos( PhotoInfo[] photos ) {
         // Ensure that the photo instances belong to our persistence context
-        this.photos = new PhotoInfo[photos.length];
-        for ( int n = 0; n < photos.length; n++ ) {
-            this.photos[n] = (PhotoInfo) getPersistenceContext().merge( photos[n] );
+        if ( photos != null ) {
+            this.photos = new PhotoInfo[photos.length];
+            for ( int n = 0; n < photos.length; n++ ) {
+                this.photos[n] = (PhotoInfo) getPersistenceContext().merge( photos[n] );
+            }
+        } else {
+            this.photos = null;
         }
         // If we are editing several photos simultaneously we certainly are not creating a new photo...
         isCreatingNew = false;
