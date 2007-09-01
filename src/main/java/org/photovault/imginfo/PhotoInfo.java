@@ -1682,7 +1682,14 @@ public class PhotoInfo implements java.io.Serializable {
      @param data The data read from database.
      */
     protected void setColorChannelMappingXmlData( byte[] data ) {
-        channelMap = ChannelMapOperationFactory.createFromXmlData( data );
+        ChannelMapOperation oldMap = channelMap;
+                channelMap = ChannelMapOperationFactory.createFromXmlData( data );
+        if ( ( channelMap == null && oldMap != null ) || 
+                (channelMap != null && !channelMap.equals( oldMap ))  ) {
+            invalidateThumbnail();
+            purgeInvalidInstances();
+            modified();
+        }
     }
     
     /**
