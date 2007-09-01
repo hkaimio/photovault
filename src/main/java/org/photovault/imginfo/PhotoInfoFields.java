@@ -30,7 +30,8 @@ import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
 
 /**
- Fields in PhotoInfo
+ Enum type that lists all fields in {@link PhotoInfo}. The class also provides
+ utility methodds to access photo by field.
  */
 public enum PhotoInfoFields {                
     CAMERA ("camera", String.class ),         
@@ -126,6 +127,13 @@ public enum PhotoInfoFields {
         throw new IllegalArgumentException( "Unknown raw setting field " + field );
     }
     
+    /**
+     Get value of a field in a photo
+     @param photo The photo
+     @param field Field to access
+     @return Value of field in photo, or <code>null</code> if the field has not 
+     been set.
+     */
     public static Object getFieldValue( PhotoInfo photo, PhotoInfoFields field ) {
         Object retval = null;
         switch( field ) {
@@ -174,6 +182,6 @@ public enum PhotoInfoFields {
         if ( EnumSet.range( COLOR_CURVE_VALUE, COLOR_CURVE_SATURATION ).contains( field ) ) {
             return getColorCurve( photo, field );
         }
-        throw new IllegalArgumentException( "No supprot for field " + field );
+        throw new IllegalArgumentException( "No support for field " + field );
     }
 }

@@ -22,6 +22,7 @@ package org.photovault.imginfo;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Date;
+import java.util.EnumSet;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperationFactory;
@@ -138,8 +139,8 @@ public class Test_PhotoInfoFields {
     public void testChannelMap() {
         assert getFieldValue( photo, COLOR_CURVE_VALUE ).equals( valueCurve );
         assert getFieldValue( photo, COLOR_CURVE_RED ).equals( redCurve );
-        assert getFieldValue( photo, COLOR_CURVE_BLUE ).equals( greenCurve );
-        assert getFieldValue( photo, COLOR_CURVE_GREEN ).equals( blueCurve );
+        assert getFieldValue( photo, COLOR_CURVE_BLUE ).equals( blueCurve );
+        assert getFieldValue( photo, COLOR_CURVE_GREEN ).equals( greenCurve );
         assert getFieldValue( photo, COLOR_CURVE_SATURATION ).equals( satCurve );
     }
     
@@ -154,5 +155,15 @@ public class Test_PhotoInfoFields {
     public void testNullChannelMap() {
         photo.setColorChannelMapping( null );
         assert getFieldValue( photo, COLOR_CURVE_GREEN ) == null;
+    }
+    
+    /**
+     Verify that no field value generates an exception
+     */
+    @Test
+    public void testAllFieldValues() {
+        for ( PhotoInfoFields field : EnumSet.allOf( PhotoInfoFields.class ) ) {
+            getFieldValue( photo, field );
+        }
     }
 }
