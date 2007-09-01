@@ -40,12 +40,13 @@ import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
 import org.photovault.swingui.color.ColorSettingsDlg;
+import org.photovault.swingui.color.ColorSettingsPreview;
 import org.photovault.swingui.color.PhotoInfoViewAdapter;
 import org.photovault.swingui.color.RawSettingsPreviewEvent;
 
 public class JAIPhotoViewer extends JPanel implements 
         PhotoInfoChangeListener, ComponentListener, CropAreaChangeListener,
-        RawImageChangeListener {
+        RawImageChangeListener, ColorSettingsPreview {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JAIPhotoViewer.class.getName() );
 
     public JAIPhotoViewer( PhotoViewController ctrl ) {
@@ -399,6 +400,27 @@ public class JAIPhotoViewer extends JPanel implements
 
     public void setSaturation(double newSat) {
         imageView.setSaturation( newSat );
+    }
+
+    public void setField(PhotoInfoFields field, Object value, java.util.List refValues) {
+        
+        switch ( field ) {
+            case COLOR_CURVE_VALUE:
+                setColorCurve( "value", (ColorCurve) value );
+                break;
+            case COLOR_CURVE_RED:
+                setColorCurve( "red", (ColorCurve) value );
+                break;
+            case COLOR_CURVE_GREEN:
+                setColorCurve( "green", (ColorCurve) value );
+                break;
+            case COLOR_CURVE_BLUE:
+                setColorCurve( "blue", (ColorCurve) value );
+                break;
+            case COLOR_CURVE_SATURATION:
+                setColorCurve( "saturation", (ColorCurve) value );
+                break;
+        }
     }
     
     JAIPhotoView imageView = null;

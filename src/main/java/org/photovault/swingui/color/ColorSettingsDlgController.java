@@ -22,6 +22,7 @@ package org.photovault.swingui.color;
 
 import java.awt.Frame;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Set;
 import org.hibernate.Session;
 import org.photovault.image.ColorCurve;
@@ -91,7 +92,21 @@ public class ColorSettingsDlgController extends PhotoSelectionController {
         } else {
             allRaw = false;
         }
-        dlg.setRawControlsEnabled( allRaw );
+        dlg.setRawControlsEnabled( allRaw );        
+    }
+
+    /**
+     Discard all changes. OVerridden from superclass to ensure that preview image 
+     is returned to original state.
+     */
+    public void discard() {
+        super.discard();
+        if ( preview != null && photos != null &&
+                photos.length == 1 && photos[0] == preview.getPhoto() ) {
+            for ( PhotoInfoFields f : EnumSet.allOf( PhotoInfoFields.class ) ) {
+                updatePreview( f, PhotoInfoFields.getFieldValue( photos[0], f ) );
+            }
+        }        
     }
     
     /**

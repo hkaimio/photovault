@@ -22,8 +22,11 @@ package org.photovault.imginfo;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Date;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
 
 /**
@@ -63,7 +66,6 @@ public enum PhotoInfoFields {
     COLOR_CURVE_SATURATION( "saturationCurve", ColorCurve.class );
 
 
-
     PhotoInfoFields(String name, Class type) {
         this.name = name;
         this.type = type;
@@ -79,5 +81,99 @@ public enum PhotoInfoFields {
     public String getName() {
         return name;
     }
+
+    private static Object getRawSettingFieldValue( PhotoInfo photo, PhotoInfoFields field ) {
+        RawConversionSettings s = photo.getRawSettings();
+        if ( s == null ) {
+            return null;
+        }
+        switch ( field ) {
+            case RAW_BLACK_LEVEL:
+                return s.getBlack();
+            case RAW_COLOR_PROFILE:
+                return s.getColorProfile();
+            case RAW_CTEMP:
+                return s.getColorTemp();
+            case RAW_EV_CORR:
+                return s.getEvCorr();
+            case RAW_GREEN:
+                return s.getGreenGain();
+            case RAW_HLIGHT_COMP:
+                return s.getHighlightCompression();
+            case RAW_WHITE_LEVEL:
+                return s.getWhite();                
+        }
+        throw new IllegalArgumentException( "Unknown raw setting field " + field );
+    }
     
+    private static ColorCurve getColorCurve( PhotoInfo photo, PhotoInfoFields field ) {
+        ChannelMapOperation cm = photo.getColorChannelMapping();
+        if ( cm == null ) {
+            return null;
+        }
+        switch( field ) {
+            case COLOR_CURVE_VALUE:
+                return cm.getChannelCurve( "value" );
+            case COLOR_CURVE_RED:
+                return cm.getChannelCurve( "red" );
+            case COLOR_CURVE_GREEN:
+                return cm.getChannelCurve( "green" );
+            case COLOR_CURVE_BLUE:
+                return cm.getChannelCurve( "blue" );
+            case COLOR_CURVE_SATURATION:
+                return cm.getChannelCurve( "saturation" );
+        }
+        throw new IllegalArgumentException( "Unknown raw setting field " + field );
+    }
+    
+    public static Object getFieldValue( PhotoInfo photo, PhotoInfoFields field ) {
+        Object retval = null;
+        switch( field ) {
+            case CAMERA:
+                return photo.getCamera();
+            case CROP_BOUNDS:
+                return photo.getCropBounds();
+            case DESCRIPTION:
+                return photo.getDescription();
+            case FILM:
+                return photo.getFilm();
+            case FILM_SPEED:
+                return photo.getFilmSpeed();
+            case FOCAL_LENGTH:
+                return photo.getFocalLength();
+            case FSTOP:
+                return photo.getFStop();
+            case LENS:
+                return photo.getLens();
+            case ORIG_FNAME:
+                return photo.getOrigFname();
+            case PHOTOGRAPHER:
+                return photo.getPhotographer();
+            case PREF_ROTATION:
+                return photo.getPrefRotation();
+            case QUALITY:
+                return photo.getQuality();
+            case RAW_SETTINGS:
+                return photo.getRawSettings();
+            case SHOOTING_PLACE:
+                return photo.getShootingPlace();
+            case SHOOT_TIME:
+                return photo.getShootTime();
+            case SHUTTER_SPEED:
+                return photo.getShutterSpeed();
+            case TECH_NOTES:
+                return photo.getTechNotes();
+            case TIME_ACCURACY:
+                return photo.getTimeAccuracy();
+            case UUID:
+                return photo.getUUID();
+        }
+        if ( EnumSet.range( RAW_BLACK_LEVEL, RAW_COLOR_PROFILE).contains( field )  ) {
+            return getRawSettingFieldValue( photo, field );
+        }
+        if ( EnumSet.range( COLOR_CURVE_VALUE, COLOR_CURVE_SATURATION ).contains( field ) ) {
+            return getColorCurve( photo, field );
+        }
+        throw new IllegalArgumentException( "No supprot for field " + field );
+    }
 }

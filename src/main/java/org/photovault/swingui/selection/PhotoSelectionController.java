@@ -478,7 +478,7 @@ public class PhotoSelectionController extends PersistenceController {
         } else if ( photos != null) {            
             for ( PhotoInfo p : photos ) {
                 try {
-                    value = PropertyUtils.getProperty( p, field.getName() );
+                    value = PhotoInfoFields.getFieldValue( p, field );
                 } catch (Exception ex) {
                     log.error( ex.getMessage() );
                     ex.printStackTrace();
@@ -501,7 +501,7 @@ public class PhotoSelectionController extends PersistenceController {
             for ( PhotoInfo p : photos ) {
                 Object value = null;
                 try {
-                    value = PropertyUtils.getProperty( p, field.getName() );
+                    value = PhotoInfoFields.getFieldValue( p, field );
                 } catch (Exception ex) {
                     log.error( ex.getMessage() );
                     ex.printStackTrace();

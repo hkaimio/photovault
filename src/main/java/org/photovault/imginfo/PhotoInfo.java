@@ -1255,6 +1255,11 @@ public class PhotoInfo implements java.io.Serializable {
         txw.commit();        
     }
     
+    @Transient
+    public FuzzyDate getFuzzyShootTime() {
+        return new FuzzyDate( shootTime, timeAccuracy );
+    }
+    
     /**
      
      @return The timeAccuracty value
