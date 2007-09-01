@@ -39,6 +39,8 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ColorCurve;
 
 /**
   Command for changing the properties of {@link PhotoInfo}. This command provides 
@@ -49,56 +51,6 @@ import org.photovault.folder.PhotoFolderDAO;
 public class ChangePhotoInfoCommand extends DataAccessCommand {
     
     static Log log = LogFactory.getLog( ChangePhotoInfoCommand.class );
-    
-    /**
-     Fields in PhotoInfo
-     @todo this should be part of PhotoInfo
-     */
-    public enum PhotoInfoFields {
-        CAMERA ("camera", String.class ),
-        CROP_BOUNDS( "cropBounds", Rectangle2D.class ),
-        DESCRIPTION( "description", String.class ),
-        FSTOP( "FStop", Double.class ),
-        FILM( "film", String.class ),
-        FILM_SPEED( "filmSpeed", Integer.class ),
-        FOCAL_LENGTH( "focalLength", Integer.class ),
-        LENS( "lens", String.class ),
-        ORIG_FNAME( "origFname", String.class ),
-        PHOTOGRAPHER( "photographer", String.class ),
-        PREF_ROTATION( "prefRotation", Double.class ),
-        QUALITY( "quality", Integer.class ),
-        RAW_SETTINGS( "rawSettings", RawConversionSettings.class ),
-        SHOOT_TIME( "shootTime", Date.class ),
-        SHOOTING_PLACE( "shootingPlace", String.class ),
-        SHUTTER_SPEED( "shutterSpeed", Double.class ),
-        TECH_NOTES( "techNotes", String.class ),
-        TIME_ACCURACY( "timeAccuracy", Double.class ),
-        UUID( "UUID", UUID.class ),
-        RAW_BLACK_LEVEL( "", Integer.class ),
-        RAW_WHITE_LEVEL( "", Integer.class ),
-        RAW_EV_CORR( "", Double.class ),
-        RAW_HLIGHT_COMP( "", Double.class ),
-        RAW_CTEMP( "", Double.class ),
-        RAW_GREEN( "", Double.class ),
-        RAW_COLOR_PROFILE( "", Double.class );
-
-        PhotoInfoFields( String name, Class type ) {
-            this.name = name;
-            this.type = type;
-        }
-        
-        private final String name;
-        private final Class type;
-        
-        public Class getType() {
-            return type;
-        }
-        
-        public String getName() {
-            return name;
-        }
-        
-    }
     
     /**
      Construct a new command that creates a new PhotoInfo object.
@@ -340,6 +292,8 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         changedPhotos = new HashSet<PhotoInfo>();
         Set<PhotoInfoFields> rawSettingsFields = 
                 EnumSet.range( PhotoInfoFields.RAW_BLACK_LEVEL, PhotoInfoFields.RAW_COLOR_PROFILE);
+        Set<PhotoInfoFields> colorCurveFields = 
+                EnumSet.range( PhotoInfoFields.COLOR_CURVE_VALUE, PhotoInfoFields.COLOR_CURVE_SATURATION );
         for ( PhotoInfo photo : photos ) {
             /*
              Ensure that this photo is persistence & the instance belongs to 
@@ -347,17 +301,11 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
              */
             changedPhotos.add( photo );
             RawSettingsFactory rawSettingsFactory = null;
+            ChannelMapOperationFactory channelMapFactory = null;
             for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
                 PhotoInfoFields field = e.getKey();
                 Object value = e.getValue();
-                if ( !rawSettingsFields.contains( field ) ) {
-                    try {
-                        PropertyUtils.setProperty( photo, field.getName(), value );
-                    } catch ( Exception ex) {
-                        log.error( "Exception while executing command", ex );
-                        throw new CommandException( "Error while executing command: " + ex.getMessage() );
-                    }
-                } else {
+                if ( rawSettingsFields.contains( field ) ) {
                     // This is a raw setting field, we must use factory for changing it
                     if ( rawSettingsFactory == null ) {
                         rawSettingsFactory = new RawSettingsFactory( photo.getRawSettings() );
@@ -368,9 +316,35 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                         log.error( "Exception while executing command", ex );
                         throw new CommandException( "Error while executing command: " + ex.getMessage() );
                     }
-                    
-                }
-                
+                } else if ( colorCurveFields.contains( field ) ) {
+                    if ( channelMapFactory == null ) {
+                        channelMapFactory = new ChannelMapOperationFactory( photo.getColorChannelMapping() );
+                    }
+                    switch ( field ) {
+                        case COLOR_CURVE_VALUE:
+                            channelMapFactory.setChannelCurve( "value", (ColorCurve) value);
+                            break;
+                        case COLOR_CURVE_RED:
+                            channelMapFactory.setChannelCurve( "red", (ColorCurve) value);
+                            break;
+                        case COLOR_CURVE_BLUE:
+                            channelMapFactory.setChannelCurve( "blue", (ColorCurve) value);
+                            break;
+                        case COLOR_CURVE_GREEN:
+                            channelMapFactory.setChannelCurve( "green", (ColorCurve) value);
+                            break;
+                        case COLOR_CURVE_SATURATION:
+                            channelMapFactory.setChannelCurve( "saturation", (ColorCurve) value);
+                            break;
+                    }
+                } else {
+                    try {
+                        PropertyUtils.setProperty( photo, field.getName(), value );
+                    } catch ( Exception ex) {
+                        log.error( "Exception while executing command", ex );
+                        throw new CommandException( "Error while executing command: " + ex.getMessage() );
+                    }
+                }                
             }
             if ( rawSettingsFactory != null ) {
                 try {
@@ -379,6 +353,10 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                     log.error( "Exception while executing command", ex );
                     ex.printStackTrace();
                 }
+            }
+            if ( channelMapFactory != null ) {
+                photo.setColorChannelMapping( channelMapFactory.create() );
+                
             }
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
             for ( PhotoFolder folder : addedToFolders ) {

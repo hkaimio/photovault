@@ -47,6 +47,7 @@ import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ColorCurve;
 import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
@@ -1885,8 +1886,52 @@ public class PhotoInfo implements java.io.Serializable {
         txw.commit();
     }
     
+    /**
+     Utility method to get the color curve assigned to red channel
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getRedColorCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "red" ) : null;
+    }
     
     /**
+     Utility method to get the color curve assigned to green channel
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getGreenColorCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "green" ) : null;
+    }
+    
+    /**
+     Utility method to get the color curve assigned to blue channel
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getBlueColorCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "blue" ) : null;
+    }
+    
+    /**
+     Utility method to get the color curve assigned to saturation adjustment.
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getSaturationCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "saturation" ) : null;
+    }
+    
+    /**
+     Utility method to get the color curve assigned to master value adjustment.
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getMasterCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "value" ) : null;
+    }
+    
+/**
      List of folders this photo belongs to
      */
     Set<PhotoFolder> folders = new HashSet<PhotoFolder>();

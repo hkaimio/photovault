@@ -393,11 +393,8 @@ public class JAIPhotoViewer extends JPanel implements
      @param name Name of the color curve that was changed
      @param c The changed color curve
      */
-    public void colorCurveChanged( PhotoInfoViewAdapter v, String name, ColorCurve c ) {
-        PhotoInfo[] model = v.getController().getPhotos();
-        if ( model != null && model.length == 1 && model[0] == photo ) {
-            imageView.setColorCurve( name, c );
-        }
+    public void setColorCurve( String name, ColorCurve c ) {
+        imageView.setColorCurve( name, c );
     }
 
     public void setSaturation(double newSat) {

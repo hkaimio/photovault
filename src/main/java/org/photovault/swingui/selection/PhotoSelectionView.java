@@ -28,12 +28,14 @@ import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
 import java.util.*;
 import javax.swing.tree.TreeModel;
+import org.photovault.imginfo.PhotoInfoFields;
 
 public interface PhotoSelectionView {
     
-    public void setField( ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue );
-    public void setFieldMultivalued( ChangePhotoInfoCommand.PhotoInfoFields field, boolean isMultivalued );
-    public Object getField( ChangePhotoInfoCommand.PhotoInfoFields field );
+    public void setField( PhotoInfoFields field, Object newValue );
+    public void setField( PhotoInfoFields field, Object newValue, List refValues );
+    public void setFieldMultivalued( PhotoInfoFields field, boolean isMultivalued );
+    public Object getField( PhotoInfoFields field );
     
     public void setPhotographer( String newValue );
     public String getPhotographer();

@@ -25,7 +25,7 @@ import javax.swing.JOptionPane;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 import org.odmg.LockNotGrantedException;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
@@ -265,7 +265,7 @@ public class PhotoSelectionController extends PersistenceController {
         this.photos = new PhotoInfo[1];
         photos[0] = (PhotoInfo) getPersistenceContext().merge( photo );
         cmd = new ChangePhotoInfoCommand( photo.getId() );
-        for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
+        for ( PhotoInfoFields f : EnumSet.allOf( PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
         
@@ -292,7 +292,7 @@ public class PhotoSelectionController extends PersistenceController {
             }
         }
         this.cmd = new ChangePhotoInfoCommand( photoIds );
-        for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
+        for ( PhotoInfoFields f : EnumSet.allOf( PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
         folderCtrl.setPhotos( this.photos, false );
@@ -315,7 +315,7 @@ public class PhotoSelectionController extends PersistenceController {
      */
     public void addView( PhotoSelectionView view ) {
         views.add( view );
-        for ( ChangePhotoInfoCommand.PhotoInfoFields f : EnumSet.allOf( ChangePhotoInfoCommand.PhotoInfoFields.class ) ) {
+        for ( PhotoInfoFields f : EnumSet.allOf( PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
         folderCtrl.setViews( views );
@@ -379,7 +379,7 @@ public class PhotoSelectionController extends PersistenceController {
     /**
      Discards modifications done after last save
      */
-    protected void discard() {
+    public void discard() {
         setPhotos( photos );
     }
     
@@ -440,7 +440,10 @@ public class PhotoSelectionController extends PersistenceController {
     
     ChangePhotoInfoCommand cmd;
     
-    public Set getFieldValues( ChangePhotoInfoCommand.PhotoInfoFields field ) {
+    /**
+     Get the current field value or values
+     */
+    public Set getFieldValues( PhotoInfoFields field ) {
         Set values = new HashSet();
         Object value = cmd.getField( field );
         if ( value != null ) {
@@ -458,24 +461,51 @@ public class PhotoSelectionController extends PersistenceController {
         }
         return values;
     }
+
+    /**
+     Get the original field values before potential modifications done in this
+     controller.
+     @param fiel The field which values to get
+     @return Set of all values of field that some photo in the selection have.
+     */
+    public Set getOriginalFieldValues( PhotoInfoFields field ) {
+        Set values = new HashSet();
+        if ( photos != null) {
+            for ( PhotoInfo p : photos ) {
+                Object value = null;
+                try {
+                    value = PropertyUtils.getProperty( p, field.getName() );
+                } catch (Exception ex) {
+                    log.error( ex.getMessage() );
+                    ex.printStackTrace();
+                } 
+                values.add( value );
+            }
+        }
+        return values;
+    }
     
-    private void updateViews( PhotoSelectionView src, ChangePhotoInfoCommand.PhotoInfoFields field ) {
-        Set values = getFieldValues( field );
-        Object value = null;
-        boolean isMultivalued = true;
-        if ( values.size() == 1 ) {
-            value = values.toArray()[0];
-            isMultivalued = false;
+    /**
+     Update all views with the current value of a field.
+     @param src The view that has initiated value change and which therefore should
+     not be updated. If <code>null</code>, update all views.
+     @param field The field that will be updated.
+     */
+    private void updateViews( PhotoSelectionView src, PhotoInfoFields field ) {
+        List refValues = new ArrayList( getOriginalFieldValues( field ) );
+        Object value = cmd.getField( field );
+        if ( value == null && refValues.size() == 1 ) {
+            value = refValues.get(0);
         }
         for ( PhotoSelectionView view : views ) {
             if ( view != src ) {
-                view.setField( field, value );
+                view.setField( field, value, refValues );
             }
-            view.setFieldMultivalued( field, isMultivalued );
+            // view.setFieldMultivalued( field, isMultivalued );
         }
     }
     
-    public void viewChanged( PhotoSelectionView view, ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue ) {
+    public void viewChanged( PhotoSelectionView view, PhotoInfoFields field, Object newValue ) {
         Set fieldValues = getFieldValues( field );
         if ( fieldValues.size() != 1 || !fieldValues.contains( newValue ) ) {
             cmd.setField( field, newValue );

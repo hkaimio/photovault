@@ -21,6 +21,7 @@
 package org.photovault.swingui.color;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -32,6 +33,7 @@ import org.photovault.image.ColorCurve;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
+import org.photovault.imginfo.PhotoInfoFields;
 import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.PreviewImageView;
@@ -216,7 +218,7 @@ public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageVie
     public ColorCurve getColorChannelCurve(String name) {
         return null;
     }
-
+    
     public void setColorChannelMapping(ChannelMapOperation cm) {
     }
 
@@ -234,7 +236,7 @@ public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageVie
         return null;
     }
 
-    public Object getField(ChangePhotoInfoCommand.PhotoInfoFields field) {
+    public Object getField(PhotoInfoFields field) {
         Object value = null;
         String propertyName = field.getName();
         try {
@@ -251,7 +253,7 @@ public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageVie
     }
 
 
-    public void setField(ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue) {
+    public void setField(PhotoInfoFields field, Object newValue) {
         String propertyName = field.getName();
         try {
             PropertyUtils.setProperty( this, propertyName, newValue );
@@ -265,7 +267,7 @@ public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageVie
         }
     }
     
-    public void setFieldMultivalued(ChangePhotoInfoCommand.PhotoInfoFields field, boolean isMultivalued) {
+    public void setFieldMultivalued(PhotoInfoFields field, boolean isMultivalued) {
         String propertyName = field.getName() + "Multivalued";
         try {
             PropertyUtils.setProperty( this, propertyName, isMultivalued );
@@ -277,6 +279,9 @@ public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageVie
         } catch (InvocationTargetException ex) {
             log.error( ex.getMessage() );
         }
+    }
+
+    public void setField(PhotoInfoFields field, Object newValue, List refValues) {
     }
         
 }

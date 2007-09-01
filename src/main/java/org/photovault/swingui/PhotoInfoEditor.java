@@ -30,7 +30,6 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
-import org.photovault.imginfo.ChangePhotoInfoCommand.PhotoInfoFields;
 import org.photovault.imginfo.FuzzyDate;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -86,7 +85,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	photographerField = new JTextField( 30 );
 	photographerDoc = photographerField.getDocument();
 	photographerDoc.addDocumentListener( this );
-	photographerDoc.putProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.PHOTOGRAPHER );
+	photographerDoc.putProperty( FIELD, PhotoInfoFields.PHOTOGRAPHER );
 
 	// "Fuzzy time" field
 	JLabel fuzzyDateLabel = new JLabel( "Shooting date" );
@@ -105,7 +104,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	shootingPlaceField = new JTextField( 30 );
 	shootingPlaceDoc = shootingPlaceField.getDocument();
 	shootingPlaceDoc.addDocumentListener( this );
-	shootingPlaceDoc.putProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.SHOOTING_PLACE );
+	shootingPlaceDoc.putProperty( FIELD, PhotoInfoFields.SHOOTING_PLACE );
 	
 	// Description text
 	JLabel descLabel = new JLabel( "Description" );
@@ -118,7 +117,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	descBorder = BorderFactory.createTitledBorder( descBorder, "Description" );
         descScrollPane.setBorder( descBorder );
 	descriptionDoc = descriptionTextArea.getDocument();
-	descriptionDoc.putProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.DESCRIPTION );
+	descriptionDoc.putProperty( FIELD, PhotoInfoFields.DESCRIPTION );
 	descriptionDoc.addDocumentListener( this );
 		
 	// Lay out the created controls
@@ -158,19 +157,19 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	cameraField = new JTextField( 20 );
 	cameraDoc = cameraField.getDocument();
 	cameraDoc.addDocumentListener( this );
-	cameraDoc.putProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.CAMERA );
+	cameraDoc.putProperty( FIELD, PhotoInfoFields.CAMERA );
 	
 	JLabel lensLabel =  new JLabel( "Lens" );
 	lensField = new JTextField( 20 );
 	lensDoc = lensField.getDocument();
 	lensDoc.addDocumentListener( this );
-	lensDoc.putProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.LENS );
+	lensDoc.putProperty( FIELD, PhotoInfoFields.LENS );
 
 	JLabel filmLabel =  new JLabel( "Film" );
 	filmField = new JTextField( 20 );
 	filmDoc = filmField.getDocument();
 	filmDoc.addDocumentListener( this );
-	filmDoc.putProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.FILM );
+	filmDoc.putProperty( FIELD, PhotoInfoFields.FILM );
 
 	JLabel filmSpeedLabel =  new JLabel( "Film speed" );
 	NumberFormatter filmSpeedFormatter = new NumberFormatter( new DecimalFormat( "#########0" ) );	
@@ -179,7 +178,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 
 	filmSpeedField.setColumns( 5 );
 	filmSpeedField.addPropertyChangeListener( this );
-	filmSpeedField.putClientProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.FILM_SPEED );
+	filmSpeedField.putClientProperty( FIELD, PhotoInfoFields.FILM_SPEED );
 
 	JLabel shutterSpeedLabel =  new JLabel( "Shutter speed" );
 	DecimalFormat shutterSpeedFormat = new DecimalFormat( "###0.####" );
@@ -188,7 +187,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	shutterSpeedField = new JFormattedTextField( shutterSpeedFormatter );
 	shutterSpeedField.setColumns( 5 );
 	shutterSpeedField.addPropertyChangeListener( this );
-	shutterSpeedField.putClientProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.SHUTTER_SPEED );
+	shutterSpeedField.putClientProperty( FIELD, PhotoInfoFields.SHUTTER_SPEED );
 
 	JLabel fStopLabel =  new JLabel( "F-stop" );
 	DecimalFormat fStopFormat = new DecimalFormat( "#0.#" );
@@ -197,7 +196,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	fStopField = new JFormattedTextField( fStopFormatter );
 	fStopField.setColumns( 5 );
 	fStopField.addPropertyChangeListener( this );
-	fStopField.putClientProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.FSTOP );
+	fStopField.putClientProperty( FIELD, PhotoInfoFields.FSTOP );
 	
 	JLabel focalLengthLabel =  new JLabel( "Focal length" );
 	NumberFormatter focalLengthFormatter = new NumberFormatter( new DecimalFormat( "#######0.#" ) );
@@ -205,7 +204,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	focalLengthField = new JFormattedTextField( focalLengthFormatter );
 	focalLengthField.setColumns( 5 );
 	focalLengthField.addPropertyChangeListener( this );
-	focalLengthField.putClientProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.FOCAL_LENGTH );
+	focalLengthField.putClientProperty( FIELD, PhotoInfoFields.FOCAL_LENGTH );
 
 	// Tech note text
 	JLabel notesLabel = new JLabel( "Tech. notes" );
@@ -218,7 +217,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	technoteBorder = BorderFactory.createTitledBorder( technoteBorder, "Description" );
         technoteScrollPane.setBorder( technoteBorder );
 	technoteDoc = technoteTextArea.getDocument();
-	technoteDoc.putProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.TECH_NOTES );
+	technoteDoc.putProperty( FIELD, PhotoInfoFields.TECH_NOTES );
 	technoteDoc.addDocumentListener( this );
 	
 	// Lay out the created controls
@@ -532,7 +531,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
      */
     public void insertUpdate( DocumentEvent ev ) {
 	Document changedDoc = ev.getDocument();
-	ChangePhotoInfoCommand.PhotoInfoFields changedField = (ChangePhotoInfoCommand.PhotoInfoFields) changedDoc.getProperty( FIELD );	
+	PhotoInfoFields changedField = (PhotoInfoFields) changedDoc.getProperty( FIELD );	
         Set fieldValues = ctrl.getFieldValues( changedField );
 	/* Avoid emptying model when the field has multiple values
 	   in the model.
@@ -649,7 +648,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     }
 
 
-    public void setField(ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue) {
+    public void setField(PhotoInfoFields field, Object newValue) {
         StringBuffer debugMsg = new StringBuffer();
         debugMsg.append( "setField " ).append( field ).append( ": ").append( newValue );
         log.debug( debugMsg.toString() );
@@ -672,7 +671,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
      @return Value of field
      */
 
-    public Object getField(ChangePhotoInfoCommand.PhotoInfoFields field) {
+    public Object getField(PhotoInfoFields field) {
         Object value = null;
         String propertyName = field.getName();
         try {
@@ -697,11 +696,42 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
      @param isMultivalued If <code>null, set the field to multivalued state. If not, set
      it to normal state 
      */
-    public void setFieldMultivalued(ChangePhotoInfoCommand.PhotoInfoFields field, 
+    public void setFieldMultivalued(PhotoInfoFields field, 
             boolean isMultivalued) {
         String propertyName = field.getName() + "Multivalued";
         try {
             PropertyUtils.setProperty( this, propertyName, isMultivalued ); 
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot set property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+    }
+
+    /**
+     Set a field in the UI to given value
+     @param field The field to set
+     @param newValue New value for the field
+     @param refValues Reference values (i.e. other values that the selection has 
+     for this field. If there are more than 1 reference value and newValue is 
+     <code>null</code> the field ins interpreted to be in multivalued state.
+     */
+    public void setField(PhotoInfoFields field, Object newValue, java.util.List refValues) {
+        StringBuffer debugMsg = new StringBuffer();
+        debugMsg.append( "setField " ).append( field ).append( ": ").append( newValue );
+        log.debug( debugMsg.toString() );
+        String propertyName = field.getName();
+        String mvPropertyName = field.getName() + "Multivalued";
+        boolean isMultivalued = false;
+        if ( newValue == null && refValues != null && refValues.size() > 1 ) {
+            isMultivalued = true;
+        }
+        try {
+            PropertyUtils.setProperty( this, propertyName, newValue );
+            PropertyUtils.setProperty( this, mvPropertyName, isMultivalued ); 
         } catch (NoSuchMethodException ex) {
             log.error( "Cannot set property " + propertyName );
             ex.printStackTrace();

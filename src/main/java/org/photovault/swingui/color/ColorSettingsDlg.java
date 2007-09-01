@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 import javax.media.jai.Histogram;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
@@ -61,6 +62,7 @@ import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoFields;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.JAIPhotoViewer;
 import org.photovault.swingui.selection.PhotoSelectionController;
@@ -89,12 +91,10 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      * @param modal Whether the dialog is displayed as modal
      * @param photos Array of the photos that will be edited
      */
-    public ColorSettingsDlg(java.awt.Frame parent, boolean modal, PhotoInfo[] photos ) {
+    public ColorSettingsDlg(java.awt.Frame parent, ColorSettingsDlgController ctrl, boolean modal, PhotoInfo[] photos ) {
         super(parent, modal);
+        this.ctrl = ctrl;
         initComponents();
-        ctrl = new PhotoSelectionController( null );
-        ctrl.setView( this );
-        ctrl.setPhotos( photos );
         checkIsRawPhoto();
         final ColorSettingsDlg staticThis = this;
         this.colorCurvePanel1.addListener( new ColorCurveChangeListener() {
@@ -106,22 +106,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
     }
-    
-    /**
-     * Creates new form ColorSettingsDlg
-     * @param parent Parent frame of this dialog
-     * @param modal Whether the dialog is displayed as modal
-     * @param photo The photo that will be edited
-     */
-    public ColorSettingsDlg(java.awt.Frame parent, boolean modal, PhotoInfo photo ) {
-        super(parent, modal);
-        initComponents();
-        ctrl = new PhotoSelectionController( null );
-        ctrl.setPhoto( photo );
-        ctrl.setView( this );
-        checkIsRawPhoto();
-    }
-    
+
     /**
      Controller for the photos that will be edited
      */
@@ -136,7 +121,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     /**
      Curves that will be drawn as references for each channel
      */
-    ArrayList refCurves[] = new ArrayList[5];
+    List refCurves[] = new ArrayList[5];
     
     /**
      Names of the color channels
@@ -337,14 +322,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Colors");
-        applyBtn.setText("Apply");
+        applyBtn.setAction(ctrl.getActionAdapter( "save"));
         applyBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 applyBtnActionPerformed(evt);
             }
         });
 
-        discardBtn.setText("Discard");
+        discardBtn.setAction(ctrl.getActionAdapter( "discard" ));
         discardBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 discardBtnActionPerformed(evt);
@@ -809,19 +794,19 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         colorCurves[currentColorCurve] = c;
         switch ( currentColorCurve ) {
             case 0:
-                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_VALUE );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_VALUE, c );
                 break;
             case 1:
-                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_RED );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_RED, c );
                 break;
             case 2:
-                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_GREEN );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_GREEN, c );
                 break;
             case 3:
-                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_BLUE );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_BLUE, c );
                 break;
             case 4:
-                ctrl.viewChanged( this, PhotoSelectionController.COLOR_CURVE_SATURATION );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_SATURATION, c );
                 break;                
             default:
                 // Should never happend
@@ -912,7 +897,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         
         public void setColorChannelCurve( String name, ColorCurve c ) {
             if ( previewCtrl != null ) {
-                previewCtrl.colorCurveChanged( this, name, c );
+                previewCtrl.setColorCurve( name, c );
             }
         }
         
@@ -921,7 +906,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
 
         public void photoViewChanged(PhotoViewChangeEvent e) {
-            c.viewChanged( this, PhotoSelectionController.PREVIEW_IMAGE );
+//            c.viewChanged( this, PhotoSelectionController.PREVIEW_IMAGE );
         }
     }
     
@@ -1488,6 +1473,26 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }        
     }    
     
+    /**
+     Set new value for a color channel curve
+     @param name Name of the curve to set
+     @param curve The new curve
+     @param refCurves Reference curves to show in the background     
+     */
+    public void setColorChannelCurve(String name, ColorCurve curve, List refCurves ) {
+        for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
+            if ( colorCurveNames[n].equals( name ) ) {
+                colorCurves[n] = curve;
+                this.refCurves[n] = refCurves;
+                showCurve( currentColorCurve );
+                break;
+            }
+        }
+    }    
+    
+    /**
+     @deprecated
+     */
     public void setColorChannelMultivalued(String name, boolean isMultivalued, ColorCurve[] values ) {
         for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
             if ( colorCurveNames[n].equals( name ) ) {
@@ -1508,6 +1513,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         
     }
     
+    /**
+     Get current value of a color channel curve
+     @param name Name of the curve
+     @return Current curve for the channel or <code>null</code> if not specified.
+     */
     public ColorCurve getColorChannelCurve(String name) {
         ColorCurve ret = null;
         for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
@@ -1518,6 +1528,23 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }        
         return ret;
     }    
+    
+    /**
+     Get reference curves displayed for channel
+     @param name Name of the channel
+     @return Reference curves displayed for a channel or <code>null</code> if 
+     no reference curves are displayed-
+     */
+    public List getRefCurves( String channel ) {
+        List ret = null;
+        for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
+            if ( colorCurveNames[n].equals( channel ) ) {
+                ret = refCurves[n];
+                break;
+            }
+        }        
+        return ret;
+    }
 
     private void annotateSlider( FieldSliderCombo slider, Object [] values ) {
         double[] annotations = new double[values.length];
@@ -1579,17 +1606,39 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         showCurve( currentColorCurve );
     }
 
-    public void setField(ChangePhotoInfoCommand.PhotoInfoFields field, Object newValue) {
+    public void setField(PhotoInfoFields field, Object newValue) {
         // TODO: implement
     }
 
-    public void setFieldMultivalued(ChangePhotoInfoCommand.PhotoInfoFields field, boolean isMultivalued) {
+    public void setFieldMultivalued(PhotoInfoFields field, boolean isMultivalued) {
         // TODO: implement
     }
 
-    public Object getField(ChangePhotoInfoCommand.PhotoInfoFields field) {
+    public Object getField(PhotoInfoFields field) {
         // TODO: Implement
         return null;
+    }
+
+    public void setField(PhotoInfoFields field, Object newValue, List refValues) {
+        switch ( field ) {
+            case COLOR_CURVE_VALUE:
+                this.setColorChannelCurve( "value", (ColorCurve) newValue, refValues );
+                break;
+            case COLOR_CURVE_SATURATION:
+                this.setColorChannelCurve( "saturation", (ColorCurve) newValue, refValues );
+                break;
+            case COLOR_CURVE_RED:
+                this.setColorChannelCurve( "red", (ColorCurve) newValue, refValues );
+                break;
+            case COLOR_CURVE_GREEN:
+                this.setColorChannelCurve( "green", (ColorCurve) newValue, refValues );
+                break;
+            case COLOR_CURVE_BLUE:
+                this.setColorChannelCurve( "blue", (ColorCurve) newValue, refValues );
+                break;
+                
+        }
+        
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
