@@ -1938,6 +1938,31 @@ public class PhotoInfo implements java.io.Serializable {
         return channelMap != null ? channelMap.getChannelCurve( "value" ) : null;
     }
     
+    @Transient
+    public Integer getRawBlack() {
+        return rawSettings != null ? rawSettings.getBlack() : null;
+    }
+    
+    @Transient
+    public Integer getRawWhite() {
+        return rawSettings != null ? rawSettings.getWhite() : null;
+    }
+    
+    @Transient
+    public Double getRawEvCorr() {
+        return rawSettings != null ? rawSettings.getEvCorr() : null;
+    }
+
+    @Transient
+    public Double getRawHlightComp() {
+        return rawSettings != null ? rawSettings.getHighlightCompression() : null;
+    }
+    
+    @Transient
+    public Double getRawColorTemp() {
+        return rawSettings != null ? rawSettings.getColorTemp(): null;
+    }
+    
 /**
      List of folders this photo belongs to
      */

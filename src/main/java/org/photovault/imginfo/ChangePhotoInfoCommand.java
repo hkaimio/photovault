@@ -35,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.common.PhotovaultException;
+import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.PhotoFolder;
@@ -256,6 +257,33 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         return FolderStates.UNMODIFIED;
     }    
         
+    private void setRawField( RawSettingsFactory settings, PhotoInfoFields field, Object newValue ) {
+        switch ( field ) {
+            case RAW_BLACK_LEVEL:
+                settings.setBlack( (Integer)newValue );
+                break;
+            case RAW_WHITE_LEVEL:
+                settings.setWhite( (Integer) newValue );
+                break;
+            case RAW_CTEMP:
+                settings.setColorTemp( (Double) newValue );
+                break;
+            case RAW_EV_CORR:
+                settings.setEvCorr( (Double) newValue );
+                break;
+            case RAW_GREEN:
+                settings.setGreenGain( (Double) newValue );
+                break;
+            case RAW_HLIGHT_COMP:
+                settings.setHlightComp( (Double) newValue );
+                break;
+            case RAW_COLOR_PROFILE:
+                settings.setColorProfile( (ColorProfileDesc) newValue);
+                break;
+        }
+    }
+    
+    
     /**
      Execute the command.
      */
@@ -310,12 +338,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                     if ( rawSettingsFactory == null ) {
                         rawSettingsFactory = new RawSettingsFactory( photo.getRawSettings() );
                     }
-                    try {
-                        PropertyUtils.setProperty( rawSettingsFactory, field.getName(), value );
-                    } catch ( Exception ex) {
-                        log.error( "Exception while executing command", ex );
-                        throw new CommandException( "Error while executing command: " + ex.getMessage() );
-                    }
+                    this.setRawField( rawSettingsFactory, field, value );
                 } else if ( colorCurveFields.contains( field ) ) {
                     if ( channelMapFactory == null ) {
                         channelMapFactory = new ChannelMapOperationFactory( photo.getColorChannelMapping() );

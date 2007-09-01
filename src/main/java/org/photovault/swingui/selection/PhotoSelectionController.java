@@ -27,7 +27,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.odmg.LockNotGrantedException;
+import org.photovault.command.CommandChangeListener;
 import org.photovault.command.CommandException;
+import org.photovault.command.CommandHandler;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
@@ -270,6 +272,7 @@ public class PhotoSelectionController extends PersistenceController {
         }
         
         folderCtrl.setPhotos( this.photos, false );
+        photosChanged();
     }
     
     /**
@@ -301,7 +304,14 @@ public class PhotoSelectionController extends PersistenceController {
             updateViews( null, f );
         }
         folderCtrl.setPhotos( this.photos, false );
+        photosChanged();
     }
+    
+    /**
+     Callback that derived classes can override to add their own actions
+     that will be executed after photos have been changed.
+     */
+    protected void photosChanged() {}
     
     /**
      Sets the view that is contorlled by this object
@@ -369,15 +379,27 @@ public class PhotoSelectionController extends PersistenceController {
      Save the modifications made to the PhotoInfo record
      */
     protected void save() {
-        // Get a transaction context (whole saving operation should be done in a single transaction)
+        /*
+         Use change listener to ensure that all changes are merged into current 
+         persistence context before returning from this method.
+         */
+        CommandChangeListener l = new CommandChangeListener() {
+            public void entityChanged(Object entity) {
+                PhotoInfo changedPhoto = (PhotoInfo) entity;
+                getPersistenceContext().merge( changedPhoto );
+            }
+        };
+        CommandHandler cmdHandler = getCommandHandler();
+        cmdHandler.addChangeListener( l );
         try {
-            getCommandHandler().executeCommand( cmd );
+            cmdHandler.executeCommand( cmd );
         } catch( CommandException e ) {
             log.error ( "Exception while saving: ", e );
             JOptionPane.showMessageDialog( getView(), 
                     "Error while saving changes:\n" + e.getMessage(), 
                     "Save Error", JOptionPane.ERROR_MESSAGE );
         }
+        cmdHandler.removeChangeListener( l );
         setPhotos( photos );
     }
     

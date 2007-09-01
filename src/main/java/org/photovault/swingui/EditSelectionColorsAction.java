@@ -106,10 +106,8 @@ public class EditSelectionColorsAction extends AbstractAction
             colorDlgCtrl = new ColorSettingsDlgController( frame, selectionView.ctrl, selectionView.ctrl.getPersistenceContext() );
             // TODO. Fix
 // colorDlgCtrl.setPreviewControl( preview );
-        } else {
-            colorDlgCtrl.setPhotos( selectedPhotos );
-        }
-        
+        } 
+        colorDlgCtrl.setPhotos( selectedPhotos );        
         colorDlgCtrl.showDialog();
     }
     

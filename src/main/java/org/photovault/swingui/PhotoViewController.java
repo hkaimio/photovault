@@ -131,7 +131,7 @@ public class PhotoViewController extends PersistenceController {
                  TODO: We should chech whether the photo is already part of this 
                  context
                  */
-                PhotoInfo p = (PhotoInfo) getPersistenceContext().merge( event.getPayload()  );
+                        PhotoInfo p = (PhotoInfo) getPersistenceContext().merge( event.getPayload()  );
             }
         });
         registerEventListener( PhotoFolderModifiedEvent.class, new DefaultEventListener<PhotoFolder>() {

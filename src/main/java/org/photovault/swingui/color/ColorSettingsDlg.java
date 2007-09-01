@@ -605,7 +605,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newGain = Math.pow( 2, greenEv );
         if ( Math.abs( newGain - this.greenGain ) > 0.005 ) {
             greenGain= newGain;
-            ctrl.viewChanged( this, PhotoSelectionController.RAW_GREEN );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_GREEN, newGain );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setGreenGain( newGain );
@@ -630,7 +630,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newCTemp = ctempSlider.getValue();
         if ( Math.abs( newCTemp - this.colorTemp ) > 10 ) {
             colorTemp= newCTemp;
-            ctrl.viewChanged( this, PhotoSelectionController.RAW_CTEMP );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_CTEMP, newCTemp );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setColorTemp( newCTemp );
@@ -1338,6 +1338,23 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         blackLevelSlider.setValue( (double) black );
     }
 
+    public void setRawBlack( int black, List refValues ) {
+        this.black = black;
+        blackLevelSlider.setValue( (double) black );
+        if ( refValues != null && refValues.size() > 1  ) {
+            double[] annotations = new double[refValues.size()];
+            for ( int n = 0; n < refValues.size() ; n++ ) {
+                annotations[n] = ((Number)refValues.get(n)).doubleValue();
+            }
+            blackLevelSlider.setAnnotations( annotations );
+            blackLevelSlider.setMultivalued( true );
+        } else {
+            // restore the normal label table without any extra annotations
+            blackLevelSlider.setAnnotations( null );
+        blackLevelSlider.setMultivalued( false );
+        }        
+    }
+    
     public void setRawBlackMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             double[] annotations = new double[values.length];
@@ -1362,6 +1379,18 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         evCorrSlider.setValue( evCorr );        
     }
 
+    public void setRawEvCorr(double evCorr, List refValues ) {
+        this.evCorr = evCorr;
+        evCorrSlider.setValue( evCorr );        
+        if ( refValues != null && refValues.size() > 1 ) {
+            annotateSlider( evCorrSlider, refValues );
+            evCorrSlider.setMultivalued( true );
+        } else {
+            evCorrSlider.setAnnotations( null );
+            evCorrSlider.setMultivalued( false );
+        }
+    }
+    
     public void setRawEvCorrMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             annotateSlider( evCorrSlider, values );
@@ -1384,6 +1413,18 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         hlightCompSlider.setValue( comp );
     }
 
+    public void setRawHlightComp(double comp, List refValues ) {
+        this.hlightComp = comp;
+        hlightCompSlider.setValue( comp );
+        if ( refValues != null && refValues.size() > 1 ) {
+            annotateSlider( hlightCompSlider, refValues );
+            hlightCompSlider.setMultivalued( true );
+        } else {
+            hlightCompSlider.setAnnotations( null );
+            hlightCompSlider.setMultivalued( false );
+        }
+    }
+    
     public void setRawHlightCompMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             annotateSlider( hlightCompSlider, values );
@@ -1406,6 +1447,18 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ctempSlider.setValue( ct );
     }
 
+    public void setRawColorTemp(double ct, List refValues ) {
+        colorTemp = ct;
+        ctempSlider.setValue( ct );
+        if ( refValues != null && refValues.size() > 1 ) {
+            annotateSlider( ctempSlider, refValues );
+            ctempSlider.setMultivalued( true );
+        } else {
+            ctempSlider.setAnnotations( null );
+            ctempSlider.setMultivalued( false );
+        }
+    }
+    
     public void setRawColorTempMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             annotateSlider( ctempSlider, values );
@@ -1426,6 +1479,23 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         greenGain = g;
         double logGreen = Math.log( g ) / Math.log(2);
         greenGainSlider.setValue( logGreen );
+    }
+    
+    public void setRawGreenGain( double g, List refValues ) {
+        greenGain = g;
+        double logGreen = Math.log( g ) / Math.log(2);
+        greenGainSlider.setValue( logGreen );
+        if ( refValues != null && refValues.size() > 1 ) {
+            double[] annotations = new double[refValues.size()];
+            for ( int n = 0; n < refValues.size(); n++ ) {
+                annotations[n] = Math.log( ((Number)refValues.get(n)).doubleValue() ) / Math.log(2); 
+            }
+            greenGainSlider.setAnnotations( annotations );
+            greenGainSlider.setMultivalued( true );
+        } else {
+            greenGainSlider.setAnnotations( null );
+            greenGainSlider.setMultivalued( false );            
+        }
     }
 
     public void setRawGreenGainMultivalued(boolean multivalued, Object[] values ) {
@@ -1454,6 +1524,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         setupColorProfile();
     }
 
+    public void setRawProfile(ColorProfileDesc p, List refValues ) {
+        profile = p;
+        setupColorProfile();
+    }
+    
     public void setRawProfileMultivalued(boolean multivalued, Object[] values ) {
     }
 
@@ -1546,6 +1621,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         return ret;
     }
 
+    /**
+     @deprecated
+     */
     private void annotateSlider( FieldSliderCombo slider, Object [] values ) {
         double[] annotations = new double[values.length];
         for ( int n = 0; n < values.length ; n++ ) {
@@ -1553,6 +1631,20 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
         slider.setAnnotations( annotations );
     }
+    
+
+    /**
+     Annotate a slider with given values
+     @param slider The slider to annotate
+     @param values Annotation values. Note! Cannot be null!!
+     */
+    private void annotateSlider( FieldSliderCombo slider, List values ) {
+        double[] annotations = new double[values.size()];
+        for ( int n = 0; n < values.size() ; n++ ) {
+            annotations[n] = ((Number)values.get(n)).doubleValue();
+        }
+        slider.setAnnotations( annotations );
+    }    
 
     /**
      This callback is called by JAIPhotoViewer when the image displayed in the 
@@ -1636,9 +1728,28 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             case COLOR_CURVE_BLUE:
                 this.setColorChannelCurve( "blue", (ColorCurve) newValue, refValues );
                 break;
-                
+            case RAW_BLACK_LEVEL:
+                setRawBlack( newValue != null ? ( (Number)newValue).intValue() : 0, refValues );
+                break;
+            case RAW_CTEMP:
+                setRawColorTemp( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
+                break;
+            case RAW_EV_CORR:
+                setRawEvCorr( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
+                break;
+            case RAW_GREEN:
+                setRawGreenGain( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
+                break;
+            case RAW_HLIGHT_COMP:
+                setRawHlightComp( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
+                break;
+            case RAW_COLOR_PROFILE:
+                setRawProfile( (ColorProfileDesc) newValue, refValues );
+                break;
+            default:
+                // No action for other fields
+                break;
         }
-        
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

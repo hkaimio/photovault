@@ -26,6 +26,7 @@ import java.util.Set;
 import org.hibernate.Session;
 import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
+import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoFields;
 import org.photovault.swingui.JAIPhotoViewer;
 import org.photovault.swingui.framework.AbstractController;
@@ -78,6 +79,20 @@ public class ColorSettingsDlgController extends PhotoSelectionController {
             updatePreview( field, value );
         }
     } 
+    
+    protected void photosChanged() {
+        boolean allRaw = true;
+        if ( photos != null ) {
+            for ( PhotoInfo p: photos ) {
+                if ( p.getRawSettings() == null ) {
+                    allRaw = false;
+                }
+            }
+        } else {
+            allRaw = false;
+        }
+        dlg.setRawControlsEnabled( allRaw );
+    }
     
     /**
      Update the preview control to match change that has happened in other views
