@@ -22,7 +22,8 @@ package org.photovault.swingui;
 
 import java.io.*;
 import junit.framework.*;
-import java.util.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
@@ -30,7 +31,8 @@ import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.test.PhotovaultTestCase;
 
 public class Test_PhotoInfoController extends PhotovaultTestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoInfoController.class.getName() );
+    
+    static Log log = LogFactory.getLog( Test_PhotoInfoController.class.getName() );
 
     PhotoInfo photo = null;
     PhotoSelectionController ctrl = null;
@@ -55,10 +57,6 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
     }
     
     public static void main( String[] args ) {
-	//	org.apache.log4j.BasicConfigurator.configure();
-	log.setLevel( org.apache.log4j.Level.DEBUG );
-	org.apache.log4j.Logger folderLog = org.apache.log4j.Logger.getLogger( Test_PhotoInfoController.class.getName() );
-	folderLog.setLevel( org.apache.log4j.Level.DEBUG );
 	junit.textui.TestRunner.run( suite() );
     }
 
@@ -68,9 +66,10 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
 
 	String oldValue = photo.getPhotographer();
 	String newValue = "Test photographer 2";
-	ctrl.setField( PhotoSelectionController.PHOTOGRAPHER, newValue );
+        
+	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, newValue );
 	assertEquals( "PhotoInfo should not be modified at this stage", oldValue, photo.getPhotographer() );
-	assertEquals( "Ctrl should reflect the modification", newValue, ctrl.getField( PhotoSelectionController.PHOTOGRAPHER ));
+	assertEquals( "Ctrl should reflect the modification", newValue, ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ));
 
 //	try {
 //	    ctrl.save();
@@ -95,11 +94,11 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
 
 	String oldValue = photo.getPhotographer();
 	String newValue = "Test photographer 2";
-	ctrl.setField( PhotoSelectionController.PHOTOGRAPHER, newValue );
+	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, newValue );
 
 //	ctrl.discard();
 	assertEquals( "PhotoInfo should not be modified", oldValue, photo.getPhotographer() );
-	assertEquals( "Ctrl should have the old value after discard", oldValue, ctrl.getField( PhotoSelectionController.PHOTOGRAPHER ));
+	assertEquals( "Ctrl should have the old value after discard", oldValue, ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ));
     }
 
     public void testNewPhotoCreation() {
@@ -107,8 +106,8 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
 	
 	ctrl.createNewPhoto( testFile );
 	String photographer = "Test photographer";
-	ctrl.setField( PhotoSelectionController.PHOTOGRAPHER, photographer );
-	assertEquals( photographer, ctrl.getField( PhotoSelectionController.PHOTOGRAPHER ) );
+	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, photographer );
+	assertEquals( photographer, ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ) );
 
 	// Saving the ctrl state should create a new photo object
 //	try {
@@ -135,7 +134,7 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
 
 	// Test modification to saved
 	String newPhotographer = "New photographer";
-	ctrl.setField( PhotoSelectionController.PHOTOGRAPHER, newPhotographer );
+	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, newPhotographer );
 //	try {
 //	    ctrl.save();
 //	} catch ( Exception e ) {
@@ -163,8 +162,8 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
     */
     public void testOnlyRecordCreation() {
 	String photographer = "Test photographer";
-	ctrl.setField( PhotoSelectionController.PHOTOGRAPHER, photographer );
-	assertEquals( photographer, ctrl.getField( PhotoSelectionController.PHOTOGRAPHER ) );
+	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, photographer );
+	assertEquals( photographer, ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ) );
 
 	// Saving the ctrl state should create a new photo object
 //	try {

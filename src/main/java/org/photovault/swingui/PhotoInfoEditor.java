@@ -91,7 +91,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	JLabel fuzzyDateLabel = new JLabel( "Shooting date" );
 	fuzzyDateField = new JTextField( 30 );
 	fuzzyDateDoc = fuzzyDateField.getDocument();
-	// fuzzyDateDoc.putProperty( FIELD, ChangePhotoInfoCommand.PhotoInfoFields.FUZZY_DATE );
+	fuzzyDateDoc.putProperty( FIELD, PhotoInfoFields.FUZZY_SHOOT_TIME );
 	fuzzyDateDoc.addDocumentListener( this );
 
 
@@ -283,28 +283,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	fuzzyDateField.setBackground( mv ? multiValueColor : singleValueColor );
     }
     
-    public void setShootTime( Date newValue ) {
-	log.warn( "setShootingTime: " + newValue );
-	shootingDayField.setValue( newValue );
-    }
-
-    public Date getShootTime( ) {
-	log.warn( "getShootingTime" );
-	return (Date) shootingDayField.getValue();
-    }
-
-    public void setShootTimeMultivalued( boolean mv ) {
-	shootingDayField.setBackground( mv ? multiValueColor : singleValueColor );
-    }
-
-    public void setTimeAccuracy( Number newValue ) {
-	timeAccuracyField.setValue( newValue );
-    }
-
-    public Number getTimeAccuracy() {
-	return (Number) timeAccuracyField.getValue();
-    }
-
     public void setShootingPlace( String newValue ) {
         shootingPlaceField.getDocument().removeDocumentListener( this );
 	shootingPlaceField.setText( newValue );
@@ -474,8 +452,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     Document photographerDoc = null;
     JTextField fuzzyDateField = null;
     Document fuzzyDateDoc = null;
-    JFormattedTextField shootingDayField = null;
-    JFormattedTextField timeAccuracyField = null;
     Document shootingDayDoc = null;
     JTextField shootingPlaceField = null;
     Document shootingPlaceDoc = null;
@@ -515,7 +491,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	    // by the controller that is setting up quality field to display
 	    // model with multiple quality values.
 	    if ( getQuality() != null ) {
-		ctrl.viewChanged( this, PhotoSelectionController.QUALITY );
+		ctrl.viewChanged( this, PhotoInfoFields.QUALITY, getQuality() );
 	    }
 	}
     }
@@ -673,20 +649,49 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 
     public Object getField(PhotoInfoFields field) {
         Object value = null;
-        String propertyName = field.getName();
-        try {
-            value = PropertyUtils.getProperty( this, propertyName );
-        } catch (NoSuchMethodException ex) {
-            log.error( "Cannot get property " + propertyName );
-            ex.printStackTrace();
-        } catch (IllegalAccessException ex) {
-            log.error( ex.getMessage() );
-        } catch (InvocationTargetException ex) {
-            log.error( ex.getMessage() );
+        switch( field ) {
+            case CAMERA:
+                value = getCamera();
+                break;
+            case DESCRIPTION:
+                value = getDescription();
+                break;
+            case FILM:
+                value = getFilm();
+                break;
+            case FILM_SPEED:
+                value = getFilmSpeed();
+                break;
+            case FOCAL_LENGTH:
+                value = getFocalLength();
+                break;
+            case FSTOP:
+                value = getFStop();
+                break;
+            case LENS:
+                value = getLens();
+                break;
+            case PHOTOGRAPHER:
+                value = getPhotographer();
+                break;
+            case QUALITY:
+                value = getQuality();
+                break;
+            case SHOOTING_PLACE:
+                value = getShootingPlace();
+                break;
+            case FUZZY_SHOOT_TIME:
+                value = getFuzzyDate();
+                break;
+            case SHUTTER_SPEED:
+                value = getShutterSpeed();
+                break;
+            case TECH_NOTES:
+                value = getTechNotes();
+                break;
+            default:
+                log.debug( "field " + field + " not available" );
         }
-        StringBuffer debugMsg = new StringBuffer();
-        debugMsg.append( "getField " ).append( field ).append( ": ").append( value );
-        log.debug( debugMsg.toString() );
         return value;
     }
 
@@ -723,22 +728,66 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
         StringBuffer debugMsg = new StringBuffer();
         debugMsg.append( "setField " ).append( field ).append( ": ").append( newValue );
         log.debug( debugMsg.toString() );
-        String propertyName = field.getName();
-        String mvPropertyName = field.getName() + "Multivalued";
+
         boolean isMultivalued = false;
         if ( newValue == null && refValues != null && refValues.size() > 1 ) {
             isMultivalued = true;
         }
-        try {
-            PropertyUtils.setProperty( this, propertyName, newValue );
-            PropertyUtils.setProperty( this, mvPropertyName, isMultivalued ); 
-        } catch (NoSuchMethodException ex) {
-            log.error( "Cannot set property " + propertyName );
-            ex.printStackTrace();
-        } catch (IllegalAccessException ex) {
-            log.error( ex.getMessage() );
-        } catch (InvocationTargetException ex) {
-            log.error( ex.getMessage() );
+        switch( field ) {
+            case CAMERA:
+                setCamera( (String) newValue);
+                setCameraMultivalued( isMultivalued );
+                break;
+            case DESCRIPTION:
+                setDescription( (String) newValue);
+                setDescriptionMultivalued( isMultivalued );
+                break;
+            case FILM:
+                setFilm( (String) newValue);
+                setFilmMultivalued( isMultivalued );
+                break;
+            case FILM_SPEED:
+                setFilmSpeed( (Number) newValue);
+                setFilmSpeedMultivalued( isMultivalued );
+                break;
+            case FOCAL_LENGTH:
+                setFocalLength( (Number) newValue);
+                setFocalLengthMultivalued( isMultivalued );
+                break;
+            case FSTOP:
+                setFStop( (Number) newValue);
+                setFStopMultivalued( isMultivalued );
+                break;
+            case LENS:
+                setLens( (String) newValue);
+                setLensMultivalued( isMultivalued );
+                break;
+            case PHOTOGRAPHER:
+                setPhotographer( (String) newValue);
+                setPhotographerMultivalued( isMultivalued );
+                break;
+            case QUALITY:
+                setQuality( (Number) newValue);
+                setQualityMultivalued( isMultivalued );
+                break;
+            case SHOOTING_PLACE:
+                setShootingPlace( (String) newValue);
+                setShootingPlaceMultivalued( isMultivalued );
+                break;
+            case FUZZY_SHOOT_TIME:
+                setFuzzyDate( (FuzzyDate) newValue );
+                setFuzzyDateMultivalued( isMultivalued );
+                break;
+            case SHUTTER_SPEED:
+                setShutterSpeed( (Number) newValue);
+                setShutterSpeedMultivalued( isMultivalued );
+                break;
+            case TECH_NOTES:
+                setTechNotes( (String) newValue);
+                setTechNotesMultivalued( isMultivalued );
+                break;
+            default:
+                log.debug( "field " + field + " not used" );
         }
     }
 

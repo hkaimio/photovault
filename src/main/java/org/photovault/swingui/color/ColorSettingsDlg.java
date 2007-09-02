@@ -650,7 +650,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         int newBlack = (int) blackLevelSlider.getValue();
         if ( Math.abs( newBlack - black ) > 0.05 ) {
             black = newBlack;
-            ctrl.viewChanged( this, PhotoSelectionController.RAW_BLACK_LEVEL );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_BLACK_LEVEL, black );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setBlack( newBlack );
@@ -671,7 +671,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newEv = evCorrSlider.getValue();
         if ( Math.abs( newEv - evCorr ) > 0.05 ) {
             evCorr = newEv;
-            ctrl.viewChanged( this, PhotoSelectionController.RAW_EV_CORR );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_EV_CORR, evCorr );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setEvCorr( newEv );
@@ -691,7 +691,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newHlightComp = hlightCompSlider.getValue();
         if ( (Math.abs( newHlightComp - this.hlightComp ) > 0.001 ) ) {
             this.hlightComp = newHlightComp;
-            ctrl.viewChanged( this, PhotoSelectionController.RAW_HLIGHT_COMP );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_HLIGHT_COMP, hlightComp );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setHlightComp( newHlightComp );
@@ -717,7 +717,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ColorProfileDesc p = profiles[selectedId];
         if ( p != profile ) {
             profile = p;
-            ctrl.viewChanged( this, PhotoSelectionController.RAW_COLOR_PROFILE );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_COLOR_PROFILE, profile );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setColorProfile( p );
@@ -917,43 +917,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         a.photoViewChanged( null );
         reloadHistogram();
     }
-
-    /**
-     Set the photo whose settings will be changed
-     */
-    public void setPhoto( PhotoInfo p ) {
-        ctrl.setPhoto( p );  
-        if ( previewCtrl != null ) {
-            previewImage = previewCtrl.getImage();
-            ctrl.viewChanged( this, ctrl.PREVIEW_IMAGE );
-            setupColorCurvesForImage();
-        }        
-        rawPreviewImage = null;
-        checkIsRawPhoto();
-    }
-    
-    /**
-     Set the photos whose settings will be changed
-     */
-    public void setPhotos( PhotoInfo[] p ) {
-        ctrl.setPhotos( p );        
-        rawPreviewImage = null;
-        if ( previewCtrl != null ) {
-            previewImage = previewCtrl.getImage();
-            /*
-             HACK: PREVIEW_IMAGE is not really a field of the model but provided 
-             by another view. Therefore resetting the model will clear it. What 
-             is really needed is a mechanism with which different views can publish
-             information for others.
-             */
-            ctrl.viewChanged( this, ctrl.PREVIEW_IMAGE );
-            setupColorCurvesForImage();
-        }
-        checkIsRawPhoto();
-        reloadHistogram();
-        
-    }
-    
     
     /**
      Checks if the model supports raw conversion settings and disables

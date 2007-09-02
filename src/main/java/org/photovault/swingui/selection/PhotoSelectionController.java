@@ -95,160 +95,6 @@ public class PhotoSelectionController extends PersistenceController {
 
     FolderController folderCtrl = null;
     
-    static class PhotoInfoFieldCtrl extends FieldController<PhotoInfo,ChangePhotoInfoCommand> {
-        PhotoInfoFieldCtrl( String field, PhotoInfo m ) {
-            super( field, m );
-        }
-
-        PhotoInfoFieldCtrl( String field, PhotoInfo[] m ) {
-            super( field, m );
-        }
-        
-    }
-    
-    /**
-     Special field controller for handling UI fields that are stored as part of
-     RawConversionSettings.
-     */
-    abstract class RawSettingFieldCtrl extends FieldController {
-        /**
-         * Constructs a new RawSettingsFieldCtrl
-         * @param model PhotoInfo objects that form the model
-         * @param field Field that is controlled bu this object
-         */
-        public RawSettingFieldCtrl( Object model, String field ) {
-            super(  field, model );
-        }
-                
-        /**
-         * This must be overridden by derived classes to set the raw settings field in the
-         * RawSettingsFactory that will be used for creating new settings for controlled 
-         * object.
-         * @param f The factory in which set field must be set
-         * @param newValue New value for the field. Note that this can be <code>null</code> even for 
-         * primitive type fields.
-         */
-        protected abstract void doSetModelValue( RawSettingsFactory f, Object newValue );
-        /**
-         * Get the value of the controlled field in RawConversionSettings.
-         * @param r The raw conversion settings object whose field value we are interested in.
-         * @return Value of field in r
-         */
-        protected abstract Object doGetModelValue( RawConversionSettings r );
-        /**
-         * Set a view to reflect current model value
-         * @param view The view that should be set up.
-         */
-        protected abstract void doSetViewValue( RawPhotoView view );
-        /**
-         * Get the value of this field in a given view
-         * @param view The view whose field value must be retrieved
-         * @return Value of controlled field in given view.
-         */
-        protected abstract Object doGetViewValue( RawPhotoView view );
-        /**
-         * Set the multivalued state in a given view
-         * @param view The view that will be set up.
-         */
-        protected abstract void doSetViewMultivaluedState( RawPhotoView view );
-        
-        
-        protected void setModelValue( Object model ) {
-            PhotoInfo obj = (PhotoInfo) model;
-            RawSettingsFactory f = getRawSettingsFactory( obj );
-            if ( f != null ) {
-                doSetModelValue( f, value );
-                rawSettingsChanged();
-            }
-        }
-        protected Object getModelValue( Object model ) {
-            PhotoInfo obj = (PhotoInfo) model;
-            RawConversionSettings r = obj.getRawSettings();
-            Object ret = null;
-            if ( r != null ) {
-                ret = doGetModelValue( r );
-            }
-            return ret;
-        }
-        protected void updateView( Object view ) {
-            if ( view instanceof RawPhotoView ) {
-                RawPhotoView obj = (RawPhotoView) view;
-                doSetViewValue( (RawPhotoView) view );
-            }
-        }
-        protected void updateViewMultivalueState( Object view ) {
-            if ( view instanceof RawPhotoView ) {
-                RawPhotoView obj = (RawPhotoView) view;
-                doSetViewMultivaluedState( obj );
-            }
-        }
-        protected void updateValue( Object view ) {
-            if ( view instanceof RawPhotoView ) {
-                RawPhotoView obj = (RawPhotoView) view;
-                value = doGetViewValue( obj );
-            }
-        }
-    };
-
-    /**
-     Special field controller for handling Color curves.
-     */
-    class ColorCurveCtrl extends FieldController {
-        /**
-         * Constructs a new ColorCurveCtrl
-         * @param model PhotoInfo objects that form the model
-         * @param curveName Name of the generated curve
-         */
-        public ColorCurveCtrl( Object model, String curveName ) {
-            super( "", model );
-            this.name = curveName;
-        }
-        
-        final String name;        
-        
-        protected void setModelValue( Object model ) {
-            PhotoInfo obj = (PhotoInfo) model;
-            ChannelMapOperationFactory f = getColorMappingFactory( obj );
-            if ( f != null ) {
-                f.setChannelCurve( name, (ColorCurve) value );
-            }
-            colorMappingChanged();
-        }
-        protected Object getModelValue( Object model ) {
-            PhotoInfo obj = (PhotoInfo) model;
-            ChannelMapOperation cm = obj.getColorChannelMapping();
-            ColorCurve ret = null;
-            if ( cm != null ) {
-                ret = cm.getChannelCurve( name );
-            }
-            return ret;
-        }
-        
-        protected void updateView( Object view ) {
-            if ( view instanceof PhotoSelectionView ) {
-                PhotoSelectionView obj = (PhotoSelectionView) view;
-                obj.setColorChannelCurve( name, (ColorCurve) value );
-            }
-        }
-        protected void updateViewMultivalueState( Object view ) {
-            if ( view instanceof PhotoSelectionView ) {
-                PhotoSelectionView obj = (PhotoSelectionView) view;
-                obj.setColorChannelMultivalued( name, isMultiValued, 
-                        ( valueSet != null ) ? 
-                            (ColorCurve[]) valueSet.toArray( new ColorCurve[0] ) : null );
-            }
-        }
-        protected void updateValue( Object view ) {
-            if ( view instanceof PhotoSelectionView ) {
-                PhotoSelectionView obj = (PhotoSelectionView) view;
-                value = obj.getColorChannelCurve( name );
-            }
-        }
-    };
-
-    
-    
-    
     protected PhotoInfo[] photos = null;
     protected boolean isCreatingNew = true;
     
@@ -371,6 +217,9 @@ public class PhotoSelectionController extends PersistenceController {
         return folderCtrl;
     }
         
+    /**
+     Get the change command that contains all changes made to selection.
+     */
     public ChangePhotoInfoCommand getChangeCommand() {
         return cmd;
     }
@@ -416,55 +265,11 @@ public class PhotoSelectionController extends PersistenceController {
     public void addListener( PhotoInfoListener l ) {
     }
 
-    // Fields in PhotoInfo
-    public final static String PHOTOGRAPHER = "Photographer";
-    public final static String FUZZY_DATE = "Fuzzy date";
-    public final static String QUALITY = "Quality";
-//     public final static String SHOOTING_DATE = "Shooting date";
-//     public final static String TIME_ACCURACY = "Shooting time accuracy";
-    public final static String SHOOTING_PLACE = "Shooting place";
-    public final static String DESCRIPTION = "Description";
-    public final static String TECHNOTE = "Tech note";
-    public final static String F_STOP = "F-stop";
-    public final static String SHUTTER_SPEED = "Shutter speed";
-    public final static String FOCAL_LENGTH = "Focal length";
-    public final static String CAMERA_MODEL = "Camera model";
-    public final static String FILM_TYPE = "Film type";
-    public final static String FILM_SPEED = "Film speed";
-    public final static String LENS_TYPE = "Lens type";
-    public final static String PHOTO_FOLDERS = "Photo folders";
-    public final static String RAW_SETTINGS = "Raw conversion settings";
-    public final static String RAW_BLACK_LEVEL = "Raw conversion black level";
-    public final static String RAW_EV_CORR = "Raw conversion EV correction";
-    public final static String RAW_HLIGHT_COMP = "Raw conversion highlight compression";
-    public final static String RAW_CTEMP = "Raw conversion color temperature";
-    public final static String RAW_GREEN = "Raw conversion green gain";
-    public final static String RAW_COLOR_PROFILE = "Raw conversion ICC profile";
-    
-    public final static String COLOR_MAPPING = "Color channel mapping";
-    public final static String COLOR_CURVE_VALUE = "Value color curve";
-    public final static String COLOR_CURVE_RED = "Red color curve";
-    public final static String COLOR_CURVE_GREEN = "Green color curve";
-    public final static String COLOR_CURVE_BLUE = "Blue color curve";
-    public final static String COLOR_CURVE_SATURATION = "Saturation curve";
-
-    public final static String PREVIEW_IMAGE = "Preview image";
-    
-    protected HashMap modelFields = null;
     
     // The original file that is to be added to database (if we are creating a new PhotoInfo object)
     // If we are editing an existing PhotoInfo record this is null
     File originalFile = null;
-    
-    public void setField( String field, Object value ) {
-        PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
-        if ( fieldCtrl != null ) {
-            fieldCtrl.setValue( value );
-        } else {
-            log.warn( "No field " + field );
-        }
-    }
-    
+        
     ChangePhotoInfoCommand cmd;
     
     /**
@@ -532,101 +337,17 @@ public class PhotoSelectionController extends PersistenceController {
         }
     }
     
+    /**
+     This method is called by views to inform that value of a field has been changed
+     @param view The view that called this method
+     @param field The changed field
+     @param newValue New value for field.
+     */
     public void viewChanged( PhotoSelectionView view, PhotoInfoFields field, Object newValue ) {
         Set fieldValues = getFieldValues( field );
         if ( fieldValues.size() != 1 || !fieldValues.contains( newValue ) ) {
             cmd.setField( field, newValue );
         }
         updateViews( view, field );
-    }
-    
-    /**
-     This method must be called by a view when it has been changed
-     @param view The changed view
-     @param field The field that has been changed
-     @param newValue New value for the field
-     @deprecated Use viewChanged( view, field ) instead.
-     */
-    public void viewChanged( PhotoSelectionView view, String field, Object newValue ) {
-        PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
-        if ( fieldCtrl != null ) {
-            fieldCtrl.viewChanged( view, newValue );
-        } else {
-            log.warn( "No field " + field );
-        }
-    }
-    
-    
-    
-    /**
-     This method must be called by a view when it has been changed
-     @param view The changed view
-     @param field The field that has been changed
-     */
-    
-    public void viewChanged( PhotoSelectionView view, String field ) {
-        PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
-        if ( fieldCtrl != null ) {
-            fieldCtrl.viewChanged( view );
-        } else {
-            log.warn( "No field " + field );
-        }
-    }
-    
-    /**
-     Returns the current value for a specified field
-     @param field The field whose value is to be retrieved
-     @return Value of the field or null if fiels is invalid
-     */
-    
-    public Object getField( String field ) {
-        Object value = null;
-        PhotoInfoFieldCtrl fieldCtrl = (PhotoInfoFieldCtrl) modelFields.get( field );
-        if ( fieldCtrl != null ) {
-            value = fieldCtrl.getValue();
-        }
-        return value;
-    }
-    
-    HashMap rawFactories = new HashMap();
-    
-    private RawSettingsFactory getRawSettingsFactory( PhotoInfo p ) {
-        RawSettingsFactory f = null;
-        if ( rawFactories.containsKey( p ) ) {
-            f = (RawSettingsFactory) rawFactories.get( p );
-        } else {
-            RawConversionSettings r = p.getRawSettings();
-            f = new RawSettingsFactory( r );
-            if ( r != null ) {
-                rawFactories.put( p, f );
-            }
-        }
-        return f;
-    }
-    
-    HashMap colorMappingFactories = new HashMap();
-    
-    private ChannelMapOperationFactory getColorMappingFactory( PhotoInfo p ) {
-        ChannelMapOperationFactory f = null;
-        if ( colorMappingFactories.containsKey( p ) ) {
-            f = (ChannelMapOperationFactory) colorMappingFactories.get( p );
-        } else {
-            ChannelMapOperation r = p.getColorChannelMapping();
-            f = new ChannelMapOperationFactory( r );
-            colorMappingFactories.put( p, f );
-        }
-        return f;        
-    }
-    
-    boolean isRawSettingsChanged = false;
-    
-    private void rawSettingsChanged() {
-        isRawSettingsChanged = true;
-    }
-    
-    boolean isColorMappingChanged = false;
-    
-    private void colorMappingChanged() {
-        isColorMappingChanged = true;
     }
 }

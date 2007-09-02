@@ -47,7 +47,8 @@ public enum PhotoInfoFields {
     PREF_ROTATION( "prefRotation", Double.class ),         
     QUALITY( "quality", Integer.class ),         
     RAW_SETTINGS( "rawSettings", RawConversionSettings.class ),         
-    SHOOT_TIME( "shootTime", Date.class ),         
+    SHOOT_TIME( "shootTime", Date.class ),  
+    FUZZY_SHOOT_TIME( "fuzzyShootTime", FuzzyDate.class ),
     SHOOTING_PLACE( "shootingPlace", String.class ),         
     SHUTTER_SPEED( "shutterSpeed", Double.class ),         
     TECH_NOTES( "techNotes", String.class ),         
@@ -167,6 +168,8 @@ public enum PhotoInfoFields {
                 return photo.getShootingPlace();
             case SHOOT_TIME:
                 return photo.getShootTime();
+            case FUZZY_SHOOT_TIME:
+                return photo.getFuzzyShootTime();
             case SHUTTER_SPEED:
                 return photo.getShutterSpeed();
             case TECH_NOTES:

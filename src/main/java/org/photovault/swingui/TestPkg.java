@@ -42,7 +42,6 @@ public class TestPkg extends TestCase {
 
     public static TestSuite suite() {
 	TestSuite s = new TestSuite( "org.photovault.swingui unit tests" );
-	s.addTestSuite( Test_FieldController.class );
 	s.addTestSuite( Test_PhotoInfoController.class );
 	s.addTestSuite( Test_ThumbnailView.class );
 	s.addTestSuite( Test_PhotoFolderTreeModel.class );
