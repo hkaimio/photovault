@@ -79,7 +79,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     public void testCreate() {
 	
 	PhotoFolder folder = PhotoFolder.create( "Top", null );
-        folderDAO.makePersistent( folder );
+        folder = folderDAO.makePersistent( folder );
         folderDAO.flush();
         assertMatchesDb( folder, session );
         
@@ -130,8 +130,9 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	PhotoFolder folder = null;
         // Create a folder for the photo
         PhotoFolder root = folderDAO.findRootFolder();
-        folder = PhotoFolder.create( "PhotoAdditionTest", root );
-        folderDAO.makePersistent( folder );
+        folder = PhotoFolder.create( "PhotoAdditionTest", null );
+        folder = folderDAO.makePersistent( folder );
+        folder.reparentFolder( root );
         folder.addPhoto( photo );
         folderDAO.flush();
         assertMatchesDb( folder, session );
@@ -175,7 +176,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     public void testPersistence() {
 	// Test creation of a new folder
 	PhotoFolder f = PhotoFolder.create( "persistenceTest", null );
-        folderDAO.makePersistent( f );
+        f = folderDAO.makePersistent( f );
         folderDAO.flush();
 	assertMatchesDb( f );
 

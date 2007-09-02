@@ -70,7 +70,7 @@ public class PhotoFolder implements PhotoCollection {
         
     }
     
-    public PhotoFolder() {
+    public PhotoFolder()  {
 	//	subfolders = new Vector();
 	changeListeners = new Vector();
     }
@@ -306,7 +306,7 @@ public class PhotoFolder implements PhotoCollection {
     /**
        All subfolders for this folder
     */
-    SortedSet<PhotoFolder> subfolders = new TreeSet<PhotoFolder>();
+    SortedSet<PhotoFolder> subfolders = new TreeSet<PhotoFolder>( new PhotoFolderComparator() );
     
     /**
        Returns the parent of this folder or null if this is a top-level folder

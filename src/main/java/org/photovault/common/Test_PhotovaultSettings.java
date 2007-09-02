@@ -21,17 +21,19 @@
 
 package org.photovault.common;
 
-import org.photovault.dbhelper.ODMG;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.imginfo.Thumbnail;
-import org.photovault.imginfo.Volume;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Properties;
 import junit.framework.*;
+import org.hibernate.Session;
+import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 /**
  *
  * @author harri
@@ -157,29 +159,27 @@ public class Test_PhotovaultSettings extends TestCase {
         
         db.createDatabase( "", "" );
         try {
-            
-            // Verify that the database can be used by importing a file
-            ODMG.initODMG( "", "", db );
+            HibernateUtil.init( "", "", db );
         } catch (PhotovaultException ex) {
             fail( ex.getMessage() );
         }
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory daoFactory = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        daoFactory.setSession( session );
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         File photoFile = new File( "testfiles/test1.jpg" );
         PhotoInfo photo = null;
         try {
             photo = PhotoInfo.addToDB(photoFile);
+            photo = photoDAO.makePersistent( photo );
         } catch (PhotoNotFoundException ex) {
             ex.printStackTrace();
             fail( ex.getMessage() );
         }
         photo.setPhotographer( "test" );
-        try {
-            
-            PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-            Thumbnail thumb = photo2.getThumbnail();
-            this.assertFalse( "Default thumbnail returned", thumb == Thumbnail.getDefaultThumbnail() );
-        } catch (PhotoNotFoundException ex) {
-            fail( "Photo not found in database" );
-        }
+        PhotoInfo photo2 = photoDAO.findById( photo.getUid(), false );
+        Thumbnail thumb = photo2.getThumbnail();
+        this.assertFalse( "Default thumbnail returned", thumb == Thumbnail.getDefaultThumbnail() );
     }
     
     public void testProperties() {
