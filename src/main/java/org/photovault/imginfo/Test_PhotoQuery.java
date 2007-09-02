@@ -39,14 +39,17 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     Vector uids = null;
     PhotoFolder folder = null;
     PhotoFolder subfolder = null;
-    DAOFactory daoFactory = DAOFactory.instance( HibernateDAOFactory.class );
+    DAOFactory daoFactory;
     PhotoInfoDAO photoDAO = null;
     PhotoFolderDAO folderDAO = null;
     Session session = null;
     Transaction tx = null;
     
     public void setUp() {
-        session = HibernateUtil.getSessionFactory().getCurrentSession();
+        session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        hdf.setSession( session );
+        daoFactory = hdf;
         photoDAO = daoFactory.getPhotoInfoDAO();
         folderDAO = daoFactory.getPhotoFolderDAO();
         tx = session.beginTransaction();
@@ -65,8 +68,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	cal.set( 2002, 11, 25 );
 	makePhoto( cal, 1, "" );
 
-        folder = PhotoFolder.create( "QueryTest", folderDAO.findRootFolder() );
-	folderDAO.makePersistent( folder );
+        folder = PhotoFolder.create( "QueryTest", null );
+	folder = folderDAO.makePersistent( folder );
+        folder.reparentFolder( folderDAO.findRootFolder() );
         subfolder = PhotoFolder.create( "QueryTest subfolder", folder );
 	folder.addPhoto( (PhotoInfo)photos.get(0) );
 	subfolder.addPhoto( (PhotoInfo)photos.get(3) );
@@ -89,11 +93,10 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     
     
     PhotoInfo makePhoto( Calendar cal, double accuracy, String desc ) {
-	PhotoInfo photo = PhotoInfo.create();
+	PhotoInfo photo = photoDAO.makePersistent( PhotoInfo.create() );
 	photo.setShootTime( cal.getTime() );
 	photo.setTimeAccuracy( accuracy );
 	photo.setDescription( desc );
-        photoDAO.makePersistent( photo );
 	photos.add( photo );
 	uids.add( photo.getId() );
 	return photo;
