@@ -25,7 +25,11 @@ import java.sql.*;
 import java.io.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.photovault.dbhelper.ImageDb;
+import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultException;
+import org.photovault.common.PhotovaultSettings;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 
@@ -42,7 +46,8 @@ public class Test_ImageInstance extends PhotovaultTestCase {
     Session session = null;
     Transaction tx = null;
     
-    ImageInstanceDAO instDAO = new ImageInstanceDAOHibernate();
+    ImageInstanceDAO instDAO;
+    DAOFactory daoFactory;
     
     public Test_ImageInstance() {
         super();
@@ -52,7 +57,11 @@ public class Test_ImageInstance extends PhotovaultTestCase {
      Sets ut the test environment
      */
     public void setUp() {
-        session = HibernateUtil.getSessionFactory().getCurrentSession();
+        session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        hdf.setSession( session );
+        daoFactory = hdf;
+        instDAO = daoFactory.getImageInstanceDAO();
         tx = session.beginTransaction();
         try {
             photo = PhotoInfo.findPhotoInfo( session, 1 );
@@ -63,7 +72,16 @@ public class Test_ImageInstance extends PhotovaultTestCase {
         if ( !volumeDir.exists() ) {
             volumeDir.mkdirs();
         }
-        volume = new Volume( "imageInstanceTest", volumeRoot );
+        PVDatabase db = PhotovaultSettings.getSettings().getCurrentDatabase();
+        volume = (Volume) db.getVolume( "imageInstanceTest" );
+        if ( volume == null ) {
+            volume = new Volume( "imageInstanceTest", volumeRoot );
+            try {
+                PhotovaultSettings.getSettings().getCurrentDatabase().addVolume( volume );
+            } catch (PhotovaultException ex) {
+                fail( ex.getMessage() );
+            }
+        }
     }
     
     /**
@@ -89,7 +107,7 @@ public class Test_ImageInstance extends PhotovaultTestCase {
                 ImageInstance.INSTANCE_TYPE_ORIGINAL );
         assertNotNull( "Image instance is null", f );
         try {
-            instDAO.makePersistent( f );
+            f = instDAO.makePersistent( f );
         } catch ( Throwable t ) {
             fail( t.getMessage() );
         }
@@ -151,7 +169,7 @@ public class Test_ImageInstance extends PhotovaultTestCase {
         ImageInstance f = ImageInstance.create( volume, instanceFile, photo,
                 ImageInstance.INSTANCE_TYPE_ORIGINAL  );
         assertNotNull( f );
-        instDAO.makePersistent( f );
+        f = instDAO.makePersistent( f );
         instDAO.flush();
         assertMatchesDb( f );
         instDAO.makeTransient( f );
