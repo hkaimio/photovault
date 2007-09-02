@@ -24,7 +24,12 @@ package org.photovault.imginfo;
 import java.util.Date;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.hibernate.Session;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 
 /**
@@ -36,17 +41,29 @@ public class Test_SortedCollection extends PhotovaultTestCase {
     /** Creates a new instance of Test_SortedCollection */
     public Test_SortedCollection() {
     }
-    
+
+    DAOFactory daoFactory;
+    PhotoInfoDAO photoDAO = null;
+    PhotoFolderDAO folderDAO = null;
+    Session session = null;
+
     PhotoFolder folder = null;
     PhotoInfo photo1 = null;
     PhotoInfo photo2 = null;
     PhotoInfo photo3 = null;
     
     public void setUp() {
-        folder = PhotoFolder.create( "SortedCollectionTest", null );
-        photo1 = PhotoInfo.create();
-        photo2 = PhotoInfo.create();
-        photo3 = PhotoInfo.create();
+        session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        hdf.setSession( session );
+        daoFactory = hdf;
+        photoDAO = daoFactory.getPhotoInfoDAO();
+        folderDAO = daoFactory.getPhotoFolderDAO();
+
+        folder = folderDAO.makePersistent( PhotoFolder.create( "SortedCollectionTest", null ) );
+        photo1 = photoDAO.makePersistent( PhotoInfo.create() );
+        photo2 = photoDAO.makePersistent( PhotoInfo.create() );
+        photo3 = photoDAO.makePersistent( PhotoInfo.create() );
         
         photo1.setShootTime( new Date( 2000, 1, 1 ));
         photo1.setShootingPlace( "TESTPLACE B" );
@@ -61,9 +78,13 @@ public class Test_SortedCollection extends PhotovaultTestCase {
     
     public void tearDown() {
         folder.delete();
+        folderDAO.makeTransient( folder );
         photo1.delete();
+        photoDAO.makeTransient( photo1 );
         photo2.delete();
+        photoDAO.makeTransient( photo2 );
         photo3.delete();
+        photoDAO.makeTransient( photo3 );
     }
     
     public void testSorting() {
