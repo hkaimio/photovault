@@ -38,6 +38,8 @@ import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.ImageInstanceDAO;
 import org.photovault.imginfo.ImageInstanceDAOHibernate;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
 
 /**
  * This class extends junit TestCase class so that it sets up the OJB environment
@@ -123,7 +125,10 @@ public class PhotovaultTestCase extends TestCase {
         for ( ImageInstance i : instances ) {
             instFound.put( i, Boolean.FALSE );
         }
-        ImageInstanceDAO instDAO = new ImageInstanceDAOHibernate();
+        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        hdf.setSession( session );
+        
+        ImageInstanceDAO instDAO = hdf.getImageInstanceDAO();
         List dbInstances = instDAO.findPhotoInstances( p );
         for ( Object o : dbInstances ) {
             if ( !instFound.containsKey( (ImageInstance) o ) ) {

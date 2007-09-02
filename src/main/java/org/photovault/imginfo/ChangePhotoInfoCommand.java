@@ -309,7 +309,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
         if ( photoIds.size() == 0 ) {
-            PhotoInfo photo = PhotoInfo.create();
+            PhotoInfo photo = photoDAO.makePersistent( PhotoInfo.create() );
             photos.add( photo );
         } else {
             for ( Integer id : photoIds ) {

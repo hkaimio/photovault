@@ -46,8 +46,8 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     Session session = null;
     Transaction tx = null;
     
-    DAOFactory daoFactory = DAOFactory.instance( HibernateDAOFactory.class );
-    PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
+    DAOFactory daoFactory;
+    PhotoInfoDAO photoDAO;
     
     /**
      * Default constructor to set up OJB environment
@@ -61,6 +61,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
      */
     public void setUp() {
         session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        hdf.setSession( session );
+        daoFactory = hdf;
+        photoDAO = daoFactory.getPhotoInfoDAO();
         tx = session.beginTransaction();
     }
     
@@ -92,12 +96,13 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
        Test case that verifies that an existing photo info record 
        can be loaded successfully
     */
-    public void testRetrievalNotFound() {
-	int photoId = -1;
-        PhotoInfo photo = null;
-        photo = photoDAO.findById( Integer.valueOf( photoId ), false );
-        assertNull( "Image " + photoId + " should not exist." , photo );
-    }
+    // Not valid anymore due to lazy initialization logic.
+//    public void testRetrievalNotFound() {
+//	int photoId = -1;
+//        PhotoInfo photo = null;
+//        photo = photoDAO.findById( Integer.valueOf( photoId ), false );
+//        assertNull( "Image " + photoId + " should not exist." , photo );
+//    }
 
     /** 
 	Test updating object to DB
@@ -268,10 +273,10 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         
         
         // tx.commit();
-        session.close();
+        // session.close();
         
         Session session2 = HibernateUtil.getSessionFactory().openSession();
-        tx = session2.beginTransaction();
+        Transaction tx2 = session2.beginTransaction();
         
         PhotoInfo photo2 = null;
         try {
@@ -297,8 +302,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	} catch ( PhotoNotFoundException e ) {
 	    fail ( "inserted photo not found" );
 	}
-        session2.delete( photo2 );
-        tx.commit();
+        tx2.commit();
         session2.close();
     }
 
@@ -374,7 +378,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         
 	PhotoInfo photo = PhotoInfo.create();
 	assertNotNull( photo );
-        photoDAO.makePersistent( photo );
+        photo = photoDAO.makePersistent( photo );
         
 	int numInstances = photo.getNumInstances();
 	photo.addInstance( VolumeBase.getDefaultVolume(), instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
@@ -468,7 +472,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    fail( "Could not find photo: " + e.getMessage() );
 	}
 	assertNotNull( photo );
-        photoDAO.makePersistent( photo );
+        photo = photoDAO.makePersistent( photo );
 	int instanceCount = photo.getNumInstances();
 	photo.createThumbnail();
 	assertEquals( "InstanceNum should be 1 greater after adding thumbnail",
@@ -858,7 +862,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    fail( "Could not find photo: " + e.getMessage() );
 	}
         
-        photoDAO.makePersistent( photo );
+        photo = photoDAO.makePersistent( photo );
         
         byte[] hash = photo.getOrigInstanceHash();
         
@@ -875,7 +879,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 
     public void testRawSettings() {
         PhotoInfo p = PhotoInfo.create();
-        photoDAO.makePersistent( p );
+        p = photoDAO.makePersistent( p );
         double chanMul[] = { 
             1., .7, .5, .7
         };
