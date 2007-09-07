@@ -23,6 +23,9 @@ package org.photovault.imginfo;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  Extenal volume is a volume that resides outside Photovault repository, i.e. a
@@ -35,6 +38,8 @@ import java.io.IOException;
  </ul>
  @author Harri Kaimio
  */
+@Entity
+@DiscriminatorValue( "external_volume")
 public class ExternalVolume extends VolumeBase {
     
     /**
@@ -53,8 +58,10 @@ public class ExternalVolume extends VolumeBase {
     }
     
     /**
-     getFilingFname should return that can be used for an instance of a certain file.
-     However, Photovault cannot store anything in external volume so return null.
+     *     getFilingFname should return that can be used for an instance of a certain file.
+     *     However, Photovault cannot store anything in external volume so return null.
+     * @param imageFile File whose filing name is requested
+     * @return returns always <CODE>null</CODE>
      */
      
     public File getFilingFname(File imageFile) {
@@ -62,7 +69,10 @@ public class ExternalVolume extends VolumeBase {
     }
 
     /**
-     Photovault cannot create new instances in external volume so return null
+     *     Photovault cannot create new instances in external volume so return null
+     * @param photo The photo
+     * @param strExtension File type extension
+     * @return always <CODE>null</CODE>
      */
     public File getInstanceName(PhotoInfo photo, String strExtension) {
         return null;
@@ -71,9 +81,13 @@ public class ExternalVolume extends VolumeBase {
     int folderId = -1;
     
     /**
-     Returns the ID of the folder that is used to represent this external volume. 
-     If this external volume is not associated withny folder return <code>null</code>.
+     *     Returns the ID of the folder that is used to represent this external volume. 
+     *     If this external volume is not associated withny folder return <code>null</code>.
+     * @return Id of he associated {@link PhotoFolder}
+     * @deprecated In the new persistent framework, this should be replaced by nethod 
+     * that returns the folder itself.
      */
+    @Transient
     public int getFolderId() {
         return folderId;
     }
@@ -87,6 +101,12 @@ public class ExternalVolume extends VolumeBase {
         folderId = id;
     }
 
+    /**
+     * Write the object as XML
+     * @param outputWriter The writer into which the object is written
+     * @param indent Number of spaces to indent the outermost element.
+     * @throws java.io.IOException If writing fails.
+     */
     public void writeXml(BufferedWriter outputWriter, int indent ) throws IOException {
         String s = "                                ".substring( 0, indent );
         outputWriter.write( s+ "<external-volume name=\"" + getName() +

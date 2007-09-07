@@ -23,26 +23,17 @@ package org.photovault.common;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
-import javax.sql.DataSource;
 import org.apache.commons.beanutils.DynaBean;
 import org.apache.ddlutils.DynaSqlException;
 import org.apache.ddlutils.Platform;
 import org.apache.ddlutils.PlatformFactory;
 import org.apache.ddlutils.io.DatabaseIO;
 import org.apache.ddlutils.model.Database;
-import org.apache.ojb.broker.PBKey;
-import org.apache.ojb.broker.PersistenceBroker;
-import org.apache.ojb.broker.PersistenceBrokerFactory;
-import org.apache.ojb.broker.metadata.ConnectionRepository;
-import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
-import org.apache.ojb.broker.metadata.MetadataManager;
-import org.apache.ojb.broker.accesslayer.LookupException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -153,6 +144,11 @@ public class SchemaUpdateAction {
                 sqlex.printStackTrace();
             }
         }
+        
+        if ( oldVersion < 11 ) {
+            upgrade11( session );
+        }
+        
         DbInfo info = DbInfo.getDbInfo();
         info = (DbInfo) session.merge( info );
         info.setVersion( db.CURRENT_SCHEMA_VERSION );
@@ -239,6 +235,21 @@ public class SchemaUpdateAction {
         while ( iter.hasNext() ) {
             SchemaUpdateListener l = (SchemaUpdateListener) iter.next();
             l.schemaUpdateStatusChanged( e );
+        }
+    }
+    
+    /**
+     Upgrade to chema version 11 (move raw settings to photos & image_instances
+     tables.
+     */
+    private void upgrade11(Session session) {
+        Connection con = session.connection();
+        try {
+            Statement stmt = con.createStatement();
+            String sql = "update photos p, ";
+            stmt.executeUpdate( "update photos p, ");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
     }
 }

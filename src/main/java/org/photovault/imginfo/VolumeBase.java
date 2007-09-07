@@ -25,8 +25,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.UUID;
 import java.util.Vector;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 
@@ -39,16 +50,42 @@ import org.photovault.common.PhotovaultSettings;
   
  @author Harri Kaimio
  */
-public abstract class VolumeBase {
+@Entity
+@Table( name = "pv_volumes" )
+@Inheritance( strategy = InheritanceType.SINGLE_TABLE )
+@DiscriminatorColumn( name = "volume_type", discriminatorType = DiscriminatorType.STRING )
+public abstract class VolumeBase implements java.io.Serializable {
     
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( VolumeBase.class.getName() );
+    Log log = LogFactory.getLog( VolumeBase.class.getName() );
 
     static VolumeBase defaultVolume = null;
     private static HashMap volumes = null;
     
+    private UUID id;
+    
     /**
-       Returns the current default volume object
-    */
+     * Get UUID of this volume
+     * @return UUID
+     */
+    @Id
+    @Column( name = "volume_id" )
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )    
+    public UUID getId() {
+        return id;
+    }
+    
+    /**
+     * Set the UUID of this volume. USed only by persistence layer.
+     * @param id New uuid
+     */
+    public void setId( UUID id ) {
+        this.id = id;
+    }
+    
+    /**
+     *       Returns the current default volume object
+     * @return The default volume
+     */
     public static VolumeBase getDefaultVolume() {
 	if ( defaultVolume == null ) {
             PhotovaultSettings settings = PhotovaultSettings.getSettings();
@@ -59,9 +96,10 @@ public abstract class VolumeBase {
     }
 
     /**
-       Returns the volume with a given name or null if such volume does not exist
-       @param volName The name to look for
-    */
+     *       Returns the volume with a given name or null if such volume does not exist
+     * @param volName The name to look for
+     * @return The volume of <CODE>null</CODE>
+     */
     public static VolumeBase getVolume( String volName ) {
 	VolumeBase vol = null;
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
@@ -87,8 +125,11 @@ public abstract class VolumeBase {
         return v;
     }
 
+    /**
+     * Base constructor.
+     */
     public VolumeBase() {
-        
+        id = UUID.randomUUID();
     }
     
     /**
@@ -98,6 +139,7 @@ public abstract class VolumeBase {
      */
      
     public VolumeBase( String volName, String volBaseDir ) {
+        id = UUID.randomUUID();
 	volumeName = volName;
 	volumeBaseDir = new File( volBaseDir );
 	if ( !volumeBaseDir.exists() ) {
@@ -128,9 +170,12 @@ public abstract class VolumeBase {
     }
     
     /**
-     This abstract method must be overloaded by each VolumeBase implementation so
-     that it returns the correct file path in which a given image should be stored 
-     in the volume.
+     *     This abstract method must be overloaded by each VolumeBase implementation so
+     *     that it returns the correct file path in which a given image should be stored 
+     *     in the volume.
+     * @param imageFile File whose name to look for
+     * @return Volume internal name for that file or <code>null</code> if it is not inside 
+     * volume directory hierarchy.
      */
     abstract public File getFilingFname( File imageFile );
     
@@ -200,16 +245,28 @@ public abstract class VolumeBase {
     
     
     /**
-     Returns the base directory for the volume.
-    */
-    
+     *     Returns the base directory for the volume.
+     * @return The base directory
+     */
+    @Transient
     public File getBaseDir() {
 	return volumeBaseDir;
     }
 
     /**
+     * Get the base directory name. Used by persistence layer.
+     * @return absolute pathname of base directory
+     */
+    @Column( name = "base_dir" )    
+    protected String getBaseDirName() {
+        return (volumeBaseDir != null ) ? volumeBaseDir.getAbsolutePath() : null;
+    }
+    
+    
+    /**
      * Sets the base dir for the volume. If the directory does no exist it is 
      * created.
+     * @param baseDirName absolute path to base directory
      */
     public void setBaseDir( String baseDirName ) {
         log.debug( "New basedir for " + volumeName + ": " + baseDirName );
@@ -217,10 +274,18 @@ public abstract class VolumeBase {
         setBaseDir( baseDir );
     }
     
+    /**
+     * Set the base directory. Used by persistence layer.
+     * @param baseDirName Absolute path to base directory.
+     */
+    protected void setBaseDirName( String baseDirName ) {
+        setBaseDir( baseDirName );
+    }
 
     /**
      * Sets the base dir for the volume. If the directory does no exist it is 
      * created.
+     * @param baseDir Base directory.
      */
     public void setBaseDir( File baseDir ) {
         log.debug( "New basedir for " + volumeName + ": " + baseDir );        
@@ -230,17 +295,24 @@ public abstract class VolumeBase {
 	}        
     }
     
+    
+    /**
+     * Name of this volume
+     */
     protected String volumeName = "";
 
     /**
-       Returns the volume name
+     *       Returns the volume name
+     * @return Name of the volume
      */
+    @Column( name = "volume_name" )
     public String getName() {
 	return volumeName;
     }
 
     /**
      * Sets the voume name
+     * @param volName New name fot the volume
      */
     public void setName( String volName ) {
         unregisterVolume();
@@ -248,21 +320,25 @@ public abstract class VolumeBase {
         registerVolume();
     }
     
-    /** returns true if the volume is available, false otherwise (if e.g. the volume is
-	stored on CD-ROM that is not mounted currently
-    */
-    
+    /**
+     * returns true if the volume is available, false otherwise (if e.g. the volume is
+     * 	stored on CD-ROM that is not mounted currently
+     * @return Availablility status
+     */
+    @Transient
     public boolean isAvailable() {
 	return true;
     }
     
     /**
-     Checks whether a certain file is part  of the volume (i.e. in the directory 
-     hierarchy under the base directory. Note that existence of the file is not 
-     ckecked, nor whether the file is really an instance of a PhotoInfo.
-     @return true if the file belongs to the volume, false otherwise
-     @throws IOException if is an error when creating canonical form of f
+     *     Checks whether a certain file is part  of the volume (i.e. in the directory 
+     *     hierarchy under the base directory. Note that existence of the file is not 
+     *     ckecked, nor whether the file is really an instance of a PhotoInfo.
+     * @return true if the file belongs to the volume, false otherwise
+     * @param f File 
+     * @throws IOException if is an error when creating canonical form of f
      */
+    @Transient
     public boolean isFileInVolume( File f ) throws IOException {
         boolean isInVolume = false;
         
@@ -287,11 +363,15 @@ public abstract class VolumeBase {
     }
 
     /**
-     The derived classes must overload this method to write the value of the object as an 
-     XML element.
-     @param outputWriter The writer into which the object is written
-     @param indent Number of spaces to indent each line
+     *     The derived classes must overload this method to write the value of the object as an 
+     *     XML element.
+     * @param outputWriter The writer into which the object is written
+     * @param indent Number of spaces to indent each line
+     * @throws java.io.IOException if writing fails.
      */
     public abstract void writeXml(BufferedWriter outputWriter, int indent ) throws IOException;
+    /**
+     * Base directory for the volume
+     */
     protected File volumeBaseDir;    
 }

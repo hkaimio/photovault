@@ -21,6 +21,7 @@
 package org.photovault.persistence;
 
 import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.imginfo.ImageFileDAO;
 import org.photovault.imginfo.ImageInstanceDAO;
 import org.photovault.imginfo.PhotoInfoDAO;
 
@@ -53,4 +54,9 @@ public abstract class DAOFactory {
      Create a new {@link ImageInstanceDAO}
      */
     public abstract ImageInstanceDAO getImageInstanceDAO();
+
+    /**
+     Create a new {@link ImageFileDAO}
+     */
+    public abstract ImageFileDAO getImageFileDAO();
 }

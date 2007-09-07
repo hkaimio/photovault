@@ -311,7 +311,21 @@ public class ImageInstance implements ImageInstanceModifier {
         this.uuid = uuid;
         txw.commit();
     }
+        
+    ImageFile file;
     
+    @ManyToOne( cascade = CascadeType.ALL )
+    @org.hibernate.annotations.Cascade({
+        org.hibernate.annotations.CascadeType.SAVE_UPDATE })
+    @JoinColumn( name = "file_id" )
+        
+    public ImageFile getFile() {
+            return file;
+    }
+    
+    public void setFile( ImageFile f ) {
+        file = f;
+    } 
     
     /**
      Inits the complex attributes volume and imageFile. Since these
