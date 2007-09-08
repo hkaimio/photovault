@@ -23,12 +23,16 @@ package org.photovault.persistence;
 import org.hibernate.Session;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.folder.PhotoFolderDAOHibernate;
+import org.photovault.imginfo.ImageDescriptorDAO;
+import org.photovault.imginfo.ImageDescriptorDAOHibernate;
 import org.photovault.imginfo.ImageFileDAO;
 import org.photovault.imginfo.ImageFileDAOHibernate;
 import org.photovault.imginfo.ImageInstanceDAO;
 import org.photovault.imginfo.ImageInstanceDAOHibernate;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoInfoDAOHibernate;
+import org.photovault.imginfo.VolumeDAO;
+import org.photovault.imginfo.VolumeDAOHibernate;
 
 /**
  Factory for creating Hibernate data access objects for Photovault.
@@ -74,6 +78,14 @@ public class HibernateDAOFactory extends DAOFactory {
 
     public ImageFileDAO getImageFileDAO() {
         return (ImageFileDAO) instantiateDAO( ImageFileDAOHibernate.class );        
+    }
+
+    public VolumeDAO getVolumeDAO() {
+        return (VolumeDAO) instantiateDAO( VolumeDAOHibernate.class );        
+    }
+
+    public ImageDescriptorDAO getImageDescriptorDAO() {
+        return (ImageDescriptorDAO) instantiateDAO( ImageDescriptorDAOHibernate.class );        
     }
     
 }

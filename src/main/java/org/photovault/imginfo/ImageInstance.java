@@ -57,7 +57,7 @@ public class ImageInstance implements ImageInstanceModifier {
      proper image file.
      */
     protected ImageInstance() {
-        // Empty
+        uuid = UUID.randomUUID();
     }
     
     /**
@@ -379,6 +379,7 @@ public class ImageInstance implements ImageInstanceModifier {
      Opens the image file specified by fname & dirname properties and reads
      the rest of fields from that
      @throws IOException if the image cannot be read.
+     @deprecated use {@link ImageFile} for access to image files.
      */
     protected void readImageFile() throws PhotovaultException, IOException {
         
@@ -987,11 +988,10 @@ public class ImageInstance implements ImageInstanceModifier {
         if ( this == o ) return true;
         if ( !(o instanceof ImageInstance) ) return false;
         ImageInstance that = (ImageInstance) o;
-        return this.volumeId.equals( that.volumeId ) &&
-                this.fname.equals( that.fname );
+        return this.uuid.equals( that.uuid );
     }
     
     public int hashCode() {
-        return volumeId.hashCode() + fname.hashCode();
+        return uuid.hashCode();
     }
 }

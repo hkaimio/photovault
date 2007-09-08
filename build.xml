@@ -42,8 +42,11 @@
     
     <!-- SVN info task definition -->
   <taskdef name="svninfoproperties" classname="com.jwhitlock.ant.taskdefs.SvnInfoProperties" classpath="lib/svninfo_task.jar" />
-
-      
+  
+  <!-- Clover task definition -->
+  <property name="clover.jar" location="/home/harri/tmp/clover-ant-2.0b1/lib/clover.jar"/>
+  <taskdef resource="cloverlib.xml" classpath="${clover.jar}"/>
+  
   <path id="runtime.path">
       <fileset id="runtime.fileset" dir="${build.lib.dir}">
           <include name="db-ojb-1.0.4.jar"/>
@@ -81,6 +84,7 @@
           <include name="swing-layout-*.jar"/>
           <include name="DdlUtils-*"/>
           <include name="quaqua.jar"/>
+          <include name="clover.jar"/>
       </fileset>
   </path>
   <path id="project.class.path">
@@ -100,6 +104,21 @@
   </path>
 
   <property environment="env"/>
+  
+  <!-- Hibernate tools task definitions -->
+<path id="toolslib">
+ <path location="lib/hibernate-tools/hibernate-tools.jar" />
+ <path location="lib/hibernate3.jar" />
+ <path location="lib/hibernate-tools/freemarker.jar" />
+ <path location="lib/derby.jar" />
+ <path location="lib/log4j-1.2.12.jar" />
+ <path location="lib/commons-logging.jar" />
+ <path refid="project.class.path" />
+</path>
+   
+<taskdef name="hibernatetool" 
+         classname="org.hibernate.tool.ant.HibernateToolTask" 
+         classpathref="toolslib" />  
 
   <target name="check-svn" description="Check whether Subversion is installed">
     <available property="svn.installed" file="svn" filepath="${env.PATH}"/>
@@ -236,7 +255,35 @@
         <arg line="${nsis-src}/photovault_installer.nsi"/>
     </exec>
   </target>
-  
+    
+    <target name="testng" depends="dist" description="TestNG test">
+        <taskdef  resource="testngtasks" classpath="lib/testng.jar"/>
+        <nbjpdastart name="${classname}" addressproperty="jpda.address" transport="dt_socket">
+            <classpath refid="project.class.path"/>
+            <sourcepath refid="debug.sourcepath"/> 
+        </nbjpdastart>
+        <testng outputDir="${reports.test}/testresults"
+                haltOnFailure="true" verbose="2">
+            <jvmarg value="${run.jvmargs}"/>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xnoagent"/>
+            <jvmarg value="-Djava.compiler=none"/>
+            <jvmarg value="-Dbasedir=${basedir}"/>
+            
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>                
+            <classpath>
+                <path refid="project.class.path"/>
+                <pathelement location="${build.dir}"/>
+                <pathelement location="${conf.dir}"/>
+            </classpath>
+            
+            <classfileset dir="build"> 
+                <include name="**/Test_ImageFile.class"/>
+            </classfileset>
+        </testng>         
+    </target>
+    
+    
     <target name="test" depends="dist" description="Run JUnit tests">
       <delete dir="./${reports.test}/testresults"/>
       <mkdir dir="./${reports.test}/testresults"/>
@@ -272,6 +319,9 @@
 
     </target>
 
+    <target name="test-coverage" depends="with.clover,clean,dist,test">
+        
+    </target>
     <!-- Checkstyle target -->
     <target name="checkstyle">
         <checkstyle config="conf/sun_checks.xml">
@@ -359,6 +409,21 @@
         </java> 
   </target>
 
+  <target name="with.clover">
+      <clover-setup/>
+  </target>
+  
+  <target name="clover.html">
+      <clover-html-report outdir="reports/clover_html"
+                          testresultsdir="reports/testresults"
+                          title="Photovault"/>
+  </target>
+  
+  
+  <target name="clover.clean">
+      <clover-clean/>
+  </target>
+  
   <target name="run-coverage" depends="dist">
         <path id="instrpath">
             <pathelement path="build"/>
@@ -469,6 +534,18 @@
       <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
     </javadoc>
   </target>
+  
+  <target name="hibernate.hbm" depends="dist" description="Create Hibernate HBM file based on current mapping">
+      <hibernatetool destdir="build/hibernate">
+          <classpath refid="runtime.path"/>
+          <annotationconfiguration
+              configurationfile="conf/hibernate.cfg.xml"/>
+              <hbm2hbmxml/>
+              <hbm2ddl export="false" outputfilename="sql.ddl"/>              
+      </hibernatetool>
+      
+  </target>
+  
   <target name="clean"
         description="clean up" >    
     <!-- Delete the ${build} and ${dist} directory trees -->

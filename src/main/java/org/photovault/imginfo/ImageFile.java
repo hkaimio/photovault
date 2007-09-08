@@ -26,22 +26,28 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.common.PhotovaultException;
+import org.photovault.dcraw.RawImage;
 
 /**
  * ImageFile represents info about a certain image file that may or may not exist 
@@ -69,15 +75,20 @@ public class ImageFile implements java.io.Serializable {
     }
     
     /**
-     * Creates a new ImageFile from given file
-     * @param f The file from which the ImageFiel fields are calculated.
+     * Creates a new ImageFile from given file. Note that the file is not added
+     * to the image as a new location, this must be done separately.
+     * @param f The file from which the ImageFile fields are calculated.
+     * @throws org.photovault.common.PhotovaultException If there is an error
+     * @throws java.io.IOException If reading the image file failed.
      */
-    public ImageFile( File f ) {
+    public ImageFile( File f ) throws PhotovaultException, IOException {
         // Set lastChecked to a time that is certainly earlier than any data read 
         // from file system
         hash = calcHash( f );
         id = UUID.nameUUIDFromBytes( hash );
         size = f.length();
+        readImageFile( f );
+        
     }
     
     private UUID id;
@@ -172,6 +183,7 @@ public class ImageFile implements java.io.Serializable {
      * @param newLocation FileLocation object that describes the location.
      */
     public void addLocation( FileLocation newLocation ) {
+        newLocation.file = this;
         locations.add( newLocation );
     }
     
@@ -186,17 +198,18 @@ public class ImageFile implements java.io.Serializable {
     /**
      Images contained in this file
      */
-    Set<ImageInstance> images = new HashSet<ImageInstance>();
+    Map<String,ImageDescriptorBase> images = new HashMap<String,ImageDescriptorBase>();
     
     /**
      * Get all images stored in this file
-     * @return Set of images
+     * @return Map that maps image location descriptor to the image descriptor object
      */
+    @MapKey( name = "locator" )
     @OneToMany(cascade  = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE },
                mappedBy = "file")
     @org.hibernate.annotations.Cascade({
                org.hibernate.annotations.CascadeType.SAVE_UPDATE })
-    public Set<ImageInstance> getImages() {
+    public Map<String,ImageDescriptorBase> getImages() {
         return images;
     }
     
@@ -204,9 +217,72 @@ public class ImageFile implements java.io.Serializable {
      * Set the images stored in this file. USed by persistence layer only.
      * @param images New set of images.
      */
-    protected void setImages( Set<ImageInstance> images ) {
+    protected void setImages( Map<String,ImageDescriptorBase> images ) {
         this.images = images;
     }
+    
+    /**
+     *     Opens the image file specified by fname & dirname properties, read
+     *     the rest of fields from that and create the instances
+     * @param f File from which to read the information
+     * @throws org.photovault.common.PhotovaultException If the file is not of recognized type
+     * @throws IOException if the image cannot be read.
+     */
+    protected void readImageFile( File f ) throws PhotovaultException, IOException {
+        
+        String fname = f.getName();
+        int lastDotPos = fname.lastIndexOf( "." );
+        if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
+            throw new PhotovaultException( "Cannot determine file type extension of " + f.getAbsolutePath() );
+        }
+        String suffix = fname.substring( lastDotPos+1 );
+        Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
+        if ( readers.hasNext() ) {
+            ImageReader reader = (ImageReader)readers.next();
+            ImageInputStream iis = null;
+            try {
+                iis = ImageIO.createImageInputStream( f );
+                if ( iis != null ) {
+                    reader.setInput( iis, true );
+                    // int imageCount = reader.getNumImages( true );
+                    // for now...
+                    int imageCount = 1;
+                    for ( int n = 0 ; n < imageCount ; n++ ) {
+                        ImageDescriptorBase img = new OriginalImageDescriptor( this, "image#" + n );
+                        img.setWidth( reader.getWidth( n ) );
+                        img.setHeight( reader.getHeight( n ) );
+                        // img.setInstanceType( ImageInstance.INSTANCE_TYPE_ORIGINAL );
+                        img.setFile( this );
+                    }
+                    reader.dispose();
+                }
+            } catch (IOException ex) {
+                log.debug( "Exception in readImageFile: " + ex.getMessage() );
+                throw ex;
+            } finally {
+                if ( iis != null ) {
+                    try {
+                        iis.close();
+                    } catch (IOException ex) {
+                        log.warn( "Cannot close image stream: " + ex.getMessage() );
+                    }
+                }
+            }
+        } else {
+            RawImage ri = new RawImage( f );
+            if ( ri.isValidRawFile() ) {
+                // PlanarImage img = ri.getCorrectedImage();
+                ImageDescriptorBase img = new OriginalImageDescriptor( this, "image#0" );
+                img.setWidth( ri.getWidth() );
+                img.setHeight( ri.getHeight() );
+            } else {
+                throw new PhotovaultException( "Unknown image file extension " + suffix +
+                        "\nwhile reading " + f.getAbsolutePath() );
+            }
+        }
+        
+    }
+    
     
     /**
      *     Utility function to calculate the hash of a specific file

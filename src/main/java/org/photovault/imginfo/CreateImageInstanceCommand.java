@@ -24,6 +24,8 @@ package org.photovault.imginfo;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
@@ -43,17 +45,28 @@ public class CreateImageInstanceCommand extends DataAccessCommand
     
     /** 
      Creates a new instance of CreateImageInstanceCommand
+     
+     TODO: We should actually create an {@link ImageFile}, not an instance
+     
      @param volume Volume in wjich the instance will be created.
      @param imageFile Instance file
      @param photo The photo whose instance we are creating.
-     @param instanceType Type of the instance.
+     @param instanceType Type of the instance.     
      */
     public CreateImageInstanceCommand( VolumeBase volume, File imageFile,
             PhotoInfo photo, int instanceType ) throws PhotovaultException, IOException {
-        instance = ImageInstance.create( volume, imageFile );
-        instance.instanceType = instanceType;
-        instance.readImageFile();
-        photoId = photo.getId();
+        imgFile = new ImageFile( imageFile );
+        if ( volume != null ) {
+            imgFile.addLocation( new FileLocation( volume, 
+                    volume.mapFileToVolumeRelativeName( imageFile ) ) );
+        }
+        Map<String, ImageDescriptorBase> createdInstances = imgFile.getImages();
+        if ( volume != null ) {
+            volumeId = volume.getId();
+        }
+        if ( photo != null ) {
+            photoId = photo.getId();
+        }
     }
     
     /** 
@@ -61,17 +74,18 @@ public class CreateImageInstanceCommand extends DataAccessCommand
      @param volume Volume in wjich the instance will be created.
      @param imageFile Instance file
      */
-    public CreateImageInstanceCommand( VolumeBase volume, File imageFile ) {
-        instance = ImageInstance.create( volume, imageFile );        
+    public CreateImageInstanceCommand( VolumeBase volume, File imageFile )
+    throws PhotovaultException, IOException  {
+        this( volume, imageFile, null, ImageInstance.INSTANCE_TYPE_ORIGINAL );
     }
     
     /** 
      Creates a new instance of CreateImageInstanceCommand
      @uuid UUID for the created instance.
      */
-    public CreateImageInstanceCommand( UUID uuid ) {
-        instance = ImageInstance.create( uuid );
-    }
+//    public CreateImageInstanceCommand( UUID uuid ) {
+//        instance = ImageInstance.create( uuid );
+//    }
 
     /**
      Get the created instance
@@ -80,6 +94,10 @@ public class CreateImageInstanceCommand extends DataAccessCommand
      */
     public ImageInstance getImageInstance() {
         return instance;
+    }
+    
+    public ImageFile getImageFile() {
+        return imgFile;
     }
 
     /**
@@ -94,27 +112,37 @@ public class CreateImageInstanceCommand extends DataAccessCommand
     public void execute() throws CommandException {
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageInstanceDAO instDAO = daoFactory.getImageInstanceDAO();
+        ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
+        VolumeDAO volDAO = daoFactory.getVolumeDAO();
         /*
          First, make sure that there is no instance with this name in database.
          This should not happen but seems to be possible...
          */
-        ImageInstance existingInstance = 
-                instDAO.getExistingInstance( instance.getVolume(), instance.getFname() );
-        if ( existingInstance != null ) {
-            PhotoInfo existingPhoto = existingInstance.getPhoto();
-            existingPhoto.removeInstance( existingInstance );
-            instDAO.makeTransient( existingInstance );
-        }
+//        ImageInstance existingInstance = 
+//                instDAO.getExistingInstance( instance.getVolume(), instance.getFname() );
+//        if ( existingInstance != null ) {
+//            PhotoInfo existingPhoto = existingInstance.getPhoto();
+//            existingPhoto.removeInstance( existingInstance );
+//            instDAO.makeTransient( existingInstance );
+//        }
         if ( photoId != null ) {
             photo = photoDAO.findById( photoId, false );
         } else {
             photo = PhotoInfo.create();
             photo = photoDAO.makePersistent( photo );
         }
-        photo.addInstance( instance );
-        if ( photoId == null ) {
-            photo.updateFromOriginalFile();
+        
+        VolumeBase volume = null;
+        if ( volumeId != null ) {
+            volume = volDAO.findById( volumeId, false );
         }
+        
+        // TODO: replace with ImageDescriptor
+        // photo.addInstance( instance );
+//        if ( photoId == null ) {
+//            photo.updateFromOriginalFile();
+//        }
+        ifDAO.makePersistent( imgFile );
         // instDAO.makePersistent( instance );
     }
 
@@ -176,6 +204,8 @@ public class CreateImageInstanceCommand extends DataAccessCommand
      Id of the photo fo rwhich we are creating this instance
      */
     Integer photoId = null;
+
+    private UUID volumeId;
     
     /**
      The instance we are currently creating
@@ -183,7 +213,13 @@ public class CreateImageInstanceCommand extends DataAccessCommand
     ImageInstance instance;
     
     /**
+     Image file we are creating
+     */    
+    ImageFile imgFile;
+    
+    /**
      The photo in persistence context in which the command is executed.
      */
     PhotoInfo photo;
+
 }

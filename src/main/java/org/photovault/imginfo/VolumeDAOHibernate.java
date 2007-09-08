@@ -24,17 +24,15 @@ import java.util.UUID;
 import org.photovault.persistence.GenericHibernateDAO;
 
 /**
- * Hibernate implementation of {@link ImageFileDAO}.
- * @author Harri Kaimio
- * @since 0.6.0
+ *
+ * @author harri
  */
-public class ImageFileDAOHibernate 
-        extends GenericHibernateDAO<ImageFile, UUID>
-        implements ImageFileDAO {
-
-    /** Creates a new instance of ImageFileDAOHibernate */
-    public ImageFileDAOHibernate() {
-        super();
+public class VolumeDAOHibernate 
+        extends GenericHibernateDAO<VolumeBase, UUID >
+        implements VolumeDAO {
+    
+    /** Creates a new instance of VolumeDAOHibernate */
+    public VolumeDAOHibernate() {
     }
     
 }

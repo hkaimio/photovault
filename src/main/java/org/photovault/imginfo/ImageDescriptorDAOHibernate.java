@@ -20,20 +20,19 @@
 
 package org.photovault.imginfo;
 
-import java.util.UUID;
 import org.photovault.persistence.GenericHibernateDAO;
 
 /**
- * Hibernate implementation of {@link ImageFileDAO}.
+ * Hibernate implementation of {@link ImageDescriptorDAO}
  * @author Harri Kaimio
  * @since 0.6.0
  */
-public class ImageFileDAOHibernate 
-        extends GenericHibernateDAO<ImageFile, UUID>
-        implements ImageFileDAO {
-
-    /** Creates a new instance of ImageFileDAOHibernate */
-    public ImageFileDAOHibernate() {
+public class ImageDescriptorDAOHibernate
+        extends GenericHibernateDAO<ImageDescriptorBase, Long>
+        implements ImageDescriptorDAO {
+    
+    /** Creates a new instance of ImageDescriptorDAOHibernate */
+    public ImageDescriptorDAOHibernate() {
         super();
     }
     

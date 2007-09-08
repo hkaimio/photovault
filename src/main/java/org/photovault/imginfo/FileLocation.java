@@ -34,7 +34,7 @@ import javax.persistence.TemporalType;
 @Embeddable
 public class FileLocation {
 
-    private ImageFile file;
+    ImageFile file;
 
     private VolumeBase volume;
 
@@ -44,8 +44,7 @@ public class FileLocation {
     }
 
     /** Creates a new instance of FileLocation */
-    public FileLocation( ImageFile f, VolumeBase volume, String fname ) {
-        this.setFile(f);
+    public FileLocation( VolumeBase volume, String fname ) {
         this.setVolume(volume);
         this.setFname(fname);
     }
