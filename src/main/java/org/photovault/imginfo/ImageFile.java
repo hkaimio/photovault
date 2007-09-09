@@ -44,6 +44,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
@@ -195,6 +196,29 @@ public class ImageFile implements java.io.Serializable {
         locations.remove( location );
     }
     
+
+    /**
+     Find a copy of this file that can be used
+     @return File that is described by this object or <code>null</code> if
+     no copy is available.
+     */
+    public File findAvailableCopy() {
+        for ( FileLocation loc : locations ) {
+            if ( loc.getVolume().isAvailable() ) {
+                try {
+                    File f = loc.getVolume().mapFileName(loc.getFname());
+                    if ( f.exists() ) {
+                        return f;
+                    }
+                } catch (FileNotFoundException ex) {
+                    log.warn( "Exception while looking for available file: " + 
+                            ex.getMessage() );
+                }
+            }
+        }
+        return null;
+    }
+    
     /**
      Images contained in this file
      */
@@ -318,5 +342,6 @@ public class ImageFile implements java.io.Serializable {
         }
         return hash;
     }
+
     
 }

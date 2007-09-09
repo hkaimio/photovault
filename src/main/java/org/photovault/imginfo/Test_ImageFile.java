@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.photovault.command.PhotovaultCommandHandler;
@@ -68,16 +69,33 @@ public class Test_ImageFile extends PhotovaultTestCase {
         daoFactory = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );    
         daoFactory.setSession( session );
         ifDAO = daoFactory.getImageFileDAO();
+        try {
 
-        vol1 = new Volume();
-        vol1.setBaseDir( new File( "/tmp") );
-        vol1.setName( "vol1" );
-        session.save( vol1 );
+            vol1 = new Volume();
+            File tmpdir = File.createTempFile( "pv_imagefile_test", "" );
+            tmpdir.delete();
+            tmpdir.mkdir();
+            vol1.setBaseDir( tmpdir );
+            vol1.setName( "vol1" );
+            session.save( vol1 );
+            vol2 = new ExternalVolume();
+            tmpdir = File.createTempFile( "pv_imagefile_test", "" );
+            tmpdir.delete();
+            tmpdir.mkdir();
+            vol2.setBaseDir( tmpdir );
+            vol2.setName( "vol2" );
+            session.save( vol2 );
+        } catch (IOException ex) {
+            fail( "exception while creating volumes" );
+        }
     }
 
     @AfterTest
     public void tearDown() throws Exception {
         session.delete( vol1 );
+        session.delete( vol2 );
+        FileUtils.deleteTree( vol1.getBaseDir() );
+        FileUtils.deleteTree( vol2.getBaseDir() );
         session.close();
     }
    
@@ -88,10 +106,6 @@ public class Test_ImageFile extends PhotovaultTestCase {
         i.setId( UUID.randomUUID() );
         i.setFileSize( 1000000 );
         Date lastChecked = new Date();
-        ExternalVolume vol2 = new ExternalVolume();
-        vol2.setBaseDir( "/usr/tmp" );
-        vol2.setName( "vol2" );
-        session.save( vol2 );
         FileLocation location = new FileLocation( vol1, "testfile1" );
         location.setLastChecked( lastChecked );
         location.setLastModified( lastChecked.getTime() );
@@ -119,11 +133,11 @@ public class Test_ImageFile extends PhotovaultTestCase {
             VolumeBase vol = l.getVolume();
             if ( vol.getName().equals( "vol1" ) ) {
                 assert vol instanceof Volume;
-                assert vol.getBaseDir().equals( new File( "/tmp" ) ); 
+                assert vol.getBaseDir().equals( vol1.getBaseDir() ); 
                 vol1Found = true;
             } else if ( vol.getName().equals( "vol2" ) ) {
                 assert vol instanceof ExternalVolume;
-                assert vol.getBaseDir().equals( new File( "/usr/tmp" ) ); 
+                assert vol.getBaseDir().equals( vol2.getBaseDir() ); 
                 vol2Found = true;
             } else {
                 fail( "Unknown volume" );
@@ -137,6 +151,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
     public void testImageDescriptorPersistence() {
         Transaction tx = session.beginTransaction();
         ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
         ImageFile f1 = new ImageFile();
         f1.setId( UUID.randomUUID() );
@@ -149,6 +164,8 @@ public class Test_ImageFile extends PhotovaultTestCase {
         i11.setWidth( 1200 );
         i11.setHeight( 1400 );
         idDAO.makePersistent( i11 );
+        PhotoInfo p1 = new PhotoInfo( i11 );
+        photoDAO.makePersistent( p1 );
         CopyImageDescriptor i12 = new CopyImageDescriptor( f1, "image#1", i11 );
         i12.setCropArea( new Rectangle2D.Double( 0.1, 0.2, 0.3, 0.4 ) );
         i12.setWidth( 300 );
@@ -158,6 +175,10 @@ public class Test_ImageFile extends PhotovaultTestCase {
         i21.setWidth( 2000 );
         i21.setHeight( 3000 );
         idDAO.makePersistent( i21 );
+        PhotoInfo p2 = new PhotoInfo( i21 );
+        PhotoInfo p3 = new PhotoInfo( i21 );
+        photoDAO.makePersistent( p2 );
+        photoDAO.makePersistent( p3 );
         CopyImageDescriptor i22 = new CopyImageDescriptor( f2, "image#1", i11 );
         i22.setWidth( 400 );
         i22.setHeight( 400 );
@@ -185,12 +206,27 @@ public class Test_ImageFile extends PhotovaultTestCase {
         assertTrue( vi12.getOriginal() == vi11 );
         ImageFile vf2 = ifDAO.findById( f2.getId(), false );
         assertEquals( 2, vf2.getImages().size() );
+        assertEquals( 1, vi11.getPhotos().size() );
+        
         OriginalImageDescriptor vi21 = (OriginalImageDescriptor) vf2.getImages().get( "image#0" );
         assertEquals( 0, vi21.getCopies().size() );
         CopyImageDescriptor vi22 = (CopyImageDescriptor) vf2.getImages().get( "image#1" );
         assert vi22.getOriginal() == vi11;
         assertEquals( 0.1, vi12.getCropArea().getMinX() );
         assertEquals( cm, vi22.getColorChannelMapping() );
+        assertEquals( 2, vi21.getPhotos().size() );
+        boolean foundP2 = false;
+        boolean foundP3 = false;
+        for ( PhotoInfo p : vi21.getPhotos() ) {
+            assert p.getOriginal() == vi21;
+            if ( p.getUUID().equals( p2.getUUID() ) ) {
+                foundP2 = true;
+            } else if ( p.getUUID().equals( p3.getUUID() ) ) {
+                foundP3 = true;
+            } 
+        }
+        assert foundP2;
+        assert foundP3;
     }
     
     @Test
@@ -213,6 +249,37 @@ public class Test_ImageFile extends PhotovaultTestCase {
         assertEquals( 0, f.getLocations().size() );        
     }
     
+    @Test
+    public void testFindAvailableCopy() throws IOException, PhotovaultException {
+        File testDir = new File( System.getProperty( "basedir" ), "testfiles" );
+        File testFile = new File( testDir, "test2.jpg" );
+        File testFileDst = new File( vol2.getBaseDir(), "test2.jpg" );
+        FileUtils.copyFile( testFile, testFileDst );
+        ImageFile imgFile = new ImageFile( testFileDst );
+        File f = imgFile.findAvailableCopy();
+        assertNull( f );
+        imgFile.addLocation( new FileLocation( vol2, "test2.jpg") );
+        f = imgFile.findAvailableCopy();
+        assertEquals( testFileDst, f );
+    }
+    
+    /**
+     Test that deleting a photo deletes also correct files from volumes but leaves
+     the ImageFile objects in database.
+     */
+    @Test( enabled = false )
+    public void testPhotoDelete() {
+        throw new UnsupportedOperationException( "Photo deletion not yet implemented" );
+    }
+    
+    /**
+     Test that deleting photo does not delete files from repository when there
+     are several photos based on same original.
+     */
+    @Test( enabled = false )
+    public void testPhotoDeleteMultiplePhotosForOriginal() {
+        throw new UnsupportedOperationException( "Photo deletion not yet implemented" );        
+    }
     
     private void assertMatchesDb( ImageFile i, Session session ) {
         String query = "select ins.file_size file_size" +

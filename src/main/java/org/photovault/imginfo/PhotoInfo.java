@@ -20,7 +20,6 @@
 
 package org.photovault.imginfo;
 import java.awt.image.renderable.ParameterBlock;
-import java.lang.UnsupportedOperationException;
 import java.util.*;
 import java.io.*;
 import javax.imageio.*;
@@ -32,12 +31,7 @@ import java.awt.geom.*;
 import com.drew.metadata.*;
 import com.drew.metadata.exif.*;
 import com.drew.imaging.jpeg.*;
-import org.apache.ojb.broker.PersistenceBroker;
-import org.apache.ojb.broker.query.Criteria;
-import org.apache.ojb.broker.query.QueryByCriteria;
-import org.apache.ojb.odmg.*;
 import org.hibernate.Session;
-import org.hibernate.annotations.Cascade;
 import org.odmg.*;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dbhelper.ODMG;
@@ -53,6 +47,8 @@ import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
 
 import javax.persistence.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  PhotoInfo represents information about a single photograph
@@ -62,9 +58,9 @@ import javax.persistence.*;
 @Table( name = "photos" )
 public class PhotoInfo implements java.io.Serializable {
     
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
+    static Log log = LogFactory.getLog( PhotoInfo.class.getName() );
     
-    // Stirng field lengths
+    // String field lengths
     /** Max length of camera field */
     final static int CAMERA_LENGTH = 30;
     /** Max length of shooting place field */
@@ -78,9 +74,20 @@ public class PhotoInfo implements java.io.Serializable {
     /** Max length of origFname field */
     final static int ORIG_FNAME_LENGTH = 30;
     
+    /**
+     Create a new PhotoInfo. This constructor must be used by persistence layer 
+     only. Otherwise, set original image in constructor.
+     */
     public PhotoInfo() {
         uuid = UUID.randomUUID();
         changeListeners = new HashSet();
+    }
+    
+    public PhotoInfo( OriginalImageDescriptor original ) {
+        uuid = UUID.randomUUID();
+        changeListeners = new HashSet();
+        this.original = original;
+        original.photos.add( this );
     }
     
     /**
@@ -211,11 +218,6 @@ public class PhotoInfo implements java.io.Serializable {
         PhotoInfo photo = new PhotoInfo();
         photo.uuid = uuid;
         
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();        
-        db.makePersistent( photo );
-        txw.lock( photo, Transaction.WRITE );
-        txw.commit();
         return photo;
     }
     
@@ -242,7 +244,7 @@ public class PhotoInfo implements java.io.Serializable {
             throw new PhotoNotFoundException();
         }
         
-        // Determine the fle that will be added as an instance
+        // Determine the file that will be added as an instance
         File instanceFile = null;
         if ( vol == null ) {
             /*
@@ -289,11 +291,8 @@ public class PhotoInfo implements java.io.Serializable {
     }    
     
     public void setUUID( UUID uuid ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
 	this.uuid = uuid;
 	modified();
-	txw.commit();
     }
     
     /**
@@ -303,31 +302,25 @@ public class PhotoInfo implements java.io.Serializable {
     
     public boolean updateFromOriginalFile() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
-        ImageInstance instance = null;
-        for ( ImageInstance candidate : instances ) {
-            if ( candidate.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-                instance = candidate;
-                File f = instance.getImageFile();
-                boolean success = false;
-                if ( f != null ) {
-                    String suffix = "";
-                    int suffixStart = f.getName().lastIndexOf( "." );
-                    if ( suffixStart >= 0 &&  suffixStart < f.getName().length() -1 ) {
-                        suffix = f.getName().substring( suffixStart+1 );
-                    }
-                    Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
-                    if ( readers.hasNext() ) {
-                        updateFromFileMetadata( f );
-                        success = true;
-                    } else {
-                        success = updateFromRawFileMetadata( f );
-                    }
-                    txw.commit();
-                    return success;
-                }
+        ImageFile original = null;
+        File f = original.findAvailableCopy();
+        boolean success = false;
+        if ( f != null ) {
+            String suffix = "";
+            int suffixStart = f.getName().lastIndexOf( "." );
+            if ( suffixStart >= 0 &&  suffixStart < f.getName().length() -1 ) {
+                suffix = f.getName().substring( suffixStart+1 );
             }
+            Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
+            if ( readers.hasNext() ) {
+                updateFromFileMetadata( f );
+                success = true;
+            } else {
+                success = updateFromRawFileMetadata( f );
+            }
+            txw.commit();
+            return success;
         }
-        txw.commit();
         return false;
     }
     
@@ -417,9 +410,11 @@ public class PhotoInfo implements java.io.Serializable {
     }
     
     /**
-     Tries to delete a this photo, including all of its instances. If some
+     Tries to delete this photo, including all of its instances. If some
      instances cannot be deleted, other instances are deleted anyway but the actual
      PhotoInfo and its associations to folders are preserved.
+     
+     TODO: This should be reimplemented according to new database schema
      
      @param deleteExternalInstances Tries to delete also instances on external 
      volumes
@@ -430,26 +425,28 @@ public class PhotoInfo implements java.io.Serializable {
         ODMGXAWrapper txw = new ODMGXAWrapper();
         Database db = ODMG.getODMGDatabase();
 
+        
         // First delete all instances
-        Vector deletedInstances = new Vector();
-        Vector notDeletedInstances = new Vector();
-        for ( ImageInstance f : instances ) {
-            if ( f.delete( deleteExternalInstances ) ) {
-                deletedInstances.add( f );
-            } else {
-                notDeletedInstances.add( f );
-            }
-        }
-        
-        // Remove all instances we were able to delete
-        for ( int i = 0 ; i < deletedInstances.size(); i++ ) {
-            instances.remove( deletedInstances.elementAt( i ) );
-        }
-        
-        if ( notDeletedInstances.size() > 0 ) {
-            txw.commit();
-            throw new PhotovaultException( "Unable to delete some instances of the photo" );
-        }
+        // TODO: How to implement correct semantics using 
+//        Vector deletedInstances = new Vector();
+//        Vector notDeletedInstances = new Vector();        
+//        for ( ImageInstance f : instances ) {
+//            if ( f.delete( deleteExternalInstances ) ) {
+//                deletedInstances.add( f );
+//            } else {
+//                notDeletedInstances.add( f );
+//            }
+//        }
+//        
+//        // Remove all instances we were able to delete
+//        for ( int i = 0 ; i < deletedInstances.size(); i++ ) {
+//            instances.remove( deletedInstances.elementAt( i ) );
+//        }
+//        
+//        if ( notDeletedInstances.size() > 0 ) {
+//            txw.commit();
+//            throw new PhotovaultException( "Unable to delete some instances of the photo" );
+//        }
 
         /*
          All instances were succesfully deleted, so we can delete metadata as well.
@@ -562,13 +559,10 @@ public class PhotoInfo implements java.io.Serializable {
     /**
      Adds a new image instance for this photo
      @param i The new instance
+     @deprecated ImageInstance has been refactored.
      */
     public void addInstance( ImageInstance i ) {
-        instances.add( i );
-        i.setPhoto( this );
-        if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-            origInstanceHash = i.getHash();
-        }        
+        throw new UnsupportedOperationException( "ImageInstance is not anymore in use!!!" );
     }
     
     /**
@@ -577,27 +571,29 @@ public class PhotoInfo implements java.io.Serializable {
      @param instanceFile File name of the instance
      @param instanceType Type of the instance - original, modified or thumbnail.
      @return The new instance
+     @deprecated ImageInstance has been refactored.
      @see ImageInstance class documentation for details.
      */
     public ImageInstance addInstance( VolumeBase volume, File instanceFile, int instanceType ) {
-        ImageInstance instance = ImageInstance.create( volume, instanceFile, this, instanceType );
-        instances.add( instance );
-        
-        // If this is the first instance or we are adding original image we need to invalidate
-        // thumbnail
-        if ( instances.size() == 1 || instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-            invalidateThumbnail();
-        }
-        
-        if ( instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-            // Store the hash code of original (even if this original instance is later deleted
-            // we can identify later that another file is an instance of this photo)
-            origInstanceHash = instance.getHash();
-            // If an original instance is added notify listeners since some of
-            // them may be displaying the default thumbnail
-            modified();
-        }
-        return instance;
+        throw new UnsupportedOperationException( "ImageInstance is not anymore in use!!!" );
+//        ImageInstance instance = ImageInstance.create( volume, instanceFile, this, instanceType );
+//        instances.add( instance );
+//        
+//        // If this is the first instance or we are adding original image we need to invalidate
+//        // thumbnail
+//        if ( instances.size() == 1 || instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+//            invalidateThumbnail();
+//        }
+//        
+//        if ( instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+//            // Store the hash code of original (even if this original instance is later deleted
+//            // we can identify later that another file is an instance of this photo)
+//            origInstanceHash = instance.getHash();
+//            // If an original instance is added notify listeners since some of
+//            // them may be displaying the default thumbnail
+//            modified();
+//        }
+//        return instance;
     }
 
     /**
@@ -606,8 +602,9 @@ public class PhotoInfo implements java.io.Serializable {
      @param i The instance that will be deleted.
      */
     public void removeInstance( ImageInstance i ) {
-        instances.remove( i );
-        i.delete();
+        throw new UnsupportedOperationException( "ImageInstance is not anymore in use!!!" );
+//        instances.remove( i );
+//        i.delete();
     }
     
     /**
@@ -615,7 +612,8 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Transient
     public int getNumInstances() {
-        return instances.size();
+        throw new UnsupportedOperationException( "ImageInstance is not anymore in use!!!" );
+//        return instances.size();
     }
     
     
@@ -635,15 +633,39 @@ public class PhotoInfo implements java.io.Serializable {
     }
     
     Set<ImageInstance> instances = new HashSet<ImageInstance>();
+  
+    private OriginalImageDescriptor original;
+
+    /**
+     Get image descriptor for original of this photo
+     @return original's image descriptor.
+     */
+    @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
+    @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
+    @JoinColumn( name = "original_id", nullable = true )    
+    public OriginalImageDescriptor getOriginal() {
+        return original;
+    }
+    
+    /**
+     Set the original for this photo. Note that this method should be used only
+     by persistence layer. Otherwise the original must be set in constructor.
+     @param original image descriptor for the original
+     */
+    public void setOriginal( OriginalImageDescriptor original ) {
+        this.original = original;
+    }
     
     
     /**
-     Returns a thumbnail of this image. If no thumbnail instance is yetavailable, creates a
-     new instance on the default volume. Otherwise loads an existing thumbnail instance. <p>
+     Returns a thumbnail of this image. If no thumbnail instance is yet available, 
+     creates a new instance on the default volume. Otherwise loads an existing 
+     thumbnail instance. <p>
      
-     If thumbnail creation fails of if there is no image instances available at all, returns
-     a default thumbnail image.
-     @return Thumbnail of this photo or default thumbnail if no photo instances available
+     If thumbnail creation fails of if there is no image instances available at 
+     all, returns a default thumbnail image.
+     @return Thumbnail of this photo or default thumbnail if no photo instances 
+     available
      */
     @Transient
     public Thumbnail getThumbnail() {
@@ -668,8 +690,8 @@ public class PhotoInfo implements java.io.Serializable {
     }
     
     /**
-     Returns an existing thumbnail for this photo but do not try to contruct a new
-     one if there is no thumbnail already created.
+     Returns an existing thumbnail for this photo but do not try to construct a 
+     new one if there is no thumbnail already created.
      @return Thumbnail for this photo or null if none is found.
      */
     @Transient
@@ -2005,6 +2027,14 @@ public class PhotoInfo implements java.io.Serializable {
         folders = newFolders;    
     }
     
+    /**
+     Helper method for comparing testing equality of 2 objects that can 
+     potentially be null
+     @param o1 First object to compare
+     @param o2 The second object to compare
+     @return <code>true</code> if o1 and o2 are both <code>null</code> or equal.
+     <code>false</code> otherwise.     
+     */
     static private boolean isEqual( Object o1, Object o2 ) {
         if ( o1 == null ) {
             if ( o2 == null ) {
@@ -2051,6 +2081,7 @@ public class PhotoInfo implements java.io.Serializable {
         && isEqual( p.techNotes, this.techNotes )
         && isEqual( p.origFname, this.origFname )
         && isEqual( p.channelMap, this.channelMap )
+        && isEqual( p.uuid, this.uuid )
         && p.shutterSpeed == this.shutterSpeed
                 && p.filmSpeed == this.filmSpeed
                 && p.focalLength == this.focalLength
@@ -2064,8 +2095,4 @@ public class PhotoInfo implements java.io.Serializable {
     public int hashCode() {
         return uuid.hashCode();
     }
-
-
-
-
 }

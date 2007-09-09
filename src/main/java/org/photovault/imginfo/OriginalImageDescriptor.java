@@ -57,4 +57,17 @@ public class OriginalImageDescriptor extends ImageDescriptorBase {
     public void setCopies(Set<CopyImageDescriptor> copies) {
         this.copies = copies;
     }
+    
+    Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
+    
+    @OneToMany( mappedBy="original", cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )
+    @org.hibernate.annotations.Cascade({
+               org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
+    public Set<PhotoInfo> getPhotos() {
+        return photos;
+    }
+
+    protected void setPhotos( Set<PhotoInfo> photos ) {
+        this.photos = photos;
+    }
 }
