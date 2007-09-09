@@ -29,6 +29,7 @@ import org.photovault.dcraw.RawImageChangeListener;
 import org.photovault.image.ColorCurve;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
+import org.photovault.image.ChannelMapOperation;
 import org.photovault.imginfo.*;
 import javax.swing.*;
 import java.awt.*;
@@ -94,7 +95,7 @@ public class JAIPhotoViewer extends JPanel implements
         log.debug( "fit to " + displaySize.getWidth() + ", " + displaySize.getHeight() );
 	imageView.fitToRect( displaySize.getWidth()-4, displaySize.getHeight()-4 );
     }
-    
+        
     /**
      Select whether to show the image cropped according to preferred state stored 
      in database or as its original state.
@@ -107,6 +108,26 @@ public class JAIPhotoViewer extends JPanel implements
     public boolean getShowCroppedPhoto( ) {
         return imageView.getDrawCropped();
     }
+    
+    /**
+     Operations that must be applied to the image dynamically, i.e. instances in 
+     which these are already applied cannot be used.
+     */
+    private EnumSet<ImageOperations> dynOps = EnumSet.noneOf( ImageOperations.class );
+    
+    /**
+     Operations that are applied to the currently displayed instance.
+     */
+    private EnumSet<ImageOperations> appliedOps = EnumSet.noneOf( ImageOperations.class );
+    
+    /**
+     Local raw settings that override those in database or <code>null</code> 
+     if none.
+     */
+    private RawConversionSettings localRawSettings = null;
+    
+    private ChannelMapOperation localChanMap = null;
+    
     
     /**
      Set the photo displayed in the component.
@@ -132,105 +153,119 @@ public class JAIPhotoViewer extends JPanel implements
             fireViewChangeEvent();
 	    return;
 	}
+        dynOps = EnumSet.noneOf( ImageOperations.class );
+        localRawSettings = null;
+        localChanMap = null;
 
         log.debug( "JAIPhotoViewer.setPhoto() photo="  + photo.getUid() );
 
 	photo.addChangeListener( this );
+        try {
+            showBestInstance();
+        } catch (PhotovaultException ex) {
+            throw new FileNotFoundException( ex.getMessage() );
+        }
 
+    }
+
+    /**
+     Finds the best instance of the current photo and shows it. The instance is 
+     selected so that it needs as little postprocessing as possible. Hovewer, the 
+     operations in {@link dynOps} must not be preapplied in the instance since 
+     these may be changing during viewing of the image.
+     
+     */
+    private void showBestInstance() throws PhotovaultException {
 	// Find the original file
-	ImageInstance original = null;
-        Set<ImageInstance> instances = photo.getInstances();
-        for ( ImageInstance instance: instances ) {
-            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-                original = instance;
-                File imageFile = original.getImageFile();
-                if ( imageFile != null && imageFile.canRead() ) {
-                    // TODO: is this really needed?
-                    String fname = imageFile.getName();
-                    int lastDotPos = fname.lastIndexOf( "." );
-                    if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
-                        // TODO: error handling needs thinking!!!!
-                        // throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
-                        fireViewChangeEvent();
-                        return;
-                    }
-                    PhotovaultImageFactory imageFactory = new PhotovaultImageFactory();
-                    PhotovaultImage img = null;
-                    try {
-                        /*
-                         Do not read the image yet since setting raw conversion 
-                         parameters later may force a re-read.
-                         */
-                        img = imageFactory.create(imageFile, false, false);
-                    } catch (PhotovaultException ex) {
-                            final JAIPhotoViewer component = this;
-                            final String msg = ex.getMessage();
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    JOptionPane.showMessageDialog( component,
-                                            msg, "Error loading file",
-                                            JOptionPane.ERROR_MESSAGE );
-                                }
-                            });
-                    }
-                    if ( img != null ) {
-                        if ( rawImage != null ) {
-                            rawImage.removeChangeListener( this );
-                        }
-                        if ( img instanceof RawImage ) {
-                            rawImage = (RawImage) img;
-                            rawImage.setRawSettings( photo.getRawSettings() );
-                            rawImage.addChangeListener( this );
-                            // Check the correct resolution for this image
-                            if ( isFit ) {
-                                fit();
-                            } else {
-                                setScale( getScale() );
-                            }                                                        
-                        } else {
-                            rawImage = null;
-                            rawConvScaling = 1.0f;                            
-                        }
-//                        } catch (Exception ex) {
-//                            log.warn( ex.getMessage() );
-//                            ex.printStackTrace();
-//                            final JAIPhotoViewer component = this;
-//                            final String msg = ex.getMessage();
-//                            SwingUtilities.invokeLater( new Runnable() {
-//                                public void run() {
-//                                    JOptionPane.showMessageDialog( component,
-//                                            msg, "Error loading file",
-//                                            JOptionPane.ERROR_MESSAGE );
-//                                }
-//                            });
-//                            fireViewChangeEvent();
-//                            return;
-//                        }
-                    }
-                    img.setColorAdjustment( photo.getColorChannelMapping() );
-                    setImage( img );
-                    instanceRotation = original.getRotated();
-                    double rot = photo.getPrefRotation() - instanceRotation;
-                    imageView.setRotation( rot );
-                    imageView.setCrop( photo.getCropBounds() );
+        EnumSet<ImageOperations> allowedOps = EnumSet.allOf( ImageOperations.class );
+        allowedOps.removeAll( dynOps );
+        ImageInstance instance = photo.getPreferredInstance( 
+                EnumSet.noneOf( ImageOperations.class ),
+                allowedOps,
+                imageView.getWidth(), imageView.getHeight() );
+        if ( instance != null ) {
+            File imageFile = instance.getImageFile();
+            if ( imageFile != null && imageFile.canRead() ) {
+                // TODO: is this really needed?
+                String fname = imageFile.getName();
+                int lastDotPos = fname.lastIndexOf( "." );
+                if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
+                    // TODO: error handling needs thinking!!!!
+                    // throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
                     fireViewChangeEvent();
                     return;
                 }
+                PhotovaultImageFactory imageFactory = new PhotovaultImageFactory();
+                PhotovaultImage img = null;
+                try {
+                        /*
+                         Do not read the image yet since setting raw conversion
+                         parameters later may force a re-read.
+                         */
+                    img = imageFactory.create(imageFile, false, false);
+                } catch (PhotovaultException ex) {
+                    final JAIPhotoViewer component = this;
+                    final String msg = ex.getMessage();
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            JOptionPane.showMessageDialog( component,
+                                    msg, "Error loading file",
+                                    JOptionPane.ERROR_MESSAGE );
+                        }
+                    });
+                }
+                if ( img != null ) {
+                    if ( rawImage != null ) {
+                        rawImage.removeChangeListener( this );
+                    }
+                    if ( img instanceof RawImage ) {
+                        rawImage = (RawImage) img;
+                        rawImage.setRawSettings( 
+                                localRawSettings != null ? 
+                                    localRawSettings : photo.getRawSettings() );
+                        rawImage.addChangeListener( this );
+                        // Check the correct resolution for this image
+                        if ( isFit ) {
+                            fit();
+                        } else {
+                            setScale( getScale() );
+                        }
+                    } else {
+                        rawImage = null;
+                        rawConvScaling = 1.0f;
+                    }
+                }
+                appliedOps = instance.getAppliedOperations();
+                if ( !appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
+                    img.setColorAdjustment( 
+                            localChanMap != null ? 
+                                localChanMap : photo.getColorChannelMapping() );
+                }
+                setImage( img );
+                if ( !appliedOps.contains( ImageOperations.CROP ) ) {
+                    instanceRotation = instance.getRotated();
+                    double rot = photo.getPrefRotation() - instanceRotation;
+                    imageView.setRotation( rot );
+                    imageView.setCrop( photo.getCropBounds() );
+                }
+                fireViewChangeEvent();
+                return;
             }
         }
         // if we get this far no instance of the original image has been found
         setImage( null );
-        throw new FileNotFoundException( "No original instance of photo " 
+        throw new PhotovaultException( "No suitable instance of photo " 
                 + photo.getUid() + " found" );
+        
     }
-
+    
     // Rotation of the currently displayed instance (compared to the original)
     double instanceRotation = 0;
     
     public PhotoInfo  getPhoto() {
 	return photo;
     }
-    
+   
     /**
      Get the lookup table used in raw conversion
      @return The lookup table if current image in a raw image, <code>null</code>
@@ -379,9 +414,25 @@ public class JAIPhotoViewer extends JPanel implements
     public void previewRawSettingsChanged(RawSettingsPreviewEvent e) {
         PhotoInfo[] model = e.getModel();
         if ( model != null && model.length == 1 && model[0] == photo ) {
-            RawConversionSettings r = e.getNewSettings();
-            if ( rawImage != null ) {
-                rawImage.setRawSettings( r );
+            localRawSettings = e.getNewSettings();
+            // We must use the original raw image, not instaqnce which has already been converted.
+            dynOps.add( ImageOperations.RAW_CONVERSION );
+            if ( appliedOps.contains( ImageOperations.RAW_CONVERSION ) ) {
+                try {
+                    showBestInstance();
+                } catch (PhotovaultException ex) {
+                    final JAIPhotoViewer component = this;
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            JOptionPane.showMessageDialog( component,                                    
+                                    "Cannot change raw settings, original raw image not found", 
+                                    "Cannot load raw image",
+                                    JOptionPane.ERROR_MESSAGE );
+                        }
+                    });
+                }
+            } else if ( rawImage != null ) {
+                rawImage.setRawSettings( localRawSettings );
                 
             }
         }
@@ -395,7 +446,21 @@ public class JAIPhotoViewer extends JPanel implements
      @param c The changed color curve
      */
     public void setColorCurve( String name, ColorCurve c ) {
+        dynOps.add( ImageOperations.COLOR_MAP );
+        if ( appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
+            try {
+                // Current instance has color mapping preapplied so we cannot use it.
+                showBestInstance();
+            } catch (PhotovaultException ex) {
+                ex.printStackTrace();
+            }
+        }
         imageView.setColorCurve( name, c );
+        // Save the channel mapping so that it can be reapplied if we must again
+        // cahnge the used instance for some other reason.
+        if ( imageView.getImage() != null ) {
+            localChanMap = imageView.getImage().getColorAdjustment();
+        }
     }
 
     public void setSaturation(double newSat) {

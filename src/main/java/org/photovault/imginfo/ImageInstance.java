@@ -38,6 +38,7 @@ import org.photovault.dcraw.RawImage;
 import org.photovault.image.ChannelMapOperation;
 import javax.persistence.*;
 import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ColorCurve;
 
 /**
  This class abstracts a single instance of a image that is stored in a file.
@@ -994,4 +995,30 @@ public class ImageInstance implements ImageInstanceModifier {
     public int hashCode() {
         return uuid.hashCode();
     }
+    /**
+     Get set of the operations that have been applied for this instance when 
+     creating it from original image.
+     */
+    @Transient
+    public EnumSet<ImageOperations> getAppliedOperations() {
+        EnumSet<ImageOperations> applied = EnumSet.noneOf( ImageOperations.class );
+        if ( getInstanceType() != ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+            // Check for cropping
+            if ( !getCropBounds().contains( 0.0, 0.0, 1.0, 1.0 ) || 
+                    this.getRotated() != 0.0 ) {
+                applied.add( ImageOperations.CROP );
+            }
+            // Check for raw conversion
+            if ( getRawSettings() != null ) {
+                applied.add( ImageOperations.RAW_CONVERSION );
+            }
+            // Check for color mapping
+            ChannelMapOperation colorMap = getColorChannelMapping();
+            if ( colorMap != null ) {
+                applied.add( ImageOperations.COLOR_MAP );
+            }
+        }
+        return applied;
+    }
+    
 }
