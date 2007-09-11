@@ -283,6 +283,33 @@
         </testng>         
     </target>
     
+    <target name="testng.debug.single" depends="dist" description="TestNG debug single file">
+        <taskdef  resource="testngtasks" classpath="lib/testng.jar"/>
+        <nbjpdastart name="${classname}" addressproperty="jpda.address" transport="dt_socket">
+            <classpath refid="project.class.path"/>
+            <sourcepath refid="debug.sourcepath"/> 
+        </nbjpdastart>
+        <echo message="selected_file: ${selected_file}"/>
+        <testng outputDir="${reports.test}/testresults"
+                haltOnFailure="true" verbose="2">
+            <jvmarg value="${run.jvmargs}"/>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xnoagent"/>
+            <jvmarg value="-Djava.compiler=none"/>
+            <jvmarg value="-Dbasedir=${basedir}"/>
+            
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>                
+            <classpath>
+                <path refid="project.class.path"/>
+                <pathelement location="${build.dir}"/>
+                <pathelement location="${conf.dir}"/>
+            </classpath>
+            
+            <classfileset dir="build"> 
+                <include name="${selected_file}.class"/>
+            </classfileset>
+        </testng>         
+    </target>
     
     <target name="test" depends="dist" description="Run JUnit tests">
       <delete dir="./${reports.test}/testresults"/>
