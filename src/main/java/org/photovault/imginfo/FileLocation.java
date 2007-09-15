@@ -20,6 +20,8 @@
 
 package org.photovault.imginfo;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -27,6 +29,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 /**
  This class describes a location where an {@link ImageFile} is stored.
@@ -50,11 +53,11 @@ public class FileLocation {
     }
 
     @org.hibernate.annotations.Parent
-    public ImageFile getFile() {
+    public ImageFile getImageFile() {
         return file;
     }
 
-    public void setFile(ImageFile file) {
+    public void setImageFile(ImageFile file) {
         this.file = file;
     }
 
@@ -92,7 +95,7 @@ public class FileLocation {
         this.lastModified = lastModified.getTime();
     }
     
-    private Date lastChecked;
+    private Date lastChecked = new Date();
     
     @Column( name = "last_checked" )
     @Temporal(value = TemporalType.TIMESTAMP )
@@ -118,5 +121,19 @@ public class FileLocation {
     
     public int hashCode() {
         return file.hashCode() + volume.hashCode() + fname.hashCode();
+    }
+
+    /**
+     Get the handle to the actual file described by this location object
+     @return The file described by this location if it is available, 
+     <code>null</code> otherwise.
+     */
+    @Transient
+    File getFile() {
+        try {
+            return volume.mapFileName( fname );
+        } catch ( FileNotFoundException e ) {
+            return null;
+        }
     }
 }

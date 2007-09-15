@@ -36,19 +36,19 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-import org.photovault.imginfo.ImageInstance;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
 import org.photovault.swingui.color.ColorSettingsDlg;
 import org.photovault.swingui.color.ColorSettingsPreview;
-import org.photovault.swingui.color.PhotoInfoViewAdapter;
 import org.photovault.swingui.color.RawSettingsPreviewEvent;
 
 public class JAIPhotoViewer extends JPanel implements 
         PhotoInfoChangeListener, ComponentListener, CropAreaChangeListener,
         RawImageChangeListener, ColorSettingsPreview {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JAIPhotoViewer.class.getName() );
+    static Log log = LogFactory.getLog( JAIPhotoViewer.class.getName() );
 
     public JAIPhotoViewer( PhotoViewController ctrl ) {
 	super();
@@ -179,12 +179,13 @@ public class JAIPhotoViewer extends JPanel implements
 	// Find the original file
         EnumSet<ImageOperations> allowedOps = EnumSet.allOf( ImageOperations.class );
         allowedOps.removeAll( dynOps );
-        ImageInstance instance = photo.getPreferredInstance( 
+        ImageDescriptorBase image = photo.getPreferredImage( 
                 EnumSet.noneOf( ImageOperations.class ),
                 allowedOps,
-                imageView.getWidth(), imageView.getHeight() );
-        if ( instance != null ) {
-            File imageFile = instance.getImageFile();
+                imageView.getWidth(), imageView.getHeight(),
+                Integer.MAX_VALUE, Integer.MAX_VALUE );
+        if ( image != null && image.getLocator().equals( "image#0" ) ) {
+            File imageFile = image.getFile().findAvailableCopy();
             if ( imageFile != null && imageFile.canRead() ) {
                 // TODO: is this really needed?
                 String fname = imageFile.getName();
@@ -235,18 +236,23 @@ public class JAIPhotoViewer extends JPanel implements
                         rawConvScaling = 1.0f;
                     }
                 }
-                appliedOps = instance.getAppliedOperations();
-                if ( !appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
-                    img.setColorAdjustment( 
-                            localChanMap != null ? 
-                                localChanMap : photo.getColorChannelMapping() );
-                }
-                setImage( img );
-                if ( !appliedOps.contains( ImageOperations.CROP ) ) {
-                    instanceRotation = instance.getRotated();
-                    double rot = photo.getPrefRotation() - instanceRotation;
-                    imageView.setRotation( rot );
-                    imageView.setCrop( photo.getCropBounds() );
+                if ( image instanceof CopyImageDescriptor ) {
+                    
+                    appliedOps = ((CopyImageDescriptor)image).getAppliedOperations();
+                    if ( !appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
+                        img.setColorAdjustment(
+                                localChanMap != null ?
+                                    localChanMap : photo.getColorChannelMapping() );
+                    }
+                    setImage( img );
+                    if ( !appliedOps.contains( ImageOperations.CROP ) ) {
+                        instanceRotation = ((CopyImageDescriptor)image).getRotation();
+                        double rot = photo.getPrefRotation() - instanceRotation;
+                        imageView.setRotation( rot );
+                        imageView.setCrop( photo.getCropBounds() );
+                    }
+                } else {
+                    setImage( img );
                 }
                 fireViewChangeEvent();
                 return;

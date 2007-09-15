@@ -65,8 +65,8 @@ public class ImgTestUtils {
 	    }
 		
 	    return eq;
-	}
-
+	}        
+        
 	// The image file does not yet exist, so save it
 	// First, make sure that the directory is created
 
@@ -93,7 +93,31 @@ public class ImgTestUtils {
 	}
 	return false;
     }	
-	    
+	 
+    /**
+     Compare whether images stored in 2 files are the same.
+     @param f1 First file to compare
+     @param f2 Second file to compare
+     @return true if the images are same, false otherwise.
+     */
+    public static boolean conpareImageFiles( File f1, File f2 ) {
+        if ( f1.exists() && f2.exists() ) {
+            BufferedImage f1Img = null;
+            BufferedImage f2Img = null;
+            try {
+                f1Img = ImageIO.read( f1 );
+                f2Img = ImageIO.read( f2 );
+                System.err.println( "Read image" );
+            } catch ( IOException e ) {
+                System.err.println( "Error reading image: " + e.getMessage() );
+                return false;
+            }
+            boolean eq = equals( f1Img, f2Img );
+            return eq;
+        }
+        return false;
+    }
+    
     
     /**
        Returns true if the 2 images are equal, false otherwise

@@ -21,6 +21,7 @@
 package org.photovault.imginfo;
 
 import java.awt.geom.Rectangle2D;
+import java.util.EnumSet;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -135,5 +136,31 @@ public class CopyImageDescriptor extends ImageDescriptorBase {
 
     public void setOriginal(OriginalImageDescriptor original) {
         this.original = original;
+    }
+
+    /**
+     Get operations that have been applied to this image when creating it form 
+     original
+     @return set of {@link ImageOperations} values for those operations that have 
+     been applied to this image.
+     */
+    @Transient
+    public EnumSet<ImageOperations> getAppliedOperations() {
+        EnumSet<ImageOperations> applied = EnumSet.noneOf( ImageOperations.class );
+        
+        if ( !getCropArea().contains( 0.0, 0.0, 1.0, 1.0 ) ||
+                this.getRotation() != 0.0 ) {
+            applied.add( ImageOperations.CROP );
+        }
+        // Check for raw conversion
+        if ( getRawSettings() != null ) {
+            applied.add( ImageOperations.RAW_CONVERSION );
+        }
+        // Check for color mapping
+        ChannelMapOperation colorMap = getColorChannelMapping();
+        if ( colorMap != null ) {
+            applied.add( ImageOperations.COLOR_MAP );
+        }
+        return applied;
     }
 }

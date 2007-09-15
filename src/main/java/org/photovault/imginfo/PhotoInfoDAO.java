@@ -35,7 +35,7 @@ public interface PhotoInfoDAO extends GenericDAO<PhotoInfo, Integer> {
      @param uuid UUID to look for
      @return The photo with given UUID or <code>null</code> if not found
      */
-    PhotoInfo findBuUUID( UUID uuid );
+    PhotoInfo findByUUID( UUID uuid );
     
     /**
      Find photos whose original instance file has a given MD5 hash

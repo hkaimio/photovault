@@ -21,6 +21,7 @@
 package org.photovault.imginfo;
 
 import java.util.UUID;
+import org.hibernate.Query;
 import org.photovault.persistence.GenericHibernateDAO;
 
 /**
@@ -35,6 +36,19 @@ public class ImageFileDAOHibernate
     /** Creates a new instance of ImageFileDAOHibernate */
     public ImageFileDAOHibernate() {
         super();
+    }
+
+    /**
+     Find image files that match a given hash code
+     @param hash The hash code to search for
+     @return ImageFile with matching hash or <code>null</code> if no such file 
+     found.
+     */
+    public ImageFile findImageFileWithHash( byte[] hash ) {
+        Query q = getSession().createQuery( "from ImageFile where hash = :hash" );
+        q.setBinary( "hash", hash );
+        return (ImageFile) q.uniqueResult();
+        
     }
     
 }

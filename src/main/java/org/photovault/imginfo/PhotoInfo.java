@@ -286,11 +286,11 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "photo_uuid" )
     @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
-    public UUID getUUID() {
+    public UUID getUuid() {
         return uuid;
     }    
     
-    public void setUUID( UUID uuid ) {
+    public void setUuid( UUID uuid ) {
 	this.uuid = uuid;
 	modified();
     }
@@ -652,38 +652,42 @@ public class PhotoInfo implements java.io.Serializable {
      by persistence layer. Otherwise the original must be set in constructor.
      @param original image descriptor for the original
      */
-    public void setOriginal( OriginalImageDescriptor original ) {
+    protected void setOriginal( OriginalImageDescriptor original ) {
         this.original = original;
     }
     
     
     /**
-     Find instance that is preferred for using in particular situatin. This function 
-     seeks for an isntance that has at least a given resolution and has certain
-     operations already applied.
+     Find instance that is preferred for use in particular situation. This function 
+     seeks for an image that has at least a given resolution, has certain
+     operations already applied and is available.
+     @return Image that best matches the given criteria or <code>null</code>
+     if no suct image exists or is not available.
      */
-    public ImageInstance getPreferredInstance( EnumSet<ImageOperations> requiredOpers,
-            EnumSet<ImageOperations> allowedOpers, int minWidth, int minHeight ) {
-        ImageInstance preferred = null;
+    public ImageDescriptorBase getPreferredImage( Set<ImageOperations> requiredOpers,
+            Set<ImageOperations> allowedOpers, int minWidth, int minHeight,
+            int maxWidth, int maxHeight ) {
+        ImageDescriptorBase preferred = null;
         EnumSet<ImageOperations> appliedPreferred = null;
         
-        Set<ImageInstance> instances = getInstances();
-        for ( Object o : instances ) {
-            ImageInstance i = (ImageInstance) o;
-            File f = i.getImageFile();
-            if ( f != null && f.exists() && i.getWidth() >= minWidth &&
-                    i.getHeight() >= minHeight ) {
-                EnumSet<ImageOperations> applied = i.getAppliedOperations();
+        if ( original.getFile().findAvailableCopy() != null ) {
+            preferred = original;
+            appliedPreferred = EnumSet.noneOf( ImageOperations.class );
+        }
+        
+        Set<CopyImageDescriptor> copies = original.getCopies();
+        for ( CopyImageDescriptor copy : copies ) {
+            if ( copy.getWidth() >= minWidth && copy.getHeight() >= minHeight &&
+                    copy.getWidth() <= maxWidth && copy.getHeight() <= maxHeight &&
+                    copy.getFile().findAvailableCopy() != null ) {
+                EnumSet<ImageOperations> applied = copy.getAppliedOperations();
                 if ( applied.containsAll( requiredOpers ) && 
                         allowedOpers.containsAll( applied ) && 
-                        isConsistentWithCurrentSettings( i ) ) {
+                        isConsistentWithCurrentSettings( copy ) ) {
                     
                     // This is potential one
-                    if ( preferred == null ) {
-                        preferred = i;
-                        appliedPreferred = applied;
-                    } else if ( !appliedPreferred.containsAll( applied ) ) {
-                        preferred = i;
+                    if ( preferred == null || !appliedPreferred.containsAll( applied ) ) {
+                        preferred = copy;
                         appliedPreferred = applied;                        
                     }
                 }
@@ -733,19 +737,16 @@ public class PhotoInfo implements java.io.Serializable {
     public Thumbnail getExistingThumbnail() {
         if ( thumbnail == null ) {
             log.debug( "Finding thumbnail from database" );
-            // First try to find an instance from existing instances
-            ImageInstance original = null;
-            for ( ImageInstance instance : instances ) {
-                if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-                        && matchesCurrentSettings( instance ) ) {
-                    File f = instance.getImageFile();
-                    if ( f != null ) {
-                        log.debug( "Found thumbnail from database" );
-                        thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
-                        oldThumbnail = null;
-                        break;
-                    }
-                }
+            ImageDescriptorBase img = getPreferredImage(
+                    EnumSet.allOf( ImageOperations.class),
+                    EnumSet.allOf( ImageOperations.class),
+                    0, 0, 100, 100 );
+            if ( img != null ) {
+                log.debug( "Found thumbnail from database" );
+                // TODO: This must take also locator.
+                thumbnail = Thumbnail.createThumbnail( this,
+                        img.getFile().findAvailableCopy() );
+                oldThumbnail = null;
             }
         }
         return thumbnail;
@@ -795,26 +796,27 @@ public class PhotoInfo implements java.io.Serializable {
      */
     private void purgeInvalidInstances() {
         log.debug( "entry: purgeInvalidInstances" );
-        List<ImageInstance> purgeList = new ArrayList<ImageInstance>();
-        for ( ImageInstance instance : instances ) {
-            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-                    && !matchesCurrentSettings( instance ) ) {
-                purgeList.add( instance );
-            } else if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED
-                    && !isConsistentWithCurrentSettings( instance ) ) {
-                purgeList.add( instance );                
-            }
-        }
-        log.debug( "Deleting " + purgeList.size() + " instances" );
-        for ( ImageInstance i : purgeList ) {
-            ODMGXAWrapper txw = new ODMGXAWrapper();
-            txw.lock( this, Transaction.WRITE );
-            txw.lock( i, Transaction.WRITE );
-            instances.remove( i );
-            i.delete();
-            txw.commit();
-        }
-        log.debug( "exit: purgeInvalidInstances" );        
+        throw new UnsupportedOperationException( "ImageInstance has been deprecated!!!" );
+//        List<ImageInstance> purgeList = new ArrayList<ImageInstance>();
+//        for ( ImageInstance instance : instances ) {
+//            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
+//                    && !matchesCurrentSettings( instance ) ) {
+//                purgeList.add( instance );
+//            } else if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED
+//                    && !isConsistentWithCurrentSettings( instance ) ) {
+//                purgeList.add( instance );                
+//            }
+//        }
+//        log.debug( "Deleting " + purgeList.size() + " instances" );
+//        for ( ImageInstance i : purgeList ) {
+//            ODMGXAWrapper txw = new ODMGXAWrapper();
+//            txw.lock( this, Transaction.WRITE );
+//            txw.lock( i, Transaction.WRITE );
+//            instances.remove( i );
+//            i.delete();
+//            txw.commit();
+//        }
+//        log.debug( "exit: purgeInvalidInstances" );        
     }
 
     /**
@@ -861,19 +863,19 @@ public class PhotoInfo implements java.io.Serializable {
         }
         
     
-    private boolean isConsistentWithCurrentSettings( ImageInstance instance ) {
-        EnumSet<ImageOperations> applied = instance.getAppliedOperations();
+    private boolean isConsistentWithCurrentSettings( CopyImageDescriptor img ) {
+        EnumSet<ImageOperations> applied = img.getAppliedOperations();
         if ( applied.contains( ImageOperations.CROP ) && 
-                !(Math.abs(instance.getRotated() - prefRotation) < 0.0001
-                && instance.getCropBounds().equals( getCropBounds() ) ) ) {
+                !(Math.abs(img.getRotation() - prefRotation) < 0.0001
+                && img.getCropArea().equals( getCropBounds() ) ) ) {
             return false;
         }
         if ( applied.contains( ImageOperations.COLOR_MAP ) && 
-                !(channelMap == null || channelMap.equals( instance.getColorChannelMapping() ) ) ) {
+                !(channelMap == null || channelMap.equals( img.getColorChannelMapping() ) ) ) {
             return false;
         }
         if ( applied.contains( ImageOperations.RAW_CONVERSION ) &&
-                !( rawSettings == null || rawSettings.equals( instance.getRawSettings() ) ) ) {
+                !( rawSettings == null || rawSettings.equals( img.getRawSettings() ) ) ) {
             return false;
         }
         return true;
@@ -891,10 +893,9 @@ public class PhotoInfo implements java.io.Serializable {
         EnumSet<ImageOperations> previewOps = EnumSet.of( 
                 ImageOperations.COLOR_MAP, 
                 ImageOperations.RAW_CONVERSION );
-        ImageInstance previewInstance = this.getPreferredInstance( EnumSet.noneOf( ImageOperations.class ),
-                previewOps, 1024, 1024 );
-        if ( previewInstance != null && 
-                previewInstance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED ) {
+        ImageDescriptorBase previewImage = this.getPreferredImage( EnumSet.noneOf( ImageOperations.class ),
+                previewOps, 1024, 1024, 2048, 2048 );
+        if ( previewImage != null ) {
             recreatePreview = false;
         }
         createThumbnail( volume, recreatePreview );
@@ -909,8 +910,6 @@ public class PhotoInfo implements java.io.Serializable {
     protected void createThumbnail( VolumeBase volume, boolean createPreview ) {
         
         log.debug( "Creating thumbnail for " + uid );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         
         // Maximum size of the thumbnail
         int maxThumbWidth = 100;
@@ -941,16 +940,15 @@ public class PhotoInfo implements java.io.Serializable {
             minInstanceHeight = 1024;
         }
         
-        ImageInstance original = this.getPreferredInstance( EnumSet.noneOf( ImageOperations.class ),
-                allowedOps, minInstanceWidth, minInstanceHeight );
+        ImageDescriptorBase srcImage = this.getPreferredImage( EnumSet.noneOf( ImageOperations.class ),
+                allowedOps, minInstanceWidth, minInstanceHeight, 
+                Integer.MAX_VALUE, Integer.MAX_VALUE );
         
-        if ( original == null ) {
+        if ( srcImage == null ) {
             // If there are no uncorrupted instances, no thumbnail can be created
             log.warn( "Error - no original image was found!!!" );
-            txw.commit();
             return;
         }
-        txw.lock( original, Transaction.READ );
         log.debug( "Found original, reading it..." );
         
         /*
@@ -972,7 +970,7 @@ public class PhotoInfo implements java.io.Serializable {
         RenderedImage previewImage = null;
         
         try {
-            File imageFile = original.getImageFile();
+            File imageFile = srcImage.getFile().findAvailableCopy();
             PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
             PhotovaultImage img = imgFactory.create( imageFile, false, false );
             if ( channelMap != null ) {
@@ -993,7 +991,11 @@ public class PhotoInfo implements java.io.Serializable {
                 previewImage = img.getRenderedImage( previewWidth, previewHeight, false );
             }
             img.setCropBounds( this.getCropBounds() );
-            img.setRotation( prefRotation - original.getRotated() );
+            double srcRotation = 0.0;
+            if ( srcImage instanceof CopyImageDescriptor ) {
+                srcRotation = ((CopyImageDescriptor)srcImage).getRotation();
+            }
+            img.setRotation( prefRotation - srcRotation );
             thumbImage = img.getRenderedImage( maxThumbWidth, maxThumbHeight, true );
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
@@ -1001,7 +1003,6 @@ public class PhotoInfo implements java.io.Serializable {
             // problems later with non-existing transaction. We should really
             // rethink the error handling logic in the whole function. Anyway, we
             // haven't changed anything yet so we can safely commit the tx.
-            txw.commit();
             return;
         }
         log.debug( "Done, finding name" );
@@ -1017,29 +1018,36 @@ public class PhotoInfo implements java.io.Serializable {
                 System.gc();
             }
         } catch (PhotovaultException ex) {
-            log.error( "error writing thumbnail for " + original.getImageFile().getAbsolutePath() + 
+            log.error( "error writing thumbnail for " + 
+                    srcImage.getFile().findAvailableCopy().getAbsolutePath() + 
                     ": " + ex.getMessage() );
             // TODO: If we abort here due to image writing problem we will have 
             // problems later with non-existing transaction. We should really 
             // rethink the error handling login in the whole function. Anyway, we 
             // haven't changed anything yet so we can safely commit the tx.
-            txw.commit();
             return;
         }
+        try {
+            ImageFile thumbFile;
+            thumbFile = new ImageFile(thumbnailFile);
+            CopyImageDescriptor thumbImageDesc = new CopyImageDescriptor( thumbFile, "image#0", original );
+            thumbImageDesc.setRotation( prefRotation );
+            thumbImageDesc.setCropArea( getCropBounds() );
+            thumbImageDesc.setColorChannelMapping( channelMap );
+            thumbImageDesc.setRawSettings( rawSettings );
+            thumbFile.addLocation( new FileLocation( volume,
+                    volume.mapFileToVolumeRelativeName( thumbnailFile ) ) );
+        } catch ( Exception ex ) {
+            log.error( "Error creating thumb instance: " + ex.getMessage() );
+        } 
         
-        // add the created instance to this persistent object
-        ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
-                ImageInstance.INSTANCE_TYPE_THUMBNAIL );
-        thumbInstance.setRotated( prefRotation -original.getRotated() );
-        thumbInstance.setCropBounds( getCropBounds() );
-        thumbInstance.setColorChannelMapping( channelMap );
-        thumbInstance.setRawSettings( rawSettings );
         log.debug( "Loading thumbnail..." );
         
         thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
         oldThumbnail = null;
         log.debug( "Thumbnail loaded" );
         
+        /*
         if ( createPreview ) {
             File previewFile = volume.getInstanceName( this, "jpg" );
             try {
@@ -1049,13 +1057,8 @@ public class PhotoInfo implements java.io.Serializable {
                     System.gc();
                 }
             } catch (PhotovaultException ex) {
-                log.error( "error writing preview for " + original.getImageFile().getAbsolutePath() +
+                log.error( "error writing preview for " + srcImage.getFile().findAvailableCopy() +
                         ": " + ex.getMessage() );
-                // TODO: If we abort here due to image writing problem we will have
-                // problems later with non-existing transaction. We should really
-                // rethink the error handling login in the whole function. Anyway, we
-                // haven't changed anything yet so we can safely commit the tx.
-                txw.commit();
                 return;
             }
             ImageInstance previewInstance = addInstance( volume, previewFile,
@@ -1064,6 +1067,7 @@ public class PhotoInfo implements java.io.Serializable {
             previewInstance.setRawSettings( rawSettings );
         }
         txw.commit();
+         */
     }
     
     /**
@@ -1160,6 +1164,9 @@ public class PhotoInfo implements java.io.Serializable {
     }
     
     /**
+     TODO: The exported image must be stored as ImafeFile in database (so that it 
+     can be found later)
+     
      Exports an image from database to a specified file with given resolution.
      The image aspect ratio is preserved and the image is scaled so that it fits
      to the given maximum resolution.
@@ -1169,32 +1176,19 @@ public class PhotoInfo implements java.io.Serializable {
      @param height Height of the exported image in pixels
      @throws PhotovaultException if exporting the photo fails for some reason.
      */
-    public void exportPhoto( File file, int width, int height ) throws PhotovaultException {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
+    public void exportPhoto( File file, int width, int height ) throws PhotovaultException {        
+
+        File imageFile = original.getFile().findAvailableCopy();
         
-        // Find the original image to use as a staring point
-        ImageInstance original = null;
-        for ( ImageInstance instance : instances ) {
-            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL
-                    && instance.getImageFile() != null 
-                    && instance.getImageFile().exists() ) {
-                original = instance;
-                txw.lock( original, Transaction.READ );
-                break;
-            }
-        }
-        if ( original == null ) {
+        if ( imageFile == null ) {
             // If there are no instances, nothing can be exported
             log.warn( "Error - no original image was found!!!" );
-            txw.commit();
             throw new PhotovaultException( "No image file found to export photo" );
         }
         
         // Read the image
         RenderedImage exportImage = null;
         try {
-            File imageFile = original.getImageFile();
             String fname = imageFile.getName();
             int lastDotPos = fname.lastIndexOf( "." );
             if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
@@ -1212,7 +1206,7 @@ public class PhotoInfo implements java.io.Serializable {
                 log.error( ex.getMessage() );
             }
             img.setCropBounds( this.getCropBounds() );
-            img.setRotation( prefRotation - original.getRotated() );
+            img.setRotation( prefRotation );
             if ( channelMap != null ) {
                 img.setColorAdjustment( channelMap );
             }
@@ -1224,7 +1218,6 @@ public class PhotoInfo implements java.io.Serializable {
                     // No raw settings for this photo yet, let's use
                     // the thumbnail settings
                     rawSettings = ri.getRawSettings();
-                    txw.lock( rawSettings, Transaction.WRITE );
                 }
             }
             if ( width > 0 ) {
@@ -1234,7 +1227,6 @@ public class PhotoInfo implements java.io.Serializable {
             }
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
-            txw.abort();
             throw new PhotovaultException( "Error reading image: " + e.getMessage(), e );
         }
                 
@@ -1316,39 +1308,25 @@ public class PhotoInfo implements java.io.Serializable {
             
         } catch ( IOException e ) {
             log.warn( "Error writing exported image: " + e.getMessage() );
-            txw.abort();
             throw new PhotovaultException( "Error writing exported image: " + e.getMessage(), e );
         }
-        
-        txw.commit();
     }
     
     
     /**
+     TODO:Update documentations
      MD5 hash code of the original instance of this PhotoInfo. It must is stored also
      as part of PhotoInfo object since the original instance might be deleted from the
      database (or we might synchronize just metadata without originals into other database!).
      With the hash code we are still able to detect that an image file is actually the
      original.
+     @deprecated Use original.getFile().getHash()
      */
     byte origInstanceHash[] = null;
     
-    @Column( name = "hash" )
-    // @org.hibernate.annotations.Type( type = "varbinary" )
+    @Transient
     public byte[] getOrigInstanceHash() {
-        return (origInstanceHash != null) ? ((byte[])origInstanceHash.clone()) : null;
-    }
-    
-    /**
-     Sets the original instance hash. This is intended for only internal use
-     @param hash MD5 hash value for original instance
-     */
-    protected void setOrigInstanceHash( byte[] hash ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        // origInstanceHash = (byte[]) hash.clone();
-        origInstanceHash = hash;
-        txw.commit();
+        return original.getFile().getHash();
     }
     
     
@@ -1362,9 +1340,6 @@ public class PhotoInfo implements java.io.Serializable {
     @Column( name = "shoot_time" )
     @Temporal( value = TemporalType.TIMESTAMP )
     public java.util.Date getShootTime() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return shootTime != null ? (java.util.Date) shootTime.clone() : null;
     }
     
@@ -1373,11 +1348,8 @@ public class PhotoInfo implements java.io.Serializable {
      * @param v  Value to assign to shootTime.
      */
     public void setShootTime(java.util.Date  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.shootTime = (v != null) ? (java.util.Date) v.clone()  : null;
         modified();
-        txw.commit();
     }
     
     /**
@@ -1385,12 +1357,9 @@ public class PhotoInfo implements java.io.Serializable {
      @param v FuzzyTime containing new values.
      */
     public void setFuzzyShootTime( FuzzyDate v ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.shootTime = (java.util.Date) v.getDate().clone();
         this.timeAccuracy = v.getAccuracy();
         modified();
-        txw.commit();        
     }
     
     @Transient
@@ -1429,9 +1398,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "f_stop" )
     public double getFStop() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return FStop;
     }
     
@@ -1440,11 +1406,8 @@ public class PhotoInfo implements java.io.Serializable {
      * @param v  Value to assign to FStop.
      */
     public void setFStop(double  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.FStop = v;
         modified();
-        txw.commit();
     }
     double focalLength;
     
@@ -1454,9 +1417,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "focal_length" )
     public double getFocalLength() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return focalLength;
     }
     
@@ -1465,11 +1425,8 @@ public class PhotoInfo implements java.io.Serializable {
      * @param v  Value to assign to focalLength.
      */
     public void setFocalLength(double  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.focalLength = v;
         modified();
-        txw.commit();
     }
     String shootingPlace;
     
@@ -1479,9 +1436,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "shooting_place" )
     public String getShootingPlace() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return shootingPlace;
     }
     
@@ -1491,11 +1445,8 @@ public class PhotoInfo implements java.io.Serializable {
      */
     public void setShootingPlace(String  v) {
         checkStringProperty( "Shooting place", v, SHOOTING_PLACE_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.shootingPlace = v;
         modified();
-        txw.commit();
     }
     String photographer;
     
@@ -1505,9 +1456,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "photographer" )
     public String getPhotographer() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return photographer;
     }
     
@@ -1517,11 +1465,8 @@ public class PhotoInfo implements java.io.Serializable {
      */
     public void setPhotographer(String  v) {
         checkStringProperty( "Photographer", v, this.PHOTOGRAPHER_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.photographer = v;
         modified();
-        txw.commit();
     }
     double shutterSpeed;
     
@@ -1531,9 +1476,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "shutter_speed" )
     public double getShutterSpeed() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return shutterSpeed;
     }
     
@@ -1542,11 +1484,8 @@ public class PhotoInfo implements java.io.Serializable {
      * @param v  Value to assign to shutterSpeed.
      */
     public void setShutterSpeed(double  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.shutterSpeed = v;
         modified();
-        txw.commit();
     }
     String camera;
     
@@ -1556,9 +1495,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "camera" )
     public String getCamera() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return camera;
     }
     
@@ -1568,11 +1504,8 @@ public class PhotoInfo implements java.io.Serializable {
      */
     public void setCamera(String  v) {
         checkStringProperty( "Camera", v, CAMERA_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.camera = v;
         modified();
-        txw.commit();
     }
     String lens;
     
@@ -1582,9 +1515,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "lens" )
     public String getLens() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return lens;
     }
     
@@ -1594,11 +1524,8 @@ public class PhotoInfo implements java.io.Serializable {
      */
     public void setLens(String  v) {
         checkStringProperty( "Lens", v, LENS_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.lens = v;
         modified();
-        txw.commit();
     }
     String film;
     
@@ -1608,9 +1535,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "film" )
     public String getFilm() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return film;
     }
     
@@ -1620,11 +1544,8 @@ public class PhotoInfo implements java.io.Serializable {
      */
     public void setFilm(String  v) {
         checkStringProperty( "Film", v, FILM_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.film = v;
         modified();
-        txw.commit();
     }
     int filmSpeed;
     
@@ -1634,9 +1555,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "film_speed" )
     public int getFilmSpeed() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return filmSpeed;
     }
     
@@ -1645,11 +1563,8 @@ public class PhotoInfo implements java.io.Serializable {
      * @param v  Value to assign to filmSpeed.
      */
     public void setFilmSpeed(int  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.filmSpeed = v;
         modified();
-        txw.commit();
     }
     
     double prefRotation;
@@ -1661,9 +1576,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "pref_rotation" )
     public double getPrefRotation() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return prefRotation;
     }
     
@@ -1681,8 +1593,6 @@ public class PhotoInfo implements java.io.Serializable {
             v -= 360.0;
         }
         
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         if ( v != prefRotation ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
@@ -1690,7 +1600,6 @@ public class PhotoInfo implements java.io.Serializable {
         }
         this.prefRotation = v;
         modified();
-        txw.commit();
     }
     
     /**
@@ -1725,10 +1634,7 @@ public class PhotoInfo implements java.io.Serializable {
         } 
     )
     public Rectangle2D getCropBounds() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
         checkCropBounds();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return new Rectangle2D.Double( cropMinX, cropMinY,
                 cropMaxX-cropMinX, cropMaxY-cropMinY );
     }
@@ -1779,18 +1685,15 @@ public class PhotoInfo implements java.io.Serializable {
      @param cm the new color channel mapping
      */
     public void setColorChannelMapping( ChannelMapOperation cm ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         if ( cm != null ) {
             if ( !cm.equals( channelMap ) ) {
                 // Rotation changes, invalidate the thumbnail
                 invalidateThumbnail();
-                purgeInvalidInstances();
+                // purgeInvalidInstances();
             }
         }
         channelMap = cm;
         modified();
-        txw.commit();
     }
 
     /**
@@ -1800,9 +1703,6 @@ public class PhotoInfo implements java.io.Serializable {
     // TODO: Do mapping for these
     @Transient
     public ChannelMapOperation getColorChannelMapping() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return channelMap;
     }
     
@@ -1830,7 +1730,7 @@ public class PhotoInfo implements java.io.Serializable {
         if ( ( channelMap == null && oldMap != null ) || 
                 (channelMap != null && !channelMap.equals( oldMap ))  ) {
             invalidateThumbnail();
-            purgeInvalidInstances();
+            // purgeInvalidInstances();
             modified();
         }
     }
@@ -1860,7 +1760,7 @@ public class PhotoInfo implements java.io.Serializable {
         if ( s != null ) {
             if ( !s.equals( rawSettings ) ) {
                 invalidateThumbnail();
-                purgeInvalidInstances();
+                // purgeInvalidInstances();
             }
             settings =  s.clone();
         } else {
@@ -1868,7 +1768,7 @@ public class PhotoInfo implements java.io.Serializable {
             if ( rawSettings != null ) {
                 log.error( "Setting raw conversion settings of an raw image to null!!!" );
                 invalidateThumbnail();
-                purgeInvalidInstances();                
+                // purgeInvalidInstances();                
             }
         }
         rawSettings = settings;
@@ -1911,9 +1811,6 @@ public class PhotoInfo implements java.io.Serializable {
      */
     @Column( name = "description" )
     public String getDescription() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return description;
     }
     
@@ -1922,11 +1819,8 @@ public class PhotoInfo implements java.io.Serializable {
      * @param v  Value to assign to description.
      */
     public void setDescription(String  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.description = v;
         modified();
-        txw.commit();
     }
     
     public static final int QUALITY_UNDEFINED = 0;
@@ -1962,11 +1856,8 @@ public class PhotoInfo implements java.io.Serializable {
      * @param newQuality The new Quality value.
      */
     public void setQuality(final int newQuality) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.quality = newQuality;
         modified();
-        txw.commit();
     }
     
     /**
@@ -1980,11 +1871,8 @@ public class PhotoInfo implements java.io.Serializable {
     }
     
     public  void setLastModified(final java.util.Date newDate) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.lastModified = (newDate != null) ? (java.util.Date) newDate.clone()  : null;
         modified();
-        txw.commit();
     }
     
     /**
@@ -2003,11 +1891,8 @@ public class PhotoInfo implements java.io.Serializable {
      * @param newTechNotes The new TechNotes value.
      */
     public void setTechNotes( String newTechNotes ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.techNotes = newTechNotes;
         modified();
-        txw.commit();
     }
     
     /**
@@ -2029,11 +1914,8 @@ public class PhotoInfo implements java.io.Serializable {
      */
     public void setOrigFname(final String newFname) {
         checkStringProperty( "OrigFname", newFname, ORIG_FNAME_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.origFname = newFname;
         modified();
-        txw.commit();
     }
     
     /**
@@ -2182,10 +2064,6 @@ public class PhotoInfo implements java.io.Serializable {
             return false;
         }
         PhotoInfo p = (PhotoInfo)obj;
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.lock( p, Transaction.READ );
-        txw.commit();
         
         return ( isEqual( p.photographer, this.photographer )
         && isEqual( p.shootingPlace, this.shootingPlace )

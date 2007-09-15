@@ -73,6 +73,7 @@ public class ImageFile implements java.io.Serializable {
     
     /** Creates a new instance of ImageFile */
     protected ImageFile() {
+        id = UUID.randomUUID();
     }
     
     /**

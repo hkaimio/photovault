@@ -128,9 +128,9 @@
     <table name="pv_images">
         <column name="id" primaryKey="true" required="false" 
                 type="BIGINT" autoIncrement="false"/> 
-        <column name="file_id" primaryKey="false" required="true" 
+        <column name="file_id" primaryKey="false" required="false" 
                 type="VARCHAR" size="36" autoIncrement="false"/> 
-        <column name="location" primaryKey="false" required="true" 
+        <column name="location" primaryKey="false" required="false" 
                 type="VARCHAR" size="100" autoIncrement="false"/> 
         <column name="image_type" primaryKey="false" required="true" 
                 type="VARCHAR" size="50" autoIncrement="false"/> 
@@ -327,7 +327,7 @@
     <table name="photos">
       <column name="photo_id" primaryKey="true" required="true" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="photo_uuid" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>      
-      <column name="original_id" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>      
+      <column name="original_id" primaryKey="false" required="false" type="BIGINT" autoIncrement="false"/>      
       <column name="shoot_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
       <column name="time_accuracy" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
       <column name="shooting_place" primaryKey="false" required="false" type="VARCHAR" size="30" autoIncrement="false"/>

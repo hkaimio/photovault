@@ -48,7 +48,7 @@ public class PhotoInfoDAOHibernate
         throw new UnsupportedOperationException( "findPhotosWithHash not yet implemented");
     }
 
-    public PhotoInfo findBuUUID(UUID uuid) {
+    public PhotoInfo findByUUID(UUID uuid) {
         Query q = getSession().createQuery( "from PhotoInfo where uuid = :uuid" );
         q.setParameter("uuid", uuid );
         return (PhotoInfo) q.uniqueResult();        

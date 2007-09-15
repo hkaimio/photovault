@@ -174,7 +174,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
             fail( t.getMessage() );
         }
 	assertNotNull( photo );
-        photo.setUUID( UUID.randomUUID() );
+        photo.setUuid( UUID.randomUUID() );
 	photo.setPhotographer( "TESTIKUVAAJA" );
 	photo.setShootingPlace( "TESTPLACE" );
 	photo.setShootTime( new java.util.Date() );
@@ -210,7 +210,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    assertTrue( photo.getFocalLength() == photo2.getFocalLength() );
 	    assertTrue( photo.getFStop() == photo2.getFStop() );
 	    assertTrue( photo.getUid() == photo2.getUid() );
-	    assertTrue( photo.getUUID().equals( photo2.getUUID() ) );
+	    assertTrue( photo.getUuid().equals( photo2.getUuid() ) );
             assertTrue( photo.getCropBounds().equals( photo2.getCropBounds() ) );
             
 	    //	    assertTrue( photo.equals( photo2 ));
@@ -294,7 +294,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    assertTrue( photo.getFocalLength() == photo2.getFocalLength() );
 	    assertTrue( photo.getFStop() == photo2.getFStop() );
 	    assertTrue( photo.getUid() == photo2.getUid() );
-	    assertTrue( photo.getUUID().equals( photo2.getUUID() ) );
+	    assertTrue( photo.getUuid().equals( photo2.getUuid() ) );
             assertTrue( photo.getCropBounds().equals( photo2.getCropBounds() ) );
             
 	    //	    assertTrue( photo.equals( photo2 ));

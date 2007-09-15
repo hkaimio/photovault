@@ -125,11 +125,17 @@ public class CreateImageInstanceCommand extends DataAccessCommand
 //            existingPhoto.removeInstance( existingInstance );
 //            instDAO.makeTransient( existingInstance );
 //        }
+        imgFile = ifDAO.makePersistent( imgFile );
         if ( photoId != null ) {
             photo = photoDAO.findById( photoId, false );
         } else {
-            photo = PhotoInfo.create();
+            ImageDescriptorDAO imgDAO = daoFactory.getImageDescriptorDAO();
+            OriginalImageDescriptor origImg = 
+                    (OriginalImageDescriptor) imgDAO.makePersistent( 
+                    new OriginalImageDescriptor(imgFile, "image#0") );
+            photo = new PhotoInfo();
             photo = photoDAO.makePersistent( photo );
+            photo.setOriginal( origImg );
         }
         
         VolumeBase volume = null;
@@ -142,7 +148,6 @@ public class CreateImageInstanceCommand extends DataAccessCommand
 //        if ( photoId == null ) {
 //            photo.updateFromOriginalFile();
 //        }
-        ifDAO.makePersistent( imgFile );
         // instDAO.makePersistent( instance );
     }
 

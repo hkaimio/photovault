@@ -219,9 +219,9 @@ public class Test_ImageFile extends PhotovaultTestCase {
         boolean foundP3 = false;
         for ( PhotoInfo p : vi21.getPhotos() ) {
             assert p.getOriginal() == vi21;
-            if ( p.getUUID().equals( p2.getUUID() ) ) {
+            if ( p.getUuid().equals( p2.getUuid() ) ) {
                 foundP2 = true;
-            } else if ( p.getUUID().equals( p3.getUUID() ) ) {
+            } else if ( p.getUuid().equals( p3.getUuid() ) ) {
                 foundP3 = true;
             } 
         }
@@ -241,7 +241,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         
         ImageFile f = cmd.getImageFile();
         UUID fileId = f.getId();
-        // UUID instanceId = cmd.getImageInstance().getUUID();
+        // UUID instanceId = cmd.getImageInstance().getUuid();
         
         f = ifDAO.findById( fileId, false );
         assert f.getFileSize() == testFile.length();
@@ -261,6 +261,13 @@ public class Test_ImageFile extends PhotovaultTestCase {
         imgFile.addLocation( new FileLocation( vol2, "test2.jpg") );
         f = imgFile.findAvailableCopy();
         assertEquals( testFileDst, f );
+    }
+    
+    /**
+     Test that PhotoInfo#findPreferredInstance returns correct instance
+     */
+    public void testFindPreferredInstance() {
+        
     }
     
     /**

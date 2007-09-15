@@ -330,7 +330,7 @@ public class XmlExporter {
      @throws IOException if error occurs during writing     
      */
     private void writePhoto( PhotoInfo p ) throws IOException {
-        writer.write( getIndent() + "<photo id=\"" + p.getUUID() + "\"" );
+        writer.write( getIndent() + "<photo id=\"" + p.getUuid() + "\"" );
         writer.write( " modified=\"" + p.getLastModified() + "\">" );
         writer.newLine();
         indent += 2;

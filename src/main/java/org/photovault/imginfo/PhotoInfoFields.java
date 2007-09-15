@@ -177,7 +177,7 @@ public enum PhotoInfoFields {
             case TIME_ACCURACY:
                 return photo.getTimeAccuracy();
             case UUID:
-                return photo.getUUID();
+                return photo.getUuid();
         }
         if ( EnumSet.range( RAW_BLACK_LEVEL, RAW_COLOR_PROFILE).contains( field )  ) {
             return getRawSettingFieldValue( photo, field );

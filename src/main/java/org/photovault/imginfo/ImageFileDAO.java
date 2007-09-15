@@ -30,5 +30,12 @@ import org.photovault.persistence.GenericDAO;
  * @since 0.6.0
  */
 public interface ImageFileDAO extends GenericDAO<ImageFile, UUID> {
+    /**
+     Find image files that match a given hash code
+     @param hash The hash code to search for
+     @return ImageFile with matching hash or <code>null</code> if no such file 
+     found.
+     */
+    ImageFile findImageFileWithHash( byte[] hash );
     
 }
