@@ -233,9 +233,8 @@ public class Test_ImageFile extends PhotovaultTestCase {
     public void testImageCreationCmd() throws PhotovaultException, IOException {
         File testDir = new File( System.getProperty( "basedir" ), "testfiles" );
         File testFile = new File( testDir, "test1.jpg" );
-        CreateImageInstanceCommand cmd = 
-                new CreateImageInstanceCommand( null, testFile, null, 
-                ImageInstance.INSTANCE_TYPE_ORIGINAL );
+        ModifyImageFileCommand cmd = 
+                new ModifyImageFileCommand( testFile );
         PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( null );
         cmdHandler.executeCommand( cmd );
         
@@ -246,7 +245,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         f = ifDAO.findById( fileId, false );
         assert f.getFileSize() == testFile.length();
         assert f.getImages().size() == 1;
-        assertEquals( 0, f.getLocations().size() );        
+        assertEquals( 0, f.getLocations().size() ); 
     }
     
     @Test
@@ -261,6 +260,27 @@ public class Test_ImageFile extends PhotovaultTestCase {
         imgFile.addLocation( new FileLocation( vol2, "test2.jpg") );
         f = imgFile.findAvailableCopy();
         assertEquals( testFileDst, f );
+    }
+
+    @Test
+    public void testFindByLocation() throws IOException, PhotovaultException {
+        File testDir = new File( System.getProperty( "basedir" ), "testfiles" );
+        File testFile = new File( testDir, "test2.jpg" );
+        File testFile2 = new File( testDir, "test3.jpg" );
+        ExternalVolume extvol = new ExternalVolume();
+        extvol.setBaseDir( testDir );
+        VolumeDAO volDAO = daoFactory.getVolumeDAO();
+        ImageFile imgFile = new ImageFile( testFile );
+        imgFile.addLocation( new FileLocation( extvol, "test2.jpg" ) );
+        ImageFile imgFile2 = new ImageFile( testFile2 );
+        imgFile2.addLocation( new FileLocation( extvol, "test3.jpg" ) );
+        ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
+        ifDAO.makePersistent( imgFile );
+        ifDAO.makePersistent( imgFile2 );
+        session.flush();
+        assertEquals( imgFile, ifDAO.findFileInLocation( extvol, "test2.jpg" ) );
+        assertEquals( imgFile2, ifDAO.findFileInLocation( extvol, "test3.jpg" ) );
+        assertNull( ifDAO.findFileInLocation( extvol, "test4.jpg" ) );
     }
     
     /**

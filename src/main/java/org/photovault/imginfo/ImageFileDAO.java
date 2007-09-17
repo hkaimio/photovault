@@ -37,5 +37,7 @@ public interface ImageFileDAO extends GenericDAO<ImageFile, UUID> {
      found.
      */
     ImageFile findImageFileWithHash( byte[] hash );
+
+    ImageFile findFileInLocation(ExternalVolume volume, String string);
     
 }

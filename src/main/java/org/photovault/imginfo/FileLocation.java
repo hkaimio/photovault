@@ -129,7 +129,7 @@ public class FileLocation {
      <code>null</code> otherwise.
      */
     @Transient
-    File getFile() {
+    public File getFile() {
         try {
             return volume.mapFileName( fname );
         } catch ( FileNotFoundException e ) {

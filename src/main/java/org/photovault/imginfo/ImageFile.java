@@ -42,6 +42,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.MapKey;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -65,6 +67,13 @@ import org.photovault.dcraw.RawImage;
  * @since 0.6.0
  */
 
+@NamedQueries({
+    @NamedQuery(
+     name = "findImageFileByLocation",
+     query = "select f from ImageFile f join f.locations loc "+
+            "where loc.volume = :volume and loc.fname = :fname"
+    )
+})
 @Entity
 @Table( name="pv_image_files" )
 public class ImageFile implements java.io.Serializable {
@@ -87,10 +96,29 @@ public class ImageFile implements java.io.Serializable {
         // Set lastChecked to a time that is certainly earlier than any data read 
         // from file system
         hash = calcHash( f );
+        init( f );
+    }
+    
+    /**
+     Create a new image file when the MD5 hash of the file is already known.
+     * @param f The file from which the ImageFile fields are calculated.
+     * @param hash MD5 hash for file f.
+     * @throws org.photovault.common.PhotovaultException If there is an error
+     * @throws java.io.IOException If reading the image file failed.
+     */
+    public ImageFile( File f, byte[] hash ) throws PhotovaultException, IOException {
+        if ( hash != null ) {
+            this.hash = hash;
+        } else {
+            hash = calcHash( f );
+        }
+        init( f );
+    }
+    
+    private void init( File f ) throws PhotovaultException, IOException {
         id = UUID.nameUUIDFromBytes( hash );
         size = f.length();
-        readImageFile( f );
-        
+        readImageFile( f );        
     }
     
     private UUID id;
@@ -342,6 +370,14 @@ public class ImageFile implements java.io.Serializable {
             }
         }
         return hash;
+    }
+
+    /**
+     Utility method to get an imge by its location in file
+     @param string locator string of the image
+     */
+    public ImageDescriptorBase getImage(String string) {
+        return images.get( string );
     }
 
     

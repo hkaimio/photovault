@@ -50,5 +50,11 @@ public class ImageFileDAOHibernate
         return (ImageFile) q.uniqueResult();
         
     }
+
+    public ImageFile findFileInLocation(ExternalVolume volume, String string) {
+        return (ImageFile) getSession().getNamedQuery( "findImageFileByLocation" ).
+                setEntity( "volume", volume).setString( "fname", string ).
+                uniqueResult();
+    }
     
-}
+}   
