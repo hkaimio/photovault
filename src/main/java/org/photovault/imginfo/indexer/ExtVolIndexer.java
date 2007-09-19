@@ -32,6 +32,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.query.Criteria;
 import org.apache.ojb.broker.query.QueryByCriteria;
@@ -49,11 +51,16 @@ import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.folder.DeletePhotoFolderCommand;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
-import org.photovault.imginfo.CreateImageInstanceCommand;
-import org.photovault.imginfo.DeleteImageInstanceCommand;
+import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.ExternalVolume;
+import org.photovault.imginfo.FileLocation;
+import org.photovault.imginfo.ImageDescriptorBase;
+import org.photovault.imginfo.ImageFile;
+import org.photovault.imginfo.ImageFileDAO;
 import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.ImageInstanceDAO;
+import org.photovault.imginfo.ModifyImageFileCommand;
+import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.persistence.DAOFactory;
@@ -69,7 +76,7 @@ import org.photovault.persistence.HibernateUtil;
  */
 public class ExtVolIndexer implements Runnable {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ExtVolIndexer.class.getName() );
+    static private Log log = LogFactory.getLog( ExtVolIndexer.class.getName() );
     
     /**
      Creates a new instance of ExtVolIndexer
@@ -195,42 +202,65 @@ public class ExtVolIndexer implements Runnable {
     /**
      Indexes a single file to Photovault database.
      <ul>
-     <li>First Photovault checks if the file is already indexed. If the instance
-     is found in database and hash or both file zise and last modification time 
-     match this is assumed to be an existing instance.</li>
+     <li>First Photovault checks if the file is already indexed. If there is
+     a file in this path according to database and its hash or both file size 
+     and last modification time match this is assumed to be an existing file.</li>
      <li>
-     If the file is not found Photovault tries to find an existing instance with 
-     the same checksum. If such is found, Photovault assumes that this is another 
-     copy of the same file and adds it as an instance to that PhotoInfo. </li>
+     If the file is not found Photovault tries to find an existing file with 
+     the same hash. If such is found, Photovault assumes that this is another 
+     copy of the same file and adds a new location for that file. </li>
      <li>
-     If no such instance is found Photovault creates a new PhotoInfo and
-     adds this image as an original instance of it and create a thumbnail on
-     default volume.
+     If no such file is found Photovault creates a new ImageFile and PhotoInfo 
+     with the image stored in location "image#0" in this file as original. 
+     After that it creates a thumbnail on default volume.
      </li>
      </ul>
      @param f File to be indexed
-     @return The PhotoInfo object this file was added to or <code>null</code>
+     @return The ImageFile object this file was associated with or <code>null</code>
      if Photovault was not able to index this file.
      */
-    PhotoInfo indexFile( File f, DAOFactory daoFactory ) {
+    ImageFile indexFile( File f, DAOFactory daoFactory ) {
         log.debug( "entry: indexFile " + f.getAbsolutePath() );
         currentEvent.setIndexedFile( f );
         indexedFileCount++;
         
-        ImageInstanceDAO instDAO = daoFactory.getImageInstanceDAO();
+        ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         // Check if the instance already exists n database
-        ImageInstance oldInstance = instDAO.getExistingInstance( volume, volume.mapFileToVolumeRelativeName(f ) );
-        if ( oldInstance != null ) {
-            log.debug( "found old instance" );
-            // There is an existing instance, check whether the data matches
-            if ( oldInstance.doConsistencyCheck() ) {
-                PhotoInfo photo = oldInstance.getPhoto();
-                log.debug( "old isntaqnce consistent, photo " + photo.getId() );
-                return photo;
+        ImageFile file = ifDAO.findFileInLocation( volume, volume.mapFileToVolumeRelativeName( f ) );
+        byte[] hash = null;
+        if ( file != null ) {
+            log.debug( "found existing file" );
+            FileLocation fileLoc = null;
+            for ( FileLocation loc : file.getLocations() ) {
+                if ( loc.getFile().equals( f ) ) {
+                    fileLoc = loc;
+                    break;
+                }
+            }
+            
+            boolean matchesFile = true;
+            if ( f.length() == file.getFileSize() ) {
+                if ( f.lastModified() != fileLoc.getLastModified() ) {
+                    hash = ImageFile.calcHash( f );
+                    if ( !hash.equals( file.getHash() ) ) {
+                        matchesFile = false;
+                    }
+                }
             } else {
-                log.debug( "old instance not consistent with file, deleting" );
-                DeleteImageInstanceCommand deleteCmd = new DeleteImageInstanceCommand( oldInstance, false );
+                matchesFile = false;
+            }
+            
+            // There is an existing instance, check whether the data matches
+            if ( matchesFile ) {
+                // TODO: return the immge file
+//                PhotoInfo photo = oldInstance.getPhoto();
+                log.debug( "File is consistent with DB" );
+                return file;                
+            } else {
+                ModifyImageFileCommand deleteCmd = new ModifyImageFileCommand( file );
+                deleteCmd.removeLocation( fileLoc );
+                log.debug( "File is not consistent with the one in DB, removing location" );
                 try {
                     commandHandler.executeCommand( deleteCmd );
                 } catch (CommandException ex) {
@@ -239,77 +269,78 @@ public class ExtVolIndexer implements Runnable {
             }
         }
         
-        
-        // Check whether this is really an image file
-        
-        CreateImageInstanceCommand createCmd = null;
-        try {
-            createCmd = new CreateImageInstanceCommand( volume, f );
-        } catch ( Exception e ) {
-            currentEvent.setResult( ExtVolIndexerEvent.RESULT_ERROR );
-            return null;
+        /*
+         If we reach here, the file is new (or changed) after last indexing.
+         Check first if it is a copy of an existing instance
+         */
+        if ( hash == null ) {
+            hash = ImageFile.calcHash( f );
         }
-        if ( createCmd.getImageInstance() == null ) {
-            log.debug( f.getName() + " was not image" );
-            currentEvent.setResult( ExtVolIndexerEvent.RESULT_NOT_IMAGE );
-            /*
-             ImageInstance already aborts transaction if reading image file
-             was unsuccessfull.
+        
+        file = ifDAO.findImageFileWithHash( hash );
+
+        ModifyImageFileCommand cmd = null;
+        if (file != null) {
+            /**
+            Yes, this is a known file. Just information about the new location
+            to the database.
              */
+            cmd = new ModifyImageFileCommand(file);
+            currentEvent.setResult(ExtVolIndexerEvent.RESULT_NEW_INSTANCE);
+        } else {
+            /*
+            The file is not known to Photovault. Create a new ImageFile
+            object & PhotoInfo that regards it as its original.
+             */
+            try {
+                cmd = new ModifyImageFileCommand( f, hash );
+                currentEvent.setResult( ExtVolIndexerEvent.RESULT_NEW_PHOTO );
+            } catch ( Exception e ) {
+                currentEvent.setResult( ExtVolIndexerEvent.RESULT_NOT_IMAGE );
+                return null;
+            }
+        }
+        cmd.addLocation(
+                new FileLocation( volume,
+                volume.mapFileToVolumeRelativeName( f ) ) );
+        try {
+            commandHandler.executeCommand( cmd );
+            newInstanceCount++;
+            if ( currentEvent.getResult() == ExtVolIndexerEvent.RESULT_NEW_PHOTO ) {
+                newPhotoCount++;
+            }
+        } catch (CommandException ex) {
+            log.warn( "Exception in modifyImageFileCommand: " + ex.getMessage() );
+            currentEvent.setResult( ExtVolIndexerEvent.RESULT_NOT_IMAGE );
             return null;
         }
-        byte[] hash = createCmd.getImageInstance().getHash();
-        
-        // Check whether there is already an image instance with the same hash
-        List matchingPhotos = photoDAO.findPhotosWithOriginalHash( hash );
-        PhotoInfo photo = null;
-        if ( matchingPhotos != null && matchingPhotos.size() > 0 ) {
-            // If yes then get the PhotoInfo and add this file as an instance with
-            // the same type as the one with same hash. If only PhotoInfo with no
-            // instances add as original for that
-            photo = (PhotoInfo) matchingPhotos.get( 0 );
-            log.debug( "Photo " + photo.getId() + " has matching hash" );
-            createCmd.setPhoto( photo );
-            currentEvent.setResult( ExtVolIndexerEvent.RESULT_NEW_INSTANCE );
-            newInstanceCount++;
-        } else {
-            // No photo that matches instance file hash found
-            // Create a new photo object
-            currentEvent.setResult( ExtVolIndexerEvent.RESULT_NEW_PHOTO );
-            newInstanceCount++;
-            newPhotoCount++;
-        }
-        try {
-            commandHandler.executeCommand( createCmd );
-        } catch (CommandException ex) {
-            log.error( "Error indexing file " + f.getAbsolutePath() + ": " + ex.getMessage() );
-            ex.printStackTrace();
-        }
-        currentEvent.setPhoto( createCmd.getChangedPhoto() );
+
+        currentEvent.setPhoto( null );
         log.debug( "exit: indexFile " + f.getAbsolutePath() );
-        return createCmd.getChangedPhoto();
+        return cmd.getImageFile();
     }
     
     /**
-     Indexes all images in a given directory and its subdirectories.
-     <p>
-     Photovault calls indexFile() for each file in the directory and
-     indexDirectory() for each subdirectory.
-     <p>
-     In addition, the method checks if there are instances that according to the
-     database should reside in this directory but that are not present. If such
-     isntances are found they are deleted from database.
-     @param dir The directory that will be indexed
-     @parm folder Found photos will be added to this folder and new subfolder will
-     be created for each subdirectory found (unless there already is a subfolder
-     with same case-sensitive name. If <code>null</code> The photos will not be
-     added to any folder.
-     @param startPercent This is used for determining the completeness of the
-     indexing operation. Based on indexing of upper level directories is has been
-     estimated that indexing this subhierarchy will advance the indexing operation
-     from startPErcent to endPercent. indexDirector will subsequently divide this
-     to the operations it performs.
-     @param endPercent See above.
+    Indexes all images in a given directory and its subdirectories.
+    <p>
+    Photovault calls indexFile() for each file in the directory and
+    indexDirectory() for each subdirectory.
+    <p>
+    In addition, the method checks if there are files that according to the
+    database should reside in this directory but that are not present. These are 
+     removed from the database and the corresponding PhotoInfo objects are removed
+     from the folder.
+    @param dir The directory that will be indexed
+    @parm folder Found photos will be added to this folder and new subfolder will
+    be created for each subdirectory found (unless there already is a subfolder
+    with same case-sensitive name. If <code>null</code> The photos will not be
+    added to any folder.
+    @param startPercent This is used for determining the completeness of the
+    indexing operation. Based on indexing of upper level directories is has been
+    estimated that indexing this subhierarchy will advance the indexing operation
+    from startPErcent to endPercent. indexDirector will subsequently divide this
+    to the operations it performs.
+    @param endPercent See above.
      */
     void indexDirectory( File dir, PhotoFolder folder, int startPercent, int endPercent ) {
         log.debug( "entry: indexDirectory " + dir.getAbsolutePath() );
@@ -357,27 +388,35 @@ public class ExtVolIndexer implements Runnable {
                 currentEvent = new ExtVolIndexerEvent( this );
                 Session photoSession = HibernateUtil.getSessionFactory().openSession();
                 Session oldSession = ManagedSessionContext.bind( (org.hibernate.classic.Session) photoSession);
-                PhotoInfo p = indexFile( f, DAOFactory.instance( HibernateDAOFactory.class ) );
+                ImageFile ifile = indexFile( f, DAOFactory.instance( HibernateDAOFactory.class ) );
                 photoSession.close();
                 ManagedSessionContext.bind( (org.hibernate.classic.Session) oldSession);
-                if ( p != null ) {
-                    if ( photoInstanceCounts.containsKey( p.getId() ) ) {
-                        log.debug( "Photo is already in folder" ); 
-                        // The photo is already in this folder
-                        int refCount = photoInstanceCounts.get( p.getId() ).intValue();
-                        photoInstanceCounts.remove( p.getId() );
-                        photoInstanceCounts.put( p.getId(), new Integer( refCount+1 ));
-                    } else {
-                        // The photo is not yet in this folder
-                        log.debug( "adding photo " + p.getId() + " to folder " + folder.getFolderId() );
-                        ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( p.getId() );
-                        cmd.addToFolder( folder );
-                        try {
-                            commandHandler.executeCommand( cmd );
-                        } catch (CommandException ex) {
-                            ex.printStackTrace();
+                if ( ifile != null ) {
+                    // Find the photo(s) associated with this instance
+                    ifile = (ImageFile) oldSession.merge( ifile );
+                    ImageDescriptorBase img = null;
+                    img = ifile.getImage( "image#0" );
+                    
+                    Set<PhotoInfo> photos = getPhotosBasedOnImage( img );
+                    for ( PhotoInfo p : photos ) {
+                        if ( photoInstanceCounts.containsKey( p.getId() ) ) {
+                            log.debug( "Photo is already in folder" );
+                            // The photo is already in this folder
+                            int refCount = photoInstanceCounts.get( p.getId() ).intValue();
+                            photoInstanceCounts.remove( p.getId() );
+                            photoInstanceCounts.put( p.getId(), new Integer( refCount+1 ));
+                        } else {
+                            // The photo is not yet in this folder
+                            log.debug( "adding photo " + p.getId() + " to folder " + folder.getFolderId() );
+                            ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( p.getId() );
+                            cmd.addToFolder( folder );
+                            try {
+                                commandHandler.executeCommand( cmd );
+                            } catch (CommandException ex) {
+                                ex.printStackTrace();
+                            }
+                            photoInstanceCounts.put( p.getId(), new Integer( 1 ));
                         }
-                        photoInstanceCounts.put( p.getId(), new Integer( 1 ));
                     }
                 }
                 nFile++;
@@ -396,21 +435,22 @@ public class ExtVolIndexer implements Runnable {
         Set<Integer> photoIdsNotFound = new HashSet<Integer>();
         while ( iter.hasNext() ) {
             Integer photoId = (Integer) iter.next();
-            int refCount = ((Integer)photoInstanceCounts.get( photoId )).intValue();
+            int refCount = (photoInstanceCounts.get(photoId)).intValue();
             if ( refCount == 0 ) {
                 photoIdsNotFound.add( photoId );
                 log.debug( "photo " + photoId + " not found during indexing" );
             }
         }        
-        ChangePhotoInfoCommand removeFromFolderCmd = new ChangePhotoInfoCommand( photoIdsNotFound );
-        removeFromFolderCmd.removeFromFolder( folder );
-        try {
-            log.debug( "Deleting unseen photos" );
-            commandHandler.executeCommand( removeFromFolderCmd );
-        } catch (CommandException ex) {
-            ex.printStackTrace();
+        if ( photoIdsNotFound.size() > 0 ) {
+            ChangePhotoInfoCommand removeFromFolderCmd = new ChangePhotoInfoCommand( photoIdsNotFound );
+            removeFromFolderCmd.removeFromFolder( folder );
+            try {
+                log.debug( "Deleting unseen photos" );
+                commandHandler.executeCommand( removeFromFolderCmd );
+            } catch (CommandException ex) {
+                ex.printStackTrace();
+            }
         }
-        
         // Index now all subdirectories
         for ( File subdir : subdirs ) {
             // Create the matching folder
@@ -468,22 +508,6 @@ public class ExtVolIndexer implements Runnable {
         }
     }
     
-    private void removeStaleInstances( PhotoInfo p, ExternalVolume vol ) {
-        List<ImageInstance> staleInstances = new ArrayList<ImageInstance>();
-        for ( ImageInstance i : p.getInstances() ) {
-            if ( i.getVolume() == vol && !i.getImageFile().exists() ) {
-                staleInstances.add( i );
-            }
-            if ( staleInstances.size() > 0 ) {
-                DeleteImageInstanceCommand deleteCmd = new DeleteImageInstanceCommand( staleInstances, true );
-                try {
-                    commandHandler.executeCommand( deleteCmd );
-                } catch (CommandException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-    }
     
     /**
      Removes instance records that were not updated during indexing.
@@ -505,7 +529,6 @@ public class ExtVolIndexer implements Runnable {
 	try {
 	    PersistenceBroker broker = ((HasBroker) tx).getBroker();
 	    QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
-	    result = broker.getCollectionByQuery( q );
         } catch ( Exception e ) {
             e.printStackTrace();
         }        
@@ -607,7 +630,8 @@ public class ExtVolIndexer implements Runnable {
     /**
      Set of listreners that are notified about progress in indexing
      */
-    private HashSet listeners = new HashSet();
+    private Set<ExtVolIndexerListener> listeners = 
+            new HashSet<ExtVolIndexerListener>();
     
     /**
      Add a new listener to the set which will be notified about new indexing
@@ -729,6 +753,18 @@ public class ExtVolIndexer implements Runnable {
      */
     public Date getStartTime() {
         return (startTime != null) ? (Date) startTime.clone() : null;
+    }
+    /**
+     Utility method to find out {@link PhotoInfo}s based on given image
+     @param img The image
+     @return Set of photos that are based in this image (if it is original) or
+     its original.
+     */
+    private Set<PhotoInfo> getPhotosBasedOnImage(ImageDescriptorBase img) {
+        if ( img instanceof OriginalImageDescriptor ) {
+            return ((OriginalImageDescriptor)img).getPhotos();
+        }
+        return ((CopyImageDescriptor)img).getOriginal().getPhotos();
     }
 }
 

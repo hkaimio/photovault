@@ -25,7 +25,6 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
@@ -133,9 +132,9 @@ public class CreateImageInstanceCommand extends DataAccessCommand
             OriginalImageDescriptor origImg = 
                     (OriginalImageDescriptor) imgDAO.makePersistent( 
                     new OriginalImageDescriptor(imgFile, "image#0") );
-            photo = new PhotoInfo();
+            photo = new PhotoInfo( origImg );
             photo = photoDAO.makePersistent( photo );
-            photo.setOriginal( origImg );
+            // photo.setOriginal( origImg );
         }
         
         VolumeBase volume = null;

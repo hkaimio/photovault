@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.photovault.command.PhotovaultCommandHandler;
@@ -63,6 +62,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
     VolumeBase vol2;
     
     @BeforeTest
+    @Override
     public void setUp() {
         JUnitHibernateManager.getHibernateManager();
         session = HibernateUtil.getSessionFactory().openSession();
@@ -91,6 +91,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
     }
 
     @AfterTest
+    @Override
     public void tearDown() throws Exception {
         session.delete( vol1 );
         session.delete( vol2 );
@@ -150,7 +151,6 @@ public class Test_ImageFile extends PhotovaultTestCase {
     @Test
     public void testImageDescriptorPersistence() {
         Transaction tx = session.beginTransaction();
-        ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
         ImageFile f1 = new ImageFile();
@@ -245,6 +245,8 @@ public class Test_ImageFile extends PhotovaultTestCase {
         f = ifDAO.findById( fileId, false );
         assert f.getFileSize() == testFile.length();
         assert f.getImages().size() == 1;
+        OriginalImageDescriptor img = (OriginalImageDescriptor) f.getImage( "image#0" );
+        assertEquals( 1, img.getPhotos().size() );
         assertEquals( 0, f.getLocations().size() ); 
     }
     
@@ -274,7 +276,6 @@ public class Test_ImageFile extends PhotovaultTestCase {
         imgFile.addLocation( new FileLocation( extvol, "test2.jpg" ) );
         ImageFile imgFile2 = new ImageFile( testFile2 );
         imgFile2.addLocation( new FileLocation( extvol, "test3.jpg" ) );
-        ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
         ifDAO.makePersistent( imgFile );
         ifDAO.makePersistent( imgFile2 );
         session.flush();

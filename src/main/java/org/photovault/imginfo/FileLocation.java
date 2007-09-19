@@ -107,6 +107,7 @@ public class FileLocation {
         this.lastChecked = lastChecked;
     }
     
+    @Override
     public boolean equals( Object o ) {
         if ( o instanceof FileLocation ) {
             FileLocation that = (FileLocation) o;
@@ -119,8 +120,9 @@ public class FileLocation {
         return false;
     }
     
+    @Override
     public int hashCode() {
-        return file.hashCode() + volume.hashCode() + fname.hashCode();
+        return volume.hashCode() + fname.hashCode();
     }
 
     /**

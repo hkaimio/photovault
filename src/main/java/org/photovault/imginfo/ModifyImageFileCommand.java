@@ -88,7 +88,7 @@ public class ModifyImageFileCommand extends DataAccessCommand {
         return imageFile;
     }
 
-    public void addLocation( FileLocation l ) {
+    public void addLocation( FileLocation l ) {        
         removedLocations.remove( l );
         addedLocations.add( l );
     }
@@ -118,8 +118,7 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                 if ( img == null ) {
                     throw new CommandException( file.getPath() + " is not an image" );
                 }
-                PhotoInfo photo = new PhotoInfo();
-                photo.setOriginal( img );
+                PhotoInfo photo = new PhotoInfo( img );
                 photo.updateFromFileMetadata( file );
                 photoDAO.makePersistent( photo );
             } catch ( Exception e ) {

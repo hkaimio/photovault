@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2007 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -46,7 +46,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
@@ -68,6 +67,12 @@ import org.photovault.dcraw.RawImage;
  */
 
 @NamedQueries({
+    /*
+     Find the iamge file object that describes file in an external volume
+     Parameters:
+     volume - The external volume
+     fname - Name of the file (i.e. relative path from volume base directory)
+     */
     @NamedQuery(
      name = "findImageFileByLocation",
      query = "select f from ImageFile f join f.locations loc "+
