@@ -39,6 +39,7 @@ public interface PhotoInfoDAO extends GenericDAO<PhotoInfo, Integer> {
     
     /**
      Find photos whose original instance file has a given MD5 hash
+     @deprecated Use {@link ImageFileDAO} instead
      @param hash The hash code to search for
      @param List of matching photos
      */

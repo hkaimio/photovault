@@ -176,7 +176,6 @@ public class JAIPhotoViewer extends JPanel implements
      
      */
     private void showBestInstance() throws PhotovaultException {
-	// Find the original file
         EnumSet<ImageOperations> allowedOps = EnumSet.allOf( ImageOperations.class );
         allowedOps.removeAll( dynOps );
         ImageDescriptorBase image = photo.getPreferredImage( 

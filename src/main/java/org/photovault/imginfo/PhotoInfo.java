@@ -661,6 +661,16 @@ public class PhotoInfo implements java.io.Serializable {
      Find instance that is preferred for use in particular situation. This function 
      seeks for an image that has at least a given resolution, has certain
      operations already applied and is available.
+     @param requiredOpers Set of operations that must be applied correctly 
+     in the returned image (but not that the operations need not be applied if 
+     this photo does not specify some operation. So even if this is non-empty
+     it is possible that the method returns original image!
+     @param allowedOpers Set of operations that may be applied to the returned
+     image
+     @param minWidth Minimum width of the returned image in pixels
+     @param minHeight Minimum height of the returned image in pixels
+     @param maxWidth Maximum width of the returned image in pixels
+     @param maxHeight Maximum height of the returned image in pixels
      @return Image that best matches the given criteria or <code>null</code>
      if no suct image exists or is not available.
      */
@@ -670,11 +680,23 @@ public class PhotoInfo implements java.io.Serializable {
         ImageDescriptorBase preferred = null;
         EnumSet<ImageOperations> appliedPreferred = null;
         
-        if ( original.getFile().findAvailableCopy() != null ) {
+        // We are not interested in operations that are not specified for this photo
+        EnumSet<ImageOperations> specifiedOpers = getAppliedOperations();
+        requiredOpers = EnumSet.copyOf( requiredOpers );
+        requiredOpers.removeAll( EnumSet.complementOf( specifiedOpers ) );
+        
+        /*
+         Would the original be OK?
+         */
+        if ( requiredOpers.size() == 0 && 
+                original.getWidth() <= maxWidth &&
+                original.getHeight() <= maxHeight &&
+                original.getFile().findAvailableCopy() != null ) {
             preferred = original;
             appliedPreferred = EnumSet.noneOf( ImageOperations.class );
         }
         
+        // Check the copies
         Set<CopyImageDescriptor> copies = original.getCopies();
         for ( CopyImageDescriptor copy : copies ) {
             if ( copy.getWidth() >= minWidth && copy.getHeight() >= minHeight &&
@@ -685,7 +707,7 @@ public class PhotoInfo implements java.io.Serializable {
                         allowedOpers.containsAll( applied ) && 
                         isConsistentWithCurrentSettings( copy ) ) {
                     
-                    // This is potential one
+                    // This is a potential one
                     if ( preferred == null || !appliedPreferred.containsAll( applied ) ) {
                         preferred = copy;
                         appliedPreferred = applied;                        
@@ -694,6 +716,31 @@ public class PhotoInfo implements java.io.Serializable {
             }
         }
         return preferred;
+    }
+    
+    /**
+     Get operations that have been applied to this photo.
+     @return set of {@link ImageOperations} values for those operations that have 
+     been applied.
+     */
+    @Transient
+    public EnumSet<ImageOperations> getAppliedOperations() {
+        EnumSet<ImageOperations> applied = EnumSet.noneOf( ImageOperations.class );
+        
+        if ( !this.getCropBounds().contains( 0.0, 0.0, 1.0, 1.0 ) ||
+                this.getPrefRotation() != 0.0 ) {
+            applied.add( ImageOperations.CROP );
+        }
+        // Check for raw conversion
+        if ( getRawSettings() != null ) {
+            applied.add( ImageOperations.RAW_CONVERSION );
+        }
+        // Check for color mapping
+        ChannelMapOperation colorMap = getColorChannelMapping();
+        if ( colorMap != null ) {
+            applied.add( ImageOperations.COLOR_MAP );
+        }
+        return applied;
     }
     
     /**

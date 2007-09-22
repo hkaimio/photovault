@@ -27,7 +27,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.Vector;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import org.photovault.common.PVDatabase;

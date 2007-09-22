@@ -53,7 +53,7 @@ public enum PhotoInfoFields {
     SHUTTER_SPEED( "shutterSpeed", Double.class ),         
     TECH_NOTES( "techNotes", String.class ),         
     TIME_ACCURACY( "timeAccuracy", Double.class ),         
-    UUID( "UUID", UUID.class ),         
+    UUID( "uuid", UUID.class ),         
     RAW_BLACK_LEVEL( "rawBlack", Integer.class ),         
     RAW_WHITE_LEVEL( "rawWhite", Integer.class ),         
     RAW_EV_CORR( "rawEvCorr", Double.class ),         
