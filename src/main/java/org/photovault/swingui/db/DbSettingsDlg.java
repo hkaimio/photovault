@@ -382,12 +382,12 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                 }
                 db.setDbName( dbNameFld.getText() );
                 db.setHost( dbHostFld.getText() );
-                Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
-                try {
-                    db.addVolume( vol );
-                } catch (PhotovaultException ex) {
-                    // Should not happen...
-                }
+//                Volume vol = new Volume( "defaultVolume", volumeDirFld.getText() );
+//                try {
+//                    db.addVolume( vol );
+//                } catch (PhotovaultException ex) {
+//                    // Should not happen...
+//                }
             } else {
                 // Creating an embedded database
                 db.setInstanceType( PVDatabase.TYPE_EMBEDDED );

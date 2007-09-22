@@ -194,7 +194,7 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         // Determine correct file name for the image & save it
 
         if ( volumeUuid != null ) {
-            VolumeBase volume = (VolumeBase) volDAO.findById( volumeUuid, false );
+            VolumeBase volume = volDAO.findById(volumeUuid, false);
             dstFile = volume.getInstanceName( photo, "jpg" );
         }
         if ( dstFile == null ) {

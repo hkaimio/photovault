@@ -1,5 +1,5 @@
-/*Ac
-  Copyright (c) 2006 Harri Kaimio
+/*
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -25,19 +25,14 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
-import org.photovault.command.PhotovaultCommandHandler;
-import org.photovault.common.PVDatabase;
-import org.photovault.common.PhotovaultException;
-import org.photovault.common.PhotovaultSettings;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.ShootingDateComparator;
 import org.photovault.imginfo.ShootingPlaceComparator;
 import org.photovault.folder.*;
-import org.apache.log4j.Logger;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.PropertyConfigurator;
 import org.photovault.imginfo.indexer.ExtVolIndexer;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DefaultAction;
@@ -49,7 +44,7 @@ import org.photovault.swingui.indexer.UpdateIndexAction;
 
 public class BrowserWindow extends AbstractController {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
+    static Log log = LogFactory.getLog( BrowserWindow.class.getName() );
 
     JFrame window;
     
@@ -445,6 +440,7 @@ public class BrowserWindow extends AbstractController {
 	    // Add all the selected files to DB
 	    final PhotoInfo[] photos = new PhotoInfo[files.length];
 	    Thread importThread = new Thread() {
+                @Override
 		    public void run() {
 
 			for ( int n = 0; n < files.length; n++ ) {
@@ -508,19 +504,8 @@ public class BrowserWindow extends AbstractController {
                 }
                 extVolName += n;
             }
-            ExternalVolume v = new ExternalVolume( extVolName, 
-                    dir.getAbsolutePath() );
-            PhotovaultSettings settings = PhotovaultSettings.getSettings();
-            PVDatabase db = settings.getCurrentDatabase();
-            try {
-                db.addVolume( v );
-            } catch (PhotovaultException ex) {
-                // This should not happen since we just checked for it!!!
-            }
             
             // Set up the indexer
-            ExtVolIndexer indexer = new ExtVolIndexer( v );
-            indexer.setCommandHandler( viewCtrl.getCommandHandler() );
             PhotoFolder parentFolder = fc.getExtvolParentFolder();
             PhotoFolderDAO folderDAO = viewCtrl.getDAOFactory().getPhotoFolderDAO();
             if ( parentFolder == null ) {
@@ -534,16 +519,19 @@ public class BrowserWindow extends AbstractController {
             CreatePhotoFolderCommand folderCmd = 
                     new CreatePhotoFolderCommand( parentFolder, 
                     rootFolderName, "" );
+            CreateExternalVolume volCmd = null;
             try {
                 viewCtrl.getCommandHandler().executeCommand( folderCmd );
+                volCmd = new CreateExternalVolume( 
+                        dir, rootFolderName,  folderCmd.getCreatedFolder() );
+                viewCtrl.getCommandHandler().executeCommand( volCmd );
             } catch (CommandException ex) {
                 ex.printStackTrace();
             }
+            ExtVolIndexer indexer = new ExtVolIndexer( volCmd.getCreatedVolume() );
+            indexer.setCommandHandler( viewCtrl.getCommandHandler() );
             PhotoFolder topFolder = folderCmd.getCreatedFolder();
             indexer.setTopFolder( topFolder );
-
-            // Save the configuration of the new volume
-            settings.saveConfig();
             
             // Show status dialog & index the directory
             IndexerStatusDlg statusDlg = new IndexerStatusDlg( window, false );

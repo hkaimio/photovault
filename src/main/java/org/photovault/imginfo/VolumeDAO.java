@@ -28,5 +28,9 @@ import org.photovault.persistence.GenericDAO;
  * @author harri
  */
 public interface VolumeDAO extends GenericDAO<VolumeBase, UUID> {
+    /**
+     Get the default volume for current database
+     */
+    Volume getDefaultVolume();
     
 }

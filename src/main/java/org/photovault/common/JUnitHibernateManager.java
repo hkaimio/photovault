@@ -21,6 +21,8 @@
 package org.photovault.common;
 import java.io.File;
 import java.io.IOException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.*;
 import org.hibernate.cfg.*;
 import org.photovault.persistence.HibernateUtil;
@@ -39,7 +41,7 @@ import org.photovault.persistence.HibernateUtil;
  * @author harri Kaimio
  */
 public class JUnitHibernateManager {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JUnitHibernateManager.class.getName() );
+    static Log log = LogFactory.getLog( JUnitHibernateManager.class.getName() );
 
     SessionFactory sessionFactory;
     

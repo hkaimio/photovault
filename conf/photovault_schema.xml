@@ -498,6 +498,7 @@
     <table name="database_info">
         <!-- Random 128 bit identifier for this instance. Stored as a hexadecimal string -->
         <column name="database_id" primaryKey="true" required="true" type="VARCHAR" size="32"/>
+        <column name="default_volume_id" primaryKey="false" required="true" type="VARCHAR" size="36"/>
         <column name="schema_version" type="INTEGER"/>
         <column name="create_time" type="TIMESTAMP"/>
     </table>

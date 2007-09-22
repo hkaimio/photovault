@@ -23,28 +23,11 @@ package org.photovault.common;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.io.InputStream;
-import org.apache.ddlutils.DynaSqlException;
-import org.apache.ojb.broker.PBKey;
-import org.apache.ojb.broker.PersistenceBroker;
-import org.apache.ojb.broker.PersistenceBrokerFactory;
-import org.apache.ojb.broker.accesslayer.LookupException;
-import org.apache.ojb.broker.metadata.ConnectionRepository;
-import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
-import org.apache.ojb.broker.metadata.MetadataManager;
-import org.odmg.Implementation;
-import org.odmg.OQLQuery;
-import org.photovault.dbhelper.ODMG;
-import org.photovault.dbhelper.ODMGXAWrapper;
-import org.photovault.imginfo.ImageInstance;
-import org.photovault.imginfo.PhotoInfo;
 import  org.photovault.imginfo.Volume;
 import java.util.Random;
 import javax.sql.DataSource;
@@ -57,12 +40,11 @@ import org.apache.ddlutils.io.DataToDatabaseSink;
 import org.apache.ddlutils.io.DataReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.sql.Connection;
 import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.photovault.imginfo.VolumeBase;
 import org.xml.sax.SAXException;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSourceFactory;
+import java.util.UUID;
 
 /**
  * PVDatabase represents metadata about a single Photrovault database. A database 
@@ -83,16 +65,26 @@ public class PVDatabase {
      */
     public static final String TYPE_SERVER = "TYPE_SERVER";
     
+    
     /** Creates a new instance of PVDatabase */
     public PVDatabase() {
-        volumes = new ArrayList();
+        volumes = new ArrayList<VolumeBase>();
     }
     
     private String name;
     private String dbHost = "";
     private String dbName = "";
-    private ArrayList volumes;
+    private ArrayList<VolumeBase> volumes;
 
+    /**
+     UUID of the default volume.
+     */
+    private UUID defaultVolumeId;
+
+    public UUID getDefaultVolumeId() {
+        return defaultVolumeId;
+    }
+    
     public void setName( String name ) {
         this.name = name;
     }
@@ -146,11 +138,16 @@ public class PVDatabase {
     
     /**
      Get a list of volumes for this database.
+     @deprecated Use VolumeDAO intead
      */       
     public List getVolumes( ) {
         return  volumes;
     }
 
+    /**
+     Get default volume
+     @deprecated Use VolumeDAO#getDefaultVolume instead
+     */
     public VolumeBase getDefaultVolume() {
         VolumeBase vol = null;
         if ( volumes.size() > 0 ) {
@@ -370,10 +367,25 @@ public class PVDatabase {
             idBuf.append( Integer.toHexString( r ) );
         }
         idStr = idBuf.toString();
+        DynaBean volInfo = dbModel.createDynaBeanFor( "pv_volumes", false );
+        defaultVolumeId = UUID.randomUUID();
+        volInfo.set( "volume_id", defaultVolumeId.toString() );
+        volInfo.set( "volume_type", "volume" );
+        // TODO: add other fields
+        if ( instanceType == TYPE_EMBEDDED ) {
+            volInfo.set( "base_dir", 
+                    new File( embeddedDirectory, "photos" ).getAbsolutePath(  ) );
+        } else {
+            volInfo.set( "base_dir", volumes.get( 0 ).getBaseDir(  ) );
+        }
+        volInfo.set( "volume_name", "default" );
+        platform.insert( dbModel, volInfo );
+
         DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
         dbInfo.set( "database_id", idStr );
         dbInfo.set( "schema_version", new Integer( CURRENT_SCHEMA_VERSION ) );
         dbInfo.set( "create_time", new Timestamp( System.currentTimeMillis() ) );
+        dbInfo.set( "default_volume_id", defaultVolumeId.toString() );
         platform.insert( dbModel, dbInfo );
     }        
 

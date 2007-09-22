@@ -21,6 +21,7 @@
 package org.photovault.imginfo;
 
 import java.util.UUID;
+import org.hibernate.Query;
 import org.photovault.persistence.GenericHibernateDAO;
 
 /**
@@ -33,6 +34,13 @@ public class VolumeDAOHibernate
     
     /** Creates a new instance of VolumeDAOHibernate */
     public VolumeDAOHibernate() {
+    }
+    
+    public Volume getDefaultVolume( ) {
+        String sql = "select {v.*} from pv_volumes v "+
+                "join database_info d on v.volume_id = d.default_volume_id";
+        Query q = getSession().createSQLQuery( sql ).addEntity("v", VolumeBase.class );
+        return (Volume) q.uniqueResult();
     }
     
 }

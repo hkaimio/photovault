@@ -85,6 +85,7 @@ public abstract class VolumeBase implements java.io.Serializable {
     /**
      *       Returns the current default volume object
      * @return The default volume
+     @deprecated Use VolumeDAO#getDefaultVolume instead
      */
     public static VolumeBase getDefaultVolume() {
 	if ( defaultVolume == null ) {

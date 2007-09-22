@@ -20,7 +20,9 @@
 package org.photovault.imginfo;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.logging.Log;
@@ -84,10 +86,25 @@ public class ModifyImageFileCommand extends DataAccessCommand {
 
     Set<FileLocation> removedLocations = new HashSet<FileLocation>();
     
+    /**
+     Photos created while executing the command
+     */
+    List<PhotoInfo> createdPhotos = new ArrayList<PhotoInfo>();
+    
     public ImageFile getImageFile() {
         return imageFile;
     }
 
+    /**
+     Get the photos that were created while exectuing the command.
+     @return List of the created photos. The returned instances are persisted
+     in command handler's persistence context, i.e. most likkely they are 
+     detached while the function call returns.
+     */
+    public List<PhotoInfo> getCreatedPhotos() {
+        return createdPhotos;
+    }
+    
     public void addLocation( FileLocation l ) {        
         removedLocations.remove( l );
         addedLocations.add( l );
@@ -121,6 +138,7 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                 PhotoInfo photo = new PhotoInfo( img );
                 photo.updateFromFileMetadata( file );
                 photoDAO.makePersistent( photo );
+                createdPhotos.add( photo );
             } catch ( Exception e ) {
                 log.error( "Error in creating image file: " + e.getMessage() );
                 throw new CommandException( e.getMessage() );

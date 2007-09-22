@@ -52,6 +52,7 @@ import org.photovault.folder.DeletePhotoFolderCommand;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.CopyImageDescriptor;
+import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.FileLocation;
 import org.photovault.imginfo.ImageDescriptorBase;
@@ -63,6 +64,8 @@ import org.photovault.imginfo.ModifyImageFileCommand;
 import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.imginfo.Volume;
+import org.photovault.imginfo.VolumeBase;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
@@ -309,6 +312,11 @@ public class ExtVolIndexer implements Runnable {
             if ( currentEvent.getResult() == ExtVolIndexerEvent.RESULT_NEW_PHOTO ) {
                 newPhotoCount++;
             }
+            
+            for ( PhotoInfo p : cmd.getCreatedPhotos() ) {
+                createPreviewInstances( p, daoFactory );
+            }
+            
         } catch (CommandException ex) {
             log.warn( "Exception in modifyImageFileCommand: " + ex.getMessage() );
             currentEvent.setResult( ExtVolIndexerEvent.RESULT_NOT_IMAGE );
@@ -566,6 +574,16 @@ public class ExtVolIndexer implements Runnable {
         if ( volume != null ) {
             volume.setFolderId( topFolder.getFolderId() );
         }
+    }
+
+    /**
+     Create the needed preview instances for a photo
+     @param p The photo
+     */
+    private void createPreviewInstances(PhotoInfo p, DAOFactory f ) throws CommandException {        
+        Volume vol = f.getVolumeDAO().getDefaultVolume();
+        CreateCopyImageCommand cmd = new CreateCopyImageCommand( p, vol, 100, 100 );
+        commandHandler.executeCommand( cmd );
     }
     
     /**

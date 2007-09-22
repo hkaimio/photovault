@@ -25,7 +25,10 @@ import java.io.File;
 import java.io.IOException;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import org.photovault.folder.PhotoFolder;
 
 /**
  Extenal volume is a volume that resides outside Photovault repository, i.e. a
@@ -99,6 +102,18 @@ public class ExternalVolume extends VolumeBase {
      */
     public void setFolderId( int id ) {
         folderId = id;
+    }
+    
+    private PhotoFolder folder;
+    
+    @OneToOne
+    @JoinColumn( name="folder_id", nullable = true )
+    public PhotoFolder getFolder() {
+        return folder;
+    }
+    
+    public void setFolder( PhotoFolder f ) {
+        folder = f;
     }
 
     /**

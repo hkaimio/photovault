@@ -77,6 +77,8 @@ import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.TransferHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.Volume;
 import org.photovault.imginfo.VolumeBase;
@@ -113,7 +115,7 @@ public class PhotoCollectionThumbView
 	       PhotoCollectionChangeListener, PhotoInfoChangeListener,
                Scrollable {
     
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoCollectionThumbView.class.getName() );
+    static Log log = LogFactory.getLog( PhotoCollectionThumbView.class.getName() );
     
     PhotoViewController ctrl;
     /**
