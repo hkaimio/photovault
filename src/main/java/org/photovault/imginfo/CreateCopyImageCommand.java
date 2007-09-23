@@ -128,6 +128,13 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
     private boolean createFromOriginal = true;
     
     /**
+     If true, allow optimizations that trade image quality to processing time
+     (e.g. subsampling when loading the image)
+     */
+    private boolean lowQualityAllowed = false;
+    
+    
+    /**
      Operations that will be applied in the created image.
      */
     private Set<ImageOperations> operationsToApply = EnumSet.allOf( ImageOperations.class );
@@ -189,7 +196,8 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
             ri.setRawSettings( photo.getRawSettings() );
         }
 
-        RenderedImage renderedDst = img.getRenderedImage( maxWidth, maxHeight, false );
+        RenderedImage renderedDst = 
+                img.getRenderedImage( maxWidth, maxHeight, lowQualityAllowed );
         
         // Determine correct file name for the image & save it
 
@@ -414,4 +422,20 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         this.operationsToApply = operationsToApply;
     }
     
+    /**
+     Are optimizations that trade image quality for performance allowed?
+     @return <code>true</code> if yes, <code>false</code> otherwise.
+     */
+    public boolean isLowQualityAllowed() {
+        return lowQualityAllowed;
+    }
+    
+    /**
+     Set whether optimizations that trade image quality for performance (e.g. 
+     subsampling while loading image) are allowed or not
+     @param b The new value for flag
+     */
+    public void setLowQualityAllowed( boolean b ) {
+        lowQualityAllowed = b;
+    }
 }
