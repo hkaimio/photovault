@@ -278,7 +278,7 @@
             </classpath>
             
             <classfileset dir="build"> 
-                <include name="**/Test_ImageFile.class"/>
+                <include name="**/Test**.class"/>
             </classfileset>
         </testng>         
     </target>
