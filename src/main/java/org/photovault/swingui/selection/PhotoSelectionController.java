@@ -22,32 +22,20 @@ package org.photovault.swingui.selection;
 
 import java.awt.event.ActionEvent;
 import javax.swing.JOptionPane;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
-import org.odmg.LockNotGrantedException;
 import org.photovault.command.CommandChangeListener;
 import org.photovault.command.CommandException;
 import org.photovault.command.CommandHandler;
-import org.photovault.command.DataAccessCommand;
-import org.photovault.common.PhotovaultException;
-import org.photovault.dcraw.RawConversionSettings;
-import org.photovault.dcraw.RawSettingsFactory;
-import org.photovault.image.ChannelMapOperation;
-import org.photovault.image.ChannelMapOperationFactory;
-import org.photovault.image.ColorCurve;
 import java.util.*;
 import java.io.*;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.*;
 import org.photovault.swingui.folderpane.FolderController;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DataAccessAction;
-import org.photovault.swingui.framework.DefaultAction;
-import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.PersistenceController;
 
 /**
@@ -275,6 +263,7 @@ public class PhotoSelectionController extends PersistenceController {
     /**
      Get the current field value or values
      */
+    @SuppressWarnings( "unchecked" )
     public Set getFieldValues( PhotoInfoFields field ) {
         Set values = new HashSet();
         Object value = cmd.getField( field );
@@ -287,8 +276,10 @@ public class PhotoSelectionController extends PersistenceController {
                 } catch (Exception ex) {
                     log.error( ex.getMessage() );
                     ex.printStackTrace();
-                } 
-                values.add( value );
+                }
+                if ( value != null ) {
+                    values.add( value );
+                }
             }
         }
         return values;
@@ -324,6 +315,7 @@ public class PhotoSelectionController extends PersistenceController {
      @param field The field that will be updated.
      */
     private void updateViews( PhotoSelectionView src, PhotoInfoFields field ) {
+        @SuppressWarnings( "unchecked" )
         List refValues = new ArrayList( getOriginalFieldValues( field ) );
         Object value = cmd.getField( field );
         if ( value == null && refValues.size() == 1 ) {

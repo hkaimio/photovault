@@ -526,8 +526,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
         log.debug( debugMsg.toString() );
         
         
-        if ( ( fieldValues.size() == 1 && !fieldValues.toArray()[0].equals( value ) ) || 
-                ( fieldValues.size() > 1 && changedDoc.getLength() > 0 ) ) {
+        if ( ( fieldValues.size() == 1 && !fieldValues.iterator().next().equals( value ) ) || 
+                ( fieldValues.size() != 1 && changedDoc.getLength() > 0 ) ) {
             ctrl.viewChanged( this, changedField, value );
         }
     }
