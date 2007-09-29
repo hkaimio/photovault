@@ -28,24 +28,25 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import org.photovault.command.CommandExecutedEvent;
-import org.photovault.command.CommandHandler;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
-import org.photovault.folder.PhotoFolderModifiedEvent;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
-import org.photovault.imginfo.PhotoInfoModifiedEvent;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
@@ -72,6 +73,11 @@ public class PhotoViewController extends PersistenceController {
     private JScrollPane thumbScroll;
 
     private JPanel collectionPane;
+    
+    /**
+     Photos currently in model.
+     */
+    private List<PhotoInfo> photos = new ArrayList<PhotoInfo>();
     
     /** Creates a new instance of PhotoViewController */
     public PhotoViewController( Container view, AbstractController parentController ) {
@@ -127,8 +133,85 @@ public class PhotoViewController extends PersistenceController {
         });
     }
 
+    /**
+     This method is called after a {@link ChangePhotoInfoCommand} has been 
+     executed somewhere in the application. It applies the modifications
+     to current model.
+     @param cmd The executed command
+     */
     void photoChangeCommandExecuted( ChangePhotoInfoCommand cmd ) {
+        if ( collection instanceof PhotoFolder ) {
+            // Does this command impact our current folder?
+            switch ( cmd.getFolderState( (PhotoFolder) collection ) ) {
+            case ADDED:
+                addPhotos( cmd.getChangedPhotos() );
+                break;
+            case REMOVED:
+                removePhotos( cmd.getChangedPhotos() );
+                // None of the affected photos can belong to the model anymore
+                // so no need for further checks.
+                thumbPane.setPhotos( photos );
+                return;
+            default:
+                // No impact to this folder
+                break;
+            }
+        }
         
+        // Update photos that belong to this collection
+        for ( PhotoInfo p: cmd.getChangedPhotos() ) {
+            if ( containsPhoto( p ) ) {
+                PhotoInfo mergedPhoto = (PhotoInfo) getPersistenceContext().merge( p );
+            }
+        }
+        thumbPane.setPhotos( photos );
+    }
+    
+    /**
+     Add all photos from a collection to current model if they are not yet
+     part of it.
+     @param newPhotos Collection of (potentially detached) photos
+     */
+    private void addPhotos( Collection<PhotoInfo> newPhotos ) {
+        for ( PhotoInfo p: newPhotos ) {
+            if ( !containsPhoto( p ) ) {
+                photos.add( (PhotoInfo) getPersistenceContext().merge( p ) );
+            }
+        }
+    }
+    
+    /**
+     Remove photos from current model if they belong to it
+     @param removePhotos Collection of photos that will be removed. Potentially 
+     detached instances.
+     */
+    private void removePhotos( Collection<PhotoInfo> removePhotos ) {
+        Set<Integer> removeIds = new TreeSet<Integer>();
+        for ( PhotoInfo p : removePhotos ) {
+            removeIds.add( p.getId() );
+        }
+        
+        ListIterator<PhotoInfo> iter = photos.listIterator();
+        while ( iter.hasNext() ) {
+            if ( removeIds.contains( iter.next().getId() ) ) {
+                iter.remove();
+            }
+        }
+    }
+    
+    /**
+     Check whether a given photo belongs currently to the model.
+     @param photo Potentially detached photo instance
+     @return true if the model contains an instance of the same photo, false
+     otherwise.
+     */
+    private boolean containsPhoto( PhotoInfo photo ) {
+        for ( PhotoInfo p : photos ) {
+            if ( p.getId().equals( photo.getId() ) ) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
@@ -311,7 +394,7 @@ public class PhotoViewController extends PersistenceController {
      */
     void setCollection(PhotoCollection c) {
         collection = c;
-        List<PhotoInfo> photos = null;
+        photos = null;
         if ( c instanceof PhotoFolder ) {
             photos = getPersistenceContext().
                 createQuery("from PhotoInfo p where :f member of p.folders").

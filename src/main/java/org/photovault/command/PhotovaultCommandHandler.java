@@ -66,7 +66,7 @@ public class PhotovaultCommandHandler implements CommandHandler {
         command.execute();
         commandSession.flush();
         tx.commit();
-        fireCommandEvent( new CommandExecutedEvent( command ) );
+        fireCommandEvent( new CommandExecutedEvent( this, command ) );
         if ( shouldCloseSession ) {
             commandSession.close();
         }

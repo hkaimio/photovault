@@ -98,12 +98,12 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
     /**
      Folders the photos should be added to
      */
-    Set<PhotoFolder> addedToFolders = new HashSet<PhotoFolder>();
+    Set<Integer> addedToFolders = new HashSet<Integer>();
 
     /**
      Folders the photos should be removed from
      */    
-    Set<PhotoFolder> removedFromFolders = new HashSet<PhotoFolder>();
+    Set<Integer> removedFromFolders = new HashSet<Integer>();
     
     /**
      IDs of all photos that will be changed by this command.
@@ -238,8 +238,8 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      @param folder The folder into which the photos will be added
      */
     public void addToFolder( PhotoFolder folder ) {
-        removedFromFolders.remove( folder );
-        addedToFolders.add( folder );
+        removedFromFolders.remove( folder.getFolderId() );
+        addedToFolders.add( folder.getFolderId() );
     }
     
     /**
@@ -247,15 +247,15 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      @param folder The folder into which the photos will be added
      */
     public void removeFromFolder( PhotoFolder folder ) {
-        addedToFolders.remove( folder );
-        removedFromFolders.add( folder );
+        addedToFolders.remove( folder.getFolderId() );
+        removedFromFolders.add( folder.getFolderId() );
     }
     
     
     public FolderStates getFolderState( PhotoFolder folder ) {
-        if ( addedToFolders.contains( folder ) ) {
+        if ( addedToFolders.contains( folder.getFolderId() ) ) {
             return FolderStates.ADDED;        
-        } else if ( removedFromFolders.contains( folder ) ) {
+        } else if ( removedFromFolders.contains( folder.getFolderId() ) ) {
             return FolderStates.REMOVED;
         }
         return FolderStates.UNMODIFIED;
@@ -386,12 +386,12 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 
             }
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
-            for ( PhotoFolder folder : addedToFolders ) {
-                folder = folderDAO.findById( folder.getFolderId(), false );
+            for ( Integer folderId : addedToFolders ) {
+                PhotoFolder folder = folderDAO.findById( folderId, false );
                 folder.addPhoto ( photo );
             }
-            for ( PhotoFolder folder : removedFromFolders ) {
-                folder = folderDAO.findById( folder.getFolderId(), false );
+            for ( Integer folderId : removedFromFolders ) {
+                PhotoFolder folder = folderDAO.findById( folderId, false );
                 folder.removePhoto( photo );
             }
         }

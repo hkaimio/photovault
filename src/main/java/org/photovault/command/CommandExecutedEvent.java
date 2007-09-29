@@ -30,8 +30,10 @@ public class CommandExecutedEvent extends DefaultEvent<DataAccessCommand> {
     /**
      Create a new command event
      @param src source of this event
+     @param cmd The command that was executed
      */
-    public CommandExecutedEvent( Object src ) {
+    public CommandExecutedEvent( CommandHandler src, DataAccessCommand cmd ) {
         super( src );
+        setPayload( cmd );
     }
 }
