@@ -41,4 +41,8 @@ public interface CommandHandler {
     void addChangeListener(CommandChangeListener l);
 
     void removeChangeListener(CommandChangeListener l);
+    
+    void addCommandListener( CommandListener l );
+    
+    void removeCommandListener( CommandListener l );
 }

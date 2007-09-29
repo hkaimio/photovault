@@ -79,7 +79,9 @@ public class SetPhotoOrderAction extends AbstractAction  {
     
     public void actionPerformed( ActionEvent ev ) {
 	// Show the file chooser dialog
-        view.setPhotoOrderComparator( c );
+        // TODO: change to do this in controller
+        // view.setPhotoOrderComparator( c );
+        // throw new UnsupportedOperationException( "Not migrated to Hibernate" ); 
     }
 
     PhotoCollectionThumbView view;

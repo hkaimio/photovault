@@ -18,26 +18,12 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 
-
-package org.photovault.imginfo;
-
-import java.util.Set;
-import org.photovault.swingui.framework.DefaultEvent;
+package org.photovault.command;
 
 /**
-  Event that is broadcasted to all controllers  when a persistent 
- PhotoInfo object is modified  by a command.
+ Interface for classes that want to be notified of commands executed by a 
+ specific command handler
  */
-public class PhotoInfoModifiedEvent extends DefaultEvent<PhotoInfo> {
-    
-    Set<PhotoInfo> changedPhotos;
-
-    /** Creates a new instance of PhotoInfoModifiedEvent */
-    public PhotoInfoModifiedEvent(Object src, PhotoInfo photo ) {
-        super( src, photo );
-    }
-
-    public Set<PhotoInfo> getChangedPhotos() {
-        return changedPhotos;
-    }
+public interface CommandListener {
+    void commandExecuted( CommandExecutedEvent e );
 }

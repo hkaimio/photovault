@@ -60,7 +60,8 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
 	Collection selectedPhotos = view.getSelection();
         PhotoList photos = new PhotoList( selectedPhotos );
         // TODO: This should happen in root controller
-        BrowserWindow w = new BrowserWindow( view.ctrl, photos );
+//        BrowserWindow w = new BrowserWindow( view.ctrl, photos );
+        BrowserWindow w = new BrowserWindow( view.ctrl, null );
 //        w.setShowCollectionPane( false );
 //        w.setupLayoutNoThumbs();
 //        w.setVisible( true );

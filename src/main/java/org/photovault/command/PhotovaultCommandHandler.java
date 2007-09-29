@@ -66,6 +66,7 @@ public class PhotovaultCommandHandler implements CommandHandler {
         command.execute();
         commandSession.flush();
         tx.commit();
+        fireCommandEvent( new CommandExecutedEvent( command ) );
         if ( shouldCloseSession ) {
             commandSession.close();
         }
@@ -137,4 +138,34 @@ public class PhotovaultCommandHandler implements CommandHandler {
 
     }
     
+    Set<CommandListener> commandListeners = new HashSet<CommandListener>();
+
+    /**
+     Add a new listener that will be notified of succesful execution of a 
+     command. The listener will be called after the transaction for the command
+     has been completed, so databatase will reflect changes caused by the command
+     at the time of a call.
+     @param l The new listener
+     */
+    public void addCommandListener( CommandListener l ) {
+        commandListeners.add( l );
+    }
+
+    /**
+     Remove an existing command listener
+     @param l The listener that is removed.
+     */
+    public void removeCommandListener( CommandListener l ) {
+        commandListeners.remove( l );
+    }
+
+    /**
+     Send an event to all listeners
+     @param event The event that will be sent.
+     */
+    private void fireCommandEvent( CommandExecutedEvent event ) {
+        for ( CommandListener l : commandListeners ) {
+            l.commandExecuted( event );
+        }
+    }
 }

@@ -29,41 +29,44 @@ import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import org.hibernate.Session;
 import org.hibernate.context.ManagedSessionContext;
-import org.photovault.command.CommandChangeListener;
+import org.photovault.command.CommandExecutedEvent;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.SchemaUpdateAction;
 import org.photovault.common.SchemaUpdateEvent;
 import org.photovault.common.SchemaUpdateListener;
 import java.net.URL;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
-import org.photovault.folder.PhotoFolder;
-import org.photovault.folder.PhotoFolderModifiedEvent;
-import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoInfoModifiedEvent;
+import org.photovault.command.CommandListener;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.swingui.db.DbSettingsDlg;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DefaultEvent;
-import org.photovault.swingui.framework.PersistenceController;
 
 /**
    Main class for the photovault application
 */
 
 
-public class Photovault extends AbstractController implements SchemaUpdateListener, CommandChangeListener {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Photovault.class.getName() );
+public class Photovault extends AbstractController implements SchemaUpdateListener {
+    static Log log = LogFactory.getLog( Photovault.class.getName() );
 
     PhotovaultSettings settings = null;
 
     public Photovault() {
 	settings = PhotovaultSettings.getSettings();
         setCommandHandler( new PhotovaultCommandHandler( null ) );
-        commandHandler.addChangeListener( this );
+        // Forward command execution events to all subcontrollers
+        commandHandler.addCommandListener( new CommandListener(  ) {
 
+            public void commandExecuted( CommandExecutedEvent e ) {
+                fireEventGlobal( e );
+            }
+        } );
     }
     
     Session currentSession  = null;
@@ -94,7 +97,7 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
         success = true;
         
         int schemaVersion = db.getSchemaVersion();
-        if ( schemaVersion < db.CURRENT_SCHEMA_VERSION ) {
+        if ( schemaVersion < PVDatabase.CURRENT_SCHEMA_VERSION ) {
             String options[] = {"Proceed", "Exit Photovault"};
             if ( JOptionPane.YES_OPTION == JOptionPane.showOptionDialog( ld,
                     "The database was created with an older version of Photovault\n" +
@@ -109,6 +112,7 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
                 SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg( null, true );
                 updater.addSchemaUpdateListener( statusDlg );
                 Thread upgradeThread = new Thread() {
+                    @Override
                     public void run() {
                         updater.upgradeDatabase();
                     }
@@ -142,7 +146,7 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
         public static void initJAI() {
             JAI jaiInstance = JAI.getDefaultInstance();
             jaiInstance.setTileCache( new SunTileCache( 100*1024*1024 ) );
-            jaiInstance.setDefaultTileSize( new Dimension( 256, 256 ) );
+            JAI.setDefaultTileSize( new Dimension( 256, 256 ) );
         /*
          Not sure how much this helps in practice - Photovault still seems to use
          all heap available in the long run.
@@ -171,7 +175,7 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
         Collection databases = settings.getDatabases();
         if ( databases.size() == 0 ) {
             DbSettingsDlg dlg = new DbSettingsDlg( null, true );
-            if ( dlg.showDialog() != dlg.APPROVE_OPTION ) {
+            if ( dlg.showDialog() != DbSettingsDlg.APPROVE_OPTION ) {
                 System.exit( 0 );
             }
         }
@@ -186,7 +190,7 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
                     break;
                 case LoginDlg.RETURN_REASON_NEWDB:
                     DbSettingsDlg dlg = new DbSettingsDlg( null, true );
-                    if ( dlg.showDialog() == dlg.APPROVE_OPTION ) {
+                    if ( dlg.showDialog() == DbSettingsDlg.APPROVE_OPTION ) {
                         login = new LoginDlg( this );
                     }
                     break;
@@ -331,11 +335,11 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
      */
     public void entityChanged( Object o ) {
         DefaultEvent e = null;
-        if ( o instanceof PhotoInfo ) {
-            e = new PhotoInfoModifiedEvent( this, (PhotoInfo) o );
-        } else if ( o instanceof PhotoFolder ) {
-            e = new PhotoFolderModifiedEvent( this, (PhotoFolder) o );
-        } 
+//        if ( o instanceof PhotoInfo ) {
+//            e = new PhotoInfoModifiedEvent( this, (PhotoInfo) o );
+//        } else if ( o instanceof PhotoFolder ) {
+//            e = new PhotoFolderModifiedEvent( this, (PhotoFolder) o );
+//        } 
         final AbstractController ttish = this;
         final DefaultEvent evt = e;
         if ( e != null ) {
@@ -346,8 +350,6 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
             });
         }
     }
-    
-
 }
 
 

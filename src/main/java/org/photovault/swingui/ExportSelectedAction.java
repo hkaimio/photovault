@@ -98,7 +98,8 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                     // Ensure that the numbering order is the same is in current view
                     PhotoInfo exportPhotos[] 
                             = (PhotoInfo[]) selection.toArray( new PhotoInfo[selection.size() ]);
-                    Comparator comp = view.getPhotoOrderComparator();
+                    // TODO: sort the exported photos
+                    Comparator comp = null; /*view.getPhotoOrderComparator();*/
                     if ( comp != null ) {
                         Arrays.sort( exportPhotos, comp );
                     }

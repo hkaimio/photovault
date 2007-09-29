@@ -33,6 +33,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
+import org.photovault.command.CommandExecutedEvent;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.ColorProfileDesc;
@@ -53,6 +54,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
     
     static Log log = LogFactory.getLog( ChangePhotoInfoCommand.class );
     
+
     /**
      Construct a new command that creates a new PhotoInfo object.
      */
@@ -113,6 +115,8 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      context or later detached)
      */
     Set<PhotoInfo> changedPhotos = null;
+    
+    
     
     /**
      Get photo instance with the changes applied (in command handler's persistence 

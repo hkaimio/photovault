@@ -121,8 +121,8 @@ public class PhotoCollectionTransferHandler extends TransferHandler {
     public boolean importData(JComponent c, Transferable t) {
 	log.warn( "importData" );
         if (canImport(c, t.getTransferDataFlavors())) {
-
-	    PhotoCollection collection = view.getCollection();
+            // TODO: change to use collection from controller
+	    PhotoCollection collection = view.ctrl.getCollection();
 	    if ( collection instanceof PhotoFolder ) {
 		log.warn( "importing" );
 		// Photos were dropped to a folder so we can insert them
@@ -162,7 +162,7 @@ public class PhotoCollectionTransferHandler extends TransferHandler {
 	    i++;
 	}
 	log.warn( "" + i + " photos selected" );
-        PhotoCollection sourceCollection = view.getCollection();
+        PhotoCollection sourceCollection = view.ctrl.getCollection();
         return new PhotoCollectionTransferable( sourcePhotos );
     }
     
@@ -179,7 +179,7 @@ public class PhotoCollectionTransferHandler extends TransferHandler {
     */
     protected void exportDone(JComponent c, Transferable data, int action) {
 
-        PhotoCollection collection = view.getCollection();
+        PhotoCollection collection = view.ctrl.getCollection();
         
         // Find out into which collection this transfer was done
         

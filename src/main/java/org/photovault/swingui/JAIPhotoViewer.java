@@ -212,23 +212,22 @@ public class JAIPhotoViewer extends JPanel implements
                                     msg, "Error loading file",
                                     JOptionPane.ERROR_MESSAGE );
                         }
-                    });
+                    } );
                 }
                 if ( img != null ) {
+                    appliedOps = EnumSet.noneOf( ImageOperations.class );
                     if ( rawImage != null ) {
                         rawImage.removeChangeListener( this );
                     }
                     if ( img instanceof RawImage ) {
                         rawImage = (RawImage) img;
-                        rawImage.setRawSettings( 
-                                localRawSettings != null ? 
-                                    localRawSettings : photo.getRawSettings() );
+                        rawImage.setRawSettings( localRawSettings != null ? localRawSettings : photo.getRawSettings(  ) );
                         rawImage.addChangeListener( this );
                         // Check the correct resolution for this image
                         if ( isFit ) {
-                            fit();
+                            fit(  );
                         } else {
-                            setScale( getScale() );
+                            setScale( getScale(  ) );
                         }
                     } else {
                         rawImage = null;
@@ -236,24 +235,25 @@ public class JAIPhotoViewer extends JPanel implements
                     }
                 }
                 if ( image instanceof CopyImageDescriptor ) {
-                    
-                    appliedOps = ((CopyImageDescriptor)image).getAppliedOperations();
+                    // This is a copy, so it may be cropped already
+                    appliedOps = ((CopyImageDescriptor) image).getAppliedOperations(  );
                     if ( !appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
-                        img.setColorAdjustment(
-                                localChanMap != null ?
-                                    localChanMap : photo.getColorChannelMapping() );
+                        img.setColorAdjustment( localChanMap != null ? localChanMap : photo.getColorChannelMapping(  ) );
                     }
-                    setImage( img );
                     if ( !appliedOps.contains( ImageOperations.CROP ) ) {
-                        instanceRotation = ((CopyImageDescriptor)image).getRotation();
-                        double rot = photo.getPrefRotation() - instanceRotation;
+                        instanceRotation = ((CopyImageDescriptor) image).getRotation(  );
+                        double rot = photo.getPrefRotation(  ) - instanceRotation;
                         imageView.setRotation( rot );
-                        imageView.setCrop( photo.getCropBounds() );
+                        imageView.setCrop( photo.getCropBounds(  ) );
                     }
                 } else {
-                    setImage( img );
+                    // This is original so we must apply corrections
+                    img.setColorAdjustment( localChanMap != null ? localChanMap : photo.getColorChannelMapping(  ) );
+                    imageView.setRotation( photo.getPrefRotation(  )  );
+                    imageView.setCrop( photo.getCropBounds(  ) );
                 }
-                fireViewChangeEvent();
+                setImage( img );
+                fireViewChangeEvent(  );
                 return;
             }
         }

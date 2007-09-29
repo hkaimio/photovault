@@ -29,15 +29,19 @@ import java.awt.GridBagLayout;
 import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
 import java.util.Collection;
+import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import org.photovault.command.CommandExecutedEvent;
 import org.photovault.command.CommandHandler;
+import org.photovault.command.DataAccessCommand;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.folder.PhotoFolderModifiedEvent;
+import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
@@ -113,36 +117,18 @@ public class PhotoViewController extends PersistenceController {
          Register action so that we are notified of changes to currently 
          displayed folder
          */
-        registerEventListener( PhotoFolderModifiedEvent.class, new DefaultEventListener<PhotoFolder>() {
-            public void handleEvent(DefaultEvent<PhotoFolder> event) {
-                PhotoCollection currentCollection = getCollection();
-                if ( currentCollection != null && 
-                        currentCollection instanceof PhotoFolder ) {
-                    if ( ((PhotoFolder)currentCollection).getFolderId() == event.getPayload().getFolderId() ) {
-                        getPersistenceContext().merge( event.getPayload() );
-                    }
+        registerEventListener( CommandExecutedEvent.class, new DefaultEventListener<DataAccessCommand>() {
+            public void handleEvent(DefaultEvent<DataAccessCommand> event) {
+                DataAccessCommand cmd = event.getPayload();
+                if ( cmd instanceof ChangePhotoInfoCommand ) {
+                    photoChangeCommandExecuted( (ChangePhotoInfoCommand)cmd );
                 }
             }
         });
+    }
+
+    void photoChangeCommandExecuted( ChangePhotoInfoCommand cmd ) {
         
-        registerEventListener( PhotoInfoModifiedEvent.class, new DefaultEventListener<PhotoInfo>() {
-            public void handleEvent(DefaultEvent<PhotoInfo> event) {
-                /*
-                 TODO: We should chech whether the photo is already part of this 
-                 context
-                 */
-                        PhotoInfo p = (PhotoInfo) getPersistenceContext().merge( event.getPayload()  );
-            }
-        });
-        registerEventListener( PhotoFolderModifiedEvent.class, new DefaultEventListener<PhotoFolder>() {
-            public void handleEvent(DefaultEvent<PhotoFolder> event) {
-                PhotoCollection currentCollection = thumbPane.getCollection();
-                if ( currentCollection instanceof PhotoFolder && 
-                        ((PhotoFolder)currentCollection).getFolderId() == event.getPayload().getFolderId() ) {
-                    getPersistenceContext().merge( event.getPayload()  );
-                }
-            }
-        });
     }
     
     /**
@@ -316,21 +302,26 @@ public class PhotoViewController extends PersistenceController {
         return collectionPane;
     }
 
+    PhotoCollection collection = null;
+
     /**
      Set the collection that is contorlled by this controller.
      @param c The collection, this can (and most probably is) an detached 
      instance of folder or an unexecuted query.
      */
     void setCollection(PhotoCollection c) {
-        PhotoCollection contextCollection = null;
+        collection = c;
+        List<PhotoInfo> photos = null;
         if ( c instanceof PhotoFolder ) {
-            contextCollection = (PhotoCollection) getPersistenceContext().merge( c );
+            photos = getPersistenceContext().
+                createQuery("from PhotoInfo p where :f member of p.folders").
+                setEntity("f", c ).list();
         }
-        thumbPane.setCollection( contextCollection );
+        thumbPane.setPhotos( photos );
     }
     
     PhotoCollection getCollection() {
-        return thumbPane.getCollection();
+        return collection;
     }    
     
     /**

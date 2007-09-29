@@ -20,11 +20,15 @@
 
 package org.photovault.swingui;
 
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.io.*;
-import java.util.*;
+import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
@@ -57,12 +61,12 @@ public class BrowserWindow extends AbstractController {
     /**
        Constructor
     */
-    public BrowserWindow( AbstractController parent, final PhotoCollection initialCollection ) {
+    public BrowserWindow( AbstractController parent, final List<PhotoInfo> initialPhotos ) {
         super( parent );
         window = new JFrame( "Photovault Browser");
         createUI( null );
-        if ( initialCollection != null ) {
-            viewPane.setCollection( initialCollection );
+        if ( initialPhotos != null ) {
+            viewPane.setPhotos( initialPhotos );
             SwingUtilities.invokeLater(new java.lang.Runnable() {
                 public void run() {
                     viewPane.selectFirstPhoto();
@@ -113,7 +117,7 @@ public class BrowserWindow extends AbstractController {
 			viewCtrl.setCollection( queryPane.getResultCollection() );
 		    }
 		}
-        } );
+        }  );
         
         /*
           If the selected folder is changed in treePane, switch to that immediately
