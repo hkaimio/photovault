@@ -107,17 +107,14 @@ public class BrowserWindow extends AbstractController {
 	// Set listeners to both query and folder tree panes
 
 	/*
-	  If an actionEvent comes from queryPane & the viewed folder is
-	  no the query resouts, swich to it (the result folder will be nodified of
-	  changes to quert parameters directly
+	  If an actionEvent comes from query pane, swich to query results.
 	*/
-	queryPane.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    if ( viewCtrl.getCollection() != queryPane.getResultCollection() ) {
-			viewCtrl.setCollection( queryPane.getResultCollection() );
-		    }
-		}
-        }  );
+        queryPane.addActionListener( new ActionListener(  ) {
+
+            public void actionPerformed( ActionEvent e ) {
+                viewCtrl.setCollection( queryPane.getResultCollection(  ) );
+            }
+        } );
         
         /*
           If the selected folder is changed in treePane, switch to that immediately

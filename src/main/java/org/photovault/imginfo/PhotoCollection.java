@@ -20,6 +20,9 @@
 
 package org.photovault.imginfo;
 
+import java.util.List;
+import org.hibernate.Session;
+
 /**
    Interface to access a collection of photos, like folder or query result set
 */
@@ -44,4 +47,13 @@ public interface PhotoCollection {
     /** Remove a listener
      */
     public void removePhotoCollectionChangeListener( PhotoCollectionChangeListener l );
+    
+    /**
+     Get instalces for photos in this collection associated to given persistence
+     context. Derived classes should run a query in the session scope and return
+     the query results.
+     @param session The session
+     @return List of PhotoInfo objects returend from the query.
+     */
+    public List<PhotoInfo> queryPhotos( Session session );
 }

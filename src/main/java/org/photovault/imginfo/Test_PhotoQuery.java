@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,20 +20,23 @@
 
 package org.photovault.imginfo;
 
-import junit.framework.*;
 import java.util.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.photovault.folder.*;
-import org.photovault.imginfo.FuzzyDate;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 public class Test_PhotoQuery extends PhotovaultTestCase {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoQuery.class.getName() );
+    static Log log = LogFactory.getLog( Test_PhotoQuery.class.getName() );
 
     Vector photos = null;
     Vector uids = null;
@@ -45,6 +48,8 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     Session session = null;
     Transaction tx = null;
     
+    @BeforeMethod
+    @Override
     public void setUp() {
         session = HibernateUtil.getSessionFactory().openSession();
         HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
@@ -78,6 +83,8 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
         session.flush();
     }
 
+    @AfterMethod
+    @Override
     public void tearDown() {
 	for ( Object o : photos ) {
             PhotoInfo photo = (PhotoInfo) o;
@@ -102,10 +109,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	return photo;
     }
     
-
+    @Test
     public void testUpperUnboundedRange() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 	Calendar cal = Calendar.getInstance();
         cal.clear();
 	cal.set( 2002, 11, 24 );
@@ -116,9 +122,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected1 );
     }
     
+    @Test
     public void testBoundedRange() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 	Calendar cal = Calendar.getInstance();
         cal.clear();
 	cal.set( 2002, 11, 24 );
@@ -128,9 +134,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected2 );
     }
 
+    @Test
     public void testFuzzyDateProbable() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
 	// First, check cases where the midpoint belongs to the fuzziness range
  	Calendar cal = Calendar.getInstance();
@@ -147,9 +153,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected1 );
     }
     
+    @Test
     public void testFuzzyDatePossible() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
 	// First, check cases where the midpoint belongs to the fuzziness range
  	Calendar cal = Calendar.getInstance();
@@ -164,9 +170,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected2 );
     }
 
+    @Test
     public void testFuzzyDateCertain() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
 	// First, check cases where the midpoint belongs to the fuzziness range
  	Calendar cal = Calendar.getInstance();
@@ -183,9 +189,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 
     }
 
+    @Test
     public void testLowerUnboundedRange() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
         Calendar cal = Calendar.getInstance();
         cal.clear();
@@ -205,18 +211,18 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     }
     */
     
+    @Test
     public void testLike() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
         q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "%Lassi%" );
 	boolean[] expected3 = { true, true, false, false };
 	checkResults( q, expected3 );
     }
 
+    @Test
     public void testFolderLimit() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
         q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "%Lassi%" );
 	q.limitToFolder( folder );
@@ -224,9 +230,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected3 );
     }
     
+    @Test
     public void testFolderLimitSubfolders() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
         q.limitToFolder( folder );
 	boolean[] expected3 = { true, false, true, true };
@@ -239,9 +245,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
        Tjis is originally implemented to find demonstrate a defect in which the reuslt set was not cleaned
        before the new query.
     */
+    @Test
     public void testQueryModification() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
         Calendar cal = Calendar.getInstance();
         cal.clear();
@@ -265,9 +271,9 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	}
     }
     
+    @Test
     public void testNotification() {
 	PhotoQuery q = new PhotoQuery();
-        q.setSession( session );
 
         TestListener l1 = new TestListener();
 	q.addPhotoCollectionChangeListener( l1 );
@@ -293,8 +299,8 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 
     void checkResults( PhotoQuery q, boolean[] expected ) {
 	log.debug( "Checking results" );
-	for( int n = 0; n < q.getPhotoCount(); n++ ) {
-	    PhotoInfo photo = q.getPhoto( n );
+        List<PhotoInfo> result = q.queryPhotos( session );
+	for( PhotoInfo photo : result ) {
 	    int m = uids.indexOf( photo.getId() );
 	    log.debug( "Getting photo " + photo.getUid() + " " + photo.getShootTime() + " " + m );
 	    if ( m >= 0 ) {
@@ -316,20 +322,4 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	    }
 	}
     }
-
-
-    
-    public static void main( String[] args ) {
-	//	org.apache.log4j.BasicConfigurator.configure();
-	log.setLevel( org.apache.log4j.Level.DEBUG );
-	org.apache.log4j.Logger photoLog = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
-	photoLog.setLevel( org.apache.log4j.Level.DEBUG );
-	junit.textui.TestRunner.run( suite() );
-    }
-    
-    public static Test suite() {
-	return new TestSuite( Test_PhotoQuery.class );
-    }
-        
-
 }

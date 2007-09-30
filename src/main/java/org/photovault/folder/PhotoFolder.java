@@ -21,9 +21,6 @@
 package org.photovault.folder;
 
 
-import java.lang.UnsupportedOperationException;
-import java.lang.UnsupportedOperationException;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
@@ -31,18 +28,17 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Fetch;
+import org.hibernate.Session;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.Sort;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoInfo;
 import javax.persistence.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
    Implements a folder that can contain both PhotoInfos and other folders
@@ -52,7 +48,7 @@ import javax.persistence.*;
 @Table( name = "photo_collections" )
 public class PhotoFolder implements PhotoCollection {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
+    static Log log = LogFactory.getLog( PhotoFolder.class.getName() );
 
     /**
      Maximum length of the "name" property
@@ -167,7 +163,7 @@ public class PhotoFolder implements PhotoCollection {
 
     // Implementation of PhotoCollection interface
 
-    Set<PhotoInfo> photos = new HashSet();
+    Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
     
     @ManyToMany( cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )
     @org.hibernate.annotations.Cascade({
@@ -180,6 +176,19 @@ public class PhotoFolder implements PhotoCollection {
         return photos;
     }
     
+    /**
+     Query for photos in this folder
+     @param session The session in which the query is executed
+     @return List of associated photos
+     */
+    public List<PhotoInfo> queryPhotos( Session session ) {
+        @SuppressWarnings( "unchecked" )
+        List<PhotoInfo> res = 
+                session.createQuery( "from PhotoInfo p where :f member of p.folders" ).
+                setEntity( "f", this ).list(  );
+        return res;
+    }
+
     protected void setPhotos( Set<PhotoInfo> newPhotos ) {
         this.photos = newPhotos;
         modified();
@@ -215,7 +224,7 @@ public class PhotoFolder implements PhotoCollection {
     */
     public void addPhoto( PhotoInfo photo ) {
 	if ( photos == null ) {
-	    photos = new HashSet();
+	    photos = new HashSet<PhotoInfo>();
 	}
 	if ( !photos.contains( photo ) ) {
 	    photo.addedToFolder( this );
@@ -412,7 +421,7 @@ public class PhotoFolder implements PhotoCollection {
 	}
     }
 	
-    Vector changeListeners = null;
+    List<PhotoCollectionChangeListener> changeListeners = null;
 
     /**
        This folder is changed by a subfolder to inform parent that it has been changed. It fires a @see PhotoCollectionEvent to
@@ -569,4 +578,5 @@ public class PhotoFolder implements PhotoCollection {
     public String toString() {
 	return name;
     }
+
 }    

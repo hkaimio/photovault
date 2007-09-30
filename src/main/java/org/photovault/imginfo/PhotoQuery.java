@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -22,40 +22,31 @@ package org.photovault.imginfo;
 
 import java.util.*;
 import java.sql.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.odmg.*;
 import org.photovault.folder.PhotoFolder;
-import org.photovault.imginfo.FuzzyDate;
 
 /**
    PhotoQuery class can be used to search for photos using wide variety of criterias.
 */
 public class PhotoQuery implements PhotoCollection {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoQuery.class.getName() );
+    static Log log = LogFactory.getLog( PhotoQuery.class.getName() );
 
 
     public PhotoQuery() {
 	photos = new Vector();
-	listeners = new Vector();
+	listeners = new ArrayList<PhotoCollectionChangeListener>();
 	queryModified = true;
 
 	criterias = new QueryFieldCriteria[fields.length];
     }
     
     Session session;
-    
-    /**
-     Set the Hibernate session in which the query is made.
-     TODO: This should be a constructor parameter.
-     @param session The session that will be used.
-     */
-    public void setSession( Session session ) {
-        this.session = session;
-    }
 
     /**
        Restrict results to photos that have the specified field in
@@ -142,33 +133,13 @@ public class PhotoQuery implements PhotoCollection {
     /** Executes the actual query to database. This method is not
      * called directly by clients but is executed on demand after the
      * query has been modified and results are needed.
+     @deprecated use queryPhotos instead
      */
+    @SuppressWarnings( "unchecked" )
     protected void query() {
-	log.debug( "Entry: PhotoQuery.query" );
-	photos.clear();
-	try {
-	    Criteria crit = session.createCriteria( PhotoInfo.class );
-	    // Go through all the fields and create the criteria
-	    for ( int n = 0; n < criterias.length; n++ ) {
-		if ( criterias[n] != null ) {
-		    criterias[n].setupQuery( crit );
-		}
-	    }
-
-	    if ( limitFolder != null ) {
- 		Collection folders = getSubfolderIds( limitFolder );
- 		crit.createCriteria( "folders" ).add( Restrictions.in( "folderId", folders ));
-	    }
-	    
-	    Collection result = crit.list();
-	    photos.addAll( result );
-	} catch ( Exception e ) {
-	    log.warn( "Error executing query: " + e.getMessage() );
-	    e.printStackTrace( System.out );
-	}
-	    
-	queryModified = false;
-	log.debug( "Exit: PhotoQuery.query" );
+        throw new UnsupportedOperationException( "In Hibernate based Photovault, "+
+                "PhotoQuery is not tied to persistencecontext. Use queryPhotos()" +
+                " for access to query results." );
     }
     
 
@@ -203,6 +174,8 @@ public class PhotoQuery implements PhotoCollection {
      * Describe <code>getPhotoCount</code> method here.
      *
      * @return an <code>int</code> value
+     @deprecated In Hibernate based Photovault, use queryPhotos for accessing 
+     query results
      */
     public int getPhotoCount() {
 	if ( queryModified ) {
@@ -216,6 +189,8 @@ public class PhotoQuery implements PhotoCollection {
      *
      * @param n an <code>int</code> value
      * @return a <code>PhotoInfo</code> value
+     @deprecated In Hibernate based Photovault, use queryPhotos for accessing 
+     query results
      */
     public PhotoInfo getPhoto(int n) {
 	if ( queryModified ) {
@@ -273,7 +248,7 @@ public class PhotoQuery implements PhotoCollection {
     /**
      Listeners that will be notified about changes to this query
      */
-    Vector listeners = null;
+    List<PhotoCollectionChangeListener> listeners = null;
     
     /**
      If not null, limit query results to photos that belong to this folder or
@@ -315,4 +290,29 @@ public class PhotoQuery implements PhotoCollection {
 	fields[FIELD_FILM_SPEED] = new QueryField( "filmSpeed", "film_speed" );
     }
 
+    @SuppressWarnings( "unchecked" )
+    public List<PhotoInfo> queryPhotos( Session session ) {
+	log.debug( "Entry: PhotoQuery.queryPhotos" );
+        List<PhotoInfo> result = null;
+        try {
+	    Criteria crit = session.createCriteria( PhotoInfo.class );
+	    // Go through all the fields and create the criteria
+	    for ( int n = 0; n < criterias.length; n++ ) {
+		if ( criterias[n] != null ) {
+		    criterias[n].setupQuery( crit );
+		}
+	    }
+
+	    if ( limitFolder != null ) {
+ 		Collection folders = getSubfolderIds( limitFolder );
+ 		crit.createCriteria( "folders" ).add( Restrictions.in( "folderId", folders ));
+	    }
+	    
+	    result = crit.list();
+	} catch ( Exception e ) {
+	    log.warn( "Error executing query: " + e.getMessage() );
+	    e.printStackTrace( System.out );
+	}
+        return result;
+    }
 }

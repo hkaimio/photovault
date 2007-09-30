@@ -230,7 +230,7 @@ public class PhotoViewController extends PersistenceController {
                 JOptionPane.showMessageDialog( getView(), 
                         "Image file for this photo was not found", "File not found",
                         JOptionPane.ERROR_MESSAGE );
-            }
+            }   
            getView().setCursor( oldCursor );
        } else {
             try {
@@ -395,10 +395,8 @@ public class PhotoViewController extends PersistenceController {
     void setCollection(PhotoCollection c) {
         collection = c;
         photos = null;
-        if ( c instanceof PhotoFolder ) {
-            photos = getPersistenceContext().
-                createQuery("from PhotoInfo p where :f member of p.folders").
-                setEntity("f", c ).list();
+        if ( c != null ) {
+            photos = c.queryPhotos(getPersistenceContext());
         }
         thumbPane.setPhotos( photos );
     }

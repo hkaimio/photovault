@@ -133,9 +133,7 @@ public class QueryPane extends JPanel implements ActionListener {
 
     
     protected void updateQuery() {
-        // TODO: Could this be set somewhere else?
-        query.setSession( HibernateUtil.getSessionFactory().getCurrentSession() );
-	query.clear();
+	query = new PhotoQuery();
 	String photographer = basicFields.getPhotographer();
 	if( photographer.length() > 0 ) {
 	    query.setLikeCriteria( PhotoQuery.FIELD_PHOTOGRAPHER,
