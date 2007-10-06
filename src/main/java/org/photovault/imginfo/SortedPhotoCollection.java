@@ -22,11 +22,13 @@
 package org.photovault.imginfo;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Iterator;
+import org.hibernate.Session;
 
 /**
  * <p>This class implements a filter for sorting a photo collection by specific criteria. 
@@ -190,5 +192,9 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
         this.comparator = comparator;
         sortCollection();
         notifyListeners();
+    }
+
+    public List<PhotoInfo> queryPhotos( Session arg0 ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
 }

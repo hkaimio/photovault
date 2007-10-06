@@ -35,6 +35,9 @@ import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.photovault.command.CommandException;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoCollection;
@@ -78,8 +81,13 @@ import javax.swing.TransferHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.Volume;
 import org.photovault.imginfo.VolumeBase;
+import org.photovault.imginfo.VolumeDAO;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.taskscheduler.TaskProducer;
+import org.photovault.taskscheduler.BackgroundTask;
 
 
 
@@ -111,11 +119,12 @@ public class PhotoCollectionThumbView
     extends JPanel
     implements MouseMotionListener, MouseListener, ActionListener,
 	       PhotoCollectionChangeListener, PhotoInfoChangeListener,
-               Scrollable {
+               Scrollable, TaskProducer {
     
     static Log log = LogFactory.getLog( PhotoCollectionThumbView.class.getName() );
     
     PhotoViewController ctrl;
+        
     /**
      Default constructor
      */
@@ -138,9 +147,6 @@ public class PhotoCollectionThumbView
         setPhotos( initialPhotos );
     }
 
-    // ThumbCreatorThread thumbCreatorThread;
-    
-    PhotoInstanceCreator lastInstanceCreator;
     
     public void setPhotos( List<PhotoInfo> photos ) {
         for ( PhotoInfo photo : this.photos ) {
@@ -505,6 +511,7 @@ public class PhotoCollectionThumbView
         return deleteSelectedAction;
     }
     
+    
     @Override
     public void paint( Graphics g ) {
         super.paint( g );
@@ -598,14 +605,8 @@ public class PhotoCollectionThumbView
                 thumbnail = Thumbnail.getDefaultThumbnail();
             }
 
-            // The photo does not have a thumbnail, so request one to be created
-            if ( lastInstanceCreator == null ) {
-                lastInstanceCreator = new PhotoInstanceCreator( this, 
-                        ctrl.getDAOFactory().getPhotoInfoDAO(), photo, 
-                        (Volume) VolumeBase.getDefaultVolume()  );
-                lastInstanceCreator.execute();
-            }
-            
+            // Inform background task scheduler that we have some work to do
+            ctrl.getBackgroundTaskScheduler().registerTaskProducer( this, 1 );
         }
         thumbReadyTime = System.currentTimeMillis();
         
@@ -938,17 +939,17 @@ public class PhotoCollectionThumbView
 		}		    
 	    }
 	}
-	if ( nextPhoto != null ) {
-                lastInstanceCreator = new PhotoInstanceCreator( this, 
-                        ctrl.getDAOFactory().getPhotoInfoDAO(), nextPhoto, 
-                        (Volume) VolumeBase.getDefaultVolume()  );
-                lastInstanceCreator.execute();
-//                log.debug( "Making request for the next thumbail, " + p.getUid() );
-//                thumbCreatorThread.createThumbnail( p );
-//                log.debug( "request submitted" );
-	} else {
-            lastInstanceCreator = null;
-        }
+//	if ( nextPhoto != null ) {
+//                lastInstanceCreator = new PhotoInstanceCreator( this, 
+//                        ctrl.getDAOFactory().getPhotoInfoDAO(), nextPhoto, 
+//                        (Volume) VolumeBase.getDefaultVolume()  );
+//                lastInstanceCreator.execute();
+////                log.debug( "Making request for the next thumbail, " + p.getUid() );
+////                thumbCreatorThread.createThumbnail( p );
+////                log.debug( "request submitted" );
+//	} else {
+//            lastInstanceCreator = null;
+//        }
     }
     
     /**
@@ -1364,6 +1365,64 @@ public class PhotoCollectionThumbView
 
     public boolean getScrollableTracksViewportHeight() {
         return false;
+    }
+
+    /**
+     This method is called by background task scheduler when it is ready to execute
+     a task for this window.
+     @return Task to create a thumbnail if one is needed. <code>null</code> 
+     otherwise.
+     */
+    public BackgroundTask requestTask( ) {
+	PhotoInfo nextPhoto = null;
+	Container parent = getParent();
+	Rectangle viewRect = null;
+	if ( parent instanceof JViewport ) {
+	    viewRect = ((JViewport)parent).getViewRect();
+	}
+	
+	// Walk through all photos until we find a photo that is visible
+	// and does not have a thumbnail. If all visible photos have a thumbnail
+        // but some non-visible ones do not, create a thumbnail for one of those.
+	log.debug( "Finding photo without thumbnail" );
+	for ( int n = 0; n < photos.size(); n++ ) {
+            PhotoInfo photoCandidate = photos.get( n );
+	    log.debug( "Photo " + photoCandidate.getId() );
+	    if ( !photoCandidate.hasThumbnail() ) {
+		log.debug( "No thumbnail" );
+		Rectangle photoRect = getPhotoBounds( n );
+		if ( photoRect.intersects( viewRect )  ) {
+		    // This photo is visible so it is a perfect candidate
+		    // for thumbnail creation. Do not look further
+		    nextPhoto = photoCandidate;
+		    break;
+		} else if ( nextPhoto == null ) {
+		    // Not visible but no photo without thumbnail has been
+		    // found previously. Store as a candidate and keep looking.
+		    nextPhoto = photoCandidate;
+		}		    
+	    }
+	}
+	if ( nextPhoto != null ) {
+            // We found a photo without thumbnail
+            VolumeDAO volDAO = ctrl.getDAOFactory().getVolumeDAO();
+            Volume vol = volDAO.getDefaultVolume();
+            final CreateCopyImageCommand cmd = 
+                    new CreateCopyImageCommand( nextPhoto, vol, 100, 100 );
+            return new BackgroundTask() {
+
+                public void run( ) {
+                    try {
+                        cmdHandler.executeCommand( cmd );
+                    } catch ( CommandException ex ) {
+                        log.error( ex.getMessage() );
+                    }
+                }
+
+            };
+	} 
+        // All photos have thumbnail :-)
+        return null;
     }
 
 }

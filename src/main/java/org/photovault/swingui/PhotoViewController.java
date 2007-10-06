@@ -44,6 +44,7 @@ import org.photovault.command.DataAccessCommand;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
+import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
@@ -51,6 +52,7 @@ import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
 import org.photovault.swingui.framework.PersistenceController;
+import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
 
 /**
  Controller for the componenst actually used for viewing or editing photos. This 
@@ -128,6 +130,8 @@ public class PhotoViewController extends PersistenceController {
                 DataAccessCommand cmd = event.getPayload();
                 if ( cmd instanceof ChangePhotoInfoCommand ) {
                     photoChangeCommandExecuted( (ChangePhotoInfoCommand)cmd );
+                } else if ( cmd instanceof CreateCopyImageCommand ) {
+                    imageCreated( (CreateCopyImageCommand)cmd );
                 }
             }
         });
@@ -165,6 +169,13 @@ public class PhotoViewController extends PersistenceController {
             }
         }
         thumbPane.setPhotos( photos );
+    }
+
+    private void imageCreated( CreateCopyImageCommand cmd ) {
+        PhotoInfo p = cmd.getPhoto();
+        if ( containsPhoto( p ) ) {
+            PhotoInfo mergedPhoto = (PhotoInfo) getPersistenceContext().merge( p );
+        }
     }
     
     /**
@@ -365,6 +376,12 @@ public class PhotoViewController extends PersistenceController {
         layout.setConstraints( previewPane, c );
         previewPane.setVisible( true );
         getView().validate();
+    }
+    
+    SwingWorkerTaskScheduler taskScheduler = new SwingWorkerTaskScheduler( this );
+    
+    public SwingWorkerTaskScheduler getBackgroundTaskScheduler() {
+        return taskScheduler;
     }
     
     /**

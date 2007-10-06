@@ -258,10 +258,6 @@
     
     <target name="testng" depends="dist" description="TestNG test">
         <taskdef  resource="testngtasks" classpath="lib/testng.jar"/>
-        <nbjpdastart name="${classname}" addressproperty="jpda.address" transport="dt_socket">
-            <classpath refid="project.class.path"/>
-            <sourcepath refid="debug.sourcepath"/> 
-        </nbjpdastart>
         <testng outputDir="${reports.test}/testresults"
                 haltOnFailure="true" verbose="2">
             <jvmarg value="${run.jvmargs}"/>
@@ -346,7 +342,7 @@
 
     </target>
 
-    <target name="test-coverage" depends="with.clover,clean,dist,test">
+    <target name="test-coverage" depends="with.clover,clean,dist,testng">
         
     </target>
     <!-- Checkstyle target -->
