@@ -161,6 +161,7 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
                     activeTask = c.requestTask(  );
                     if ( activeTask != null ) {
                         runTask( activeTask );
+                        waitList[n].add(c);
                         return;
                     }
                 }

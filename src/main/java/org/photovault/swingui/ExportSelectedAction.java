@@ -30,6 +30,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.IllegalFormatException;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.File;
@@ -40,10 +42,15 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import org.omg.SendingContext.RunTime;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.photovault.command.CommandException;
 import org.photovault.common.PhotovaultException;
+import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.export.ExportDlg;
+import org.photovault.taskscheduler.BackgroundTask;
+import org.photovault.taskscheduler.TaskProducer;
 
 /**
  This action class implements exporting of all the selected images from a certain thumbnail
@@ -51,7 +58,7 @@ import org.photovault.swingui.export.ExportDlg;
  */
 class ExportSelectedAction extends AbstractAction implements SelectionChangeListener {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ExportSelectedAction.class.getName() );
+    static Log log = LogFactory.getLog( ExportSelectedAction.class.getName() );
     
     /**
      Constructor.
@@ -74,30 +81,32 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         setEnabled( view.getSelectedCount() > 0 );
     }
     
+    @SuppressWarnings( value = "unchecked" )
     public void actionPerformed( ActionEvent ev ) {
         File exportFile = null;
-        if ( view.getSelectedCount() > 1 ) {
+        if ( view.getSelectedCount(  ) > 1 ) {
             exportFile = new File( "image_$n.jpg" );
         } else {
             exportFile = new File( "image.jpg" );
         }
         ExportDlg dlg = new ExportDlg( null, true );
-        dlg.setFilename( exportFile.getAbsolutePath() );
-        
-        int retval = dlg.showDialog();
+        dlg.setFilename( exportFile.getAbsolutePath(  ) );
+
+        int retval = dlg.showDialog(  );
         if ( retval == ExportDlg.EXPORT_OPTION ) {
-            Container c = view.getTopLevelAncestor();
-            Cursor oldCursor = c.getCursor();
+            Container c = view.getTopLevelAncestor(  );
+            Cursor oldCursor = c.getCursor(  );
             c.setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
-            String exportFileTmpl = dlg.getFilename();
-            int exportWidth = dlg.getImgWidth();
-            int exportHeight = dlg.getImgHeight();
-            Collection selection = view.getSelection();
+            String exportFileTmpl = dlg.getFilename(  );
+            int exportWidth = dlg.getImgWidth(  );
+            int exportHeight = dlg.getImgHeight(  );
+            Collection selection = view.getSelection(  );
+            PhotoInfo[] exportPhotos =
+                    (PhotoInfo[]) selection.toArray( new PhotoInfo[selection.size() ]);
+            ExportProducer exporter = null;
             if ( selection != null ) {
-                if ( selection.size() > 1 ) {
+                if ( selection.size(  ) > 1 ) {
                     // Ensure that the numbering order is the same is in current view
-                    PhotoInfo exportPhotos[] 
-                            = (PhotoInfo[]) selection.toArray( new PhotoInfo[selection.size() ]);
                     // TODO: sort the exported photos
                     Comparator comp = null; /*view.getPhotoOrderComparator();*/
                     if ( comp != null ) {
@@ -105,44 +114,74 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                     }
                     String format = getSequenceFnameFormat( exportFileTmpl );
                     BrowserWindow w = null;
-                    ExportThread exporter = new ExportThread( this, exportPhotos, 
-                            format, exportWidth, exportHeight );
-                    Thread t = new Thread( exporter );
+                    exporter =
+                            new ExportProducer( this, exportPhotos, format,
+                            exportWidth, exportHeight );
                     setEnabled( false );
-                    t.start();
                 } else {
-                    Iterator iter = selection.iterator();
-                    if ( iter.hasNext() ) {
-                        PhotoInfo photo = (PhotoInfo) iter.next();
-                        try {
-                            photo.exportPhoto( new File( exportFileTmpl ),
-                                    exportWidth, exportHeight );
-                        } catch (PhotovaultException ex) {
-                            JOptionPane.showMessageDialog( view.getRootPane(),
-                                    ex.getMessage(),
-                                    "Error exporting image",
-                                    JOptionPane.ERROR_MESSAGE );
-                        }
+                    Iterator iter = selection.iterator(  );
+                    if ( iter.hasNext(  ) ) {
+                        PhotoInfo[] photos =
+                                new PhotoInfo[1];
+                        photos[0] = (PhotoInfo) iter.next();
+                        exporter =
+                                new ExportProducer( this, photos, exportFileTmpl,
+                                exportWidth, exportHeight );
                     }
                 }
+                Photovault.getInstance(  ).getTaskScheduler(  ).
+                        registerTaskProducer( exporter, 4 );
             }
             c.setCursor( oldCursor );
         }
     }
     
-    static class ExportThread implements Runnable {
+    /**
+     Helper class that creates the tasks that Photovault task scheduler then 
+     executes.
+     */
+    static class ExportProducer implements TaskProducer {
         
+        /**
+         Photos to export, in correct order
+         */
         private PhotoInfo exportPhotos[];
         
+        /**
+         Format string for the file names
+         */
         private String format;
         
+        /**
+         Maximum export width
+         */
         private int exportWidth;
         
+        /**
+         Maximum export height
+         */
         private int exportHeight;
         
+        /**
+         Action that owns this object
+         */
         private ExportSelectedAction owner;
         
-        ExportThread( ExportSelectedAction owner, PhotoInfo[] exportPhotos, 
+        /**
+         Order number of the next unexported photo
+         */
+        private int nextExport = 0;
+
+        /**
+         Create a new ExportProducer
+         @param owner The action that owns the object
+         @param exportPhotos Photos that will be exported in correct order
+         @param fnameFormat Java fornat string that will be used for formatting
+         file names.
+         @param width Maximum width of the exported photos
+         @param height Maximum height of the exported photos
+         */
+        ExportProducer( ExportSelectedAction owner, PhotoInfo[] exportPhotos, 
                 String fnameFormat, int width, int height ) {
             this.exportPhotos = exportPhotos;
             this.format = fnameFormat;
@@ -151,6 +190,11 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
             this.owner = owner;
         }
         
+        /**
+         TODO: Ensure that out of memory error handling is done in 
+         CreateCopyImageCommand in a robust way.
+         @deprecated
+         */
         public void run() {
             for ( int n = 0; n < exportPhotos.length; n++  ) {
                 try {
@@ -162,7 +206,7 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                         break;
                     }
                     int percent = (n) * 100 / exportPhotos.length;
-                    owner.exportingPhoto( this, fname, percent );
+                    // owner.exportingPhoto( this, fname, percent );
                     File f = new File( fname );
                     PhotoInfo photo = exportPhotos[n];
                     int triesLeft = 1;
@@ -208,9 +252,66 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                 }
             }
             owner.exportDone( this );
+        }   
+
+        /**
+         Called by {@link TaskScheduler} to export the next photo
+         @return Task that creates the next unexported image or <code>null</code>
+         if all photos have been exported.
+         */
+        public synchronized BackgroundTask requestTask( ) {
+            BackgroundTask task = null;
+            if ( nextExport < exportPhotos.length ) {
+                String fname;
+                try {
+                    fname = String.format( format,
+                            new Integer( nextExport + 1 ) );
+                } catch ( IllegalFormatException e ) {
+                    owner.exportError( "Cannot format file name: \n" +
+                            e.getMessage(  ) );
+                    return null;
+                }
+                File f = new File( fname );
+                PhotoInfo photo = exportPhotos[nextExport];
+                task =  new ExportPhotoTask( photo, f, exportWidth, exportHeight );
+                nextExport++;
+            }
+            return task;
         }
-    };
-    
+    }
+
+    /**
+     Task that creates a copy image in given location.
+     TODO: This and other image creation tasks should be combined.
+     */
+    private static class ExportPhotoTask extends BackgroundTask {
+
+        private PhotoInfo photo;
+        private File exportFile;
+        private int maxWidth;
+        private int maxHeight;
+
+        private ExportPhotoTask( PhotoInfo photo, File f, int maxWidth,
+                int maxHeight ) {
+            this.photo = photo;
+            this.exportFile = f;
+            this.maxWidth = maxWidth;
+            this.maxHeight = maxHeight;
+        }
+
+        public void run( ) {
+            try {
+                CreateCopyImageCommand cmd =
+                        new CreateCopyImageCommand( photo, exportFile, maxWidth,
+                        maxHeight );
+                cmdHandler.executeCommand( cmd );
+            } catch ( CommandException ex ) {
+                Logger.getLogger( ExportSelectedAction.class.getName() ).
+                        log( Level.SEVERE, null, ex );
+            }
+        }
+    }
+
     /**
      Returns a proper filename in a numbered sequence. Examples:
      <table>
@@ -275,7 +376,7 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
      @param fname Name of the file to be created
      @param percent Percentage of export operation completed, 0..100
      */
-    private void exportingPhoto(ExportThread exporter, String fname, int percent) {
+    private void exportingPhoto(ExportProducer exporter, String fname, int percent) {
         StringBuffer msgBuf = new StringBuffer( "Exporting " );
         msgBuf.append( fname ).append( " - " ).append( percent ).append( " %" );
         String msg = msgBuf.toString();
@@ -287,7 +388,7 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
      operation. Clear the status messages & enable this action so that it can
      perform new export operations.
      */
-    private void exportDone(ExportThread exporter) {
+    private void exportDone(ExportProducer exporter) {
         fireStatusChangeEvent( "" );
         setEnabled( true );
     }

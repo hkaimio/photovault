@@ -46,18 +46,22 @@ import org.photovault.persistence.HibernateUtil;
 import org.photovault.swingui.db.DbSettingsDlg;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
+import org.photovault.taskscheduler.TaskScheduler;
 
 /**
    Main class for the photovault application
 */
-
-
 public class Photovault extends AbstractController implements SchemaUpdateListener {
     static Log log = LogFactory.getLog( Photovault.class.getName() );
 
     PhotovaultSettings settings = null;
-
-    public Photovault() {
+    
+    static Photovault instance;
+    private SwingWorkerTaskScheduler taskScheduler;
+    
+    
+    private Photovault() {
 	settings = PhotovaultSettings.getSettings();
         setCommandHandler( new PhotovaultCommandHandler( null ) );
         // Forward command execution events to all subcontrollers
@@ -67,6 +71,25 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
                 fireEventGlobal( e );
             }
         } );
+        
+        taskScheduler = new SwingWorkerTaskScheduler( this );
+        instance = this;
+    }
+    
+    /**
+     Get the Photovault instance
+     @return the Photovault object
+     */
+    public static Photovault getInstance() {
+        return instance;
+    }
+    
+    /**
+     Get the task scheduler associated with the application
+     @return TaskScheduler
+     */
+    public TaskScheduler getTaskScheduler() {
+        return taskScheduler;
     }
     
     Session currentSession  = null;

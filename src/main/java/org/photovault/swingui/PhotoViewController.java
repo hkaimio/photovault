@@ -378,10 +378,9 @@ public class PhotoViewController extends PersistenceController {
         getView().validate();
     }
     
-    SwingWorkerTaskScheduler taskScheduler = new SwingWorkerTaskScheduler( this );
     
     public SwingWorkerTaskScheduler getBackgroundTaskScheduler() {
-        return taskScheduler;
+        return (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
     }
     
     /**
