@@ -1425,4 +1425,11 @@ public class PhotoCollectionThumbView
         return null;
     }
 
+    /**
+     Called after executing a thumbnail creation task. CUrrently a no-op.
+     @param task The task executed
+     */
+    public void taskExecuted( BackgroundTask task ) {
+    }
+
 }

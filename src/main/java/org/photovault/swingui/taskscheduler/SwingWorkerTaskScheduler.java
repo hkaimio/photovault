@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ExecutorService;
 import javax.swing.SwingUtilities;
 import org.hibernate.Session;
 import org.hibernate.context.ManagedSessionContext;
@@ -137,10 +136,8 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
         Session oldSession = ManagedSessionContext.bind( (org.hibernate.classic.Session) session );
         PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( session );
         cmdHandler.addCommandListener( this );
-        task.setSession( session );
-        task.setCommandHandler( cmdHandler );
         try {
-            task.run(  );
+            task.executeTask( session, cmdHandler );
         } catch ( Exception e ) {
             throw e;
         } finally {

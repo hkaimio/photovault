@@ -21,6 +21,7 @@
 
 package org.photovault.folder;
 
+import java.util.UUID;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
 
@@ -30,7 +31,11 @@ import org.photovault.command.DataAccessCommand;
  
  */
 public class DeletePhotoFolderCommand extends DataAccessCommand {
-    PhotoFolder folder = null;
+
+    /**
+     UUID of the folder to delete
+     */    
+    UUID folderId = null;
     /**
      Parent folder of the deleted folder.
      */
@@ -43,9 +48,18 @@ public class DeletePhotoFolderCommand extends DataAccessCommand {
      */
     public DeletePhotoFolderCommand( PhotoFolder f ) {
         super();
-        folder = f;        
+        folderId = f.getUUID();        
     }
 
+    /**
+     Creates a new instance of DeletePhotoFolderCommand
+     @param uuid UUID of the folder that will be deleted.
+     */
+    public DeletePhotoFolderCommand( UUID uuid ) {
+        super();
+        folderId = uuid;
+    }
+    
     /**
      Get the folder that was parent of the deleted folder.
      @return Parent of deleted folder or <code>null</code> if the command has
@@ -58,7 +72,7 @@ public class DeletePhotoFolderCommand extends DataAccessCommand {
     
     public void execute() throws CommandException {
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
-        PhotoFolder f = folderDAO.findById( folder.getFolderId(), false );
+        PhotoFolder f = folderDAO.findByUUID( folderId );
         PhotoFolder parent = f.getParentFolder();
         f.delete();
         folderDAO.makeTransient( f );

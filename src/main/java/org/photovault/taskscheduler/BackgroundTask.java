@@ -32,6 +32,11 @@ import org.photovault.command.CommandHandler;
 public abstract class BackgroundTask implements Runnable {
 
     /**
+    Create a new BackgroundTask
+     */
+    public BackgroundTask() {}
+    
+    /**
      Command handler that can be used by the task
      */
     protected CommandHandler cmdHandler;
@@ -45,6 +50,12 @@ public abstract class BackgroundTask implements Runnable {
      This method must be overridden by derived classes to execute the actual task.
      */
     abstract public void run( );
+    
+    public void executeTask( Session session, CommandHandler cmdHandler ) {
+        this.session = session;
+        this.cmdHandler = cmdHandler;
+        run();
+    }
 
     /**
      Set persistence context (called by TaskScheduler)
@@ -59,5 +70,5 @@ public abstract class BackgroundTask implements Runnable {
     public void setCommandHandler( CommandHandler ch ) {
         this.cmdHandler = ch;
     }
-
+    
 }

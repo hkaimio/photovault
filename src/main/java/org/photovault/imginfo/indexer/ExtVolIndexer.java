@@ -45,6 +45,7 @@ import org.odmg.Transaction;
 import org.photovault.command.CommandException;
 import org.photovault.command.CommandHandler;
 import org.photovault.command.DataAccessCommand;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.folder.CreatePhotoFolderCommand;
@@ -69,6 +70,7 @@ import org.photovault.imginfo.VolumeBase;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.taskscheduler.BackgroundTask;
 
 /**
  ExtVolIndexer implements a background task for indexing all files in an
@@ -625,7 +627,9 @@ public class ExtVolIndexer implements Runnable {
                 DAOFactory daoFactory = DAOFactory.instance( HibernateDAOFactory.class );
                 topFolder = daoFactory.getPhotoFolderDAO().findById( topFolderId, false );
             }
-            indexDirectory( volume.getBaseDir(), topFolder, 0, 100 );
+            DirectoryIndexer topIndexer = new DirectoryIndexer( volume.getBaseDir(), topFolder, volume );
+            indexDirectory( topIndexer );
+            // indexDirectory( volume.getBaseDir(), topFolder, 0, 100 );
             // cleanupInstances();
             notifyListenersIndexingComplete();
         } catch( Throwable t ) {
@@ -668,7 +672,31 @@ public class ExtVolIndexer implements Runnable {
     public void removeIndexerListener( ExtVolIndexerListener l ) {
         listeners.remove( l );
     }
-    
+
+    /**
+     Index a directory by running all {@IndexFileTask}s produced by a 
+     DirectoryIndexer.
+     @param indexer The directoryIndexer.
+    */
+    private void indexDirectory( DirectoryIndexer indexer ) {
+        BackgroundTask fileTask = null;
+        indexer.setCommandHandler( (PhotovaultCommandHandler) commandHandler );
+        while ( (fileTask = indexer.getNextFileIndexer(  )) != null ) {
+            Session photoSession =
+                    HibernateUtil.getSessionFactory(  ).openSession(  );
+            Session oldSession =
+                    ManagedSessionContext.bind( (org.hibernate.classic.Session) photoSession );
+            fileTask.setSession( photoSession );
+            fileTask.setCommandHandler( commandHandler );
+            fileTask.run(  );
+            photoSession.close(  );
+            ManagedSessionContext.bind( (org.hibernate.classic.Session) oldSession );
+        }
+        for ( DirectoryIndexer subdirIndexer : indexer.getSubdirIndexers(  ) ) {
+            indexDirectory( subdirIndexer );
+        }
+    }
+
     /**
      Notifies all listeners that a new file has been indexed.
      @param e The indexer event object that describes the event
