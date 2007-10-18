@@ -46,10 +46,27 @@ import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.taskscheduler.BackgroundTask;
 
 /**
- Background task for indexing a single file. It checks whether the file matches 
- database state and updates database and possibly creates new ImageFile and 
- PhotoInfo instances so that the file is included in database.
- @author harri
+    Background task for indexing a single file.
+    <ul>
+    <li>First Photovault checks if the file is already indexed. If there is
+    a file in this path according to database and its hash or both file size
+    and last modification time match this is assumed to be an existing file.</li>
+    <li>
+    If the file is not found Photovault tries to find an existing file with
+    the same hash. If such is found, Photovault assumes that this is another
+    copy of the same file and adds a new location for that file. </li>
+    <li>
+    If no such file is found Photovault creates a new ImageFile and PhotoInfo
+    with the image stored in location "image#0" in this file as original.
+    After that it creates a thumbnail on default volume.
+    </li>
+    <li>
+    Finally, Phootvault adds all photos associated with this file the given
+    folder
+    </li>
+    </ul>
+    @author Harri Kaimio
+ 
  */
 public class IndexFileTask extends BackgroundTask {
     static Log log = LogFactory.getLog( IndexFileTask.class.getName() );
@@ -74,6 +91,34 @@ public class IndexFileTask extends BackgroundTask {
      ImageFile that describes the file.
      */
     private ImageFile ifile;
+    
+    private IndexingResult result;
+    
+    /**
+     Get the result of idnexing operation
+     */
+    public IndexingResult getResult() {
+        return result;
+    }
+    
+    /**
+     Get the file that is indexed by this task
+     @return The file
+     */
+    public File getFile() {
+        return f;
+    }
+    
+    /**
+     Get the ImageFile that corresponds to indexed file.
+     @return The ImageFile that was found to correspond to indexed file or <code>
+     null</code> if the task has not been executed or the file was not an image.
+     */
+    public ImageFile getImageFile() {
+        return ifile;
+    }
+    
+    
     
     /**
      MD5 hash of the file
@@ -102,7 +147,7 @@ public class IndexFileTask extends BackgroundTask {
     }
     
     /**
-     Run the actual idnexing operation
+     Run the actual indexing operation
      */
     public void run( ) {
         indexFile();
@@ -150,6 +195,7 @@ public class IndexFileTask extends BackgroundTask {
                 // TODO: return the immge file
 //                PhotoInfo photo = oldInstance.getPhoto();
                 log.debug( "File is consistent with DB" );
+                result = IndexingResult.UNCHANGED;
                 return;                
             } else {
                 ModifyImageFileCommand deleteCmd = new ModifyImageFileCommand( ifile  );
@@ -180,7 +226,7 @@ public class IndexFileTask extends BackgroundTask {
             to the database.
              */
             cmd = new ModifyImageFileCommand(ifile);
-            currentEvent.setResult(ExtVolIndexerEvent.RESULT_NEW_INSTANCE);
+            result = IndexingResult.NEW_LOCATION;
         } else {
             /*
             The file is not known to Photovault. Create a new ImageFile
@@ -188,9 +234,9 @@ public class IndexFileTask extends BackgroundTask {
              */
             try {
                 cmd = new ModifyImageFileCommand( f, hash );
-                currentEvent.setResult( ExtVolIndexerEvent.RESULT_NEW_PHOTO );
+                result = IndexingResult.NEW_FILE;
             } catch ( Exception e ) {
-                currentEvent.setResult( ExtVolIndexerEvent.RESULT_NOT_IMAGE );
+                result = IndexingResult.ERROR;
                 return;
             }
         }
@@ -222,7 +268,7 @@ public class IndexFileTask extends BackgroundTask {
             cmdHandler.executeCommand( addFolderCmd );
         } catch ( CommandException ex ) {
             log.warn( "Exception in modifyImageFileCommand: " + ex.getMessage() );
-            currentEvent.setResult( ExtVolIndexerEvent.RESULT_NOT_IMAGE );
+            result = IndexingResult.NOT_IMAGE;
             return;
         }
 

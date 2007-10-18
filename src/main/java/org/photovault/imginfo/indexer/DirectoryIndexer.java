@@ -164,6 +164,18 @@ public class DirectoryIndexer {
         return subdirIndexers;
     }
 
+    /**
+     Get information how far we are indexing this directory.
+     @return Percentage of files in this directory that have been indexed by
+     this indexer. Integer value between 0..100.
+     */
+    public int getPercentComplete() {
+        int fileCount = files.size();
+        if ( fileCount == 0 ) {
+            return 100;
+        }
+        return ( fileCount - filesLeft ) * 100 / fileCount; 
+    }
 
     /**
      Initialize data structures: read directory content, compare for folder,
