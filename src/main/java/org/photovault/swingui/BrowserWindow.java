@@ -37,13 +37,12 @@ import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.ShootingDateComparator;
 import org.photovault.imginfo.ShootingPlaceComparator;
 import org.photovault.folder.*;
-import org.photovault.imginfo.indexer.ExtVolIndexer;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DefaultAction;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
+import org.photovault.swingui.indexer.BackgroundIndexer;
 import org.photovault.swingui.indexer.IndexerFileChooser;
-import org.photovault.swingui.indexer.IndexerStatusDlg;
 import org.photovault.swingui.indexer.UpdateIndexAction;
 
 public class BrowserWindow extends AbstractController {
@@ -529,15 +528,20 @@ public class BrowserWindow extends AbstractController {
             } catch (CommandException ex) {
                 ex.printStackTrace();
             }
-            ExtVolIndexer indexer = new ExtVolIndexer( volCmd.getCreatedVolume() );
-            indexer.setCommandHandler( viewCtrl.getCommandHandler() );
             PhotoFolder topFolder = folderCmd.getCreatedFolder();
-            indexer.setTopFolder( topFolder );
+            BackgroundIndexer indexer = new BackgroundIndexer( dir, volCmd.getCreatedVolume(),
+                topFolder, true );
+            Photovault.getInstance().getTaskScheduler().registerTaskProducer(indexer, 2);
+//            ExtVolIndexer indexer = new ExtVolIndexer( volCmd.getCreatedVolume() );
+//            indexer.setCommandHandler( viewCtrl.getCommandHandler() );
+//            PhotoFolder topFolder = folderCmd.getCreatedFolder();
+//            indexer.setTopFolder( topFolder );
+//            
+//            // Show status dialog & index the directory
+//            IndexerStatusDlg statusDlg = new IndexerStatusDlg( window, false );
+//            statusDlg.setVisible( true );
+//            statusDlg.runIndexer( indexer );
             
-            // Show status dialog & index the directory
-            IndexerStatusDlg statusDlg = new IndexerStatusDlg( window, false );
-            statusDlg.setVisible( true );
-            statusDlg.runIndexer( indexer );
         }
     }
 

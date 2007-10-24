@@ -122,6 +122,14 @@ public class DirectoryIndexer {
         this.folder = folder;
         this.volume = vol;        
     }
+
+    /**
+     Get the directory that is indexed by this indexer.
+    @return The directory.
+     */
+    public File getDirectory() {
+        return dir;
+    }
     
     /**
      Set the command handler that will be used for directory manipulations

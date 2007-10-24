@@ -22,9 +22,11 @@
 package org.photovault.swingui.taskscheduler;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import javax.swing.SwingUtilities;
 import org.hibernate.Session;
 import org.hibernate.context.ManagedSessionContext;
@@ -82,9 +84,51 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
      Currently active task or <code>null</code> if no task is active
      */
     BackgroundTask activeTask = null;
+    
+    /**
+     Listeners for each task producer
+     */
+    HashMap<TaskProducer, Set<BackgroundTaskListener>> listeners = 
+            new HashMap<TaskProducer, Set<BackgroundTaskListener>>();
 
     /**
-     See {@linkTaskScheduler#registerTaskProducer()} for details.
+     Get the task listeners registered for a certain TaskProducer
+     @param p The TaskProducer we are interested in
+     @return Listeners registered to lsiten for this producer
+     */
+    private Set<BackgroundTaskListener> getTaskListeners( TaskProducer p ) {
+        Set<BackgroundTaskListener> ls = listeners.get( p );
+        if ( ls == null ) {
+            ls = new HashSet<BackgroundTaskListener>();
+            listeners.put( p, ls );
+        }
+        return ls;
+    }
+
+    /**
+     Ask that a {@link BackgroundTaskListener} will be notified about progress 
+     of tasks produced by a certain {@link TaskProducer}
+     
+     @param p The TaskProducer we are interested in
+     @param l The listener that will be added
+     */
+    public void addTaskListener( TaskProducer p, BackgroundTaskListener l ) {
+        Set<BackgroundTaskListener> ls = getTaskListeners( p );
+        ls.add( l );
+    }
+
+    /**
+     Ask that a {@link BackgroundTaskListener} will not anymore be notified.     
+     @param p The TaskProducer we are interested in
+     @param l The listener that will be removed
+     */
+    public void removeTaskListener( TaskProducer p, BackgroundTaskListener l ) {
+        Set<BackgroundTaskListener> ls = getTaskListeners( p );        
+        ls.remove( l );
+    }
+    
+    /**
+     See {@link TaskScheduler#registerTaskProducer()} for details.
      */
     public void registerTaskProducer( TaskProducer c, int priority  ) {
         if ( priority < 0 || priority > MIN_PRIORITY ) {
@@ -108,7 +152,7 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
      execution.
      @param nextTask The task to execute
      */
-    private void runTask( final BackgroundTask nextTask  ) {
+    private void runTask( final TaskProducer producer, final BackgroundTask nextTask  ) {
         final SwingWorkerTaskScheduler tthis = this;
         SwingWorker worker = new SwingWorker(  ) {
 
@@ -119,7 +163,8 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
 
             @Override
             protected void done( ) {
-                scheduleNext(  );
+                fireTaskExecutedEvent( producer, nextTask );
+                scheduleNext();
             }
         };
         worker.execute(  );
@@ -129,7 +174,7 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
      Called in worker thread by runTask to actually execute the task. Sets up
      Hibernate environment and runs the task.
      @param task The task to execute
-     @throws Exception if the task.run() nethod throws one.
+     @throws Exception if the task.run() method throws one.
      */
     protected void doRunTask( BackgroundTask task ) throws Exception {
         Session session = HibernateUtil.getSessionFactory(  ).openSession(  );
@@ -141,8 +186,12 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
         } catch ( Exception e ) {
             throw e;
         } finally {
-            ManagedSessionContext.bind( (org.hibernate.classic.Session) oldSession );
             session.close(  );
+            if ( oldSession != null ) {
+                ManagedSessionContext.bind( (org.hibernate.classic.Session) oldSession );
+            } else {
+                ManagedSessionContext.unbind( HibernateUtil.getSessionFactory() );
+            }
         }
     }
 
@@ -157,12 +206,37 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
                 while ( (c = waitList[n].poll(  )) != null ) {
                     activeTask = c.requestTask(  );
                     if ( activeTask != null ) {
-                        runTask( activeTask );
+                        runTask( c, activeTask );
                         waitList[n].add(c);
                         return;
+                    } else {
+                        fireTaskProducerFinishedEvent( c );
                     }
                 }
             }
+        }
+    }
+    
+    /**
+     Informs listeners that a task has been executed. This method must be called
+     in AWT event thread context.
+     @param producer The producer that produced the task
+     @param task The executed task
+     */
+    private void fireTaskExecutedEvent( final TaskProducer producer, final BackgroundTask task ) {
+        for ( BackgroundTaskListener l : getTaskListeners( producer ) ) {
+            l.taskExecuted( producer, task );
+        }
+    }
+    
+    /**
+     Informs listeners that a task producer has finished its job. This method must
+     be called in AWT event handler thread.
+     @param producer The producer that has completed all its tasks
+     */
+    private void fireTaskProducerFinishedEvent( TaskProducer producer ) {
+        for ( BackgroundTaskListener l : getTaskListeners( producer ) ) {
+            l.taskProducerFinished( producer );
         }
     }
 
