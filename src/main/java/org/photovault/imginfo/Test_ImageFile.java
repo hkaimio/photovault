@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -51,6 +53,7 @@ import org.testng.annotations.Test;
  */
 public class Test_ImageFile extends PhotovaultTestCase {
     
+    static Log log = LogFactory.getLog( Test_ImageFile.class.getName() );
     /** Creates a new instance of Test_ImageFile */
     public Test_ImageFile() {
     }
@@ -85,6 +88,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
             vol2.setBaseDir( tmpdir );
             vol2.setName( "vol2" );
             session.save( vol2 );
+            session.flush();
         } catch (IOException ex) {
             fail( "exception while creating volumes" );
         }
@@ -127,7 +131,10 @@ public class Test_ImageFile extends PhotovaultTestCase {
         assert i2.getFileSize() == i.getFileSize();
         // assert i2.getHash().equals( i.getHash() );
         Set<FileLocation> locations = i2.getLocations();
-        assert locations.size() == 2;
+        for ( FileLocation l : locations ) {
+            log.debug( "Found location " + l.getFname() );
+        }
+        assertEquals(2, locations.size() );
         boolean vol1Found = false;
         boolean vol2Found = false;
         for ( FileLocation l : locations ) {
@@ -248,6 +255,26 @@ public class Test_ImageFile extends PhotovaultTestCase {
         OriginalImageDescriptor img = (OriginalImageDescriptor) f.getImage( "image#0" );
         assertEquals( 1, img.getPhotos().size() );
         assertEquals( 0, f.getLocations().size() ); 
+        
+        // Now, add the file to default volume
+        VolumeDAO volDAO = daoFactory.getVolumeDAO();
+        VolumeBase defaultVolume = volDAO.getDefaultVolume();
+        File fl = defaultVolume.getFilingFname( testFile );
+        FileUtils.copyFile( testFile, fl );
+        cmd = new ModifyImageFileCommand( f );
+        cmd.addLocation( 
+                new FileLocation( defaultVolume, 
+                defaultVolume.mapFileToVolumeRelativeName(fl) ) );
+        cmdHandler.executeCommand( cmd );
+        
+        session.clear();
+        f = cmd.getImageFile();
+        fileId = f.getId();        
+        f = ifDAO.findById( fileId, false );
+        assertEquals( 1, f.getLocations().size() ); 
+        FileLocation loc = f.getLocations().iterator().next();
+        assertEquals( loc.getVolume().getId(), defaultVolume.getId() );
+        assertEquals( loc.getFile().lastModified(), loc.getLastModified() );
     }
     
     @Test

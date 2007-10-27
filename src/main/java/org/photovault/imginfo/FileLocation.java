@@ -23,6 +23,8 @@ package org.photovault.imginfo;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.JoinColumn;
@@ -30,6 +32,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  This class describes a location where an {@link ImageFile} is stored.
@@ -37,19 +41,36 @@ import javax.persistence.Transient;
 @Embeddable
 public class FileLocation {
 
+    static Log log = LogFactory.getLog( FileLocation.class.getName() );
     ImageFile file;
 
     private VolumeBase volume;
 
     private String fname;
     
+    /**
+     Default constructor for persistence layer.
+     */
     protected FileLocation() {
     }
 
-    /** Creates a new instance of FileLocation */
+    /** 
+     Creates a new instance of FileLocation. The consteuctor also populates 
+     fields of this objetc from the file if it is possible.
+     @param volume Volume in which the file is
+     @param fname volume internal name for the file.
+     */
     public FileLocation( VolumeBase volume, String fname ) {
-        this.setVolume(volume);
-        this.setFname(fname);
+        this.setVolume( volume );
+        this.setFname( fname );
+
+        // Set the lastModified field if possible.
+        try {
+            File f = volume.mapFileName( fname );
+            lastModified = f.lastModified();
+        } catch ( FileNotFoundException ex ) {
+            log.warn( "file " + fname + " in volume " + volume.getId() + "does not exist" );
+        }
     }
 
     @org.hibernate.annotations.Parent

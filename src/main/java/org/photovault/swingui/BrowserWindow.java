@@ -44,6 +44,8 @@ import org.photovault.swingui.framework.DefaultEventListener;
 import org.photovault.swingui.indexer.BackgroundIndexer;
 import org.photovault.swingui.indexer.IndexerFileChooser;
 import org.photovault.swingui.indexer.UpdateIndexAction;
+import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
+import org.photovault.swingui.taskscheduler.TaskPriority;
 
 public class BrowserWindow extends AbstractController {
 
@@ -143,7 +145,7 @@ public class BrowserWindow extends AbstractController {
         // Create actions for BrowserWindow UI
 
         ImageIcon indexDirIcon = getIcon( "index_dir.png" );
-        indexDirAction = new AbstractAction( "Index directory...", indexDirIcon ) {
+        DefaultAction indexDirAction = new DefaultAction( "Index directory...", indexDirIcon ) {
             public void actionPerformed( ActionEvent e ) {
                 indexDir();
             }
@@ -151,6 +153,8 @@ public class BrowserWindow extends AbstractController {
         indexDirAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_D );
         indexDirAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Index all images in a directory" );
+        this.registerAction( "new_ext_vol", indexDirAction );
+        
         
         ImageIcon importIcon = getIcon( "import.png" );
         importAction = new AbstractAction( "Import image...", importIcon ) {
@@ -167,10 +171,13 @@ public class BrowserWindow extends AbstractController {
                 "Import new image into database" );
         
         ImageIcon updateIcon = getIcon( "update_indexed_dirs.png" );
-        updateIndexAction = new UpdateIndexAction( viewCtrl, "Update indexed dirs",
+        UpdateIndexAction updateIndexAction = new UpdateIndexAction( viewCtrl, 
+                "Update indexed dirs",
                 updateIcon, "Check for changes in previously indexed directories",
                 KeyEvent.VK_U );
-        
+        this.registerAction( "update_indexed_dirs", updateIndexAction );
+        updateIndexAction.addStatusChangeListener( statusBar );
+
         ImageIcon previewTopIcon = getIcon( "view_preview_top.png" );
         DefaultAction previewTopAction = new DefaultAction( "Preview on top", previewTopIcon ) {
             public void actionPerformed( ActionEvent e ) {
@@ -231,10 +238,7 @@ public class BrowserWindow extends AbstractController {
 	JMenuItem indexDirItem = new JMenuItem( indexDirAction );
         fileMenu.add( indexDirItem );
         
-        
-        updateIndexAction.addStatusChangeListener( statusBar );
-        JMenuItem updateIndexItem = new JMenuItem( updateIndexAction );
-        fileMenu.add( updateIndexItem );
+        fileMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "update_indexed_dirs" ) ) );
         
         ExportSelectedAction exportAction = 
                 (ExportSelectedAction) viewPane.getExportSelectedAction();
@@ -337,9 +341,9 @@ public class BrowserWindow extends AbstractController {
         
         JButton importBtn = new JButton( importAction );
         importBtn.setText( "" );
-        JButton indexBtn = new JButton( indexDirAction );
+        JButton indexBtn = new JButton( viewCtrl.getActionAdapter( "new_ext_vol" ) );
         indexBtn.setText( "" );
-        JButton updateBtn = new JButton( updateIndexAction );
+        JButton updateBtn = new JButton( viewCtrl.getActionAdapter( "update_indexed_dirs" ) );
         updateBtn.setText( "" );
         JButton exportBtn = new JButton( viewPane.getExportSelectedAction() );
         exportBtn.setText( "" );
@@ -529,9 +533,12 @@ public class BrowserWindow extends AbstractController {
                 ex.printStackTrace();
             }
             PhotoFolder topFolder = folderCmd.getCreatedFolder();
-            BackgroundIndexer indexer = new BackgroundIndexer( dir, volCmd.getCreatedVolume(),
-                topFolder, true );
-            Photovault.getInstance().getTaskScheduler().registerTaskProducer(indexer, 2);
+            BackgroundIndexer indexer = new BackgroundIndexer( dir, volCmd.getCreatedVolume(),           
+                    topFolder, true );
+            SwingWorkerTaskScheduler sched =
+                    (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
+            sched.registerTaskProducer( indexer,
+                    TaskPriority.INDEX_EXTVOL );
 //            ExtVolIndexer indexer = new ExtVolIndexer( volCmd.getCreatedVolume() );
 //            indexer.setCommandHandler( viewCtrl.getCommandHandler() );
 //            PhotoFolder topFolder = folderCmd.getCreatedFolder();
@@ -570,15 +577,7 @@ public class BrowserWindow extends AbstractController {
      Action that imports a new image to Photovault archive
      */
     AbstractAction importAction;
-    /**
-     Action that lets user to select a directory that is indexed as an external
-     volume.
-     */
-    AbstractAction indexDirAction;
-    /**
-     Action that updates all external volumes in current database.
-     */
-    UpdateIndexAction updateIndexAction;
+    
     /**
      *Status bar for this window
      */

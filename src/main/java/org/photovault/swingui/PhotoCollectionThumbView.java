@@ -86,6 +86,7 @@ import org.photovault.imginfo.Volume;
 import org.photovault.imginfo.VolumeBase;
 import org.photovault.imginfo.VolumeDAO;
 import org.photovault.persistence.DAOFactory;
+import org.photovault.swingui.taskscheduler.TaskPriority;
 import org.photovault.taskscheduler.TaskProducer;
 import org.photovault.taskscheduler.BackgroundTask;
 
@@ -606,7 +607,9 @@ public class PhotoCollectionThumbView
             }
 
             // Inform background task scheduler that we have some work to do
-            ctrl.getBackgroundTaskScheduler().registerTaskProducer( this, 1 );
+            ctrl.getBackgroundTaskScheduler().
+                    registerTaskProducer( this, 
+                    TaskPriority.CREATE_VISIBLE_THUMBNAIL );
         }
         thumbReadyTime = System.currentTimeMillis();
         

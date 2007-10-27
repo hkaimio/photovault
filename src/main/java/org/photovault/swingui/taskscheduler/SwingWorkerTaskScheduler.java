@@ -128,6 +128,15 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
     }
     
     /**
+     Register a new TaskProducer for execution
+     @param c The TaskProducer.
+     @param priority Priority for this task producer.
+     */
+    public void registerTaskProducer( TaskProducer c, TaskPriority priority ) {
+        registerTaskProducer( c, priority.getPriority() );
+    }
+    
+    /**
      See {@link TaskScheduler#registerTaskProducer()} for details.
      */
     public void registerTaskProducer( TaskProducer c, int priority  ) {

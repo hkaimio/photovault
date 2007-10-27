@@ -49,6 +49,8 @@ import org.photovault.common.PhotovaultException;
 import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.export.ExportDlg;
+import org.photovault.swingui.taskscheduler.TaskPriority;
+import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
 import org.photovault.taskscheduler.BackgroundTask;
 import org.photovault.taskscheduler.TaskProducer;
 
@@ -128,9 +130,10 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                                 new ExportProducer( this, photos, exportFileTmpl,
                                 exportWidth, exportHeight );
                     }
-                }
-                Photovault.getInstance(  ).getTaskScheduler(  ).
-                        registerTaskProducer( exporter, 4 );
+                }            
+                SwingWorkerTaskScheduler sched = 
+                    (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
+                sched.registerTaskProducer( exporter, TaskPriority.EXPORT_IMAGE );
             }
             c.setCursor( oldCursor );
         }

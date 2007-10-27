@@ -39,6 +39,7 @@ import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.swingui.Photovault;
 
 /**
  This class keeps track of state when indexing a directory that belongs to an
@@ -103,8 +104,10 @@ public class DirectoryIndexer {
     
     /**
      Command handler used to execute commands for changing the folder hierarchy
+     @todo This cause currently an illegal dependency to swingui!!!
      */
-    PhotovaultCommandHandler commandHandler = null;
+    PhotovaultCommandHandler commandHandler = 
+            (PhotovaultCommandHandler) Photovault.getInstance().getCommandHandler();
     
     /**
      Count of files that have not yet been indexed.

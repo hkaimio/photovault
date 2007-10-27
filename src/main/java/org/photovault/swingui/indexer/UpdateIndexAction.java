@@ -41,6 +41,8 @@ import org.photovault.swingui.Photovault;
 import org.photovault.swingui.StatusChangeEvent;
 import org.photovault.swingui.StatusChangeListener;
 import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DefaultAction;
+import org.photovault.swingui.taskscheduler.TaskPriority;
 import org.photovault.swingui.taskscheduler.BackgroundTaskListener;
 import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
 import org.photovault.taskscheduler.BackgroundTask;
@@ -55,7 +57,7 @@ import org.photovault.taskscheduler.TaskProducer;
  *
  * @author Harri Kaimio
  */
-public class UpdateIndexAction extends AbstractAction implements BackgroundTaskListener {
+public class UpdateIndexAction extends DefaultAction implements BackgroundTaskListener {
     
     /** Creates a new instance of UpdateIndexAction */
     public UpdateIndexAction( AbstractController ctrl, String text, ImageIcon icon, String desc, 
@@ -117,7 +119,7 @@ public class UpdateIndexAction extends AbstractAction implements BackgroundTaskL
             SwingWorkerTaskScheduler sched = 
                     (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
             sched.addTaskListener(indexer, this );
-            sched.registerTaskProducer(indexer, 2);
+            sched.registerTaskProducer(indexer, TaskPriority.INDEX_EXTVOL );
             percentIndexed = 0;
             StatusChangeEvent e = new StatusChangeEvent( this, "Indexing " 
                     + vol.getBaseDir() );
