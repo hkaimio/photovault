@@ -306,6 +306,33 @@
             </classfileset>
         </testng>         
     </target>
+
+    <!-- Profile single test case in Netbeans-->
+    <target name="testng.profile.single" depends="dist" description="Profile in Netbeans profiler">
+        <fail unless="netbeans.home">This target can only run inside the NetBeans IDE.</fail>
+        <taskdef  resource="testngtasks" classpath="lib/testng.jar"/>
+        <!-- Start the profiler & waint for Java VM -->
+        <nbprofiledirect>
+            <classpath refid="project.class.path"/>
+        </nbprofiledirect>
+        <!-- Start application. Use basically the same command as for running the application -->
+        <testng outputDir="${reports.test}/testresults"
+                haltOnFailure="true" verbose="2">
+            <jvmarg value="${run.jvmargs}"/>
+            <jvmarg value="-Dbasedir=${basedir}"/>
+            <jvmarg value="${profiler.info.jvmargs.agent}"/>
+            
+            <classpath>
+                <path refid="project.class.path"/>
+                <pathelement location="${build.dir}"/>
+                <pathelement location="${conf.dir}"/>
+            </classpath>
+            
+            <classfileset dir="build"> 
+                <include name="${selected_file}.class"/>
+            </classfileset>
+        </testng>         
+    </target>   
     
     <target name="test" depends="dist" description="Run JUnit tests">
       <delete dir="./${reports.test}/testresults"/>
