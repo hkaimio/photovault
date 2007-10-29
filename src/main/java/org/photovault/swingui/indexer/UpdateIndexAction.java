@@ -26,10 +26,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
-import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import org.hibernate.Session;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.VolumeBase;
 import org.photovault.imginfo.VolumeDAO;
@@ -41,6 +41,7 @@ import org.photovault.swingui.Photovault;
 import org.photovault.swingui.StatusChangeEvent;
 import org.photovault.swingui.StatusChangeListener;
 import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DataAccessAction;
 import org.photovault.swingui.framework.DefaultAction;
 import org.photovault.swingui.taskscheduler.TaskPriority;
 import org.photovault.swingui.taskscheduler.BackgroundTaskListener;
@@ -83,7 +84,9 @@ public class UpdateIndexAction extends DefaultAction implements BackgroundTaskLi
      * Starts the index updating process. After calling this function the action 
      * will stay disabled as long as the opeation is in progress.
      */
-    public void actionPerformed(ActionEvent actionEvent) {
+    @Override
+    public void actionPerformed( ActionEvent actionEvent ) {
+
         /*
          * Get a list of external volumes
          */
@@ -225,7 +228,9 @@ public class UpdateIndexAction extends DefaultAction implements BackgroundTaskLi
      @param task The IndexFileTask that was executed
      */
     public void taskExecuted( TaskProducer producer, BackgroundTask task ) {
-        fileIndexed( (BackgroundIndexer) producer, (IndexFileTask) task );
+        if ( task instanceof IndexFileTask ) {
+            fileIndexed( (BackgroundIndexer) producer, (IndexFileTask) task );
+        }
     }
 
     /**

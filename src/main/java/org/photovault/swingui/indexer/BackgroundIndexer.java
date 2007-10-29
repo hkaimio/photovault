@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.LinkedList;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ExternalVolume;
+import org.photovault.imginfo.indexer.DirTreeIndexerTask;
 import org.photovault.imginfo.indexer.DirectoryIndexer;
 import org.photovault.taskscheduler.BackgroundTask;
 import org.photovault.taskscheduler.TaskProducer;
@@ -47,18 +48,19 @@ public class BackgroundIndexer implements TaskProducer {
     /**
      If <code>true</code> index als subdirectories of dir.
      */
-    private boolean indexSubdirs;
+    private boolean indexSubdirs = false;
     
     /**
      Indexers for non-indexed subdirectories
      */
-    LinkedList<DirectoryIndexer> indexers =
-            new LinkedList<DirectoryIndexer>(  );
+    LinkedList<DirectoryIndexer> indexers = null;
     
     /**
      Currently active directory indexer
      */
     DirectoryIndexer currentIndexer = null;
+    
+    DirTreeIndexerTask treeIndexer = null;
 
      /**
      Create a new BackgroundIndexer.
@@ -72,25 +74,57 @@ public class BackgroundIndexer implements TaskProducer {
         this.dir = dir;
         this.vol = vol;
         this.topFolder = folder;
-        this.indexSubdirs = indexSubdirs;
-        currentIndexer = new DirectoryIndexer( dir, folder, vol );
+        setCurrentIndexer( new DirectoryIndexer( dir, folder, vol ) );
     }
 
+    /**
+     Start indexing using a new DirectoryIndexer. If idnexSubdirs is <code>true
+     </code>, schedule also indexers for each subdirectory of directory associated
+     with i.
+     @param i The new indexer to use.
+     */
+    private void setCurrentIndexer( DirectoryIndexer i ) {
+        currentIndexer = i;
+        if ( indexSubdirs ) {
+            for ( DirectoryIndexer childIndexer : currentIndexer.getSubdirIndexers() ) {
+                indexers.addFirst( childIndexer );
+            }
+        }
+    }
+    
     /**
      Give a new task to task scheduler
      @return New IndexFileTask of <code>null</code> if the indexing is complete.
      */
     public BackgroundTask requestTask( ) {
-        BackgroundTask task = currentIndexer.getNextFileIndexer(  );
-        if ( task != null ) {
-            return task;
+        if ( indexers == null ) {
+            // We are not yet initialized
+            if ( treeIndexer == null ) {
+                /*
+                 We have not even started to inizialize, start by analyzing the
+                 directory tree structure
+                 */
+                treeIndexer = new DirTreeIndexerTask( dir, topFolder, vol, true );
+                return treeIndexer;
+            } else {
+                /*
+                 Yep, the tree has been analyzed, continue with 
+                 indexing the files.
+                 */
+                indexers = treeIndexer.getDirIndexers();
+                treeIndexer = null;
+            }
+        }
+        
+        if ( currentIndexer != null ) {
+            BackgroundTask task = currentIndexer.getNextFileIndexer();
+            if ( task != null ) {
+                return task;
+            }
         }
 
-        if ( indexSubdirs && indexers.size() > 0 ) {
-            currentIndexer = indexers.removeFirst(  );
-            for ( DirectoryIndexer childIndexer : currentIndexer.getSubdirIndexers(  ) ) {
-                indexers.addFirst( childIndexer );
-            }
+        if ( indexers.size() > 0 ) {
+            setCurrentIndexer( indexers.removeFirst(  ) );
         } else {
             currentIndexer = null;
         }

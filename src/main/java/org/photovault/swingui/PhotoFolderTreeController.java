@@ -9,6 +9,8 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import org.hibernate.Session;
 import org.photovault.command.CommandException;
+import org.photovault.command.CommandExecutedEvent;
+import org.photovault.command.DataAccessCommand;
 import org.photovault.folder.ChangePhotoFolderCommand;
 import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.folder.DeletePhotoFolderCommand;
@@ -43,7 +45,7 @@ public class PhotoFolderTreeController extends PersistenceController implements 
         model.setController( this );
         
         folderTree = new PhotoFolderTree(this);
-        
+
         registerAction( PhotoFolderTree.FOLDER_NEW_CMD, new DataAccessAction() {
             public void actionPerformed(ActionEvent actionEvent, Session currentSession) {
                 if (selected != null) {
@@ -137,6 +139,19 @@ public class PhotoFolderTreeController extends PersistenceController implements 
             }
         });
         
+        registerEventListener( CommandExecutedEvent.class, new DefaultEventListener<DataAccessCommand>() {
+            public void handleEvent(DefaultEvent<DataAccessCommand> event) {
+                DataAccessCommand cmd = event.getPayload();
+                if ( cmd instanceof CreatePhotoFolderCommand ) {
+                    folderCreateCommandExecuted( (CreatePhotoFolderCommand)cmd );
+                } else if ( cmd instanceof DeletePhotoFolderCommand ) {
+                    folderDeleteCommandExecuted( (DeletePhotoFolderCommand)cmd );
+                } else if ( cmd instanceof ChangePhotoFolderCommand ) {
+                    folderChangeCommandExecuted( (ChangePhotoFolderCommand)cmd );
+                } 
+            }
+        });
+        
         this.registerEventListener( PhotoFolderModifiedEvent.class, new DefaultEventListener<PhotoFolder>() {
             public void handleEvent( DefaultEvent<PhotoFolder> evt ) {
                 // Merge changes to current persistence context
@@ -146,7 +161,37 @@ public class PhotoFolderTreeController extends PersistenceController implements 
             }
         });
     }
-    
+
+    /**
+     Callback that is called when folder has been changed
+     @param cmd The command that changed the folder
+     */
+    private void folderChangeCommandExecuted( ChangePhotoFolderCommand cmd ) {
+        PhotoFolder mergedFolder = 
+                (PhotoFolder) getPersistenceContext().merge( cmd.getChangedFolder() );
+        model.structureChanged( new PhotoFolderEvent( mergedFolder, mergedFolder, null ) );
+    }
+
+    /**
+     Callback that is called when new folder has been created
+     @param cmd The command that created the folder
+     */
+    private void folderCreateCommandExecuted( CreatePhotoFolderCommand cmd  ) {
+        PhotoFolder mergedFolder = 
+                (PhotoFolder) getPersistenceContext().merge( cmd.getCreatedFolder() );
+        model.structureChanged( new PhotoFolderEvent( mergedFolder, mergedFolder.getParentFolder(), null ) );
+    }
+
+    /**
+     Callback that is called when folder has been deleted
+     @param cmd The command that deleted the folder
+     */
+    private void folderDeleteCommandExecuted( DeletePhotoFolderCommand cmd  ) {
+        PhotoFolder mergedFolder = 
+                (PhotoFolder) getPersistenceContext().merge( cmd.getParentFolder() );
+        model.structureChanged( new PhotoFolderEvent( mergedFolder, mergedFolder, null ) );
+    }
+
     /**
      Returns the currently selected PhotoFolder or <code>null</code> if none is selected.
      */

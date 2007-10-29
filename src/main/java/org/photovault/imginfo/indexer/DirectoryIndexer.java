@@ -62,6 +62,12 @@ public class DirectoryIndexer {
     private HashMap<Integer, Integer> photoInstanceCounts;
     
     /**
+     Ids of photos found during indexing that were not previously 
+     members of corresponding folder.
+     */
+    private Set<Integer> newPhotos = new HashSet<Integer>();
+    
+    /**
      UUIDs of those folders that were not found in the volume (i.e. the corresponding
      directories were deleted or moved.
      */
@@ -274,6 +280,18 @@ public class DirectoryIndexer {
      */
     synchronized void fileIndexerCompleted( IndexFileTask fileIndexer ) {
         filesLeft--;
+        // Keep track of the files we have found
+        int previousCount = 0;        
+        for ( PhotoInfo p : fileIndexer.getPhotosFound() ) {
+            if ( photoInstanceCounts.containsKey( p.getId() ) ) {
+                previousCount = photoInstanceCounts.get( p.getId() );
+            } else {
+                // The photo was not yet in this folder, add it to those that 
+                // we must add later.
+                newPhotos.add( p.getId() );
+            }
+            photoInstanceCounts.put( p.getId(), previousCount+1 );
+        }
         if ( filesLeft == 0 ) {
             allFilesIndexed();
         }
@@ -307,6 +325,17 @@ public class DirectoryIndexer {
             } catch (CommandException ex) {
                 ex.printStackTrace();
             }
+        }
+        if ( newPhotos.size() > 0 ) {
+            ChangePhotoInfoCommand addToFolderCmd = new ChangePhotoInfoCommand( newPhotos );
+            addToFolderCmd.addToFolder( folder );
+            try {
+                log.debug( "Deleting unseen photos" );
+                commandHandler.executeCommand( addToFolderCmd );
+            } catch (CommandException ex) {
+                ex.printStackTrace();
+            }
+            
         }
     }
     

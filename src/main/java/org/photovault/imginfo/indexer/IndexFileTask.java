@@ -22,6 +22,7 @@ package org.photovault.imginfo.indexer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.logging.Log;
@@ -95,6 +96,11 @@ public class IndexFileTask extends BackgroundTask {
     private IndexingResult result;
     
     /**
+     Photos that were found during the indexing operation
+     */
+    private Set<PhotoInfo> photosFound = new HashSet<PhotoInfo>();
+    
+    /**
      Get the result of idnexing operation
      */
     public IndexingResult getResult() {
@@ -118,7 +124,14 @@ public class IndexFileTask extends BackgroundTask {
         return ifile;
     }
     
-    
+    /**
+     Get the photos associated with the indexed file
+     @return Detached instances of the photos that are associated with this 
+     file or empty set if there are none or the task has not yet been executed
+     */
+    public Set<PhotoInfo> getPhotosFound() {
+        return photosFound;
+    }
     
     /**
      MD5 hash of the file
@@ -155,7 +168,7 @@ public class IndexFileTask extends BackgroundTask {
             dirIndexer.fileIndexerCompleted( this );
         }
     }
-    
+
     /**
      Run the actual idnexing operation (called by run())
      */
@@ -192,11 +205,10 @@ public class IndexFileTask extends BackgroundTask {
             
             // There is an existing instance, check whether the data matches
             if ( matchesFile ) {
-                // TODO: return the immge file
-//                PhotoInfo photo = oldInstance.getPhoto();
                 log.debug( "File is consistent with DB" );
                 result = IndexingResult.UNCHANGED;
-                return;                
+                updatePhotosFound();
+                return;
             } else {
                 ModifyImageFileCommand deleteCmd = new ModifyImageFileCommand( ifile  );
                 deleteCmd.removeLocation( fileLoc );
@@ -251,21 +263,8 @@ public class IndexFileTask extends BackgroundTask {
             }
             // Add all photos associated with this image to current folder
             ifile = ifDAO.findById( cmd.getImageFile().getId(), false );
-            ImageDescriptorBase img = ifile.getImage( "image#0" );
-            OriginalImageDescriptor origImage =
-                    (img instanceof OriginalImageDescriptor)
-                    ? (OriginalImageDescriptor) img
-                    : ((CopyImageDescriptor) img).getOriginal(  );
-            Set<PhotoInfo> photos = origImage.getPhotos(  );
-            List<Integer> photoIds = new ArrayList<Integer>(  );
-            for ( PhotoInfo p : photos ) {
-                photoIds.add( p.getId(  ) );
-            }
-
-            ChangePhotoInfoCommand addFolderCmd =
-                    new ChangePhotoInfoCommand( photoIds );
-            addFolderCmd.addToFolder( folder );
-            cmdHandler.executeCommand( addFolderCmd );
+            updatePhotosFound();
+            addPhotosToFolder(  );
         } catch ( CommandException ex ) {
             log.warn( "Exception in modifyImageFileCommand: " + ex.getMessage() );
             result = IndexingResult.NOT_IMAGE;
@@ -287,4 +286,34 @@ public class IndexFileTask extends BackgroundTask {
         cmd.setLowQualityAllowed( true );
         cmdHandler.executeCommand( cmd );
     }    
+
+    private void updatePhotosFound() {
+        ImageDescriptorBase img = ifile.getImage( "image#0" );
+        OriginalImageDescriptor origImage = 
+                (img instanceof OriginalImageDescriptor) ? 
+                    (OriginalImageDescriptor) img : 
+                    ((CopyImageDescriptor) img).getOriginal();
+        photosFound.addAll( origImage.getPhotos() );
+    }
+    
+    /**
+     Add the found photos to folder.
+    
+     @throws org.photovault.command.CommandException
+     */
+    private void addPhotosToFolder() throws CommandException {
+        ImageDescriptorBase img = ifile.getImage( "image#0" );
+        OriginalImageDescriptor origImage = 
+                (img instanceof OriginalImageDescriptor) ? 
+                    (OriginalImageDescriptor) img : 
+                    ((CopyImageDescriptor) img).getOriginal();
+        Set<PhotoInfo> photos = origImage.getPhotos();
+        List<Integer> photoIds = new ArrayList<Integer>();
+        for ( PhotoInfo p : photos ) {
+            photoIds.add( p.getId() );
+        }
+        ChangePhotoInfoCommand addFolderCmd = new ChangePhotoInfoCommand( photoIds );
+        addFolderCmd.addToFolder( folder );
+        cmdHandler.executeCommand( addFolderCmd );
+    }
 }
