@@ -252,4 +252,13 @@ public class SchemaUpdateAction {
             ex.printStackTrace();
         }
     }
+    
+    /**
+     Add {@link ExternalDir} to folders that correspond to an external volume 
+     directory
+     @param session
+     */
+    private void upgrade12( Session session ) {
+        throw new UnsupportedOperationException( "Not yet implemented" );
+    }
 }

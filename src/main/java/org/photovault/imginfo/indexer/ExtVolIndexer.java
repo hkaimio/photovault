@@ -44,6 +44,7 @@ import org.photovault.imginfo.Volume;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.taskscheduler.BackgroundTask;
 
 /**
  ExtVolIndexer implements a background task for indexing all files in an
@@ -209,7 +210,7 @@ public class ExtVolIndexer implements Runnable {
      @param endPercent See above.     
     */
     private void indexDirectory( DirectoryIndexer indexer, int startPercent, int endPercent ) {
-        IndexFileTask fileTask = null;
+        BackgroundTask fileTask = null;
         indexer.setCommandHandler( (PhotovaultCommandHandler) commandHandler );
         int subdirCount = indexer.getSubdirIndexers().size();
         while ( (fileTask = indexer.getNextFileIndexer(  )) != null ) {
@@ -222,7 +223,7 @@ public class ExtVolIndexer implements Runnable {
             fileTask.run(  );
             ExtVolIndexerEvent ev =
                     new ExtVolIndexerEvent( this );
-            switch ( fileTask.getResult(  ) ) {
+            switch ( ((IndexFileTask)fileTask).getResult(  ) ) {
                 case NEW_FILE:
                     ev.setResult( ExtVolIndexerEvent.RESULT_NEW_PHOTO );
                     newInstanceCount++;

@@ -161,6 +161,30 @@ public class PhotoFolder implements PhotoCollection {
 	return creationDate != null ? (Date) creationDate.clone()  : null;
     }
 
+    /**
+     External directory that is synchronized with this folder or 
+     <code>null</code>
+     */
+    ExternalDir extDir = null;
+    
+    /**
+     Get the external directory that is synchronized with this folder
+     @return The external directory or <code>null</code> if no such directory 
+     exists.
+     */
+    @Embedded
+    public ExternalDir getExternalDir() {
+        return extDir;
+    }
+    
+    /**
+     Set the external directory that is synchronized with this folder
+     @param dir The external directory
+     */
+    public void setExternalDir( ExternalDir dir ) {
+        extDir = dir;
+    }
+    
     // Implementation of PhotoCollection interface
 
     Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
@@ -176,6 +200,7 @@ public class PhotoFolder implements PhotoCollection {
         return photos;
     }
     
+              
     /**
      Query for photos in this folder
      @param session The session in which the query is executed

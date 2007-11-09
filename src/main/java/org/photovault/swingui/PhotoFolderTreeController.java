@@ -7,6 +7,8 @@ import javax.swing.JOptionPane;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.photovault.command.CommandException;
 import org.photovault.command.CommandExecutedEvent;
@@ -28,6 +30,7 @@ import org.photovault.swingui.framework.PersistenceController;
 
 public class PhotoFolderTreeController extends PersistenceController implements TreeSelectionListener
 {
+    static Log log = LogFactory.getLog( PhotoFolderTreeController.class.getName() );
     public PhotoFolderTree folderTree = null;
     PhotoFolderTreeModel model = null;
     PhotoFolder selected = null;
@@ -217,6 +220,6 @@ public class PhotoFolderTreeController extends PersistenceController implements 
     public void valueChanged(TreeSelectionEvent e) {
         selected = (PhotoFolder) folderTree.tree.getLastSelectedPathComponent();
         fireEvent( new PhotoFolderTreeEvent(this, selected) );
-    }        
+    }
 
 }

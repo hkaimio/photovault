@@ -306,6 +306,8 @@
       <column name="collection_desc" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
       <column name="create_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
       <column name="last_modified" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
+      <column name="extvol_uuid" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>
+      <column name="extvol_path" primaryKey="false" required="false" type="VARCHAR" size="255" autoIncrement="false"/>
       
       <!-- Columns for reserved for future use -->
       <column name="collection_string1" primaryKey="false" required="false" type="VARCHAR" size="50" autoIncrement="false"/>

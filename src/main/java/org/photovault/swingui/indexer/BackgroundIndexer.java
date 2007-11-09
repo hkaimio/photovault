@@ -26,7 +26,7 @@ import org.photovault.taskscheduler.BackgroundTask;
 import org.photovault.taskscheduler.TaskProducer;
 
 /**
- Indexer that can (re)index an external volume of part of it in background thread.
+ Indexer that can (re)index an external volume or part of it in background thread.
  The class acts as a task producer and creates {@link IndexFileTask} objects
  for all the files in the directory.
  
@@ -74,22 +74,6 @@ public class BackgroundIndexer implements TaskProducer {
         this.dir = dir;
         this.vol = vol;
         this.topFolder = folder;
-        setCurrentIndexer( new DirectoryIndexer( dir, folder, vol ) );
-    }
-
-    /**
-     Start indexing using a new DirectoryIndexer. If idnexSubdirs is <code>true
-     </code>, schedule also indexers for each subdirectory of directory associated
-     with i.
-     @param i The new indexer to use.
-     */
-    private void setCurrentIndexer( DirectoryIndexer i ) {
-        currentIndexer = i;
-        if ( indexSubdirs ) {
-            for ( DirectoryIndexer childIndexer : currentIndexer.getSubdirIndexers() ) {
-                indexers.addFirst( childIndexer );
-            }
-        }
     }
     
     /**
@@ -124,7 +108,7 @@ public class BackgroundIndexer implements TaskProducer {
         }
 
         if ( indexers.size() > 0 ) {
-            setCurrentIndexer( indexers.removeFirst(  ) );
+            currentIndexer =  indexers.removeFirst(  );
         } else {
             currentIndexer = null;
         }

@@ -31,7 +31,9 @@ import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
 import org.photovault.command.CommandException;
+import org.photovault.command.CommandHandler;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.folder.DeletePhotoFolderCommand;
@@ -39,7 +41,9 @@ import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.swingui.Photovault;
+import org.photovault.taskscheduler.BackgroundTask;
 
 /**
  This class keeps track of state when indexing a directory that belongs to an
@@ -93,6 +97,11 @@ public class DirectoryIndexer {
      Has this indexer been initialized
      */
     boolean isInitialized = false;
+
+    /**
+     True if the indexing operation has been finalized, false otherwise
+     */
+    private boolean isFinalized = false;
     
     /**
      PhotoFolder that corresponds to this directory
@@ -112,8 +121,7 @@ public class DirectoryIndexer {
      Command handler used to execute commands for changing the folder hierarchy
      @todo This cause currently an illegal dependency to swingui!!!
      */
-    PhotovaultCommandHandler commandHandler = 
-            (PhotovaultCommandHandler) Photovault.getInstance().getCommandHandler();
+    PhotovaultCommandHandler commandHandler = null;
     
     /**
      Count of files that have not yet been indexed.
@@ -149,15 +157,22 @@ public class DirectoryIndexer {
     public void setCommandHandler( PhotovaultCommandHandler ch ) {
         commandHandler = ch;
     }
-    
+        
     /**
      Get indexer for next unindexed file in this directory
      @return Indexer for file or <code>null</code> if indexers have been created
      for all files.
      */
-    public IndexFileTask getNextFileIndexer( ) {
+    public BackgroundTask getNextFileIndexer( ) {
         if ( !isInitialized ) {
-            initialize(  );
+            return new BackgroundTask() {
+
+                @Override
+                public void run() {
+                    initialize( cmdHandler );
+                }
+
+            };
         }
         while ( fileIter.hasNext(  ) ) {
             File f = fileIter.next(  );
@@ -167,16 +182,34 @@ public class DirectoryIndexer {
                 return t;
             }
         }
+        
+        // No files left, complete indexing if it has not been done
+        
+        if ( !isFinalized ) {
+            isFinalized = true;
+            return new BackgroundTask() {
+
+                @Override
+                public void run() {
+                    allFilesIndexed( cmdHandler );
+                }
+                
+            };
+        }
+        
+        // everything has been done, we can quit.
         return null;
     }
     
     /**
      Get indexers for each subdirectory of this directory
      @return list of indexers for each subdirectory of this one.
+     @deprecated This method is deprecated, as DirectoryIndexer should be accessed
+     only from background job scheduler.
      */
     public List<DirectoryIndexer> getSubdirIndexers() {
         if ( !isInitialized ) {
-            initialize();
+            initialize( commandHandler );
         }
         return subdirIndexers;
     }
@@ -199,7 +232,7 @@ public class DirectoryIndexer {
      delete subfodlers that do not have matching directory and add subfolders 
      for new directories.
      */
-    private void initialize() {
+    private void initialize( CommandHandler cmdHandler ) {
         /**
          Maintain information how many instances for the photos that were previously 
          added to the folder is found
@@ -207,6 +240,9 @@ public class DirectoryIndexer {
         photoInstanceCounts = new HashMap<Integer,Integer>();
         foldersNotFound = new HashSet<UUID>();
         if ( folder != null ) {
+            folder = 
+                    (PhotoFolder) HibernateUtil.getSessionFactory().getCurrentSession().
+                    get(PhotoFolder.class, folder.getFolderId() );
             for ( PhotoInfo photo : folder.getPhotos() ) {
                 photoInstanceCounts.put( photo.getId(), new Integer( 0 ) );
             }
@@ -248,7 +284,7 @@ public class DirectoryIndexer {
                             new CreatePhotoFolderCommand( folder, folderName,
                             "imported from " + subdir.getAbsolutePath() );
                     try {
-                        commandHandler.executeCommand( createFolder );
+                        cmdHandler.executeCommand( createFolder );
                     } catch (CommandException ex) {
                         ex.printStackTrace();
                     }
@@ -266,7 +302,7 @@ public class DirectoryIndexer {
             try {
                 DeletePhotoFolderCommand deleteCmd =
                         new DeletePhotoFolderCommand( folderId );
-                commandHandler.executeCommand( deleteCmd );
+                cmdHandler.executeCommand( deleteCmd );
             } catch ( CommandException ex ) {
                 log.error( "Error while deleting folder: " + ex.getMessage() );
             }
@@ -292,9 +328,9 @@ public class DirectoryIndexer {
             }
             photoInstanceCounts.put( p.getId(), previousCount+1 );
         }
-        if ( filesLeft == 0 ) {
-            allFilesIndexed();
-        }
+//        if ( filesLeft == 0 ) {
+//            allFilesIndexed();
+//        }
 
     }
 
@@ -303,7 +339,7 @@ public class DirectoryIndexer {
      Called after all file indexers have been executed. Remove photos that were 
      not found.
      */
-    private void allFilesIndexed() {
+    private void allFilesIndexed( CommandHandler cmdHandler ) {
         /*
          Check if some of the photos that were in folder before were not found in 
          this directory
@@ -321,7 +357,7 @@ public class DirectoryIndexer {
             removeFromFolderCmd.removeFromFolder( folder );
             try {
                 log.debug( "Deleting unseen photos" );
-                commandHandler.executeCommand( removeFromFolderCmd );
+                cmdHandler.executeCommand( removeFromFolderCmd );
             } catch (CommandException ex) {
                 ex.printStackTrace();
             }
@@ -331,7 +367,7 @@ public class DirectoryIndexer {
             addToFolderCmd.addToFolder( folder );
             try {
                 log.debug( "Deleting unseen photos" );
-                commandHandler.executeCommand( addToFolderCmd );
+                cmdHandler.executeCommand( addToFolderCmd );
             } catch (CommandException ex) {
                 ex.printStackTrace();
             }

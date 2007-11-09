@@ -24,9 +24,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
+import org.photovault.folder.ChangePhotoFolderCommand;
 import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.folder.DeletePhotoFolderCommand;
 import org.photovault.folder.PhotoFolder;
@@ -79,6 +82,16 @@ public class DirTreeIndexerTask extends BackgroundTask {
      */
     @Override
     public void run() {
+        if ( topFolder.getExternalDir() == null ) {
+            try {
+                ChangePhotoFolderCommand cmd = new ChangePhotoFolderCommand( topFolder );
+                cmd.setExtDir( vol, "" );
+                cmdHandler.executeCommand( cmd );
+                topFolder = (PhotoFolder) session.merge( cmd.getChangedFolder() );
+            } catch ( CommandException ex ) {
+                log.error( "Error associating top folder with directory: ", ex );
+            }
+        }
         indexDirectory( topDir, topFolder );
         
     }
@@ -112,6 +125,14 @@ public class DirTreeIndexerTask extends BackgroundTask {
                     try {
                         CreatePhotoFolderCommand cmd = 
                                 new CreatePhotoFolderCommand( folder, d.getName(), "" );
+                        StringBuffer pathBuf = 
+                                new StringBuffer( folder.getExternalDir().getPath() );
+                        if ( pathBuf.length() > 0 ) {
+                            pathBuf.append( "/" );
+                        }
+                        pathBuf.append( d.getName() );
+                        cmd.setExtDir( folder.getExternalDir().getVolume(), 
+                                pathBuf.toString() );
                         cmdHandler.executeCommand( cmd );
                         f = (PhotoFolder) session.merge( cmd.getCreatedFolder() );
                         newFolderCount++;

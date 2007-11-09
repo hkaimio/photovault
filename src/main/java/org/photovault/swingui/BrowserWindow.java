@@ -32,6 +32,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.ShootingDateComparator;
@@ -42,6 +43,7 @@ import org.photovault.swingui.framework.DefaultAction;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
 import org.photovault.swingui.indexer.BackgroundIndexer;
+import org.photovault.swingui.indexer.CurrentFolderIndexer;
 import org.photovault.swingui.indexer.IndexerFileChooser;
 import org.photovault.swingui.indexer.UpdateIndexAction;
 import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
@@ -54,6 +56,13 @@ public class BrowserWindow extends AbstractController {
     JFrame window;
     
     PhotoViewController viewCtrl = null;
+    
+    /**
+     Indexer job that updates the currently displayed external folder to match
+     file system state.
+     */
+    CurrentFolderIndexer folderIndexer = null;
+    
     public BrowserWindow( AbstractController parent ) {
         this( parent, null );
     }
@@ -65,6 +74,9 @@ public class BrowserWindow extends AbstractController {
     public BrowserWindow( AbstractController parent, final List<PhotoInfo> initialPhotos ) {
         super( parent );
         window = new JFrame( "Photovault Browser");
+        folderIndexer = new CurrentFolderIndexer(
+                Photovault.getInstance().getTaskScheduler(), 
+                (PhotovaultCommandHandler) getCommandHandler() );
         createUI( null );
         if ( initialPhotos != null ) {
             viewPane.setPhotos( initialPhotos );
@@ -127,6 +139,9 @@ public class BrowserWindow extends AbstractController {
                 PhotoFolder f = event.getPayload();
                 if ( f != null ) {
                     viewCtrl.setCollection( f );
+                    if ( f.getExternalDir() != null ) {
+                        folderIndexer.updateFolder( f );
+                    }
                 }
             }            
         });

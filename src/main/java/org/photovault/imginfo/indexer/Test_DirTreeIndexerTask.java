@@ -27,6 +27,7 @@ import org.hibernate.context.ManagedSessionContext;
 import org.photovault.command.CommandException;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.folder.CreatePhotoFolderCommand;
+import org.photovault.folder.ExternalDir;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.ExternalVolume;
@@ -102,8 +103,14 @@ public class Test_DirTreeIndexerTask extends PhotovaultTestCase {
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
         topFolder = folderDAO.findById( topFolder.getFolderId(), false );
         assertEquals( 1, topFolder.getSubfolders().size() );
+        ExternalDir topDirDesc = topFolder.getExternalDir();
+        assertEquals( vol.getId(), topDirDesc.getVolume().getId() );
+        assertEquals( "", topDirDesc.getPath() );
         PhotoFolder subfolder = topFolder.getSubfolders().iterator().next();
         assertEquals( 19, subfolder.getSubfolders().size() );
+        ExternalDir subdirDesc = subfolder.getExternalDir();
+        assertEquals( vol.getId(), subdirDesc.getVolume().getId() );
+        assertEquals( subfolder.getName(), subdirDesc.getPath() );        
     }
     
     @Test(dependsOnMethods={"testDirTreeSync"})

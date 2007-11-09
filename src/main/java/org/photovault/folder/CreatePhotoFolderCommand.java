@@ -22,6 +22,7 @@ package org.photovault.folder;
 
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
+import org.photovault.imginfo.ExternalVolume;
 
 /**
   Command for creating a new {@link PhotoFolder}.
@@ -31,6 +32,7 @@ public class CreatePhotoFolderCommand extends DataAccessCommand {
     String name = null;
     String description = null;
     PhotoFolder createdFolder = null;
+    private ExternalDir extDir;
     
     /** 
      Creates a new instance of CreatePhotoFolderCommand 
@@ -47,6 +49,15 @@ public class CreatePhotoFolderCommand extends DataAccessCommand {
 
     }
 
+    /**
+     Set the external directory associated with this folder
+     @param vol Extenral volume
+     @param path relative path from volume root to the directory
+     */
+    public void setExtDir( ExternalVolume vol, String path ) {
+        this.extDir = new ExternalDir( vol, path );
+    }
+    
     public void execute() throws CommandException {
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
         PhotoFolder parent = null;
@@ -55,6 +66,9 @@ public class CreatePhotoFolderCommand extends DataAccessCommand {
         }
         PhotoFolder newFolder = PhotoFolder.create( name, null );
         newFolder.setDescription( description );
+        if ( extDir != null ) {
+            newFolder.setExternalDir( extDir );
+        }
         createdFolder = folderDAO.makePersistent( newFolder );
         newFolder.reparentFolder( parent );
     }

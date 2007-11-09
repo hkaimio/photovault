@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
+import org.photovault.imginfo.ExternalVolume;
 import org.photovault.persistence.HibernateUtil;
 
 /**
@@ -53,7 +54,8 @@ public class ChangePhotoFolderCommand extends DataAccessCommand {
     enum PhotoFolderFields {
         NAME,
         DESCRIPTION,
-        PARENT
+        PARENT,
+        EXTDIR
     }
     
     /** 
@@ -106,6 +108,15 @@ public class ChangePhotoFolderCommand extends DataAccessCommand {
         changedFields.put( PhotoFolderFields.PARENT, parent );
     }
     
+    /**
+     Set the external directory associated with this folder
+     @param vol Extenral volume
+     @param path relative path from volume root to the directory
+     */
+    public void setExtDir( ExternalVolume vol, String path ) {
+        changedFields.put( PhotoFolderFields.EXTDIR, new ExternalDir( vol, path ) );
+    }
+    
     public void execute() throws CommandException {
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
         PhotoFolder f = folderDAO.findById( folder.getFolderId(), false );
@@ -123,6 +134,8 @@ public class ChangePhotoFolderCommand extends DataAccessCommand {
                             getCurrentSession().merge( (PhotoFolder) change.getValue() );
                     f.reparentFolder( parent );
                     break;
+                case EXTDIR:
+                    f.setExternalDir( (ExternalDir)change.getValue() );
             }
         }
         changedFolder = f;

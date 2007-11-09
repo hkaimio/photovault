@@ -428,5 +428,5 @@ public class PVDatabase {
      The latest schema version which should be used with this version of 
      Photovault
      */
-    static public final int CURRENT_SCHEMA_VERSION = 11;
+    static public final int CURRENT_SCHEMA_VERSION = 12;
 }
