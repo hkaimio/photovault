@@ -31,6 +31,22 @@ import java.awt.geom.*;
 import com.drew.metadata.*;
 import com.drew.metadata.exif.*;
 import com.drew.imaging.jpeg.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.TableGenerator;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import org.hibernate.Session;
 import org.odmg.*;
 import org.photovault.common.PhotovaultException;
@@ -46,7 +62,6 @@ import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
 
-import javax.persistence.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -302,8 +317,8 @@ public class PhotoInfo implements java.io.Serializable {
     
     public boolean updateFromOriginalFile() {
         ODMGXAWrapper txw = new ODMGXAWrapper();
-        ImageFile original = null;
-        File f = original.findAvailableCopy();
+        ImageFile origFile = null;
+        File f = origFile.findAvailableCopy();
         boolean success = false;
         if ( f != null ) {
             String suffix = "";
@@ -1510,6 +1525,7 @@ public class PhotoInfo implements java.io.Serializable {
      * Set the value of photographer.
      * @param v  Value to assign to photographer.
      */
+    @SuppressWarnings("static-access")
     public void setPhotographer(String  v) {
         checkStringProperty( "Photographer", v, this.PHOTOGRAPHER_LENGTH );
         this.photographer = v;
@@ -1791,7 +1807,6 @@ public class PhotoInfo implements java.io.Serializable {
      Get the current raw conversion settings.
      @return Current settings or <code>null</code> if this is not a raw image.     
      */
-    @Transient
     public RawConversionSettings getRawSettings() {
         return rawSettings;
     }
@@ -1801,15 +1816,14 @@ public class PhotoInfo implements java.io.Serializable {
      @param s The new raw conversion settings to use. The method makes a clone of 
      the object.     
      */
+    @Embedded
     public void setRawSettings( RawConversionSettings s ) {
         log.debug( "entry: setRawSettings()" );
-        RawConversionSettings settings = null;
         if ( s != null ) {
             if ( !s.equals( rawSettings ) ) {
                 invalidateThumbnail();
                 // purgeInvalidInstances();
             }
-            settings =  s.clone();
         } else {
             // s is null so this should not be raw image
             if ( rawSettings != null ) {
@@ -1818,34 +1832,8 @@ public class PhotoInfo implements java.io.Serializable {
                 // purgeInvalidInstances();                
             }
         }
-        rawSettings = settings;
+        rawSettings = s;
         log.debug( "exit: setRawSettings()" );
-    }
-    
-
-    
-    /**
-     Special getter for rawSettings for persistence frameworks. Hibernate first sets
-     the reference to associated entities and only then sets the properties of 
-     the entity. But rawSettings is immutable and really a value type so this 
-     violates the assumption in setRawSettings() function that rawSettings won't change
-     after the call, which allows Photovault to clone the objetc there.
-     @todo RawConversionSettings should be changed to value component when 
-     doing next non-backwards compatible schema change.
-     @return Current settings or <code>null</code> if this is not a raw image.     
-     */
-    @ManyToOne( cascade = CascadeType.ALL )
-    @org.hibernate.annotations.Cascade({
-               org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
-    @JoinColumn( name = "rawconv_id" )
-    // This is needed since OJB sets rawconv_id to 0 if there is none.
-    @org.hibernate.annotations.NotFound( action = org.hibernate.annotations.NotFoundAction.IGNORE )    
-    protected RawConversionSettings getRawSettingsHibernate() {
-        return rawSettings;
-    }
-    
-    protected void setRawSettingsHibernate( RawConversionSettings s ) {
-        this.rawSettings = s;
     }
 
                
@@ -2106,6 +2094,7 @@ public class PhotoInfo implements java.io.Serializable {
         }
     }
     
+    @Override
     public boolean equals( Object obj ) {
         if ( obj == null || obj.getClass() != this.getClass() ) {
             return false;
@@ -2133,6 +2122,7 @@ public class PhotoInfo implements java.io.Serializable {
                     ( p.rawSettings != null && p.rawSettings.equals( this.rawSettings ) )));
     }
     
+    @Override
     public int hashCode() {
         return uuid.hashCode();
     }

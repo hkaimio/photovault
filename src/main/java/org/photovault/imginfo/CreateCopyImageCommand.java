@@ -53,6 +53,7 @@ import org.photovault.image.PhotovaultImageFactory;
 public class CreateCopyImageCommand  extends DataAccessCommand {
     
     static Log log = LogFactory.getLog( CreateCopyImageCommand.class );
+    private PhotovaultImage img;
     
     /** 
      Creates a CreateCopyImageCommand that stores the image in a Photovault 
@@ -64,13 +65,34 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
      */
     public CreateCopyImageCommand( PhotoInfo photo, Volume vol, 
             int maxWidth, int maxHeight ) {
+        this( null, photo, vol, maxWidth, maxHeight );
+           
+    }
+
+    /**
+     Create a copy from already loaded image
+     @todo This is somewhat dangerous since it gives public access to internal
+     database structures (it is possible to give an erronneus image as a basis 
+     for a copy) However, the performance gain is too big to be wasted.
+     @param img The laoded PhotovaultImage
+     @param photo The photo from which the image is created
+     @param vol Volume the image is stored in
+     @param maxWidth Maximum width for the created image
+     @param maxHeight Maximum height for the created image     
+     */
+    public CreateCopyImageCommand( PhotovaultImage img, PhotoInfo photo, Volume vol, 
+            int maxWidth, int maxHeight ) {
+        this.img = img;
+        if ( img != null ) {
+            createFromOriginal = true;
+        }
         photoUuid = photo.getUuid();
         volumeUuid = vol.getId();
         this.setVolume(vol);
         this.setMaxWidth(maxWidth);
         this.setMaxHeight(maxHeight);
     }
-
+    
     /** 
      Creates a CreateCopyImageCommand that stores the image in a file outside of
      Photovault volume.
@@ -138,7 +160,7 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
      Operations that will be applied in the created image.
      */
     private Set<ImageOperations> operationsToApply = EnumSet.allOf( ImageOperations.class );
-    
+
     /**
      Execute the command. 
      @throws CommandException If no image suitable for using as a source can be 
@@ -151,34 +173,34 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         photo = photoDAO.findByUUID( photoUuid );
 
         
-        // Use original if possible
         Set<ImageOperations> operationsNotApplied = EnumSet.copyOf( operationsToApply );
         ImageDescriptorBase srcImageDesc = photo.getOriginal();
-        ImageFile srcImageFile = srcImageDesc.getFile();
-        File src = srcImageFile.findAvailableCopy();
-        if ( src == null && !createFromOriginal ) {
-            srcImageDesc = photo.getPreferredImage( 
-                    EnumSet.noneOf( ImageOperations.class ),
-                    operationsToApply, maxWidth, maxHeight, 
-                    Integer.MAX_VALUE, Integer.MAX_VALUE );
-            if ( srcImageDesc != null ) {
-                srcImageFile = srcImageDesc.getFile();
-                src = srcImageFile.findAvailableCopy();                
-                operationsNotApplied.removeAll( 
-                        ((CopyImageDescriptor)srcImageDesc).getAppliedOperations() );
+        // Find a suitable image for using as source if the original has not
+        // yet been loaded.
+        if ( img == null ) {
+            ImageFile srcImageFile = srcImageDesc.getFile();
+            File src = srcImageFile.findAvailableCopy();
+            if ( src == null && !createFromOriginal ) {
+                srcImageDesc = photo.getPreferredImage( EnumSet.noneOf( ImageOperations.class ),
+                        operationsToApply, maxWidth, maxHeight,
+                        Integer.MAX_VALUE, Integer.MAX_VALUE );
+                if ( srcImageDesc != null ) {
+                    srcImageFile = srcImageDesc.getFile();
+                    src = srcImageFile.findAvailableCopy();
+                    operationsNotApplied.removeAll( ((CopyImageDescriptor) srcImageDesc).getAppliedOperations() );
+                }
             }
-        }
-        if ( src == null ) {
-            throw new CommandException( "No suitable image file found" );
-        }
-        
-        // Create the image for the instance
-        PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
-        PhotovaultImage img;
-        try {
-            img = imgFactory.create(src, false, false);
-        } catch (PhotovaultException ex) {
-            throw new CommandException( ex.getMessage() );
+            if ( src == null ) {
+                throw new CommandException( "No suitable image file found" );
+            }
+
+            // Create the image for the instance
+            PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
+            try {
+                img = imgFactory.create( src, false, false );
+            } catch ( PhotovaultException ex ) {
+                throw new CommandException( ex.getMessage() );
+            }
         }
         if ( operationsNotApplied.contains( ImageOperations.CROP ) ) {
             img.setCropBounds( photo.getCropBounds() );

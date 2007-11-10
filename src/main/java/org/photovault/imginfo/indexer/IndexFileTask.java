@@ -28,7 +28,10 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
+import org.photovault.common.PhotovaultException;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.image.PhotovaultImage;
+import org.photovault.image.PhotovaultImageFactory;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.CreateCopyImageCommand;
@@ -225,7 +228,18 @@ public class IndexFileTask extends BackgroundTask {
          If we reach here, the file is new (or changed) after last indexing.
          Check first if it is a copy of an existing instance
          */
+        PhotovaultImage img = null;
+        try {
+            PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
+            img = imgFactory.create( f, false, false );
+        } catch ( PhotovaultException e ) {
+            result = IndexingResult.NOT_IMAGE;
+            return;
+        }
+        // This is an image.
+        
         if ( hash == null ) {
+            // TODO: This should be moved to PhotovaultImage
             hash = ImageFile.calcHash( f );
         }
         
@@ -245,7 +259,7 @@ public class IndexFileTask extends BackgroundTask {
             object & PhotoInfo that regards it as its original.
              */
             try {
-                cmd = new ModifyImageFileCommand( f, hash );
+                cmd = new ModifyImageFileCommand( img, hash );
                 result = IndexingResult.NEW_FILE;
             } catch ( Exception e ) {
                 result = IndexingResult.ERROR;
@@ -258,8 +272,10 @@ public class IndexFileTask extends BackgroundTask {
         try {
             cmdHandler.executeCommand( cmd );
             
+            // Copy metadata from image file to created photos and 
+            // create thumbnails
             for ( PhotoInfo p : cmd.getCreatedPhotos() ) {
-                createPreviewInstances( p, daoFactory );
+                createPreviewInstances( img, p, daoFactory );
             }
             // Add all photos associated with this image to current folder
             ifile = ifDAO.findById( cmd.getImageFile().getId(), false );
@@ -278,11 +294,12 @@ public class IndexFileTask extends BackgroundTask {
 
     /**
      Create the needed preview instances for a photo
+     @param img the loaded image that is used as a basis for preview
      @param p The photo
      */
-    private void createPreviewInstances(PhotoInfo p, DAOFactory f ) throws CommandException {        
+    private void createPreviewInstances(PhotovaultImage img, PhotoInfo p, DAOFactory f ) throws CommandException {        
         Volume vol = f.getVolumeDAO().getDefaultVolume();
-        CreateCopyImageCommand cmd = new CreateCopyImageCommand( p, vol, 100, 100 );
+        CreateCopyImageCommand cmd = new CreateCopyImageCommand( img, p, vol, 100, 100 );
         cmd.setLowQualityAllowed( true );
         cmdHandler.executeCommand( cmd );
     }    

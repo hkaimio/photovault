@@ -29,6 +29,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
+import org.photovault.dcraw.RawImage;
+import org.photovault.image.PhotovaultImage;
 
 /**
  Command for modifying an {@link ImageFile}. The only operations supported are
@@ -41,6 +43,7 @@ import org.photovault.command.DataAccessCommand;
 public class ModifyImageFileCommand extends DataAccessCommand {
     
     static private Log log = LogFactory.getLog( ModifyImageFileCommand.class );
+    private PhotovaultImage img;
     /**
      Creates a new instance of ModifyImageFileCommand that creates a new file
      based on attributes of given file
@@ -60,6 +63,12 @@ public class ModifyImageFileCommand extends DataAccessCommand {
     public ModifyImageFileCommand( File f, byte[] hash ) {
         file = f;
         this.hash = hash;
+    }
+
+    public ModifyImageFileCommand( PhotovaultImage img, byte[] hash ) {
+        file = img.getImageFile();
+        this.hash = hash;
+        this.img = img;
     }
     
     /**
@@ -90,7 +99,7 @@ public class ModifyImageFileCommand extends DataAccessCommand {
      Photos created while executing the command
      */
     List<PhotoInfo> createdPhotos = new ArrayList<PhotoInfo>();
-    
+
     public ImageFile getImageFile() {
         return imageFile;
     }
@@ -130,13 +139,35 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                 ifDAO.makePersistent( imageFile );
                 // This is a new file, create a PhotoInfo object based on the
                 // original
-                OriginalImageDescriptor img = 
+                OriginalImageDescriptor imgDesc = 
                         (OriginalImageDescriptor) imageFile.getImage( "image#0" );
-                if ( img == null ) {
+                if ( imgDesc == null ) {
                     throw new CommandException( file.getPath() + " is not an image" );
                 }
-                PhotoInfo photo = new PhotoInfo( img );
-                photo.updateFromFileMetadata( file );
+                PhotoInfo photo = new PhotoInfo( imgDesc );
+                if ( img != null ) {
+                    /**
+                     TODO: this should be implemented using 
+                     inversion of control pattern, but I don't want to create 
+                     dependency from org.photovault.image to imginfo. Try to figure 
+                     out something more maintainable.
+                     */
+                    photo.setFStop( img.getAperture() );
+                    photo.setFilmSpeed( img.getFilmSpeed() );
+                    photo.setShootTime( img.getTimestamp() );
+
+                    photo.setShutterSpeed( img.getShutterSpeed() );
+                    photo.setFocalLength( img.getFocalLength() );
+                    String camera = img.getCamera();
+                    if ( camera.length() > PhotoInfo.CAMERA_LENGTH ) {
+                        camera = camera.substring( 0, PhotoInfo.CAMERA_LENGTH );
+                    }
+                    photo.setCamera( camera );
+                    if ( img instanceof RawImage ) {
+                        photo.setRawSettings( ((RawImage)img).getRawSettings() );
+                    }
+                }
+                // photo.updateFromFileMetadata( file );
                 photoDAO.makePersistent( photo );
                 createdPhotos.add( photo );
             } catch ( Exception e ) {

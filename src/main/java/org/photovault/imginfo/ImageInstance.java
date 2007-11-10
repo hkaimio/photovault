@@ -42,6 +42,8 @@ import org.photovault.image.ColorCurve;
 
 /**
  This class abstracts a single instance of a image that is stored in a file.
+ @deprecated ImageInstance has been refactored into ImageFile, ImageDescriptor and
+ FileLocation classes and not supported anymore.
  */
 
 @Entity
@@ -895,12 +897,13 @@ public class ImageInstance implements ImageInstanceModifier {
      @return Current settings or <code>null</code> if instance was not created
      from a raw image.
      */
-    @ManyToOne( cascade = CascadeType.ALL )
-    @org.hibernate.annotations.Cascade({
-        org.hibernate.annotations.CascadeType.SAVE_UPDATE })
-    @JoinColumn( name = "rawconv_id" )
-    // In old databases (created by OJB rawconv_id can be 0 if no settings are present
-    @org.hibernate.annotations.NotFound( action = org.hibernate.annotations.NotFoundAction.IGNORE )        
+//    @ManyToOne( cascade = CascadeType.ALL )
+//    @org.hibernate.annotations.Cascade({
+//        org.hibernate.annotations.CascadeType.SAVE_UPDATE })
+//    @JoinColumn( name = "rawconv_id" )
+//    // In old databases (created by OJB rawconv_id can be 0 if no settings are present
+//    @org.hibernate.annotations.NotFound( action = org.hibernate.annotations.NotFoundAction.IGNORE )        
+    @Transient
     public RawConversionSettings getRawSettings() {
         return rawSettings;
     }

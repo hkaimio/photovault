@@ -25,6 +25,7 @@ import java.util.EnumSet;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -87,7 +88,7 @@ public class CopyImageDescriptor extends ImageDescriptorBase {
         this.rotation = rotation;
     }
 
-    @Transient
+    @Embedded
     public RawConversionSettings getRawSettings() {
         return rawSettings;
     }

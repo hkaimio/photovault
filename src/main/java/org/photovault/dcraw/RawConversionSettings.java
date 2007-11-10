@@ -18,16 +18,17 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 package org.photovault.dcraw;
-import javax.persistence.*;
+
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Transient;
 
 /**
  * Wrapper object for all settings related to raw conversion using dcraw.
  * This is an immutable object.
  * @author Harri Kaimio
  */
-@Entity
-@org.hibernate.annotations.Entity( mutable = false )
-@Table( name = "dcraw_settings" )
+@Embeddable
 public class RawConversionSettings implements Cloneable {
     
     /**
@@ -120,27 +121,10 @@ public class RawConversionSettings implements Cloneable {
     }
 
     /**
-     * Get the OJB gey for this object
-     * @return The key used in database
-     */
-    @Id
-    @GeneratedValue( generator = "rawconv_id_gen", strategy = GenerationType.TABLE )
-    @Column( name = "rawconv_id")
-    @TableGenerator( name="rawconv_id_gen", table="unique_keys", pkColumnName="id_name", 
-                     pkColumnValue="rawconv_id_gen", valueColumnName="next_val" ) 
-    public int getRawSettingId() {
-        return rawSettingId;
-    }
-    
-    protected void setRawSettingId( int id ) {
-        rawSettingId = id;
-    }
-
-    /**
      *     Get the white point
      * @return See {@link #white}
      */
-    @Column( name = "whitepoint" )
+    @Column( name = "raw_whitepoint" )
     public int getWhite() {
         return white;
     }
@@ -154,7 +138,7 @@ public class RawConversionSettings implements Cloneable {
      * 
      * @return See {@link #black}
      */
-    @Column( name = "blackpoint" ) 
+    @Column( name = "raw_blackpoint" ) 
     public int getBlack() {
         return black;
     }
@@ -168,7 +152,7 @@ public class RawConversionSettings implements Cloneable {
      *     Get exposure correction
      * @return See {@link #evCorr}
      */
-    @Column( name = "ev_corr" )
+    @Column( name = "raw_ev_corr" )
     public double getEvCorr() {
         return evCorr;
     }
@@ -181,7 +165,7 @@ public class RawConversionSettings implements Cloneable {
      * Get the highlight compression used
      * @return Number of f-stops the highlights are compressed.
      */
-    @Column( name = "hlight_corr")
+    @Column( name = "raw_hlight_corr")
     public double getHighlightCompression() {
         return hlightComp;
     }
@@ -194,7 +178,7 @@ public class RawConversionSettings implements Cloneable {
      * Get info whether to use embedded color profile
      * @return See {@link #useEmbeddedICCProfile}
      */
-    @Column( name = "embedded_profile" )
+    @Column( name = "raw_embedded_profile" )
     public boolean getUseEmbeddedICCProfile() {
         return useEmbeddedICCProfile;
     }
@@ -218,7 +202,7 @@ public class RawConversionSettings implements Cloneable {
      * @return One of {@link #WB_AUTOMATIC}, {@link #WB_MANUAL} 
      * or {@link #WB_CAMERA}
      */
-    @Column( name = "wb_type" )
+    @Column( name = "raw_wb_type" )
     public int getWhiteBalanceType() {
         return whiteBalanceType;
     }
@@ -231,7 +215,7 @@ public class RawConversionSettings implements Cloneable {
      * Get the red/green channel multiplier ratio
      * @return see {@link #redGreenRatio}
      */
-    @Column( name = "r_g_ratio" )
+    @Column( name = "raw_r_g_ratio" )
     public double getRedGreenRatio() {
         return redGreenRatio;
     }
@@ -244,7 +228,7 @@ public class RawConversionSettings implements Cloneable {
      * Get blue/green channel multiplier ratio
      * @return See {@link #blueGreenRatio}
      */
-    @Column( name = "b_g_ratio" )
+    @Column( name = "raw_b_g_ratio" )
     public double getBlueGreenRatio() {
         return blueGreenRatio;
     }
@@ -257,7 +241,7 @@ public class RawConversionSettings implements Cloneable {
      * Get daylight channel multipliers
      * @return See {@link #daylightRedGreenRatio}
      */
-    @Column( name = "dl_r_g_ratio" )
+    @Column( name = "raw_dl_r_g_ratio" )
     public double getDaylightRedGreenRatio() {
         return daylightRedGreenRatio;
     }
@@ -270,7 +254,7 @@ public class RawConversionSettings implements Cloneable {
      * Get daylight channel multipliers
      * @return See {@link #daylightBlueGreenRatio}
      */
-    @Column( name = "dl_b_g_ratio" )
+    @Column( name = "raw_dl_b_g_ratio" )
     public double getDaylightBlueGreenRatio() {
         return daylightBlueGreenRatio;
     }
@@ -439,7 +423,7 @@ public class RawConversionSettings implements Cloneable {
         RawConversionSettings s = new RawConversionSettings();
         s.daylightRedGreenRatio = daylightMult[0]/daylightMult[1];
         s.daylightBlueGreenRatio = daylightMult[2]/daylightMult[1];
-        double[] rgb = s.colorTempToRGB( colorTemp );
+        double[] rgb = RawConversionSettings.colorTempToRGB( colorTemp );
         s.redGreenRatio = (s.daylightRedGreenRatio/(rgb[0]/(rgb[1]))) / greenGain;
         s.blueGreenRatio = (s.daylightBlueGreenRatio/(rgb[2]/(rgb[1]))) / greenGain;
         s.evCorr = evCorr;
@@ -455,6 +439,7 @@ public class RawConversionSettings implements Cloneable {
      * Create a copy of this object
      * @return Copy initialized with current field values
      */
+    @Override
     public RawConversionSettings clone() {
         RawConversionSettings s;
         try {
@@ -493,6 +478,7 @@ public class RawConversionSettings implements Cloneable {
      * @param o The object to compare with
      * @return Whether the 2 objects are equal.
      */
+    @Override
     public boolean equals( Object o ) {
         if ( o instanceof RawConversionSettings ) {
             RawConversionSettings s = (RawConversionSettings) o;
@@ -512,6 +498,7 @@ public class RawConversionSettings implements Cloneable {
         }
     }
     
+    @Override
     public int hashCode() {
         return ( white + black + (int) (blueGreenRatio * 1000000.0) + 
                 (int)( redGreenRatio * 1000000.0 ) );

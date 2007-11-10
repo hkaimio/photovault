@@ -97,7 +97,15 @@ public class PhotovaultTestCase extends TestCase {
             assertEquals( p.getTimeAccuracy(), rs.getDouble( "time_accuracy" ) );
             RawConversionSettings s = p.getRawSettings();
             if ( s != null ) {
-                assertEquals( s.getRawSettingId(), rs.getInt( "rawconv_id" ) );
+                assertEquals( s.getBlack(), rs.getInt( "raw_blackpoint") );
+                assertEquals( s.getWhite(), rs.getInt("raw_whitepoint"));
+                assertEquals( s.getEvCorr(), rs.getDouble("raw_ev_corr" ) );
+                assertEquals( s.getHighlightCompression(), rs.getDouble("raw_hlight_corr"));
+                assertEquals( s.getWhiteBalanceType(), rs.getInt("raw_wb_type" ) );
+                assertEquals( s.getRedGreenRatio(), rs.getDouble("raw_r_g_ratio" ) );
+                assertEquals( s.getDaylightRedGreenRatio(), rs.getDouble("raw_dl_r_g_ratio" ) );
+                assertEquals( s.getBlueGreenRatio(), rs.getDouble("raw_b_g_ratio" ) );
+                assertEquals( s.getDaylightBlueGreenRatio(), rs.getDouble("raw_dl_b_g_ratio" ) );
             }
             
             assertTrue( "Photo not correct", p.getUid() == rs.getInt( "photo_id" ) );

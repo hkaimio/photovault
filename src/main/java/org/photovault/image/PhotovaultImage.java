@@ -27,7 +27,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
-import java.awt.image.ComponentSampleModel;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.renderable.ParameterBlock;
@@ -38,7 +37,6 @@ import java.util.Set;
 import java.util.Vector;
 import javax.media.jai.Histogram;
 import javax.media.jai.IHSColorSpace;
-import javax.media.jai.ImageLayout;
 import javax.media.jai.Interpolation;
 import javax.media.jai.InterpolationBilinear;
 import javax.media.jai.JAI;
@@ -47,16 +45,13 @@ import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedOp;
-import javax.media.jai.operator.BandCombineDescriptor;
-import javax.media.jai.operator.ConstantDescriptor;
 import javax.media.jai.operator.CropDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
-import javax.media.jai.operator.MultiplyConstDescriptor;
 import javax.media.jai.operator.OverlayDescriptor;
-import javax.media.jai.operator.RenderableDescriptor;
 import javax.media.jai.operator.ScaleDescriptor;
-import javax.media.jai.operator.TranslateDescriptor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  PhotovaultImage is a facade fro Photovault imaging pipeline. It is abstract 
@@ -64,14 +59,14 @@ import javax.media.jai.operator.TranslateDescriptor;
  */
 public abstract class PhotovaultImage {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultImage.class.getName() );
+    static private Log log = LogFactory.getLog( PhotovaultImage.class.getName() );
     
     /** Creates a new instance of PhotovaultImage */
     public PhotovaultImage() {
     }
 
     
-    File f = null;
+    protected File f = null;
 
     /**
      * Get aperture (f-stop) used when shooting the image
@@ -409,9 +404,9 @@ public abstract class PhotovaultImage {
         } else {
             satCurve.addPoint( 1.0/s, 1.0 );
         }
-        ChannelMapOperationFactory f = new ChannelMapOperationFactory( channelMap );
-        f.setChannelCurve( "saturation", satCurve );
-        channelMap = f.create();
+        ChannelMapOperationFactory cmf = new ChannelMapOperationFactory( channelMap );
+        cmf.setChannelCurve( "saturation", satCurve );
+        channelMap = cmf.create();
         // Check that this image has a color model that supports saturation change
         if ( saturatedIhsImage != null ) {
             saturatedIhsImage.setParameter( createSaturationMappingLUT() , 0 );
