@@ -38,6 +38,8 @@ import java.io.*;
 import java.util.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.dcraw.ColorProfileDesc;
+import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
@@ -126,8 +128,11 @@ public class JAIPhotoViewer extends JPanel implements
      */
     private RawConversionSettings localRawSettings = null;
     
+    /**
+     Locally applied color mapping or <code>null</code> if such one is not 
+     applied
+     */
     private ChannelMapOperation localChanMap = null;
-    
     
     /**
      Set the photo displayed in the component.
@@ -221,7 +226,8 @@ public class JAIPhotoViewer extends JPanel implements
                     }
                     if ( img instanceof RawImage ) {
                         rawImage = (RawImage) img;
-                        rawImage.setRawSettings( localRawSettings != null ? localRawSettings : photo.getRawSettings(  ) );
+                        rawImage.setRawSettings( localRawSettings != null ? 
+                            localRawSettings : photo.getRawSettings(  ) );
                         rawImage.addChangeListener( this );
                         // Check the correct resolution for this image
                         if ( isFit ) {
@@ -238,7 +244,8 @@ public class JAIPhotoViewer extends JPanel implements
                     // This is a copy, so it may be cropped already
                     appliedOps = ((CopyImageDescriptor) image).getAppliedOperations(  );
                     if ( !appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
-                        img.setColorAdjustment( localChanMap != null ? localChanMap : photo.getColorChannelMapping(  ) );
+                        img.setColorAdjustment( localChanMap != null ? 
+                            localChanMap : photo.getColorChannelMapping(  ) );
                     }
                     if ( !appliedOps.contains( ImageOperations.CROP ) ) {
                         instanceRotation = ((CopyImageDescriptor) image).getRotation(  );
@@ -248,7 +255,8 @@ public class JAIPhotoViewer extends JPanel implements
                     }
                 } else {
                     // This is original so we must apply corrections
-                    img.setColorAdjustment( localChanMap != null ? localChanMap : photo.getColorChannelMapping(  ) );
+                    img.setColorAdjustment( localChanMap != null ? 
+                        localChanMap : photo.getColorChannelMapping(  ) );
                     imageView.setRotation( photo.getPrefRotation(  )  );
                     imageView.setCrop( photo.getCropBounds(  ) );
                 }
@@ -471,7 +479,69 @@ public class JAIPhotoViewer extends JPanel implements
     public void setSaturation(double newSat) {
         imageView.setSaturation( newSat );
     }
+    
+    /**
+     Set a raw conversion parameter in displayer image
+     @param field The field that is changed
+     @param value New value for the field
+     */
+    private void setRawConvParam( PhotoInfoFields field, Object value ) {
+        dynOps.add( ImageOperations.RAW_CONVERSION );
+        if ( appliedOps.contains( ImageOperations.RAW_CONVERSION ) ) {
+            try {
+                /*
+                 Current instance has raw conversion preapplied so we cannot 
+                 use it
+                 */
+                showBestInstance();
+            } catch (PhotovaultException ex) {
+                ex.printStackTrace();
+            }
+        }
+        RawConversionSettings s = imageView.getRawSettings();
+        RawSettingsFactory f = new RawSettingsFactory( s );
+        switch ( field ) {
+        case RAW_BLACK_LEVEL:
+            f.setBlack( (Integer) value );
+            break;
+        case RAW_COLOR_PROFILE:
+            f.setColorProfile( (ColorProfileDesc) value );
+            break;
+        case RAW_CTEMP:
+            f.setColorTemp( (Double) value );
+            break;
+        case RAW_EV_CORR:
+            f.setEvCorr( (Double) value );
+            break;
+        case RAW_GREEN:
+            f.setGreenGain( (Double) value );
+            break;
+        case RAW_HLIGHT_COMP:
+            f.setHlightComp( (Double) value );
+            break;
+        case RAW_WHITE_LEVEL:
+            f.setWhite( (Integer) value );
+            break;
+        default:
+            log.error( "Unknown raw setting parameter: " + field );
+        }
+        try {
+            localRawSettings = f.create();
+            imageView.setRawSettings( localRawSettings );
+        } catch ( PhotovaultException e ) {
+            log.error( "Unexpected exception while creating raw settings: " + 
+                    e.getMessage() );
+        }
+    }
 
+    /**
+     This method is called to set value of a field in the image to new value
+     when the control is used as a preview.
+     
+     @param field The field to change
+     @param value New value for the field
+     @param refValues Reference values for the field (ignored)
+     */
     public void setField(PhotoInfoFields field, Object value, java.util.List refValues) {
         
         switch ( field ) {
@@ -490,6 +560,11 @@ public class JAIPhotoViewer extends JPanel implements
             case COLOR_CURVE_SATURATION:
                 setColorCurve( "saturation", (ColorCurve) value );
                 break;
+        default:
+            if ( PhotoInfoFields.RAW_FIELDS.contains( field ) ) {
+                setRawConvParam( field, value );
+            }
+            break;
         }
     }
     

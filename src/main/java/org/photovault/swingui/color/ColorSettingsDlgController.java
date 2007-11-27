@@ -25,17 +25,13 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Set;
 import org.hibernate.Session;
-import org.photovault.image.ColorCurve;
-import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoFields;
-import org.photovault.swingui.JAIPhotoViewer;
 import org.photovault.swingui.framework.AbstractController;
-import org.photovault.swingui.framework.PersistenceController;
 import org.photovault.swingui.selection.*;
 
 /**
-  ColorSettingsDlgCOntroller acts manages the interaction between color settings
+  ColorSettingsDlgController manages the interaction between color settings
  dialog, selected photos and preview in JAIPhotoViewer.
  
  */

@@ -35,6 +35,8 @@ import javax.media.jai.JAI;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.InterpolationBilinear;
 import javax.media.jai.widget.ScrollingImagePanel;
+import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.dcraw.RawImage;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
@@ -638,6 +640,30 @@ public class JAIPhotoView extends JPanel
             xformImage = null;
             repaint();
         }
+    }
+
+    /**
+     Set the raw settings that are used to display the image (assuming it is a 
+     raw image)
+     @param s The new raw settings.
+     */
+    void setRawSettings( RawConversionSettings s ) {
+        if ( origImage != null && origImage instanceof RawImage ) {
+            ((RawImage) origImage).setRawSettings( s );
+        }
+    }
+    
+    /**
+     Get the raw conversion settings that are currently applied to the image
+     @return The current raw conversion parameters or <code>null</code> if the 
+     image is not a raw image.
+     */
+    RawConversionSettings getRawSettings() {
+        RawConversionSettings ret = null;
+        if ( origImage != null && origImage instanceof RawImage ) {
+            ret = ((RawImage) origImage).getRawSettings();
+        }
+        return ret;
     }
     
     private double imgRot;

@@ -187,4 +187,10 @@ public enum PhotoInfoFields {
         }
         throw new IllegalArgumentException( "No support for field " + field );
     }
+    
+    /**
+     Set of all raw conversion parameter fields
+     */
+    public static final EnumSet<PhotoInfoFields> 
+            RAW_FIELDS = EnumSet.range(RAW_BLACK_LEVEL, RAW_COLOR_PROFILE );
 }

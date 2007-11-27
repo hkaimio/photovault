@@ -1,4 +1,4 @@
-/*color
+/*
   Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
@@ -20,33 +20,28 @@
 
 package org.photovault.swingui.color;
 
-import com.sun.jdori.common.query.tree.ThisExpr;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Polygon;
-import java.awt.Shape;
-import java.awt.event.ActionListener;
 import java.awt.image.ColorModel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import javax.media.jai.Histogram;
-import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawConversionSettings;
@@ -55,18 +50,14 @@ import org.photovault.dcraw.RawImageChangeEvent;
 import org.photovault.dcraw.RawImageChangeListener;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperation;
-import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.image.ImageRenderingListener;
 import org.photovault.image.PhotovaultImage;
-import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoFields;
-import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.swingui.JAIPhotoViewer;
 import org.photovault.swingui.selection.PhotoSelectionController;
-import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.PhotoViewChangeEvent;
 import org.photovault.swingui.PhotoViewChangeListener;
 import org.photovault.swingui.PreviewImageView;
@@ -82,8 +73,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         implements RawImageChangeListener, RawPhotoView, PhotoViewChangeListener, 
         PreviewImageView, ImageRenderingListener {
 
-    static org.apache.log4j.Logger log = 
-            org.apache.log4j.Logger.getLogger( ColorSettingsDlg.class.getName() );
+    private static Log log = LogFactory.getLog( ColorSettingsDlg.class.getName() );
     
     /**
      * Creates new form ColorSettingsDlg
