@@ -1808,7 +1808,7 @@ public class PhotoInfo implements java.io.Serializable {
      @return Current settings or <code>null</code> if this is not a raw image.     
      */
     public RawConversionSettings getRawSettings() {
-        return rawSettings;
+        return (rawSettings != null ) ? rawSettings.clone() : null;
     }
     
     /**
@@ -1822,7 +1822,6 @@ public class PhotoInfo implements java.io.Serializable {
         if ( s != null ) {
             if ( !s.equals( rawSettings ) ) {
                 invalidateThumbnail();
-                // purgeInvalidInstances();
             }
         } else {
             // s is null so this should not be raw image
@@ -1832,7 +1831,8 @@ public class PhotoInfo implements java.io.Serializable {
                 // purgeInvalidInstances();                
             }
         }
-        rawSettings = s;
+        rawSettings = s.clone();
+        modified();
         log.debug( "exit: setRawSettings()" );
     }
 
