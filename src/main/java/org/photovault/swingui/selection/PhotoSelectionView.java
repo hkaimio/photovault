@@ -36,6 +36,13 @@ public interface PhotoSelectionView {
     public void setField( PhotoInfoFields field, Object newValue, List refValues );
     public void setFieldMultivalued( PhotoInfoFields field, boolean isMultivalued );
     public Object getField( PhotoInfoFields field );
+
+    /**
+     * Set histogram that can be displayed for a certain color channel
+     * @param channel Name of the color channel
+     * @param histData Array of values for each histogram bin
+     */
+    public void setHistogram( String channel, int[] histData );
     
     public void setPhotographer( String newValue );
     public String getPhotographer();

@@ -283,5 +283,8 @@ public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageVie
 
     public void setField(PhotoInfoFields field, Object newValue, List refValues) {
     }
+
+    public void setHistogram( String channel, int[] histData ) {
+    }
         
 }

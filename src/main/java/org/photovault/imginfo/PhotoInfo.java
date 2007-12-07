@@ -1831,7 +1831,7 @@ public class PhotoInfo implements java.io.Serializable {
                 // purgeInvalidInstances();                
             }
         }
-        rawSettings = s.clone();
+        rawSettings = (s==null) ? null : s.clone();
         modified();
         log.debug( "exit: setRawSettings()" );
     }

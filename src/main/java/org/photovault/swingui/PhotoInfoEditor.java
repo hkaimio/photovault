@@ -793,4 +793,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 
     private PhotoSelectionController ctrl = null;
     private static final String FIELD = "FIELD";
+
+    public void setHistogram( String channel, int[] histData ) {
+    }
 }

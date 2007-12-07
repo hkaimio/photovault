@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import javax.media.jai.Histogram;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -874,40 +876,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     
     JAIPhotoViewer previewCtrl = null;
     
-    static class PhotoViewerAdapter 
-            extends PhotoInfoViewAdapter 
-            implements PhotoViewChangeListener {
-        public PhotoViewerAdapter( JAIPhotoViewer preview, PhotoSelectionController ctrl ) {
-            super( ctrl );
-            this.previewCtrl = preview;
-            preview.addViewChangeListener( this );
-        }
-        
-        JAIPhotoViewer previewCtrl;
-        
-        public void setColorChannelCurve( String name, ColorCurve c ) {
-            if ( previewCtrl != null ) {
-                previewCtrl.setColorCurve( name, c );
-            }
-        }
-        
-        public PhotovaultImage getPreviewImage() {
-            return previewCtrl.getImage();
-        }
-
-        public void photoViewChanged(PhotoViewChangeEvent e) {
-//            c.viewChanged( this, PhotoSelectionController.PREVIEW_IMAGE );
-        }
-    }
-    
-    public void setPreviewControl( JAIPhotoViewer viewer ) {
-        previewCtrl = viewer;
-        previewCtrl.addViewChangeListener( this );
-        PhotoViewerAdapter a = new PhotoViewerAdapter( previewCtrl, ctrl ); 
-        a.photoViewChanged( null );
-        reloadHistogram();
-    }
-    
     /**
      Checks if the model supports raw conversion settings and disables
      or enables controls based on this. Raw settings are only allowed if all 
@@ -984,26 +952,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         }
         colorCurveSelectionCombo.setSelectedIndex( chan );
-        int[] histData = null;
-        if ( previewImage != null ) {
-            if ( channelHistType[chan] != null ) {
-                Histogram h = previewImage.getHistogram( channelHistType[chan] );
-                if ( h != null ) {
-                    if ( channelHistBand[chan] == -1 ) {
-                    /*
-                     TODO: All histogram bands should be shown. Currently
-                     this is not supported by ColorCurvePanel. If the image is
-                     black and white, show jus thte value.
-                     */
-                        if ( h.getNumBands() < 3 ) {
-                            histData = h.getBins( 0 );
-                        }
-                    } else if ( channelHistBand[chan] < h.getNumBands() ) {
-                        histData = h.getBins( channelHistBand[chan] );
-                    }
-                }
-            }
-        }
+        int[] histData = histograms.get( colorCurveNames[chan] ); 
         colorCurvePanel1.setHistogram( histData, Color.BLACK );
     }
     
@@ -1704,6 +1653,30 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 break;
         }
     }
+
+    /**
+     * Histograms for each color channel
+     */
+    Map<String, int[]> histograms = new HashMap<String, int[]>();
+    
+    /**
+     * Set histogram displayed for a certain channel
+     * @param channel Name of the color channel
+     * @param histData Array of values for each histogram bin
+     */
+    public void setHistogram( String channel, int[] histData ) {
+        if ( histData == null ) { 
+            histograms.remove( channel );
+        } else {
+            histograms.put( channel, histData );
+        }
+        
+        if ( colorCurveNames[currentColorCurve].equals( channel ) ) {
+            showCurve( currentColorCurve );
+        }
+    }
+    
+    
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton applyBtn;
@@ -1732,5 +1705,5 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private javax.swing.JPanel rawControlsPane;
     private javax.swing.JPanel rawHistogramPane;
     // End of variables declaration//GEN-END:variables
-    
+
 }

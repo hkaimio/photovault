@@ -21,6 +21,7 @@
 package org.photovault.swingui.color;
 
 import java.util.List;
+import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoFields;
@@ -43,4 +44,12 @@ public interface ColorSettingsPreview {
      Get the photo currently shown in image viewer
      */
     public PhotoInfo getPhoto();
+    
+    /**
+     Get the currently displayed image
+     
+     @return Image currently displayed in the preview control or <code>null</code>
+     if none.
+     */
+    public PhotovaultImage getImage();
 }

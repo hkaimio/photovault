@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
+import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoFields;
@@ -136,6 +137,10 @@ public class Test_ColorSettingsDlgController extends PhotovaultTestCase {
                 new HashMap<PhotoInfoFields, Object>();
         Map<PhotoInfoFields, List> refValues = 
                 new HashMap<PhotoInfoFields, List>();
+
+        public PhotovaultImage getImage() {
+            return null;
+        }
     }
         
     
