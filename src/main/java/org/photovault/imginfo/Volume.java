@@ -56,14 +56,6 @@ public class Volume extends VolumeBase {
     public Volume( String volName, String volBaseDir ) {
         super( volName, volBaseDir );
     }
-
-    /**
-       Sets the specified directory as the root for the default volume
-       @param volBaseDir Directory that will be assigned as the new volume root
-    */
-    public static void setDefaultVolume( String volBaseDir ) {
-	defaultVolume = new Volume( "defaultVolume", volBaseDir );
-    }
 	
 
 	
@@ -113,7 +105,7 @@ public class Volume extends VolumeBase {
 	fmt.applyPattern( "yyyyMMdd" );
 	String strDate = fmt.format( date );
 
-	File yearDir = new File( volumeBaseDir, strYear );
+	File yearDir = new File( getBaseDir(), strYear );
         log.debug( "YearDir: " + yearDir );
 	if ( !yearDir.exists() ) {
 	    log.debug( "making yeardir" );
@@ -168,7 +160,7 @@ public class Volume extends VolumeBase {
      * @throws java.io.FileNotFoundException 
      */
     public File mapFileName( String fname ) throws FileNotFoundException {
-	File yearDir = new File( volumeBaseDir, fname.substring( 0, 4 ) );
+	File yearDir = new File( getBaseDir(), fname.substring( 0, 4 ) );
 	File monthDir = new File ( yearDir, fname.substring( 0, 6 ) );
 	File archiveFile = new File( monthDir, fname );
         log.debug( "Mapped " + fname + " to " + archiveFile );

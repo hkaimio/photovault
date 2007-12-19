@@ -39,6 +39,7 @@ import javax.persistence.Transient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 
 
@@ -108,23 +109,6 @@ public abstract class VolumeBase implements java.io.Serializable {
 	vol = db.getVolume( volName );
 	return vol;
     }
-     
-    /**
-     Tries to find the volume into which a fiel belongs, i.e. whether it is under 
-     the base directory of some volume of current database.
-     @param f The file whose volume is of interest
-     @return The volume the file belongs to or <code>null</code> if it does not 
-     belong to any volume
-     @throws IOException if there is an error constructing canonical form of the file
-     @deprecated Use PVDatabase#getVolumeOfFile instead.
-     */
-    public static VolumeBase getVolumeOfFile( File f ) throws IOException {
-        VolumeBase v = null;
-        PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        PVDatabase db = settings.getCurrentDatabase();
-	v = db.getVolumeOfFile( f );
-        return v;
-    }
 
     /**
      * Base constructor.
@@ -137,15 +121,26 @@ public abstract class VolumeBase implements java.io.Serializable {
      Constructor.
      @param volName Name of the new volume
      @param volBaseDir Tob directory of the volume's directory hierarchy
+     @deprecated Volume constructor should not take base directory as it is not
+     volume's property, and creating a volume in directory that is already a 
+     volume is an error.
      */
      
     public VolumeBase( String volName, String volBaseDir ) {
         id = UUID.randomUUID();
 	volumeName = volName;
-	volumeBaseDir = new File( volBaseDir );
-	if ( !volumeBaseDir.exists() ) {
-	    volumeBaseDir.mkdir();
-	}
+        File volumeBaseDir = new File(volBaseDir);
+        if (!volumeBaseDir.exists()) {
+            volumeBaseDir.mkdir();
+        }
+        getManager().addMountPoint(volumeBaseDir);
+        // TODO: we should return an error if volumeBaseDir has already been initialized
+        try {
+            getManager().initVolume(this, volumeBaseDir);
+        } catch (PhotovaultException e) {
+
+        }
+
 	registerVolume();
     }
 
@@ -154,7 +149,6 @@ public abstract class VolumeBase implements java.io.Serializable {
      This private method adds the volume into volumes collection
      */
     private void registerVolume() {
-        log.debug( "registering volume " + volumeName + ", basedir " + volumeBaseDir );
 	if ( volumes == null ) {
 	    volumes = new HashMap();
 	}
@@ -201,7 +195,7 @@ public abstract class VolumeBase implements java.io.Serializable {
      @throws FileNotFoundException if there is no file with the given name
      */
     public File mapFileName( String fname ) throws FileNotFoundException {
-        File f= new File( volumeBaseDir, fname );
+        File f= new File( getBaseDir(), fname );
         if ( !f.exists() ) {
             throw new FileNotFoundException( "File " + f.getAbsolutePath() + " does not exist" );
         }
@@ -246,47 +240,33 @@ public abstract class VolumeBase implements java.io.Serializable {
     
     
     /**
-     *     Returns the base directory for the volume.
-     * @return The base directory
+     Returns the base directory for the volume.
+     
+     @return The base directory or <code>null</code> if the volume is not 
+     mounted.
      */
     @Transient
     public File getBaseDir() {
-	return volumeBaseDir;
-    }
-
-    /**
-     * Get the base directory name. Used by persistence layer.
-     * @return absolute pathname of base directory
-     */
-    @Column( name = "base_dir" )    
-    protected String getBaseDirName() {
-        return (volumeBaseDir != null ) ? volumeBaseDir.getAbsolutePath() : null;
+	return getManager().getVolumeMountPoint( this );
     }
     
-    
     /**
-     * Sets the base dir for the volume. If the directory does no exist it is 
-     * created.
-     * @param baseDirName absolute path to base directory
+     Sets the base dir for the volume. If the directory does no exist it is 
+     created.
+     @param baseDirName absolute path to base directory
+     @deprecated Since 0.6 volume mount points are deermined dynamically
      */
     public void setBaseDir( String baseDirName ) {
         log.debug( "New basedir for " + volumeName + ": " + baseDirName );
         File baseDir = new File( baseDirName );
         setBaseDir( baseDir );
     }
-    
-    /**
-     * Set the base directory. Used by persistence layer.
-     * @param baseDirName Absolute path to base directory.
-     */
-    protected void setBaseDirName( String baseDirName ) {
-        setBaseDir( baseDirName );
-    }
 
     /**
      * Sets the base dir for the volume. If the directory does no exist it is 
      * created.
      * @param baseDir Base directory.
+     @deprecated Use VolumeManger instead
      */
     public void setBaseDir( File baseDir ) {
         log.debug( "New basedir for " + volumeName + ": " + baseDir );        
@@ -349,7 +329,11 @@ public abstract class VolumeBase implements java.io.Serializable {
         
         // First get the canonical forms of both f and volumeBaseDir
         // After that check if f or some of its parents matches f
-        File vbdCanon = volumeBaseDir.getCanonicalFile();
+        File basedir = getBaseDir();
+        if ( basedir == null ) {
+            return false;
+        }
+        File vbdCanon = basedir.getCanonicalFile();
         File fCanon = f.getCanonicalFile();
         File p = fCanon;        
         while ( p != null ) {
@@ -374,5 +358,14 @@ public abstract class VolumeBase implements java.io.Serializable {
     /**
      * Base directory for the volume
      */
-    protected File volumeBaseDir;    
+    protected File volumeBaseDir;  
+    
+    /**
+     Helper function to get volume manager instance
+     @return The volume manager
+     */
+    @Transient
+    protected VolumeManager getManager() {
+        return VolumeManager.instance();
+    }
 }

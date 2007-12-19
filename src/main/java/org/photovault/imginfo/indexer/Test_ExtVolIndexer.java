@@ -48,6 +48,7 @@ import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.VolumeDAO;
+import org.photovault.imginfo.VolumeManager;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
@@ -226,9 +227,10 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
      existing photo with another one and deleting a photo.
      */
     @Test
-    public void testIndexing() {
+    public void testIndexing() throws PhotovaultException {
         int n;
-        ExternalVolume v = new ExternalVolume( "extVol", extVolDir.getAbsolutePath() );
+        ExternalVolume v = new ExternalVolume( );
+        v.setName( "extVol" );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase db = settings.getDatabase( "pv_junit" );
         try {
@@ -239,6 +241,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         VolumeDAO volDAO = daoFactory.getVolumeDAO();
         volDAO.makePersistent( v );
         session.flush();
+        VolumeManager.instance().initVolume( v, extVolDir );
         ExtVolIndexer indexer = new ExtVolIndexer( v );
         indexer.setTopFolder( topFolder );
         indexer.setCommandHandler( new PhotovaultCommandHandler( null ) );

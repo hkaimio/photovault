@@ -370,6 +370,7 @@ public class DbSettingsDlg extends javax.swing.JDialog {
         try {
             PVDatabase db = new PVDatabase();
             db.setName( nameFld.getText() );
+            db.setDataDirectory( new File( volumeDirFld.getText() ) );
             PhotovaultSettings settings = PhotovaultSettings.getSettings();
             settings.addDatabase( db );
             String user = "";
@@ -391,7 +392,6 @@ public class DbSettingsDlg extends javax.swing.JDialog {
             } else {
                 // Creating an embedded database
                 db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-                db.setEmbeddedDirectory( new File( volumeDirFld.getText() ) );
             }
             db.createDatabase( user, passwd );
             settings.saveConfig();

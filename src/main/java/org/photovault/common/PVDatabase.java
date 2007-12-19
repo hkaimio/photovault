@@ -44,7 +44,13 @@ import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.photovault.imginfo.VolumeBase;
 import org.xml.sax.SAXException;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.ddlutils.DynaSqlException;
+import org.photovault.imginfo.VolumeManager;
 
 /**
  * PVDatabase represents metadata about a single Photrovault database. A database 
@@ -53,6 +59,8 @@ import java.util.UUID;
  * @author Harri Kaimio
  */
 public class PVDatabase {
+    
+    static private Log log = LogFactory.getLog( PVDatabase.class.getName() );
     
     /**
      * Database type for a Photovault instance which uses an embedded Derby database
@@ -80,10 +88,6 @@ public class PVDatabase {
      UUID of the default volume.
      */
     private UUID defaultVolumeId;
-
-    public UUID getDefaultVolumeId() {
-        return defaultVolumeId;
-    }
     
     public void setName( String name ) {
         this.name = name;
@@ -117,6 +121,7 @@ public class PVDatabase {
      Add a new volume to this database.
      @param volume The new volume
      @throws @see PhotovaultException if another volume with the same name is already present
+     @deprecated For configuration file parsing backward compatibility only.
      */
     public void addVolume( VolumeBase volume ) throws PhotovaultException {
         VolumeBase v = getVolume( volume.getName() );
@@ -125,6 +130,11 @@ public class PVDatabase {
                     " already exists" );
         }
         volumes.add( volume );
+        
+        // Ensure that this volume's basedir is in mount point list
+        if ( volume.getBaseDir() != null ) {
+            mountPoints.add( volume.getBaseDir() );
+        }
     }
     
     /**
@@ -134,6 +144,30 @@ public class PVDatabase {
      */
     public void removeVolume(Volume volume) {
         volumes.remove( volume );
+    }
+    
+    /**
+     Mount points in which volumes for this database can be mounted.
+     */
+    Set<File> mountPoints = new HashSet<File>();
+    
+    /**
+     Add a new mount point for volumes
+     
+     @param path Absolute path to the volume mount point.
+     */
+    public void addMountPoint( String path ) {
+        if ( path != null ) {
+            mountPoints.add( new File( path ) );
+        }
+    }
+    
+    /**
+     Get mount points for volumes of this database
+     @return
+     */
+    public Set<File> getMountPoints() {
+        return mountPoints;
     }
     
     /**
@@ -176,27 +210,40 @@ public class PVDatabase {
         } 
     }    
 
-
-    private File embeddedDirectory = null;
+    /**
+     Path to the directory where data for this database is stored
+     
+     */
+    private File dataDirectory = null;
     
-    public File getEmbeddedDirectory() {
-        return embeddedDirectory;
+    /**
+     Get the data directory of this database. In case of Derby based database,
+     both the database and photos reside in this directory. In case of MySQL, 
+     only photos are stored here (database resider in server)
+     @return Path to data directory.
+     */
+    public File getDataDirectory() {
+        return dataDirectory;
     }
 
-    public void setEmbeddedDirectory(File embeddedDirectory) {
-        this.embeddedDirectory = embeddedDirectory;
+    /**
+     Set the data directory for the database.
+     @param embeddedDirectory The directory
+     */
+    public void setDataDirectory( File embeddedDirectory ) {
+        this.dataDirectory = embeddedDirectory;
     }
     
     public String getInstanceDir() {
         String res = "";
-        if ( embeddedDirectory != null ) {
-            res = embeddedDirectory.getAbsolutePath();
+        if ( dataDirectory != null ) {
+            res = dataDirectory.getAbsolutePath();
         }
         return res;
     }
 
     public void setInstanceDir( String path ) {
-        embeddedDirectory = new File( path );
+        dataDirectory = new File( path );
     }
     
     /**
@@ -219,28 +266,6 @@ public class PVDatabase {
             }
         }
         return vol;
-    }
-
-
-    /**
-     Tries to find the volume into which a fiel belongs, i.e. whether it is under 
-     the base directory of some volume.
-     @param f The file whose volume is of interest
-     @return The volume the file belongs to or <code>null</code> if it does not 
-     belong to any volume of this database
-     @throws IOException if there is an error constructing canonical form of the file
-     */
-    public VolumeBase getVolumeOfFile( File f ) throws IOException {
-        Iterator iter = volumes.iterator();
-        VolumeBase v = null;
-        while ( iter.hasNext() ) {
-            VolumeBase candidate = (VolumeBase) iter.next();
-            if ( candidate.isFileInVolume( f ) ) {
-                v = candidate;
-                break;
-            }
-        }
-        return v;
     }
     
     /**
@@ -283,19 +308,14 @@ public class PVDatabase {
         String dbUrl = "jdbc:mysql://" + getHost() + "/" + getDbName();
         
         DataSource ds = null;
+        if ( !dataDirectory.exists() ) {
+            dataDirectory.mkdirs();
+        }
+        File defVolDir = dataDirectory;
+        
         if ( instanceType == TYPE_EMBEDDED ) {
-            if ( !embeddedDirectory.exists() ) {
-                embeddedDirectory.mkdirs();
-            }
-            File derbyDir = new File( embeddedDirectory, "derby" );
-            File photoDir = new File( embeddedDirectory, "photos");
-            Volume vol = new Volume( "photos", photoDir.getAbsolutePath() );
-            try {
-                addVolume( vol );
-            } catch (PhotovaultException ex) {
-                // This should not happen since this is the first volume, there cannot be 
-                // name conflict!!!
-            }
+            File derbyDir = new File( dataDirectory, "derby"  );
+            defVolDir = new File( dataDirectory, "photos");
             System.setProperty( "derby.system.home", derbyDir.getAbsolutePath() );
             driverName = "org.apache.derby.jdbc.EmbeddedDriver";
             dbUrl = "jdbc:derby:photovault;create=true";
@@ -304,7 +324,6 @@ public class PVDatabase {
             derbyDs.setCreateDatabase( "create" );
             ds = derbyDs;
         } else {
-        
             MysqlDataSource mysqlDs = new MysqlDataSource();
             mysqlDs.setURL( dbUrl );
             mysqlDs.setUser( user );
@@ -367,27 +386,31 @@ public class PVDatabase {
             idBuf.append( Integer.toHexString( r ) );
         }
         idStr = idBuf.toString();
-        DynaBean volInfo = dbModel.createDynaBeanFor( "pv_volumes", false );
-        defaultVolumeId = UUID.randomUUID();
-        volInfo.set( "volume_id", defaultVolumeId.toString() );
-        volInfo.set( "volume_type", "volume" );
-        // TODO: add other fields
-        if ( instanceType == TYPE_EMBEDDED ) {
-            volInfo.set( "base_dir", 
-                    new File( embeddedDirectory, "photos" ).getAbsolutePath(  ) );
-        } else {
-            volInfo.set( "base_dir", volumes.get( 0 ).getBaseDir(  ) );
-        }
-        volInfo.set( "volume_name", "default" );
-        platform.insert( dbModel, volInfo );
+        
+        // Create default volume
+        Volume defVol = new Volume();
+        defVol.setName( "default_volume" );
+        
+        try {
+            DynaBean volInfo = dbModel.createDynaBeanFor( "pv_volumes", false );
+            volInfo.set( "volume_id", defVol.getId().toString() );
+            volInfo.set( "volume_type", "volume" );
+            volInfo.set( "volume_name", defVol.getName() );
+            platform.insert( dbModel, volInfo );
+            VolumeManager.instance().initVolume( defVol, defVolDir );
 
-        DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
-        dbInfo.set( "database_id", idStr );
-        dbInfo.set( "schema_version", new Integer( CURRENT_SCHEMA_VERSION ) );
-        dbInfo.set( "create_time", new Timestamp( System.currentTimeMillis() ) );
-        dbInfo.set( "default_volume_id", defaultVolumeId.toString() );
-        platform.insert( dbModel, dbInfo );
-    }        
+            DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
+            dbInfo.set( "database_id", idStr );
+            dbInfo.set( "schema_version", new Integer( CURRENT_SCHEMA_VERSION ) );
+            dbInfo.set( "create_time", new Timestamp( System.currentTimeMillis() ) );
+            dbInfo.set( "default_volume_id", defVol.getId().toString() );
+            platform.insert( dbModel, dbInfo );
+        } catch ( PhotovaultException e ) {
+            log.error( "Error storing volume information to database", e );
+        } catch ( DynaSqlException e ) {
+            log.error( "DdlUtils error while initializing database: ", e );
+        }
+    }
 
     /**
      Returns the schema version of the Photovault database
@@ -412,6 +435,14 @@ public class PVDatabase {
                     "\" dbName=\"" + dbName + "\"");
         }        
         outputWriter.write( ">\n" );
+        outputWriter.write( String.format( "%s  <volume-mounts>\n", s ) );
+        for ( File mount : mountPoints ) {
+            outputWriter.write( String.format( 
+                    "%s    <mountpoint dir=\"%s\"/>\n", 
+                    s, mount.getAbsolutePath() ) );
+        }
+        outputWriter.write( String.format( "%s  </volume-mounts>\n", s ) );
+        
         Iterator iter = volumes.iterator();
         outputWriter.write( s + "  " + "<volumes>\n" );
         while( iter.hasNext() ) {

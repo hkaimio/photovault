@@ -28,12 +28,14 @@ import org.hibernate.classic.Session;
 import org.hibernate.context.ManagedSessionContext;
 import org.photovault.command.CommandException;
 import org.photovault.command.PhotovaultCommandHandler;
+import org.photovault.common.PhotovaultException;
 import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.FileUtils;
 import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.imginfo.VolumeManager;
 import org.photovault.imginfo.indexer.DirTreeIndexerTask;
 import org.photovault.imginfo.indexer.IndexFileTask;
 import org.photovault.persistence.DAOFactory;
@@ -60,7 +62,7 @@ public class Test_CurrentFolderIndexer extends PhotovaultTestCase {
     private File topDir;
 
     @BeforeClass
-    public void setUpEnv() throws IOException, CommandException {
+    public void setUpEnv() throws IOException, CommandException, PhotovaultException {
         testfileDir = new File( System.getProperty( "basedir" ), "testfiles" );
 
         topDir = File.createTempFile( "pv_dir_indexer_test_", "" );
@@ -72,8 +74,10 @@ public class Test_CurrentFolderIndexer extends PhotovaultTestCase {
         ((HibernateDAOFactory) daoFactory).setSession( session );
         cmdHandler = new PhotovaultCommandHandler( session );
         
-        vol = new ExternalVolume( topDir.getName(), topDir.getAbsolutePath() );
+        vol = new ExternalVolume();
+        vol.setName( topDir.getName() );
         session.save( vol );
+        VolumeManager.instance().initVolume(vol, topDir );
         
         CreatePhotoFolderCommand cmd = 
                 new CreatePhotoFolderCommand(null, topDir.getName(), "" );

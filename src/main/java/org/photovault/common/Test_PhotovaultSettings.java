@@ -28,17 +28,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
-import junit.framework.*;
+import java.util.Set;
 import org.hibernate.Session;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
+
 /**
  *
  * @author harri
  */
-public class Test_PhotovaultSettings extends TestCase {
+public class Test_PhotovaultSettings {
     
     /** Creates a new instance of Test_PhotovaultSettings */
     public Test_PhotovaultSettings() {
@@ -46,11 +51,14 @@ public class Test_PhotovaultSettings extends TestCase {
     
     PhotovaultSettings oldSettings = null;
     Properties oldSysProperties = null;
+    
+    @BeforeMethod
     public void setUp() {
         oldSettings = PhotovaultSettings.settings;
         oldSysProperties = System.getProperties();
     }
     
+    @AfterMethod
     public void tearDown() {
         PhotovaultSettings.settings = oldSettings;
         System.setProperties( oldSysProperties );
@@ -59,6 +67,7 @@ public class Test_PhotovaultSettings extends TestCase {
     /**
      * Verify that settings file is loaded from home directory.
      */
+    @Test
     public void testSettingsFileInHomeDir() {
         System.setProperty( "user.home", "testfiles/testHomeDir" );
         
@@ -72,6 +81,7 @@ public class Test_PhotovaultSettings extends TestCase {
         assertNotNull( db );
     }
     
+    @Test
     public void testNoSettingsFile() {
         try {
             File f = File.createTempFile( "photovault_settings", ".xml" );
@@ -101,6 +111,7 @@ public class Test_PhotovaultSettings extends TestCase {
         assertEquals( db2.getName(), db.getName() );
     }
     
+    @Test
     public void testSpecialSettingsFile() {
         System.setProperty( "photovault.configfile", "testfiles/testconfig.xml");
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
@@ -111,6 +122,7 @@ public class Test_PhotovaultSettings extends TestCase {
     /**
      * Test creation of a new database
      */ 
+    @Test
     public void testCreateDB() {
         File confFile = null;
         File dbDir = null;
@@ -131,7 +143,8 @@ public class Test_PhotovaultSettings extends TestCase {
         PVDatabase db = new PVDatabase();
         db.setName( "testing" );
         db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-        db.setEmbeddedDirectory( dbDir );
+        db.setDataDirectory( dbDir );
+        db.addMountPoint( "/tmp/testing" );
         try {
             settings.addDatabase( db );
         } catch (PhotovaultException ex) {
@@ -142,12 +155,15 @@ public class Test_PhotovaultSettings extends TestCase {
         settings = PhotovaultSettings.getSettings();
         settings.setConfiguration( "testing" );     
         db = settings.getCurrentDatabase();
+        Set<File> mounts = db.getMountPoints();
+        assertEquals( 1, mounts.size() );
+        assertTrue( mounts.contains( new File( "/tmp/testing" ) ) );
         
         // try creating another database with the same name
         PVDatabase db2 = new PVDatabase();
         db2.setName( "testing" );
         db2.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-        db2.setEmbeddedDirectory( dbDir );
+        db2.setDataDirectory( dbDir );
         boolean throwsException = false;
         try {
             settings.addDatabase( db2 );
@@ -179,9 +195,10 @@ public class Test_PhotovaultSettings extends TestCase {
         photo.setPhotographer( "test" );
         PhotoInfo photo2 = photoDAO.findById( photo.getUid(), false );
         Thumbnail thumb = photo2.getThumbnail();
-        this.assertFalse( "Default thumbnail returned", thumb == Thumbnail.getDefaultThumbnail() );
+        assertFalse( "Default thumbnail returned", thumb == Thumbnail.getDefaultThumbnail() );
     }
     
+    @Test
     public void testProperties() {
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         settings.setProperty( "test", "testing" );
@@ -198,15 +215,7 @@ public class Test_PhotovaultSettings extends TestCase {
         assertNull( settings.getProperty( "test3" ) );
         assertEquals( "testing3", settings.getProperty( "test3", "testing3" ) );        
     }
-    
-    public static void main( String[] args ) {
-	junit.textui.TestRunner.run( suite() );
-    }
-    
-    public static Test suite() {
-	return new TestSuite( Test_PhotovaultSettings.class );
-    }    
-    
+        
 }
 
     

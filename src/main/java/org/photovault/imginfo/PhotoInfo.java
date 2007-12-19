@@ -254,8 +254,8 @@ public class PhotoInfo implements java.io.Serializable {
     public static PhotoInfo addToDB( File imgFile )  throws PhotoNotFoundException {
         VolumeBase vol = null;
         try {
-            vol = VolumeBase.getVolumeOfFile( imgFile );
-        } catch (IOException ex) {
+            vol = VolumeManager.instance().getVolumeOfFile( imgFile, null );
+        } catch ( Exception ex ) {
             throw new PhotoNotFoundException();
         }
         

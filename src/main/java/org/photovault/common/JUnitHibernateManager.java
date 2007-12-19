@@ -86,7 +86,7 @@ public class JUnitHibernateManager {
         }
         PVDatabase pvd = new PVDatabase();
         pvd.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-        pvd.setEmbeddedDirectory( dbDir );
+        pvd.setDataDirectory( dbDir );
         pvd.createDatabase( "", "", "junit_seed_data.xml" );
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         pvd.setName( "pv_junit" );

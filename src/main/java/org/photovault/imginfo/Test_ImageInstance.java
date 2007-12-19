@@ -75,10 +75,14 @@ public class Test_ImageInstance extends PhotovaultTestCase {
         PVDatabase db = PhotovaultSettings.getSettings().getCurrentDatabase();
         volume = (Volume) db.getVolume( "imageInstanceTest" );
         if ( volume == null ) {
-            volume = new Volume( "imageInstanceTest", volumeRoot );
             try {
+                volume = new Volume();
+                volume.setName( "imageInstanceTest" );
+                VolumeDAO volDAO = daoFactory.getVolumeDAO();
+                volDAO.makePersistent( volume );
+                VolumeManager.instance().initVolume( volume, volumeDir );
                 PhotovaultSettings.getSettings().getCurrentDatabase().addVolume( volume );
-            } catch (PhotovaultException ex) {
+            } catch ( Exception ex ) {
                 fail( ex.getMessage() );
             }
         }

@@ -40,6 +40,7 @@ import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.imginfo.Volume;
+import org.photovault.imginfo.VolumeManager;
 import org.photovault.test.PhotovaultTestCase;
 
 /**
@@ -59,9 +60,17 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-	volume = new Volume( "testVolume", volumeRoot.getAbsolutePath() );
+        try {
+            volume = new Volume();
+            volume.setName( "testVolume" );
+            VolumeManager.instance().initVolume( volume, volumeRoot );
+        } catch ( Exception e ) {
+            fail( e.getMessage() );
+        }
+
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase curDb = settings.getCurrentDatabase();
+        
 //        try {
 //            curDb.addVolume( extVol );
 //        } catch (PhotovaultException ex) {

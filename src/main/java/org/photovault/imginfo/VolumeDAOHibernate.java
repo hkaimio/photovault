@@ -20,8 +20,11 @@
 
 package org.photovault.imginfo;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 import org.hibernate.Query;
+import org.photovault.common.PhotovaultException;
 import org.photovault.persistence.GenericHibernateDAO;
 
 /**
@@ -41,6 +44,10 @@ public class VolumeDAOHibernate
                 "join database_info d on v.volume_id = d.default_volume_id";
         Query q = getSession().createSQLQuery( sql ).addEntity("v", VolumeBase.class );
         return (Volume) q.uniqueResult();
+    }
+
+    public VolumeBase getVolumeOfFile(File f) throws PhotovaultException, IOException {
+        return VolumeManager.instance().getVolumeOfFile( f, this );
     }
     
 }

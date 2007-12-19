@@ -21,21 +21,54 @@
 package org.photovault.imginfo;
 
 import java.io.*;
-import junit.framework.*;
 import java.util.*;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
 public class Test_Volume extends PhotovaultTestCase {
 
+    Session session = null;
+    Transaction tx = null;
+    
+    DAOFactory daoFactory;
+    VolumeDAO volDAO;
+    
     /**
        Sets ut the test environment
     */
-    public void setUp() {
-	String volumeRoot =  "c:\\temp\\photoVaultVolumeTest";
-	volume = new Volume( "testVolume", volumeRoot );
+    @BeforeMethod
+    public void setUpTestCase() throws IOException, PhotovaultException {
+        session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        hdf.setSession( session );
+        daoFactory = hdf;
+        volDAO = daoFactory.getVolumeDAO();
+        tx = session.beginTransaction();
+        
+        File root = File.createTempFile("pv_voltest", "" );
+        root.delete();
+        root.mkdir();
+	String volumeRoot = root.getAbsolutePath();
+	volume = new Volume( );
+        volume.setName( "testVolume" );
+        volDAO.makePersistent( volume );
+        volmgr.initVolume( volume, root );
+        
+        
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         db = settings.getCurrentDatabase();
         try {
@@ -46,12 +79,17 @@ public class Test_Volume extends PhotovaultTestCase {
     }
     private Volume volume;
     private PVDatabase db;
+    private VolumeManager volmgr = VolumeManager.instance();
+    
     /**
        Tears down the testing environment
     */
+    @AfterMethod
+    @Override
     public void tearDown() {
         db.removeVolume( volume );
 	deleteTree( volume.getBaseDir() );
+        volDAO.makeTransient( volume );
     }
 
     protected boolean deleteTree( File root ) {
@@ -70,6 +108,7 @@ public class Test_Volume extends PhotovaultTestCase {
 	return success;
     }
 
+    @Test
     public void testFnameCreation() {
 	File f = null;
 
@@ -96,6 +135,7 @@ public class Test_Volume extends PhotovaultTestCase {
 	assertEquals( "Volume dir: ", volume.getBaseDir().getName(), rootDir.getName() );
     }
 
+    @Test
     public void testManyFileCreation() {
 	File f = null;
 
@@ -134,6 +174,7 @@ public class Test_Volume extends PhotovaultTestCase {
 	assertEquals( "File name: ", "20021213_00003.jpg", volFile.getName() );
     }
     
+    @Test
     public void testManyDateCreation() {
 	File f = null;
 
@@ -180,6 +221,7 @@ public class Test_Volume extends PhotovaultTestCase {
 	assertEquals( "File name: ", "20021213_00002.jpg", volFile.getName() );
     }
     
+    @Test
     public void testMassCreation() {
 	File f = null;
 
@@ -221,6 +263,7 @@ public class Test_Volume extends PhotovaultTestCase {
 	}
     }
 
+    @Test
     public void testFnameMapping() {
 	File f = null;
 
@@ -255,6 +298,7 @@ public class Test_Volume extends PhotovaultTestCase {
     /**
      Test the functionality of isFileInVolume method
      */
+    @Test
     public void testIsFileInVolume() {
         File basedir = volume.getBaseDir();
         try {
@@ -274,28 +318,31 @@ public class Test_Volume extends PhotovaultTestCase {
     /**
      Test basic use cases for method getVolumeOfFile
      */
-    
-    public void testGetVolumeOfFile() {
+    @Test
+    public void testGetVolumeOfFile() throws PhotovaultException {
         try {
             File testVolPath = File.createTempFile( "pv_voltest", "" );
-            VolumeBase extVolume = new ExternalVolume( "extvol", testVolPath.getAbsolutePath() );
+            testVolPath.delete();
+            testVolPath.mkdir();
+            VolumeBase extVolume = new ExternalVolume();
+            extVolume.setName( "extvol" );
+            VolumeManager.instance().initVolume( extVolume, testVolPath );
             try {
                 db.addVolume( extVolume );
-            } catch (PhotovaultException ex) {
+            } catch ( PhotovaultException ex ) {
                 fail( ex.getMessage() );
             }
-            
             File test1 = new File( volume.getBaseDir(), "testfile" );
             assertEquals( test1.getAbsolutePath() + " belongs to volume", 
-                    volume, VolumeBase.getVolumeOfFile( test1 ) ); 
+                    volume, volDAO.getVolumeOfFile( test1 ) ); 
             File test2 = new File( testVolPath, "testfile" );
             assertEquals( test2.getAbsolutePath() + " belongs to volume", 
-                    extVolume, VolumeBase.getVolumeOfFile( test2 ) ); 
+                    extVolume, volDAO.getVolumeOfFile( test2 ) ); 
             File test3 = new File( testVolPath.getParentFile(), "testfile" );
-            this.assertNull( test3.getAbsoluteFile() + " does not belong to volume",
-                    VolumeBase.getVolumeOfFile( test3 ) );
+            assertNull( test3.getAbsoluteFile() + " does not belong to volume",
+                    volDAO.getVolumeOfFile( test3 ) );
             // Test that null argument does not cause error
-            VolumeBase.getVolumeOfFile( null );
+            volDAO.getVolumeOfFile( null );
         } catch (IOException ex) {
             fail( "IOError: " + ex.getMessage() );
         }
@@ -305,26 +352,23 @@ public class Test_Volume extends PhotovaultTestCase {
        Test a special case - creating a file name for a PhotoInfo in which the shooting date has not been set.
        Criteria is simply that a valid file name is created and that no Exception is thrown.
     */
-    
+    @Test
     public void testNamingWithNoDate() {
 	PhotoInfo photo = PhotoInfo.create();
 	File f = volume.getInstanceName( photo, "jpg" );
     }
+    
+    @Test
+    public void testVolumeIdentification() throws FileNotFoundException, IOException {
+        VolumeBase v = volmgr.getVolumeAt( volume.getBaseDir(), volDAO );
+        assertTrue( v == volume );
+        
+        // Verify that we can get a nonpersistent instance of a volume as well
+        VolumeBase vnp = volmgr.getVolumeAt( volume.getBaseDir(), null );
+        assertEquals( vnp.getId(), volume.getId() );
+        assertEquals( vnp.getName(), volume.getName() );
+        assertEquals( vnp.getClass(), volume.getClass() );
+    }
 	
-    public static Test suite() {
-
-	return new TestSuite( Test_Volume.class );
-    }
-    
-    
-    public static void main( String[] args ) {
-	//	org.apache.log4j.BasicConfigurator.configure();
-	// log.setLevel( org.apache.log4j.Level.DEBUG );
-	org.apache.log4j.Logger instLog = org.apache.log4j.Logger.getLogger( Volume.class.getName() );
-	instLog.setLevel( org.apache.log4j.Level.DEBUG );
-	junit.textui.TestRunner.run( suite() );
-    }
-    
-
 }
 	

@@ -84,7 +84,7 @@ public class ODMG {
             connDesc.setDbms( "derby" );
             connDesc.setSubProtocol( "derby" );
             connDesc.setDbAlias( "photovault" );
-            File derbyDir = new File( dbDesc.getEmbeddedDirectory(), "derby" );
+            File derbyDir = new File( dbDesc.getDataDirectory(), "derby" );
             System.setProperty( "derby.system.home", derbyDir.getAbsolutePath()  );
             if ( ( user != null && user.length() != 0 ) ||
                     ( passwd != null && passwd.length() != 0 ) )  {

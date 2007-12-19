@@ -78,18 +78,18 @@ public class Test_ImageFile extends PhotovaultTestCase {
             File tmpdir = File.createTempFile( "pv_imagefile_test", "" );
             tmpdir.delete();
             tmpdir.mkdir();
-            vol1.setBaseDir( tmpdir );
             vol1.setName( "vol1" );
             session.save( vol1 );
+            VolumeManager.instance().initVolume( vol1, tmpdir );
             vol2 = new ExternalVolume();
             tmpdir = File.createTempFile( "pv_imagefile_test", "" );
             tmpdir.delete();
             tmpdir.mkdir();
-            vol2.setBaseDir( tmpdir );
             vol2.setName( "vol2" );
             session.save( vol2 );
+            VolumeManager.instance().initVolume( vol2, tmpdir );
             session.flush();
-        } catch (IOException ex) {
+        } catch ( Exception ex) {
             fail( "exception while creating volumes" );
         }
     }
@@ -297,7 +297,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         File testFile = new File( testDir, "test2.jpg" );
         File testFile2 = new File( testDir, "test3.jpg" );
         ExternalVolume extvol = new ExternalVolume();
-        extvol.setBaseDir( testDir );
+        VolumeManager.instance().initVolume(extvol, testDir);
         VolumeDAO volDAO = daoFactory.getVolumeDAO();
         ImageFile imgFile = new ImageFile( testFile );
         imgFile.addLocation( new FileLocation( extvol, "test2.jpg" ) );

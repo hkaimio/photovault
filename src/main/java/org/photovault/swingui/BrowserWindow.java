@@ -497,11 +497,12 @@ public class BrowserWindow extends AbstractController {
         if ( retval == JFileChooser.APPROVE_OPTION ) {
             File dir = fc.getSelectedFile();
             
-            // First check that this directory has not been indexed previously
+           // First check that this directory has not been indexed previously
+            
             VolumeBase prevVolume = null;
             try {
-                prevVolume = VolumeBase.getVolumeOfFile( dir );
-            } catch (IOException ex) {
+                prevVolume = VolumeManager.instance().getVolumeOfFile( dir, null );
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog( window, "Problem reading directory: " 
                         + ex.getMessage(), "Photovault error", 
                         JOptionPane.ERROR_MESSAGE );

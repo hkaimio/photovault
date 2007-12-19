@@ -20,7 +20,10 @@
 
 package org.photovault.imginfo;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
+import org.photovault.common.PhotovaultException;
 import org.photovault.persistence.GenericDAO;
 
 /**
@@ -32,5 +35,13 @@ public interface VolumeDAO extends GenericDAO<VolumeBase, UUID> {
      Get the default volume for current database
      */
     Volume getDefaultVolume();
+    
+    /**
+     Get the volume in which a given file belongs
+     @param f
+     @return Volume in which f belongs or <code>null</code> if it does not belong
+     to any volume.     
+     */
+    VolumeBase getVolumeOfFile( File f ) throws PhotovaultException, IOException;
     
 }

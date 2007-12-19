@@ -59,8 +59,16 @@ public class Test_ExternalVolume extends PhotovaultTestCase {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-	volume = new Volume( "testVolume", volumeRoot.getAbsolutePath() );
-	extVol = new ExternalVolume( "extVolume", extvolRoot.getAbsolutePath() );
+        try {
+            volume = new Volume();
+            volume.setName( "imageInstanceTest" );
+            VolumeManager.instance().initVolume( volume, volumeRoot );
+            extVol = new ExternalVolume();
+            extVol.setName( "extVolume" );
+            VolumeManager.instance().initVolume( extVol, extvolRoot );
+        } catch ( Exception e ) {
+            fail( "Exception while creating volumes" );
+        }
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase curDb = settings.getCurrentDatabase();
         try {

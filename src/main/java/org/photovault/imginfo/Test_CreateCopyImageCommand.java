@@ -74,8 +74,8 @@ public class Test_CreateCopyImageCommand extends PhotovaultTestCase {
         File tmpdir = File.createTempFile( "pv_createcopy_test", "" );
         tmpdir.delete();
         tmpdir.mkdir();
-        vol.setBaseDir( tmpdir );
         vol.setName( "create_copy_image" );
+        VolumeManager.instance().initVolume(vol, tmpdir);
         session.save( vol );
         
     }

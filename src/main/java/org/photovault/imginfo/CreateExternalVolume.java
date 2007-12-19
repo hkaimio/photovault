@@ -21,6 +21,8 @@
 package org.photovault.imginfo;
 
 import java.io.File;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.folder.PhotoFolder;
@@ -32,6 +34,9 @@ import org.photovault.folder.PhotoFolderDAO;
  @author harri
  */
 public class CreateExternalVolume extends DataAccessCommand {
+    private static Log log = 
+            LogFactory.getLog( CreateExternalVolume.class.getName() );
+    
     private File basedir;
     private PhotoFolder topFolder;
     private String volumeName;
@@ -50,11 +55,17 @@ public class CreateExternalVolume extends DataAccessCommand {
     public void execute() throws CommandException {
         VolumeDAO volDAO = daoFactory.getVolumeDAO();
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
-        volume = new ExternalVolume( volumeName, basedir.getAbsolutePath() );
+        volume = new ExternalVolume( );
+        volume.setName( volumeName );
         if ( topFolder != null ) {
             volume.setFolder( folderDAO.findById( topFolder.getFolderId(), false ) );
         }
         volDAO.makePersistent( volume );
+        try {
+            VolumeManager.instance().initVolume( volume, basedir );
+        } catch ( Exception e ) {
+            log.warn( "Error in CreateExternalVolume: " + e.getMessage(), e );
+        }
     }
 
 }
