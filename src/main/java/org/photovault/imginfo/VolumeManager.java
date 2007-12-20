@@ -68,6 +68,8 @@ public class VolumeManager {
      */
     static private String KEY_VOLUME_CLASS = "volume.class";
     
+    static private String VOL_INFO_DIR = ".photovault_volume";
+    
     /**
      Mount points that are checked for volume.
      */
@@ -147,7 +149,7 @@ public class VolumeManager {
     public VolumeBase getVolumeAt( File dir, VolumeDAO volDAO ) 
             throws FileNotFoundException, IOException {
         VolumeBase vol = null;
-        File volInfoDir = new File( dir, ".photovault" );
+        File volInfoDir = new File( dir, VOL_INFO_DIR );
         if ( volInfoDir.exists() )  {
             for ( File f: volInfoDir.listFiles() ) {
                 if ( f.getName().startsWith( "volume" ) && f.getName().endsWith(".id" ) )  {
@@ -230,7 +232,7 @@ public class VolumeManager {
         if ( !basedir.exists() ) {
             basedir.mkdir();
         }
-        File confDir = new File( basedir, ".photovault" );
+        File confDir = new File( basedir, VOL_INFO_DIR );
         if (confDir.exists()) {
             // This seems to be an existing volume
             log.warn("Attempting to create a new volume in " + basedir +
@@ -244,8 +246,7 @@ public class VolumeManager {
             } catch ( Exception e ) {
                 throw new PhotovaultException( 
                         "Error fecthing existing volume configuration: " + 
-                        e.getMessage(), 
-                        e );
+                        e.getMessage(), e );
             } 
          
         } else {

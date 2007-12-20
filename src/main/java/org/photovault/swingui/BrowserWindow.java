@@ -496,25 +496,7 @@ public class BrowserWindow extends AbstractController {
         int retval = fc.showDialog( window, "Select directory to index" );
         if ( retval == JFileChooser.APPROVE_OPTION ) {
             File dir = fc.getSelectedFile();
-            
-           // First check that this directory has not been indexed previously
-            
-            VolumeBase prevVolume = null;
-            try {
-                prevVolume = VolumeManager.instance().getVolumeOfFile( dir, null );
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog( window, "Problem reading directory: " 
-                        + ex.getMessage(), "Photovault error", 
-                        JOptionPane.ERROR_MESSAGE );
-                return;                
-            }
-            if ( prevVolume != null ) {
-                JOptionPane.showMessageDialog( window, "Directory " + dir.getAbsolutePath() +
-                        "\n has already been indexed to Photovault.", "Already indexed", 
-                        JOptionPane.ERROR_MESSAGE );
-                return;
-            }
-            
+                                    
             // Generate a unique name for the new volume
             String extVolName = "extvol_" + dir.getName();
             if ( VolumeBase.getVolume( extVolName ) != null ) {
@@ -545,26 +527,20 @@ public class BrowserWindow extends AbstractController {
                 volCmd = new CreateExternalVolume( 
                         dir, rootFolderName,  folderCmd.getCreatedFolder() );
                 viewCtrl.getCommandHandler().executeCommand( volCmd );
-            } catch (CommandException ex) {
-                ex.printStackTrace();
+
+                // Start indexing
+                PhotoFolder topFolder = folderCmd.getCreatedFolder();
+                BackgroundIndexer indexer = new BackgroundIndexer( dir, volCmd.getCreatedVolume(),
+                        topFolder, true );
+                SwingWorkerTaskScheduler sched =
+                        (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
+                sched.registerTaskProducer( indexer,
+                        TaskPriority.INDEX_EXTVOL );
+
+            } catch ( CommandException ex ) {
+                JOptionPane.showMessageDialog( window, ex.getMessage(),
+                        "Error creating volume", JOptionPane.ERROR_MESSAGE );
             }
-            PhotoFolder topFolder = folderCmd.getCreatedFolder();
-            BackgroundIndexer indexer = new BackgroundIndexer( dir, volCmd.getCreatedVolume(),           
-                    topFolder, true );
-            SwingWorkerTaskScheduler sched =
-                    (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
-            sched.registerTaskProducer( indexer,
-                    TaskPriority.INDEX_EXTVOL );
-//            ExtVolIndexer indexer = new ExtVolIndexer( volCmd.getCreatedVolume() );
-//            indexer.setCommandHandler( viewCtrl.getCommandHandler() );
-//            PhotoFolder topFolder = folderCmd.getCreatedFolder();
-//            indexer.setTopFolder( topFolder );
-//            
-//            // Show status dialog & index the directory
-//            IndexerStatusDlg statusDlg = new IndexerStatusDlg( window, false );
-//            statusDlg.setVisible( true );
-//            statusDlg.runIndexer( indexer );
-            
         }
     }
 
