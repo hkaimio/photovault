@@ -171,7 +171,6 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         VolumeDAO volDAO = daoFactory.getVolumeDAO();
         photo = photoDAO.findByUUID( photoUuid );
-
         
         Set<ImageOperations> operationsNotApplied = EnumSet.copyOf( operationsToApply );
         ImageDescriptorBase srcImageDesc = photo.getOriginal();
@@ -263,6 +262,22 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
             dstImage.setWidth( renderedDst.getWidth() );
             dstImage.setHeight( renderedDst.getHeight() );
             ((CopyImageDescriptor)dstImageFile.getImages().get( "image#0")).setOriginal( photo.getOriginal() );
+        } else {
+            /*
+             Dump information about the file & desired result
+             */
+            StringBuffer debugMsg = new StringBuffer();
+            debugMsg.append( "Found existing image file that is equal to created one\n" );
+            CopyImageDescriptor i = (CopyImageDescriptor) dstImageFile.getImage("image#0" );
+            ChannelMapOperation cm = i.getColorChannelMapping();
+            debugMsg.append( "file channel maaping:\n" );
+            debugMsg.append( cm != null ? cm.getAsXml() : "(null)" );
+            debugMsg.append( "\n" );
+            cm = photo.getColorChannelMapping();
+            debugMsg.append( "desired channel maaping:\n" );
+            debugMsg.append( cm != null ? cm.getAsXml() : "(null)" );
+            debugMsg.append( "\n" );
+            log.debug( debugMsg.toString() );
         }
         
         /*
@@ -271,6 +286,14 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         if ( volume != null ) {
             dstImageFile.addLocation( new FileLocation( volume, 
                     volume.mapFileToVolumeRelativeName( dstFile ) ) );
+        }
+        
+        /*
+         Ensure that the photo is initialized in memory as it is used as a 
+         detached object after closing our persistence context.         
+         */
+        if ( !photo.hasThumbnail() ) {
+            log.error( "No valid thumbnail available!!!" );
         }
     }
     

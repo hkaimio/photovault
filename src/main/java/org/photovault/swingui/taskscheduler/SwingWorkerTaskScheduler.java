@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import javax.swing.SwingUtilities;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.context.ManagedSessionContext;
 import org.jdesktop.swingworker.SwingWorker;
@@ -52,6 +54,9 @@ import org.photovault.taskscheduler.TaskScheduler;
  */
 public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler {
 
+    static private Log log = 
+            LogFactory.getLog( SwingWorkerTaskScheduler.class.getName() );
+    
     /**
      Create new SwingWorkerTaskScheduler
      @parent The controller that owns this scheduler
@@ -140,7 +145,9 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
      See {@link TaskScheduler#registerTaskProducer()} for details.
      */
     public void registerTaskProducer( TaskProducer c, int priority  ) {
+        log.debug( "entry: registerTaskProducer" );
         if ( priority < 0 || priority > MIN_PRIORITY ) {
+            log.warn( "priority = " + priority );
             throw new IllegalArgumentException( "Priority must be between 0 and " + MIN_PRIORITY );
         }
         if ( waitList[priority] == null ) {
@@ -154,6 +161,7 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
         if ( activeTask == null ) {
             scheduleNext(  );
         }
+        log.debug( "exit: registerTaskProducer" );
     }
 
     /**
@@ -173,6 +181,8 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
             @Override
             protected void done( ) {
                 fireTaskExecutedEvent( producer, nextTask );
+                log.debug( "Task " + nextTask + " executed" );
+                activeTask = null;
                 scheduleNext();
             }
         };
@@ -214,6 +224,7 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
                 TaskProducer c;
                 while ( (c = waitList[n].poll(  )) != null ) {
                     activeTask = c.requestTask(  );
+                    log.debug( "Scheduling task " + activeTask );
                     if ( activeTask != null ) {
                         runTask( c, activeTask );
                         waitList[n].add(c);
@@ -259,11 +270,24 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
         if ( parent == null ) {
             return;
         }
-        SwingUtilities.invokeLater( new Runnable(  ) {
+        log.debug( "Scheduling command event " + e );
+        /*
+         Wait until the event has been processed in AWT event thread to avoid 
+         race condition while scheduling the next event
+         */
+        while ( true ) {
+            try {
 
-            public void run( ) {
-                parent.fireEventGlobal( e );
+                SwingUtilities.invokeAndWait( new Runnable() {
+
+                    public void run() {
+                        log.debug( "Firing " + e );
+                        parent.fireEventGlobal( e );
+                    }
+                } );
+                break;
+            } catch ( Exception ex ) {
             }
-        } );
+        }
     }
 }

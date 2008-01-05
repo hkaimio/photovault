@@ -39,6 +39,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandExecutedEvent;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.folder.PhotoFolder;
@@ -63,6 +65,9 @@ import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
  */
 
 public class PhotoViewController extends PersistenceController {
+    
+    private static Log log = 
+            LogFactory.getLog( PhotoViewController.class.getName() );
     
     PhotoInfoDAO photoDAO = null;
     
@@ -173,8 +178,14 @@ public class PhotoViewController extends PersistenceController {
 
     private void imageCreated( CreateCopyImageCommand cmd ) {
         PhotoInfo p = cmd.getPhoto();
+        log.debug( "image created for photo " + p.getId() );
         if ( containsPhoto( p ) ) {
             PhotoInfo mergedPhoto = (PhotoInfo) getPersistenceContext().merge( p );
+            log.debug( "merged chages to photo " + mergedPhoto.getId() );
+            if ( !mergedPhoto.hasThumbnail() ) {
+                log.error( "he photo does not have a thumbnail!!!" );
+                getPersistenceContext().update( mergedPhoto );
+            }
         }
     }
     
@@ -411,6 +422,11 @@ public class PhotoViewController extends PersistenceController {
     void setCollection(PhotoCollection c) {
         collection = c;
         photos = null;
+        /*
+         Clear Hibernate cache to avoid memory leaks and race conditions with
+         command events from already executed commands.
+         */
+        getPersistenceContext().clear();
         if ( c != null ) {
             photos = c.queryPhotos(getPersistenceContext());
         }
