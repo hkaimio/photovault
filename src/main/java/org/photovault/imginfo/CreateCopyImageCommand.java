@@ -20,19 +20,37 @@
 
 package org.photovault.imginfo;
 
-import com.sun.media.jai.codec.ImageCodec;
-import com.sun.media.jai.codec.ImageEncoder;
-import com.sun.media.jai.codec.JPEGEncodeParam;
+import com.adobe.xmp.XMPMeta;
+import com.adobe.xmp.XMPMetaFactory;
+import com.adobe.xmp.XMPSchemaRegistry;
+import com.adobe.xmp.options.PropertyOptions;
+import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
 import java.awt.image.renderable.ParameterBlock;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.event.IIOWriteWarningListener;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.imageio.stream.ImageOutputStream;
 import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
 import org.apache.commons.logging.Log;
@@ -44,6 +62,7 @@ import org.photovault.dcraw.RawImage;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
+import org.w3c.dom.NodeList;
 
 /**
  Create a new copy image that matches the settings of a given photo.
@@ -229,8 +248,31 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         if ( dstFile == null ) {
             throw new CommandException( "Either destination file or volume must be specified" );
         }
+
+        ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
+        ImageFile dstImageFile = new ImageFile();
+        ifDAO.makePersistent( dstImageFile );
+        CopyImageDescriptor dstImage = new CopyImageDescriptor( dstImageFile, "image#0", photo.getOriginal() );
+        ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
+        idDAO.makePersistent( dstImage );
+        if ( operationsToApply.contains( ImageOperations.COLOR_MAP ) ) {
+            dstImage.setColorChannelMapping( photo.getColorChannelMapping() );
+        }
+        if ( operationsToApply.contains( ImageOperations.CROP ) ) {
+            dstImage.setCropArea( photo.getCropBounds() );
+            dstImage.setRotation( photo.getPrefRotation() );
+        }
+        if ( operationsToApply.contains( ImageOperations.RAW_CONVERSION ) ) {
+            dstImage.setRawSettings( photo.getRawSettings() );
+        }
+        dstImage.setWidth( renderedDst.getWidth() );
+        dstImage.setHeight( renderedDst.getHeight() );
+        ((CopyImageDescriptor) dstImageFile.getImages().get( "image#0" )).setOriginal( photo.getOriginal() );
+        byte[] xpmData = createXMPMetadata( dstImageFile );
+
+        
         try {
-            saveImage( dstFile, renderedDst );
+            saveImage( dstFile, renderedDst, xpmData );
         } catch (PhotovaultException ex) {
             throw new CommandException( ex.getMessage() );
         }
@@ -240,45 +282,7 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
          if not
          */
         byte[] hash = ImageFile.calcHash( dstFile );
-        ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
-        ImageFile dstImageFile = ifDAO.findImageFileWithHash( hash );
-        if ( dstImageFile == null ) {
-            dstImageFile = new ImageFile();
-            ifDAO.makePersistent( dstImageFile );
-            dstImageFile.setHash( hash );
-            CopyImageDescriptor dstImage = new CopyImageDescriptor( dstImageFile, "image#0", photo.getOriginal() );
-            ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
-            idDAO.makePersistent( dstImage );
-            if ( operationsToApply.contains( ImageOperations.COLOR_MAP ) ) {
-                dstImage.setColorChannelMapping( photo.getColorChannelMapping() );
-            }
-            if ( operationsToApply.contains( ImageOperations.CROP ) ) {
-                dstImage.setCropArea( photo.getCropBounds() );
-                dstImage.setRotation( photo.getPrefRotation() );
-            }
-            if ( operationsToApply.contains( ImageOperations.RAW_CONVERSION ) ) {
-                dstImage.setRawSettings( photo.getRawSettings() );
-            }
-            dstImage.setWidth( renderedDst.getWidth() );
-            dstImage.setHeight( renderedDst.getHeight() );
-            ((CopyImageDescriptor)dstImageFile.getImages().get( "image#0")).setOriginal( photo.getOriginal() );
-        } else {
-            /*
-             Dump information about the file & desired result
-             */
-            StringBuffer debugMsg = new StringBuffer();
-            debugMsg.append( "Found existing image file that is equal to created one\n" );
-            CopyImageDescriptor i = (CopyImageDescriptor) dstImageFile.getImage("image#0" );
-            ChannelMapOperation cm = i.getColorChannelMapping();
-            debugMsg.append( "file channel maaping:\n" );
-            debugMsg.append( cm != null ? cm.getAsXml() : "(null)" );
-            debugMsg.append( "\n" );
-            cm = photo.getColorChannelMapping();
-            debugMsg.append( "desired channel maaping:\n" );
-            debugMsg.append( cm != null ? cm.getAsXml() : "(null)" );
-            debugMsg.append( "\n" );
-            log.debug( debugMsg.toString() );
-        }
+        dstImageFile.setHash( hash );
         
         /*
          Store location of created file in database
@@ -297,18 +301,78 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         }
     }
     
-    
+    /**
+     Creates an XMP packet from associated data that can be added to saved copy 
+     file. The data is currently mostly intended for informational purposes: no 
+     strict sematics are defined. In future, it should be possible to transfer 
+     files from one Photovault database to another without loss of information.
+     
+     @param ifile The ImageFile that is saved
+     @return Binary XMP packed
+     */
+    private byte[] createXMPMetadata( ImageFile ifile ) {
+        XMPMeta meta = XMPMetaFactory.create();
+        XMPSchemaRegistry reg = XMPMetaFactory.getSchemaRegistry();
+        byte[] data = null;
+        try {
+            String mmNS = reg.getNamespaceURI( "xapMM" );
+            meta.setProperty( mmNS, "InstanceID", ifile.getId().toString() );
+            meta.setProperty( mmNS, "Manager", "Photovault" );
+            meta.setProperty( mmNS, "ManageTo", ifile.getId().toString() );
+            CopyImageDescriptor firstImage = (CopyImageDescriptor) ifile.getImage( "image#0" );
+            OriginalImageDescriptor orig = firstImage.getOriginal();
+            String rrNS = reg.getNamespaceURI( "stRef" );
+            meta.setStructField(mmNS, "DerivedFrom", 
+                    rrNS, "InstanceID", orig.getFile().getId().toString() );
+            
+            /*
+             Set the image metadata based the photo we are creating this copy.
+             There may be other photos associated with the origial image file,
+             so we should store information about these in some proprietary part 
+             of metadata.
+             */
+            String dcNS = "http://purl.org/dc/elements/1.1/";
+            meta.appendArrayItem( dcNS, "creator", 
+                    new PropertyOptions().setArrayOrdered( true ), 
+                    photo.getPhotographer(), null );
+            meta.setProperty( dcNS, "description", photo.getDescription() );
+            
+            String xmpBasicNS = "http://ns.adobe.com/xap/1.0/";
+            
+            Date shootDate = photo.getShootTime();
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
+            String xmpShootDate = df.format(shootDate);
+            
+            meta.setProperty( xmpBasicNS, "CreateDate", xmpShootDate );
+
+            
+            // TODO: add other photo attributes as well
+            
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            outStream.write( "http://ns.adobe.com/xap/1.0/".getBytes("utf-8" ) );
+            outStream.write( 0 );
+            XMPMetaFactory.serialize( meta, outStream );
+            outStream.write( "<?xpacket end=\"w\"?>".getBytes( "utf-8" ) );
+            data = outStream.toByteArray();
+            log.debug( "XMP metadata:\n" + new String( data ) );
+        } catch ( Exception ex ) {
+            Logger.getLogger( CreateCopyImageCommand.class.getName() ).log( Level.SEVERE, null, ex );
+        }
+        return data;
+    }
+
     /**
      Helper function to save a rendered image to file
      @param instanceFile The file into which the image will be saved
      @param img Image that willb e saved
+     @param xmpData XPM metadata packet that should be saved with the image
      @throws PhotovaultException if saving does not succeed
      */
-    protected void saveImage( File instanceFile, RenderedImage img ) throws PhotovaultException {
-        OutputStream out = null;
+    protected void saveImage( File instanceFile, RenderedImage img, byte[] xmpData ) throws PhotovaultException {
+        ImageOutputStream out = null;
         log.debug( "Entry: saveImage, file = " + instanceFile.getAbsolutePath() );
         try {
-            out = new FileOutputStream( instanceFile.getAbsolutePath());
+            out = new FileImageOutputStream( instanceFile );
         } catch(IOException e) {
             log.error( "Error writing image: " + e.getMessage() );
             throw new PhotovaultException( e.getMessage() );
@@ -329,20 +393,76 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
             pbConvert.add(DataBuffer.TYPE_BYTE);
             img = JAI.create("format", pbConvert);
         }
-        JPEGEncodeParam encodeParam = new JPEGEncodeParam();
-        ImageEncoder encoder = ImageCodec.createImageEncoder("JPEG", out,
-                encodeParam);
+        
+        IIOImage iioimg = new IIOImage( img, null, null );
+
+        /*
+         Not all encoders support metadata handling
+         */
+        Iterator writers = ImageIO.getImageWritersByFormatName( "jpeg" );
+        ImageWriter imgwriter = null;
+        while ( writers.hasNext() ) {
+            imgwriter = (ImageWriter) writers.next();
+            if ( imgwriter.getClass().getName().endsWith( "JPEGImageEncoder" ) ) {
+                // Break on finding the core provider.
+                break;
+            }
+        }
+        if ( imgwriter == null ) {
+            System.err.println( "Cannot find core JPEG writer!" );
+        }
+        imgwriter.addIIOWriteWarningListener( new IIOWriteWarningListener() {
+
+            public void warningOccurred( ImageWriter arg0, int arg1, String arg2 ) {
+                log.warn( "Warning from ImageWriter: " + arg2 );
+            }
+        });
+        ImageWriteParam params = imgwriter.getDefaultWriteParam();
+        ImageTypeSpecifier its = new ImageTypeSpecifier( img );
+        its =
+            ImageTypeSpecifier.createFromBufferedImageType(BufferedImage.TYPE_INT_RGB);
+        IIOMetadata metadata = imgwriter.getDefaultImageMetadata( its, null );
+
+        IIOMetadataNode metatop =
+                (IIOMetadataNode) metadata.getAsTree( "javax_imageio_jpeg_image_1.0" );
+        NodeList markerSeqNodes = metatop.getElementsByTagName( "markerSequence" );
+        if ( markerSeqNodes.getLength() > 0 ) {
+            IIOMetadataNode xmpNode = new IIOMetadataNode( "unknown" );
+            xmpNode.setAttribute("MarkerTag", "225" );
+            xmpNode.setUserObject( xmpData );
+            markerSeqNodes.item( 0 ).appendChild( xmpNode );
+        }
+        
         try {
-            log.debug( "starting JPEG enconde" );
-            encoder.encode( img );
-            log.debug( "done JPEG encode" );
-            out.close();
-            // origImage.dispose();
-        } catch (Exception e) {
+            metadata.setFromTree( "javax_imageio_jpeg_image_1.0", metatop );
+        } catch ( Exception e ) {
+            log.warn( "error editing metadata: " + e.getMessage() );
+            e.printStackTrace();
+            throw new PhotovaultException( "error setting image metadata: \n" + e.getMessage() );
+        }
+        
+        iioimg.setMetadata( metadata );
+        
+        try {
+            imgwriter.setOutput( out );
+            imgwriter.write( iioimg );
+        } catch ( IOException e ) {
             log.warn( "Exception while encoding" + e.getMessage() );
             throw new PhotovaultException( "Error writing instance " +
-                    instanceFile.getAbsolutePath()+ ": " +
+                    instanceFile.getAbsolutePath() + ": " +
                     e.getMessage() );
+        } finally {
+            try {
+                out.close();
+            } catch ( IOException e ) {
+                log.warn( "Exception while closing file: " + e.getMessage() );
+                imgwriter.dispose();
+                throw new PhotovaultException( "Error writing instance " +
+                        instanceFile.getAbsolutePath() + ": " +
+                        e.getMessage() );
+
+            }
+            imgwriter.dispose();
         }
         log.debug( "Exit: saveImage" );
     }
