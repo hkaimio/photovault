@@ -932,9 +932,14 @@ public class PhotoInfo implements java.io.Serializable {
                 && img.getCropArea().equals( getCropBounds() ) ) ) {
             return false;
         }
-        if ( applied.contains( ImageOperations.COLOR_MAP ) && 
-                !(channelMap == null || channelMap.equals( img.getColorChannelMapping() ) ) ) {
-            return false;
+        if ( applied.contains( ImageOperations.COLOR_MAP ) ) {
+            ChannelMapOperation imgCm = img.getColorChannelMapping();
+            if ( channelMap != null && !channelMap.isAlmostEqual( imgCm, 0.005 ) ) {
+                return false;
+            }
+            if ( channelMap == null && imgCm != null && !imgCm.isAlmostEqual(channelMap, 0.005 ) ) {
+                return false;
+            }
         }
         if ( applied.contains( ImageOperations.RAW_CONVERSION ) &&
                 !( rawSettings == null || rawSettings.equals( img.getRawSettings() ) ) ) {

@@ -197,6 +197,7 @@ public class ColorCurve {
      @param o Object to compare this curve with
      @return true if o is equal to this object, false otherwise
      */
+    @Override
     public boolean equals( Object o ) {
         if ( !(o instanceof ColorCurve) ) {
             return false;
@@ -217,8 +218,53 @@ public class ColorCurve {
     }
     
     /**
+     Check whether two curves are equal up to given precision. The method tests 
+     values of both curves in each control point defined to either of them.
+     
+     @param c The other ColorCurve
+     @param precision Maximum error allowed
+     @return <code>true</code> if the curves are equal, <code>false</code> 
+     otherwise. If c is <code>null</code> the method calls isAlmostIdentity() and
+     returns result of that, as null curve is assumed to act as identity curve in 
+     Photovault.
+     */
+    public boolean isAlmostEqual( ColorCurve c, double precision ) {
+        if ( c == null ) {
+            return isAlmostIdentity( precision );
+        }
+        
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            if ( Math.abs( c.getValue( pointX[n] ) - pointY[n] ) > precision ) {
+                return false;
+            }
+        }
+        for ( int n = 0 ; n < c.pointX.length ; n++ ) {
+            if ( Math.abs( getValue( c.pointX[n] ) - c.pointY[n] ) > precision ) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     Check whether this curve defines an identity mapping up to a given precision
+     
+     @param precision Maximum deviation from identity mapping allowed
+     @return
+     */
+    public boolean isAlmostIdentity( double precision ) {
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            if ( Math.abs( pointX[n] - pointY[n] ) > precision ) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
      Calculate hash code for this curve.
      */
+    @Override
     public int hashCode() {
         long hash = 0;
         for ( int n = 0 ; n < pointX.length ; n++ ) {
