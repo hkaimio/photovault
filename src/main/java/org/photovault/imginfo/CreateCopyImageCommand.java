@@ -20,10 +20,12 @@
 
 package org.photovault.imginfo;
 
+import com.adobe.xmp.XMPException;
 import com.adobe.xmp.XMPMeta;
 import com.adobe.xmp.XMPMetaFactory;
 import com.adobe.xmp.XMPSchemaRegistry;
 import com.adobe.xmp.options.PropertyOptions;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
@@ -31,6 +33,7 @@ import java.awt.image.renderable.ParameterBlock;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.SimpleDateFormat;
@@ -62,6 +65,7 @@ import org.photovault.dcraw.RawImage;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
+import org.photovault.swingui.Photovault;
 import org.w3c.dom.NodeList;
 
 /**
@@ -300,6 +304,40 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
             log.error( "No valid thumbnail available!!!" );
         }
     }
+
+    // XMP namespaces
+    
+    /**
+     XMP Basic namespace
+     */
+    static private final String NS_XMP_BASIC = "http://ns.adobe.com/xap/1.0/";
+
+    /**
+     Dublin Core namespace
+     */
+    static private final String NS_DC = "http://purl.org/dc/elements/1.1/";
+
+    /**
+     XMP Media Management namespace
+     */
+    static private final String NS_MM = "http://ns.adobe.com/xap/1.0/mm/";
+
+    /**
+     XMP EXIF tag namespace
+     */
+    static private final String NS_EXIF = "http://ns.adobe.com/exif/1.0/";
+
+    /**
+     XMP auxiliary EXIF namespace
+     */
+    static private final String NS_EXIF_AUX = "http://ns.adobe.com/exif/1.0/aux/";
+
+    /**
+     XMP EXIF TIFF specific tag namespace
+     */
+    static private final String NS_TIFF = "http://ns.adobe.com/tiff/1.0/";
+    
+    static private final String NS_PV_CROP = "http://ns.photovault.org/xmp/1.0/#crop";
     
     /**
      Creates an XMP packet from associated data that can be added to saved copy 
@@ -313,17 +351,40 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
     private byte[] createXMPMetadata( ImageFile ifile ) {
         XMPMeta meta = XMPMetaFactory.create();
         XMPSchemaRegistry reg = XMPMetaFactory.getSchemaRegistry();
+        
+        // Check for Photovault schemas
+        if ( reg.getNamespacePrefix(NS_PV_CROP) == null ) {
+            try {
+                reg.registerNamespace(NS_PV_CROP, "pvCrop" );
+            } catch ( XMPException e ) {
+                log.error( "CMPException: " + e.getMessage() );
+            }
+        }
+        
         byte[] data = null;
         try {
-            String mmNS = reg.getNamespaceURI( "xapMM" );
-            meta.setProperty( mmNS, "InstanceID", ifile.getId().toString() );
-            meta.setProperty( mmNS, "Manager", "Photovault" );
-            meta.setProperty( mmNS, "ManageTo", ifile.getId().toString() );
+            URI ifileURI = new URI( "uuid", ifile.getId().toString(), null );
+            meta.setProperty( NS_MM, "InstanceID", ifileURI.toString()  );
+            meta.setProperty( NS_MM, "Manager", "Photovault 0.5.0dev"  );
+            meta.setProperty( NS_MM, "ManageTo", ifileURI.toString() );
             CopyImageDescriptor firstImage = (CopyImageDescriptor) ifile.getImage( "image#0" );
             OriginalImageDescriptor orig = firstImage.getOriginal();
             String rrNS = reg.getNamespaceURI( "stRef" );
-            meta.setStructField(mmNS, "DerivedFrom", 
-                    rrNS, "InstanceID", orig.getFile().getId().toString() );
+            URI origURI = 
+                    new URI( "uuid", orig.getFile().getId().toString(), orig.getLocator() );
+            meta.setStructField(NS_MM, "DerivedFrom", 
+                    rrNS, "InstanceID", origURI.toString()  );
+            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "Rotation", 
+                    Double.toString( firstImage.getRotation() ) );
+            Rectangle2D cropArea = firstImage.getCropArea();
+            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "XMin", 
+                    Double.toString( cropArea.getMinX() ) );
+            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "XMax", 
+                    Double.toString( cropArea.getMaxX() ) );
+            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "YMin", 
+                    Double.toString( cropArea.getMinY() ) );
+            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "YMax", 
+                    Double.toString( cropArea.getMaxY() ) );
             
             /*
              Set the image metadata based the photo we are creating this copy.
@@ -331,21 +392,21 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
              so we should store information about these in some proprietary part 
              of metadata.
              */
-            String dcNS = "http://purl.org/dc/elements/1.1/";
-            meta.appendArrayItem( dcNS, "creator", 
+            meta.appendArrayItem( NS_DC, "creator", 
                     new PropertyOptions().setArrayOrdered( true ), 
                     photo.getPhotographer(), null );
-            meta.setProperty( dcNS, "description", photo.getDescription() );
+            meta.setProperty( NS_DC, "description", photo.getDescription() );
             
-            String xmpBasicNS = "http://ns.adobe.com/xap/1.0/";
             
             Date shootDate = photo.getShootTime();
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
             String xmpShootDate = df.format(shootDate);
             
-            meta.setProperty( xmpBasicNS, "CreateDate", xmpShootDate );
+            meta.setProperty( NS_XMP_BASIC, "CreateDate", xmpShootDate  );
 
-            
+            // Save technical data
+            meta.setProperty( NS_TIFF, "Model", photo.getCamera() );
+            meta.setProperty( NS_EXIF_AUX, "Lens", photo.getLens() );
             // TODO: add other photo attributes as well
             
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
