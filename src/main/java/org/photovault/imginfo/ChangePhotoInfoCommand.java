@@ -32,6 +32,9 @@ import java.util.UUID;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.xerces.dom.DOMImplementationImpl;
+import org.apache.xml.security.c14n.Canonicalizer;
+import org.apache.xml.serialize.SerializerFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.CommandExecutedEvent;
 import org.photovault.command.DataAccessCommand;
@@ -43,6 +46,14 @@ import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
+import org.photovault.imginfo.xml.ChangeDesc;
+import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSSerializer;
 
 /**
   Command for changing the properties of {@link PhotoInfo}. This command provides 
@@ -116,7 +127,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      */
     Set<PhotoInfo> changedPhotos = null;
     
-    
+    Set<ChangeDesc> changes = new HashSet<ChangeDesc>();
     
     /**
      Get photo instance with the changes applied (in command handler's persistence 
@@ -124,6 +135,10 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      */
     public Set<PhotoInfo> getChangedPhotos() {
         return changedPhotos;
+    }
+
+    public Set<ChangeDesc> getChanges() {
+        return changes;
     }
     
     /**
@@ -369,7 +384,9 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                         PropertyUtils.setProperty( photo, field.getName(), value );
                     } catch ( Exception ex) {
                         log.error( "Exception while executing command", ex );
-                        throw new CommandException( "Error while executing command: " + ex.getMessage() );
+                        throw new CommandException( 
+                                "Error while executing command: " 
+                                + ex.getMessage() );
                     }
                 }                
             }
@@ -394,6 +411,94 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 PhotoFolder folder = folderDAO.findById( folderId, false );
                 folder.removePhoto( photo );
             }
+            
+            PhotoInfoChangeDesc change = new PhotoInfoChangeDesc( 
+                    photo, changedFields, 
+                    new HashSet<PhotoFolder>(), new HashSet<PhotoFolder>() );
+            changes.add( change );
+            photo.setVersion( change );
         }
+    }
+    String xml = null;
+
+    
+    public String getAsXml() {
+        if ( xml == null ) {
+            DOMImplementationRegistry registry = null;
+            try {
+                 registry = DOMImplementationRegistry.newInstance();
+            } catch ( Exception e ) {
+                log.error( "Error instantiating DOM implementation");
+            }
+
+            DOMImplementation domImpl =
+                    (DOMImplementation) registry.getDOMImplementation( "LS" );
+
+
+            Document doc = domImpl.createDocument( null, "object-history", null );
+            Element root = doc.getDocumentElement();
+
+            Element changeEnvelope = doc.createElement( "change" );
+            root.appendChild( changeEnvelope );
+            Element changeDesc = doc.createElement( "change-desc" );
+            changeEnvelope.appendChild( changeDesc );
+            changeDesc.setAttribute( "target", "uuid-placehoder" );
+            Element chClass = doc.createElement( "change-class" );
+            chClass.setAttribute( "class", this.getClass().getName() );
+            changeDesc.appendChild( chClass );
+
+            Element predecessors = doc.createElement( "predecessors" );
+            changeDesc.appendChild( predecessors );
+
+            Element pred = doc.createElement( "change-ref" );
+            predecessors.appendChild( pred );
+            pred.setAttribute( "uuid", "uuild-placehoder" );
+
+            Element fields = doc.createElement( "fields" );
+            changeDesc.appendChild( fields );
+
+            for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
+                Element field = doc.createElement( "field" );
+                fields.appendChild( field );
+                field.setAttribute( "name", e.getKey().getName() );
+                field.appendChild( doc.createTextNode( e.getValue().toString() ) );
+            }
+
+            if ( addedToFolders.size() > 0 ) {
+                Element addedFolders = doc.createElement( "folders-added" );
+                changeDesc.appendChild( addedFolders );
+                for ( Integer i : addedToFolders ) {
+                    Element f = doc.createElement( "folder" );
+                    f.setAttribute( "uuid", i.toString() );
+                    addedFolders.appendChild( f );
+                }
+            }
+            if ( removedFromFolders.size() > 0 ) {
+                Element removedFolders = doc.createElement( "folders-removed" );
+                changeDesc.appendChild( removedFolders );
+                for ( Integer i : removedFromFolders ) {
+                    Element f = doc.createElement( "folder" );
+                    f.setAttribute( "uuid", i.toString() );
+                    removedFolders.appendChild( f );
+                }
+            }
+            try {
+                if ( !org.apache.xml.security.Init.isInitialized() ) {
+                    org.apache.xml.security.Init.init();
+                }
+                Canonicalizer c14n = Canonicalizer.getInstance(
+                        "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments" );
+                byte[] xmlData = c14n.canonicalizeSubtree( changeDesc );
+                log.debug( "Canonicalized description:\n" + new String( xmlData, "utf-8" ) );
+                UUID uuid = UUID.nameUUIDFromBytes( xmlData );
+                changeEnvelope.setAttribute( "uuid", uuid.toString() );
+            } catch ( Exception e ) {
+                log.warn( "Exception calculating uuid: " + e.getMessage() );
+            }
+            LSSerializer writer = ((DOMImplementationLS)domImpl).createLSSerializer();
+            xml = writer.writeToString(doc);            
+        }
+        
+        return xml;
     }
 }

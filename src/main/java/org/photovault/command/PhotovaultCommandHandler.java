@@ -23,6 +23,8 @@ package org.photovault.command;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -36,6 +38,9 @@ import org.photovault.persistence.HibernateUtil;
   Basic command handler for Photovault.
  */
 public class PhotovaultCommandHandler implements CommandHandler {
+    
+    static private Log log = 
+            LogFactory.getLog( PhotovaultCommandHandler.class.getName() );
     
     Session session;
     
@@ -64,6 +69,7 @@ public class PhotovaultCommandHandler implements CommandHandler {
 
         Transaction tx = commandSession.beginTransaction();        
         command.execute();
+        // log.debug( "Executed command:\n" + command.getAsXml() );
         commandSession.flush();
         tx.commit();
         fireCommandEvent( new CommandExecutedEvent( this, command ) );

@@ -37,4 +37,4 @@ public abstract class DataAccessCommand implements Command {
     public void setDAOFactory( DAOFactory f ) {
         daoFactory = f;
     }
-}
+        }

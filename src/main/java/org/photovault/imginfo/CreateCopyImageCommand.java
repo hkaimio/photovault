@@ -65,7 +65,6 @@ import org.photovault.dcraw.RawImage;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
-import org.photovault.swingui.Photovault;
 import org.w3c.dom.NodeList;
 
 /**
@@ -246,8 +245,8 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         // Determine correct file name for the image & save it
 
         if ( volumeUuid != null ) {
-            VolumeBase volume = volDAO.findById(volumeUuid, false);
-            dstFile = volume.getInstanceName( photo, "jpg" );
+            VolumeBase vol = volDAO.findById(volumeUuid, false);
+            dstFile = vol.getInstanceName( photo, "jpg" );
         }
         if ( dstFile == null ) {
             throw new CommandException( "Either destination file or volume must be specified" );

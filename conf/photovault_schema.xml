@@ -329,6 +329,8 @@
     <table name="photos">
       <column name="photo_id" primaryKey="true" required="true" type="INTEGER" size="11" autoIncrement="false"/>
       <column name="photo_uuid" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>      
+      <column name="version_uuid" primaryKey="false" required="false" 
+              type="VARCHAR" size="36" autoIncrement="false"/>      
       <column name="original_id" primaryKey="false" required="false" type="BIGINT" autoIncrement="false"/>      
       <column name="shoot_time" primaryKey="false" required="false" type="TIMESTAMP" size="19" autoIncrement="false"/>
       <column name="time_accuracy" primaryKey="false" required="false" type="FLOAT" size="12" autoIncrement="false"/>
@@ -414,6 +416,48 @@
         <index-column name="description"/>
       </index-->
     </table>
+    
+    <table name="change_history"
+           description="Changes made to Photovault database">
+        <column name="change_uuid" primaryKey="true" required="true" 
+                type="VARCHAR" size="36" autoIncrement="false"
+                description="UUID of this change"/>
+        <column name="target_uuid" primaryKey="false" required="true" 
+                type="VARCHAR" size="36" autoIncrement="false"
+                description="UUID of the target object of this change"/>               
+        <column name="change_class" primaryKey="false" required="false" 
+                type="VARCHAR" size="100" autoIncrement="false"
+                description="Class name of the change description object"/>
+        <column name="is_applied" primaryKey="false" required="true" 
+                default="false" type="BOOLEAN" autoIncrement="false"
+                description="Is this change applied in current database"/>
+        <column name="is_head" primaryKey="false" required="true" default="true"
+                type="BOOLEAN" autoIncrement="false"
+                description="True if this change is a head (no other change is based on it)"/>
+        <column name="change_num" primaryKey="false" required="false" 
+                type="INTEGER" autoIncrement="false"
+                description="Local numbering for helping queries"/>
+        <column name="change_desc_encoding" primaryKey="false" required="false" 
+                type="VARCHAR" size="10" autoIncrement="false"
+                description="Coding used for change_desc field"/>
+        <column name="change_desc" primaryKey="false" required="true" 
+                type="LONGVARBINARY" autoIncrement="false"
+                description="Description of the change"/>
+        <index name="object_changes">
+            <index-column name="target_uuid"/>
+        </index>
+    </table>
+    
+    <table name="change_relations"
+           description="Dependencies between changes">
+        <column name="change_uuid" primaryKey="true" required="true" 
+                type="VARCHAR" size="36" autoIncrement="false"
+                description="UUID of this change"/>
+        <column name="prev_change_uuid" primaryKey="true" required="true" 
+                type="VARCHAR" size="36" autoIncrement="false"
+                description="UUID of this change"/>
+    </table>               
+    
     
     <table name="dcraw_settings" 
            description="Settings used to convert a raw image using dcraw" >

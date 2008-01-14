@@ -42,6 +42,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
@@ -64,6 +65,7 @@ import org.photovault.image.PhotovaultImageFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
 
 /**
  PhotoInfo represents information about a single photograph
@@ -309,6 +311,33 @@ public class PhotoInfo implements java.io.Serializable {
 	this.uuid = uuid;
 	modified();
     }
+    
+    /**
+     Last change that vas applied to this photo
+     */
+    PhotoInfoChangeDesc version;
+    
+    /**
+     Get the last change that was made to this photo
+     
+     @return ChangeDesc describing the last change
+     */
+    
+    @OneToOne( cascade = CascadeType.ALL )
+    @JoinColumn( name="version_uuid" )
+    public PhotoInfoChangeDesc getVersion() {
+        return version;
+    }
+    
+    /**
+     Set the version of this photo
+     
+     @param v Description of the change that was last made to this photo.
+     */
+    public void setVersion( PhotoInfoChangeDesc v ) {
+        version = v;
+    }
+    
     
     /**
      Reads field values from original file EXIF values
