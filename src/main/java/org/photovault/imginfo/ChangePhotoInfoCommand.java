@@ -402,19 +402,22 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 photo.setColorChannelMapping( channelMapFactory.create() );
                 
             }
+            
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
+            Set<PhotoFolder> af = new HashSet<PhotoFolder>();
             for ( Integer folderId : addedToFolders ) {
                 PhotoFolder folder = folderDAO.findById( folderId, false );
                 folder.addPhoto ( photo );
+                af.add(folder);
             }
+            Set<PhotoFolder> rf = new HashSet<PhotoFolder>();
             for ( Integer folderId : removedFromFolders ) {
                 PhotoFolder folder = folderDAO.findById( folderId, false );
                 folder.removePhoto( photo );
             }
             
             PhotoInfoChangeDesc change = new PhotoInfoChangeDesc( 
-                    photo, changedFields, 
-                    new HashSet<PhotoFolder>(), new HashSet<PhotoFolder>() );
+                    photo, changedFields, af, rf );
             changes.add( change );
             photo.setVersion( change );
         }

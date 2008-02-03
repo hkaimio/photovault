@@ -23,7 +23,6 @@ package org.photovault.imginfo;
 import java.awt.geom.Rectangle2D;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.Set;
 import java.util.UUID;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
@@ -186,6 +185,21 @@ public enum PhotoInfoFields {
             return getColorCurve( photo, field );
         }
         throw new IllegalArgumentException( "No support for field " + field );
+    }
+    
+    /**
+     Get a field by its name
+     @param name Name of the field
+     @return Field with the specified name or <code>null</code> if no such field 
+     exists.
+     */
+    public static PhotoInfoFields getByName( String name ) {
+        for ( PhotoInfoFields f : EnumSet.allOf( PhotoInfoFields.class ) ) {
+            if ( f.getName().equals( name ) ) {
+                return f;
+            }
+        }
+        return null;
     }
     
     /**

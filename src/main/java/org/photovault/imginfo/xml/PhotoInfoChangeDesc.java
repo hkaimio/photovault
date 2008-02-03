@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007 Harri Kaimio
+  Copyright (c) 2008 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,23 +20,27 @@
 
 package org.photovault.imginfo.xml;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xml.security.c14n.Canonicalizer;
+import org.hibernate.annotations.MapKey;
+import org.photovault.change.AssocChangeType;
+import org.photovault.change.FieldChangeDesc;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoFields;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSSerializer;
 
 /**
  This class is a persistent description of a change into a {@link PhotoInfo}
@@ -71,6 +75,138 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
     }
     
     /**
+     Get the fields that are changed. This method is intended only for 
+     persistence layer use.
+
+     @return Map from field name to field value as a "union" that can be stored 
+     in database
+     */
+    @org.hibernate.annotations.CollectionOfElements
+    @JoinTable( name = "field_changes", joinColumns=@JoinColumn( name="change_uuid"  ) )
+    @MapKey( columns=@Column( name="field_name" ))
+    protected Map<String, FieldChangeDesc> getFields() {
+        Map<String, FieldChangeDesc> ret = new HashMap<String, FieldChangeDesc>();
+        for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
+            ret.put( e.getKey().getName(), new FieldChangeDesc( e.getValue() ) );
+        }
+        return ret;
+    }
+        
+    /**
+     Set the field values from persistence layer.
+     @param m The field values
+     */
+    protected void setFields( Map<String, FieldChangeDesc> m ) {
+        for ( Map.Entry<String, FieldChangeDesc> e : m.entrySet() ) {
+            PhotoInfoFields f = PhotoInfoFields.getByName( e.getKey() );
+            if ( f != null ) {
+                changedFields.put( f, e.getValue().getValue() );
+            } else {
+                log.error( "Field " + e.getValue() + " not known" );
+            }
+        }
+    }
+    
+    /**
+     Changes made to folders of this photo
+     */
+    Map<UUID, AssocChangeType> folderChanges = 
+            new HashMap<UUID,AssocChangeType>();
+    
+
+    /**
+     Helper method for transferring folder change information to persistence 
+     layer. Due to limitations of Hibernate it seems to be impossible to persist
+     maps with elements of user defined types, so we convert then to Strings here.
+     
+     @return Map with the folder changes converted into strings.
+     */
+    @org.hibernate.annotations.CollectionOfElements
+    @JoinTable( name = "changes_photo_collections", joinColumns=@JoinColumn( name="change_uuid"  ) )
+    @MapKey( columns=@Column( name="collection_uuid" ) )
+    @Column( name="operation" )
+    protected Map<String, String> getFolderChanges() {
+        Map<String, String> ret = new HashMap<String, String>();
+        for ( Map.Entry<UUID, AssocChangeType> e : folderChanges.entrySet() ) {
+            ret.put( e.getKey().toString(), e.getValue().toString() );
+        }
+        return ret;
+    }
+    
+    /**
+     Initialize folder changes from persistence layer.
+     
+     @param changes Map of folder changes converted to Strings (see 
+     getFolderChanges for details)
+     */
+    protected void setFolderChanges( Map<String, String> changes ) {
+        folderChanges.clear();
+        for ( Map.Entry<String, String> e : changes.entrySet() ) {
+            AssocChangeType val = e.getValue().equals( "ADDED" ) ? 
+                AssocChangeType.ADDED : AssocChangeType.REMOVED;
+            folderChanges.put( UUID.fromString( e.getKey() ), val );
+        }
+    }
+    
+    /**
+     Calculate the UUID of this change. UID is calculated as a hash of changed 
+     properties.
+     @return UUID that should be used for this change.
+     */
+    protected UUID calcId() {
+        StringBuffer b = new StringBuffer();
+        b.append( "changed-object PhotoInfo" );
+        b.append( "\n" );
+        b.append( "predecessors " + getPrevChanges().size() );
+        b.append( "\n" );
+        for ( ChangeDesc p : getPrevChanges() ) {
+            b.append( p.getUuid().toString() + "\n" );
+        }
+        b.append( "changed-fields" + changedFields.size() + "\n" );
+        for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
+            String v = e.getValue().toString();
+                    
+            b.append( "field " + e.getKey().getName() + " " + v.length() + "\n" );
+            b.append( v ).append("\n" );
+        }
+        
+        for ( Map.Entry<UUID,AssocChangeType> e : folderChanges.entrySet() ) {
+            b.append("folder " ).append( e.getKey().toString() );
+            switch( e.getValue() ) {
+                case ADDED:
+                    b.append( " added" );
+                    break;
+                case REMOVED:
+                    b.append( " removed" );
+                    break;
+            }
+        }
+        UUID uuid = null;
+        try {
+            byte[] bytes = b.toString().getBytes( "utf-8" );
+            uuid = UUID.nameUUIDFromBytes( bytes );
+        } catch ( UnsupportedEncodingException e ) {
+
+        }
+        return uuid;
+    }
+
+    /**
+     Werify that the change object is consistent, i.e. its UUID matches change.
+     @return <code>True</code> if change and its uuid are consistent, <code>false
+     </code> otherwise.
+     */
+    public boolean verify() {
+        return this.getUuid().equals( calcId() );
+    }
+    
+    /**
+     Fields changed by this change
+     */
+    Map<PhotoInfoFields, Object> changedFields = new HashMap<PhotoInfoFields, Object>( );
+
+    
+    /**
      Build the XML representation of change & populat other fields
      
      @param changedPhoto The photo that is changed
@@ -88,82 +224,103 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
             addPrevChange( prevVersion );
         }
         setTargetUuid( changedPhoto.getUuid() );
-        
-        DOMImplementationRegistry registry = null;
-        try {
-            registry = DOMImplementationRegistry.newInstance();
-        } catch ( Exception e ) {
-            log.error( "Error instantiating DOM implementation" );
+        for ( PhotoFolder f : addedToFolders ) {
+            folderChanges.put( f.getUUID(), AssocChangeType.ADDED );
         }
-
-        DOMImplementation domImpl =
-                (DOMImplementation) registry.getDOMImplementation( "LS" );
-
-
-        Document doc = domImpl.createDocument( null, "object-history", null );
-        Element root = doc.getDocumentElement();
-
-        Element changeEnvelope = doc.createElement( "change" );
-        root.appendChild( changeEnvelope );
-        Element changeDesc = doc.createElement( "change-desc" );
-        changeEnvelope.appendChild( changeDesc );
-        changeDesc.setAttribute( "target", changedPhoto.getUuid().toString() );
-        Element chClass = doc.createElement( "change-class" );
-        chClass.setAttribute( "class", this.getClass().getName() );
-        changeDesc.appendChild( chClass );
-
-        Element predecessors = doc.createElement( "predecessors" );
-        changeDesc.appendChild( predecessors );
-
-        for ( ChangeDesc pre : getPrevChanges() ) {
-            Element pred = doc.createElement( "change-ref" );
-            predecessors.appendChild( pred );
-            pred.setAttribute( "uuid", pre.getUuid().toString() );
+        for ( PhotoFolder f : removedFromFolders ) {
+            folderChanges.put( f.getUUID(), AssocChangeType.REMOVED );
         }
         
-        Element fields = doc.createElement( "fields" );
-        changeDesc.appendChild( fields );
-
-        for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
-            Element field = doc.createElement( "field" );
-            fields.appendChild( field );
-            field.setAttribute( "name", e.getKey().getName() );
-            field.appendChild( doc.createTextNode( e.getValue().toString() ) );
-        }
-
-        if ( addedToFolders.size() > 0 ) {
-            Element addedFolders = doc.createElement( "folders-added" );
-            changeDesc.appendChild( addedFolders );
-            for ( PhotoFolder f : addedToFolders ) {
-                Element fe = doc.createElement( "folder" );
-                fe.setAttribute( "uuid", f.getUUID().toString() );
-                addedFolders.appendChild( fe );
-            }
-        }
-        if ( removedFromFolders.size() > 0 ) {
-            Element removedFolders = doc.createElement( "folders-removed" );
-            changeDesc.appendChild( removedFolders );
-            for ( PhotoFolder f : removedFromFolders ) {
-                Element fe = doc.createElement( "folder" );
-                fe.setAttribute( "uuid", f.getUUID().toString() );
-                removedFolders.appendChild( fe );
-            }
-        }
-        try {
-            if ( !org.apache.xml.security.Init.isInitialized() ) {
-                org.apache.xml.security.Init.init();
-            }
-            Canonicalizer c14n = Canonicalizer.getInstance(
-                    "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments" );
-            byte[] xmlData = c14n.canonicalizeSubtree( changeDesc );
-            log.debug( "Canonicalized description:\n" + new String( xmlData, "utf-8" ) );
-            setUuid( UUID.nameUUIDFromBytes( xmlData ) );
-            changeEnvelope.setAttribute( "uuid", getUuid().toString() );
-        } catch ( Exception e ) {
-            log.warn( "Exception calculating uuid: " + e.getMessage() );
-        }
-        LSSerializer writer = ((DOMImplementationLS) domImpl).createLSSerializer();
-        setXml( writer.writeToString( doc ) );
+        this.changedFields = changedFields;
+        setUuid( calcId() );        
     }
 
+    /**
+     Create XML for the predecessors of this change
+     @param w BufferedWriter in which the XML is written
+     @param indent Indentation (in spaces) to be used
+     @throws java.io.IOException If there is an erroe while writing
+     */
+    private void writeXmlPredecessors( BufferedWriter w, int indent ) throws IOException {
+        for ( ChangeDesc c : getPrevChanges() ) {
+            w.write( String.format( "<prev-change uuid=\"%s\"/>", c.getUuid().toString() ) );
+            w.newLine();
+        }
+    }
+    
+    /**
+     Write XML for the changed fields
+     @param w BufferedWriter in which the XML is written
+     @param indent Indentation (in spaces) to be used
+     @throws java.io.IOException If there is an erroe while writing
+     */
+    private void writeXmlFields( BufferedWriter w, int indent ) throws IOException {
+        for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
+            String v = e.getValue().toString();
+            w.write( "<field name=\"" );
+            w.write( e.getKey().toString() );
+            w.write( "\">");
+            if ( e.getValue() instanceof String ) {
+                w.write( cdata( (String)e.getValue() ) );
+            } else {
+                w.write( e.getValue().toString() );
+            }
+            w.write( "</field>" );
+            w.newLine();
+        }
+        
+    }
+    
+    /**
+     Write XML for change folders
+     @param w BufferedWriter in which the XML is written
+     @param indent Indentation (in spaces) to be used
+     @throws java.io.IOException If there is an erroe while writing
+     */
+    private void writeXmlFolderChanges( BufferedWriter w, int indent ) throws IOException {
+        for ( Map.Entry<UUID,AssocChangeType> e : folderChanges.entrySet() ) {
+            w.write( String.format("<folder-change uuid=\"%s\" operation=\"%s\"/>",
+                    e.getKey().toString(), 
+                    e.getValue() == AssocChangeType.ADDED ? "add" : "remove" ) );
+            w.newLine();
+        }
+        
+    }
+
+    /**
+     Create a XML cdata section from a string. If there is an end marker (]]> in 
+     the string, replace it with ] ]>
+     @param text the original string
+     @return text wrapped inside CDATA markers
+     */
+    private String cdata( java.lang.String text ) {
+        int endmarkerStart = 0;
+        if ( text == null ) {
+            text = "";
+        }
+        while ( ( endmarkerStart = text.indexOf( "]]>") ) >= 0 ) {
+            text = text.substring( 0, endmarkerStart ) + "] ]>" 
+                    + text.substring( endmarkerStart+3 );
+        }
+        return "<![CDATA[" + text + "]]>";
+        
+    }
+
+    /**
+     Write the change as XML
+     @param w BufferedWriter in which the XML is written
+     @param indent Indentation (in spaces) to be used
+     @throws java.io.IOException If there is an erroe while writing
+     */
+    public void writeXml( BufferedWriter w, int indent ) throws IOException {
+        w.write( String.format( "<change uuid=\"%s\" class=\"%s\">", 
+                getUuid().toString(), this.getClass().getName() ) );
+        w.newLine();
+        writeXmlPredecessors(w, indent);
+        writeXmlFields(w, indent);
+        writeXmlFolderChanges(w, indent);
+        w.write( "</change>");
+        w.newLine();
+        
+    }
 }

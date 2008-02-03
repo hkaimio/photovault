@@ -52,7 +52,7 @@ import org.apache.commons.logging.LogFactory;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "change_class", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorValue("change")
-public class ChangeDesc {
+public abstract class ChangeDesc {
 
     static private Log log = LogFactory.getLog( ChangeDesc.class.getName() );
     
@@ -178,7 +178,9 @@ public class ChangeDesc {
     @Column( name = "change_desc" )
     public byte[] getChangeDesc() {
         try {
-            return xml.getBytes( "utf-8" );
+            if ( xml != null ) {
+                return xml.getBytes( "utf-8" );
+            }
         } catch ( UnsupportedEncodingException ex ) {
             log.error( ex.getMessage() );
         }
@@ -187,7 +189,9 @@ public class ChangeDesc {
     
     protected void setChangeDesc( byte[] data ) {
         try {
-            xml = new String( data, "utf-8" );
+            if ( data != null ) {
+                xml = new String( data, "utf-8" );
+            }
         } catch ( UnsupportedEncodingException ex ) {
             log.debug( ex );
         }
@@ -205,4 +209,5 @@ public class ChangeDesc {
     protected void  setChangeDescEncoding( String encoding ) {
     }
         
+    public abstract boolean verify();
 }

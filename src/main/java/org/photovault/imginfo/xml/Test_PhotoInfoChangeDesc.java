@@ -20,12 +20,16 @@
 
 package org.photovault.imginfo.xml;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.photovault.command.CommandException;
 import org.photovault.command.PhotovaultCommandHandler;
+import org.photovault.folder.CreatePhotoFolderCommand;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
@@ -49,8 +53,16 @@ public class Test_PhotoInfoChangeDesc extends PhotovaultTestCase {
      Simple test of change record creation and persistence.
      */
     @Test
-    public void testChangeRecordCreation() {
+    public void testChangeRecordCreation() throws IOException {
         PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( null );
+        
+        CreatePhotoFolderCommand fcmd = new CreatePhotoFolderCommand( null, "Koe", "Koe" );
+        try {
+            cmdHandler.executeCommand( fcmd );
+        } catch (CommandException ex) {
+            fail( ex.getMessage() );
+        }
+        
         
 	ChangePhotoInfoCommand photoCreateCmd = new ChangePhotoInfoCommand( );
         try {
@@ -64,6 +76,7 @@ public class Test_PhotoInfoChangeDesc extends PhotovaultTestCase {
 	ChangePhotoInfoCommand photoChangeCmd = 
                 new ChangePhotoInfoCommand( p.getId() );
         photoChangeCmd.setPhotographer("Harri" );
+        photoChangeCmd.addToFolder( fcmd.getCreatedFolder() );
         try {
             cmdHandler.executeCommand( photoChangeCmd );
         } catch (CommandException ex) {
@@ -77,12 +90,20 @@ public class Test_PhotoInfoChangeDesc extends PhotovaultTestCase {
         PhotoInfoDAO photoDAO = hdf.getPhotoInfoDAO();
         p = photoDAO.findByUUID( p.getUuid() );
         ChangeDesc v = p.getVersion();
+        assert v.verify();
         assert v.getTargetUuid().equals(p.getUuid());
         Set<ChangeDesc> vp = v.getPrevChanges();
         assert vp.size() == 1;
         
         ChangeDesc v2 = vp.iterator().next();
+        assert v2.verify();
         assert v2.getTargetUuid().equals( p.getUuid() );
         assert v2.getPrevChanges().size() == 0;
+        
+        StringWriter strw = new StringWriter();
+        BufferedWriter w = new BufferedWriter( strw );
+        ((PhotoInfoChangeDesc)v).writeXml(w, 0);
+        w.flush();
+        System.out.println( strw.toString() );
     }
 }

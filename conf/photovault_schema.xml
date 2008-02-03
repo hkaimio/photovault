@@ -440,7 +440,7 @@
         <column name="change_desc_encoding" primaryKey="false" required="false" 
                 type="VARCHAR" size="10" autoIncrement="false"
                 description="Coding used for change_desc field"/>
-        <column name="change_desc" primaryKey="false" required="true" 
+        <column name="change_desc" primaryKey="false" required="false" 
                 type="LONGVARBINARY" autoIncrement="false"
                 description="Description of the change"/>
         <index name="object_changes">
@@ -458,6 +458,37 @@
                 description="UUID of this change"/>
     </table>               
     
+    <table name ="field_changes"
+           description="New values for changed fields">
+        <column name="change_uuid" primaryKey="true" required="true" 
+                type="VARCHAR" size="36" autoIncrement="false"
+                description="UUID of this change"/>
+        <column name="field_name" primaryKey="true" required="true"
+                type="VARCHAR" size="50"
+                description="Name of the changed field"/>
+        <column name="string_value" primaryKey="false" required="false"
+                type="LONGVARCHAR"/>
+        <column name="int_value" primaryKey="false" required="false"
+                type="INTEGER" size="11"/>
+        <column name="double_value" primaryKey="false" required="false"
+                type="DOUBLE"/>
+        <column name="date_value" primaryKey="false" required="false"
+                type="TIMESTAMP"/>
+        <column name="binary_value" primaryKey="false" required="false"
+                type="LONGVARBINARY"/>    
+    </table>
+    
+    <table name ="changes_photo_collections"
+           description="Changes in folders in which the photo belongs">
+        <column name="change_uuid" primaryKey="true" required="true" 
+                type="VARCHAR" size="36" autoIncrement="false"
+                description="UUID of this change"/>
+        <column name="collection_uuid" primaryKey="true" required="true"
+                type="VARCHAR" size="36"
+                description="UUID of the collection added/removed"/>
+        <column name="operation" primaryKey="false" required="true"
+                type="VARCHAR" size="10"/>
+    </table>
     
     <table name="dcraw_settings" 
            description="Settings used to convert a raw image using dcraw" >
