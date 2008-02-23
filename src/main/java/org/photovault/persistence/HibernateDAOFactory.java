@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007 Harri Kaimio
+  Copyright (c) 2007-2008 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -21,6 +21,8 @@
 package org.photovault.persistence;
 
 import org.hibernate.Session;
+import org.photovault.change.ChangeDescDAO;
+import org.photovault.change.ChangeDescDAOHibernate;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.folder.PhotoFolderDAOHibernate;
 import org.photovault.imginfo.ImageDescriptorDAO;
@@ -86,6 +88,11 @@ public class HibernateDAOFactory extends DAOFactory {
 
     public ImageDescriptorDAO getImageDescriptorDAO() {
         return (ImageDescriptorDAO) instantiateDAO( ImageDescriptorDAOHibernate.class );        
+    }
+
+    @Override
+    public ChangeDescDAO getChangeDescDAO() {
+        return (ChangeDescDAO) instantiateDAO( ChangeDescDAOHibernate.class );        
     }
     
 }

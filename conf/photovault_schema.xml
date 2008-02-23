@@ -437,12 +437,9 @@
         <column name="change_num" primaryKey="false" required="false" 
                 type="INTEGER" autoIncrement="false"
                 description="Local numbering for helping queries"/>
-        <column name="change_desc_encoding" primaryKey="false" required="false" 
-                type="VARCHAR" size="10" autoIncrement="false"
-                description="Coding used for change_desc field"/>
-        <column name="change_desc" primaryKey="false" required="false" 
+        <column name="changed_fields" primaryKey="false" required="false" 
                 type="LONGVARBINARY" autoIncrement="false"
-                description="Description of the change"/>
+                description="Fields changed, serialized using Java serialization (as field id - value pairs)"/>
         <index name="object_changes">
             <index-column name="target_uuid"/>
         </index>
@@ -457,27 +454,7 @@
                 type="VARCHAR" size="36" autoIncrement="false"
                 description="UUID of this change"/>
     </table>               
-    
-    <table name ="field_changes"
-           description="New values for changed fields">
-        <column name="change_uuid" primaryKey="true" required="true" 
-                type="VARCHAR" size="36" autoIncrement="false"
-                description="UUID of this change"/>
-        <column name="field_name" primaryKey="true" required="true"
-                type="VARCHAR" size="50"
-                description="Name of the changed field"/>
-        <column name="string_value" primaryKey="false" required="false"
-                type="LONGVARCHAR"/>
-        <column name="int_value" primaryKey="false" required="false"
-                type="INTEGER" size="11"/>
-        <column name="double_value" primaryKey="false" required="false"
-                type="DOUBLE"/>
-        <column name="date_value" primaryKey="false" required="false"
-                type="TIMESTAMP"/>
-        <column name="binary_value" primaryKey="false" required="false"
-                type="LONGVARBINARY"/>    
-    </table>
-    
+        
     <table name ="changes_photo_collections"
            description="Changes in folders in which the photo belongs">
         <column name="change_uuid" primaryKey="true" required="true" 

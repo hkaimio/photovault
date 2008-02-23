@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007 Harri Kaimio
+  Copyright (c) 2008 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,12 +20,15 @@
 
 package org.photovault.imginfo.xml;
 
-import java.io.UnsupportedEncodingException;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -37,7 +40,6 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -45,7 +47,22 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
-  This class represents a change done into some Photovault persistent object
+  This class represents a change done into some Photovault persistent object.
+ <p>
+ <h3>Persistence</h3>
+ The change desciptor is persisted in somewhat peculiar manner:
+ <ul>
+ <li>The relationship between this change and others as well as the change object
+ is persisted in normal Hibernate style</li>
+ <li>Information about changed fields (i.e. elements in Hibernate jargon) is 
+ persisted into a single database field by serializing the relevant data 
+ structure into binary form.</li>
+ <li>Information about changes in object relationships (e.g.adding a photo into 
+ folder) is again persisted using separate table that links these together.</li>
+ </ul>
+ Reason for this "mixed" design is to keep the ChangeDesc unaffected by changes 
+ to the schema of changed object and at the same time to keep the performance of
+ persisting changes as well as the size of persisted changes reasonable.
  */
 @Entity
 @Table(name = "change_history")
@@ -113,7 +130,7 @@ public abstract class ChangeDesc {
     }
 
     
-    protected void setUuid( UUID uuid ) {
+    public void setUuid( UUID uuid ) {
         this.uuid = uuid;
     }
 
@@ -127,7 +144,7 @@ public abstract class ChangeDesc {
         return targetUuid;
     }
 
-    protected void setTargetUuid( UUID targetUuid ) {
+    public void setTargetUuid( UUID targetUuid ) {
         this.targetUuid = targetUuid;
     }
 
@@ -151,7 +168,7 @@ public abstract class ChangeDesc {
      Add a new change as predecessor for this one.
      @param change The change to add
      */
-    protected void addPrevChange( ChangeDesc change ) {
+    public void addPrevChange( ChangeDesc change ) {
         prevChanges.add( change );
     }
     
@@ -171,43 +188,79 @@ public abstract class ChangeDesc {
     
     /**
      Get the persistent description of this change
-     @return BInary persistent description of this change. In practice this is 
-     the XML description encoded with specific encoding and (optionally) 
-     compressed.
+     @return Binary persistent description of this change. In practice the 
+     fields are serialized using subclass specific writeFields() method
      */
-    @Column( name = "change_desc" )
-    public byte[] getChangeDesc() {
+    @Column( name = "changed_fields" )
+    public byte[] getChangedFields() {
+        byte[] res = null;
         try {
-            if ( xml != null ) {
-                return xml.getBytes( "utf-8" );
-            }
-        } catch ( UnsupportedEncodingException ex ) {
-            log.error( ex.getMessage() );
+            ByteArrayOutputStream s = new ByteArrayOutputStream();
+            ObjectOutputStream os = new ObjectOutputStream( s );
+            writeFields( os );
+            res = s.toByteArray();
+        } catch ( IOException ex ) {
+            log.debug( ex.getMessage(), ex );
         }
-        return null;
+        return res;
     }
     
-    protected void setChangeDesc( byte[] data ) {
+    /**
+     Set the changed fields from persistent data. All of the field change info 
+     is serialized into a single database field and parsed using readFields() 
+     method (that is subclass specific)
+     @param data The serialized field change data
+     */
+    protected void setChangedFields( byte[] data ) {
+        ObjectInputStream os = null;
         try {
-            if ( data != null ) {
-                xml = new String( data, "utf-8" );
+            ByteArrayInputStream s = new ByteArrayInputStream( data );
+            os = new ObjectInputStream( s );
+            readFields( os );
+        } catch ( ClassNotFoundException ex ) {
+            log.error( ex.getMessage(), ex );
+        } catch ( IOException ex ) {
+            log.debug( ex.getMessage(), ex );
+        } finally {
+            try {
+                os.close();
+            } catch ( IOException ex ) {
+                log.debug( ex.getMessage(), ex );
             }
-        } catch ( UnsupportedEncodingException ex ) {
-            log.debug( ex );
         }
     }
 
     /**
-     Get the encoding of changeDesc
-     @return
+     Write the change as XML
+     @param w Writer in which the change is written
+     @param indent Number of spaces to use for indentation
+     @throws java.io.IOException If there is error writing the XML data to stream
      */
-    @Column( name = "change_desc_encoding")
-    public String getChangeDescEncoding() {
-        return "utf-8";
-    }
+    public abstract void writeXml( BufferedWriter w, int indent ) throws IOException;
     
-    protected void  setChangeDescEncoding( String encoding ) {
-    }
-        
+    /**
+     Serialized the field change data to stream. Dericed classes should override
+     this method to provide correct serialization.
+     @param os Stream in which the serialized data is written
+     @throws java.io.IOException If there is na error writing serialized data
+     */
+    public abstract void writeFields( ObjectOutputStream os ) throws IOException;
+    
+    /**
+     Deserialized field change data. Derived classes should override this method
+     so that it can parse data serialized with writeFields()
+     @param os Stream from which the serialized data is read.
+     @throws java.io.IOException If there is an error reading data
+     @throws java.lang.ClassNotFoundException If field class cannot be 
+     instantiated.
+     */
+    public abstract void readFields( ObjectInputStream os ) 
+            throws IOException, ClassNotFoundException;
+    
+    /**
+     Verify that the change matches its UUID.
+     @return <code>true</code> if the verification is succesfull, <code>false
+     </code> otherwise.
+     */
     public abstract boolean verify();
 }

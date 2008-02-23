@@ -20,10 +20,15 @@
 
 package org.photovault.imginfo.xml;
 
+import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
+import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -37,8 +42,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.annotations.MapKey;
 import org.photovault.change.AssocChangeType;
-import org.photovault.change.FieldChangeDesc;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoFields;
 
@@ -54,7 +59,7 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
     /**
      Default constructor for persistence layer
      */
-    protected PhotoInfoChangeDesc( ) {
+    public PhotoInfoChangeDesc( ) {
         super();
     }
     
@@ -75,37 +80,68 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
     }
     
     /**
-     Get the fields that are changed. This method is intended only for 
-     persistence layer use.
-
-     @return Map from field name to field value as a "union" that can be stored 
-     in database
+     Set the value of a field
+     @param field Field to set
+     @param value New value for field
      */
-    @org.hibernate.annotations.CollectionOfElements
-    @JoinTable( name = "field_changes", joinColumns=@JoinColumn( name="change_uuid"  ) )
-    @MapKey( columns=@Column( name="field_name" ))
-    protected Map<String, FieldChangeDesc> getFields() {
-        Map<String, FieldChangeDesc> ret = new HashMap<String, FieldChangeDesc>();
-        for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
-            ret.put( e.getKey().getName(), new FieldChangeDesc( e.getValue() ) );
-        }
-        return ret;
+    private void _setField( PhotoInfoFields field, Object value ) {
+        changedFields.put(field, value);
     }
-        
+    
     /**
-     Set the field values from persistence layer.
-     @param m The field values
+     Set the value of a field
+     @param field Field to set
+     @param value New value for field
      */
-    protected void setFields( Map<String, FieldChangeDesc> m ) {
-        for ( Map.Entry<String, FieldChangeDesc> e : m.entrySet() ) {
-            PhotoInfoFields f = PhotoInfoFields.getByName( e.getKey() );
-            if ( f != null ) {
-                changedFields.put( f, e.getValue().getValue() );
-            } else {
-                log.error( "Field " + e.getValue() + " not known" );
-            }
-        }
-    }
+    public void setField( PhotoInfoFields field, String value ) {
+        _setField(field, value);
+    } 
+    
+    /**
+     Set the value of a field
+     @param field Field to set
+     @param value New value for field
+     */
+    public void setField( PhotoInfoFields field, Date value ) {
+        _setField(field, value);
+    } 
+    
+    /**
+     Set the value of a field
+     @param field Field to set
+     @param value New value for field
+     */
+    public void setField( PhotoInfoFields field, Integer value ) {
+        _setField(field, value);
+    } 
+    
+    /**
+     Set the value of a field
+     @param field Field to set
+     @param value New value for field
+     */
+    public void setField( PhotoInfoFields field, Double value ) {
+        _setField(field, value);
+    } 
+    
+    /**
+     Set the value of a field
+     @param field Field to set
+     @param value New value for field
+     */
+    public void setField( PhotoInfoFields field, ColorCurve value ) {
+        _setField(field, value);
+    } 
+    
+    /**
+     Set the value of a field
+     @param field Field to set
+     @param value New value for field
+     */
+    public void setField( PhotoInfoFields field, Rectangle2D value ) {
+        _setField(field, value);
+    } 
+    
     
     /**
      Changes made to folders of this photo
@@ -146,6 +182,19 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
                 AssocChangeType.ADDED : AssocChangeType.REMOVED;
             folderChanges.put( UUID.fromString( e.getKey() ), val );
         }
+    }
+    
+    /**
+     Add a folder change
+     @param uuidStr UUID of the changed folder
+     @param operationStr Operation done to the folder (added or deleted)
+     */
+    public void addFolderChange( String uuidStr, String operationStr ) {
+        UUID uuid = UUID.fromString( uuidStr );
+        AssocChangeType oper =
+                operationStr.equals( "add" ) ? 
+                    AssocChangeType.ADDED : AssocChangeType.REMOVED;
+        folderChanges.put( uuid, oper );
     }
     
     /**
@@ -192,7 +241,7 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
     }
 
     /**
-     Werify that the change object is consistent, i.e. its UUID matches change.
+     Verify that the change object is consistent, i.e. its UUID matches change.
      @return <code>True</code> if change and its uuid are consistent, <code>false
      </code> otherwise.
      */
@@ -255,20 +304,37 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
      @throws java.io.IOException If there is an erroe while writing
      */
     private void writeXmlFields( BufferedWriter w, int indent ) throws IOException {
-        for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
-            String v = e.getValue().toString();
-            w.write( "<field name=\"" );
-            w.write( e.getKey().toString() );
-            w.write( "\">");
-            if ( e.getValue() instanceof String ) {
-                w.write( cdata( (String)e.getValue() ) );
-            } else {
-                w.write( e.getValue().toString() );
+        for ( PhotoInfoFields f : EnumSet.allOf(PhotoInfoFields.class) ) {
+            if ( changedFields.containsKey( f ) ) {
+                String fieldName = f.getName();
+                Object val = changedFields.get( f );
+                if ( val instanceof String ) {
+                    w.write( "<" + fieldName + ">" );
+                    w.write( cdata( (String) val ) );
+                    w.write( "</" + fieldName + ">" );
+                } else if ( val instanceof Rectangle2D ) {
+                    Rectangle2D rect = (Rectangle2D) val;
+                    w.write( String.format( 
+                            "<%s xmin=\"%f\" ymin=\"%f\" xmax=\"%f\" ymax=\"%f\"/>",
+                            fieldName, rect.getMinX(), rect.getMinY(), 
+                            rect.getMaxX(), rect.getMaxY() ));
+                } else if ( val instanceof ColorCurve ) {
+                    ColorCurve c = (ColorCurve) val;
+                    w.write( "<" + fieldName + ">" );
+                    w.write( "<curve>" );
+                    for ( int n = 0 ; n < c.getPointCount() ; n++ ) {
+                        w.write( String.format( "<point x=\"%f\" y=\"%f\"/>",
+                                c.getX( n ), c.getY( n ) ) );
+                    }
+                    w.write( "</curve>" );
+                    w.write( "</" + fieldName + ">" );
+                } else {
+                    w.write( "<" + fieldName + ">" );
+                    w.write( val.toString() );
+                    w.write( "</" + fieldName + ">" );
+                }
             }
-            w.write( "</field>" );
-            w.newLine();
-        }
-        
+        }        
     }
     
     /**
@@ -319,8 +385,46 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
         writeXmlPredecessors(w, indent);
         writeXmlFields(w, indent);
         writeXmlFolderChanges(w, indent);
-        w.write( "</change>");
+        w.write( "</change>");        
         w.newLine();
         
+        }
+
+    /**
+     Serialize information about changed fields. This is serializd as pairs of 
+     field id - value objects.
+     @param os Stream used for writing the data
+     @throws java.io.IOException If the data cannot be written.
+     */
+    @Override
+    public void writeFields( ObjectOutputStream os ) throws IOException {
+        for ( PhotoInfoFields f : EnumSet.allOf(PhotoInfoFields.class) ) {
+            if ( changedFields.containsKey( f ) ) {
+                Object val = changedFields.get( f );
+                os.writeObject( f );
+                os.writeObject( val );
+            }
+        }        
+    }
+    
+    /**
+     Read serialized field data.
+     @param os Stream used for reading
+     @throws java.io.IOException If os cannot be read.
+     @throws java.lang.ClassNotFoundException If field value cannot be 
+     instantiated.
+     */
+    @Override
+    public void readFields( ObjectInputStream os ) 
+            throws IOException, ClassNotFoundException {
+        while( true ) {
+            try {
+                PhotoInfoFields f = (PhotoInfoFields) os.readObject();
+                Object val = os.readObject( );
+                changedFields.put( f, val );
+            } catch (EOFException ex ) {
+                break;
+            }
+        }        
     }
 }

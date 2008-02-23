@@ -21,6 +21,7 @@
 package org.photovault.image;
 
 import java.awt.geom.CubicCurve2D;
+import java.io.Serializable;
 
 /**
   Mapping from original color channel to to desired output channel values. In 
@@ -39,7 +40,7 @@ import java.awt.geom.CubicCurve2D;
  and next control points, with the exception that in first and last CP the derivative 
  is noncontiguous.
  */
-public class ColorCurve {
+public class ColorCurve implements Serializable {
     
     /** Creates a new instance of ColorCurve */
     public ColorCurve() {
@@ -60,7 +61,7 @@ public class ColorCurve {
      X coordinates x1 & x2 are defined so that x1 = 2/3 * x0 + 1/3 * x3 and
      x2 = 1/3 * x0 + 2/3 * x3. 
      */
-    double b[][] = null;
+    volatile double b[][] = null;
     
     /**
      Add a new control point to the function
@@ -156,6 +157,11 @@ public class ColorCurve {
             return pointY[0];
         }
         
+        if ( b == null ) {
+            // The object was just de-serialized
+            calcCoeffs();
+        }
+                
         // Find the correct segment
         int n = 0;
         while ( n < pointX.length && x >= pointX[n] ) {
