@@ -107,6 +107,18 @@ public class PhotoInfo implements java.io.Serializable {
         original.photos.add( this );
     }
     
+    PhotoInfoChangeSupport changeHistory = null;
+    
+    @OneToOne
+    @JoinColumn( name="photo_uuid", insertable=false, updatable=false )
+    public PhotoInfoChangeSupport getHistory() {
+        return changeHistory;
+    }
+    
+    public void setHistory( PhotoInfoChangeSupport h ) {
+        changeHistory = h;
+    }
+    
     /**
      Static method to load photo info from database by photo id.
      @param photoId ID of the photo to be retrieved
@@ -223,6 +235,7 @@ public class PhotoInfo implements java.io.Serializable {
     public static PhotoInfo create() {
         PhotoInfo photo = new PhotoInfo();
         photo.uuid = UUID.randomUUID();
+        photo.setHistory( new PhotoInfoChangeSupport( photo ) );
         return photo;
     }
     
@@ -234,7 +247,6 @@ public class PhotoInfo implements java.io.Serializable {
     public static PhotoInfo create(UUID uuid) {
         PhotoInfo photo = new PhotoInfo();
         photo.uuid = uuid;
-        
         return photo;
     }
     

@@ -26,6 +26,7 @@
         <property name="format_sql">true</property>
         <!-- List of XML mapping files -->
         <mapping class="org.photovault.imginfo.PhotoInfo"/>
+        <mapping class="org.photovault.imginfo.PhotoInfoChangeSupport"/>
         <mapping class="org.photovault.imginfo.ImageInstance"/>
         <mapping class="org.photovault.imginfo.ImageDescriptorBase"/>
         <mapping class="org.photovault.imginfo.OriginalImageDescriptor"/>
@@ -39,5 +40,7 @@
         <mapping class="org.photovault.dcraw.RawConversionSettings"/>
         <mapping class="org.photovault.imginfo.xml.ChangeDesc"/>
         <mapping class="org.photovault.imginfo.xml.PhotoInfoChangeDesc"/>
+        <mapping class="org.photovault.replication.ChangeSupport"/>
+        <mapping class="org.photovault.replication.Change"/>
     </session-factory>
 </hibernate-configuration>

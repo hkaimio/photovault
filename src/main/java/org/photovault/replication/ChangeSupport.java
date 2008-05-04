@@ -22,10 +22,23 @@
 package org.photovault.replication;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  Manages version history and version changes for a single object.
@@ -41,12 +54,22 @@ import java.util.UUID;
  @param <T> Class of the target obejct
  @param <F> Class used to describe the fields in the class. Typically an enum.
  */
+@Entity
+@Table(name = "version_histories")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "class_discriminator", discriminatorType = DiscriminatorType.STRING)
 public abstract class ChangeSupport<T, F extends Comparable> {
 
     /**
      Target obejct
-     */
+     */ 
     T target;
+    
+    /**
+     Identifier of this change history. THis is the same as the UUID of the 
+     target object
+     */
+    private UUID uuid;
     
     /**
      Head changes (i.e. changes that do not have children)
@@ -58,10 +81,32 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      */
     Set<Change<T, F>> allChanges = new HashSet<Change<T, F>>();
 
+    /**
+     Default constructor for persistence layer, do not use otherwise
+     */
+    protected ChangeSupport() {}
+    
+    /**
+     Constructor
+     @param target
+     */
     public ChangeSupport( T target ) {
         this.target = target;
     }
     
+    /**
+     Returns the UUID of the target obejct
+     */
+    @Id
+    @Column( name = "uuid" )
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )    
+    public UUID getTargetUuid() {
+        return uuid;
+    } 
+    
+    protected void setTargetUuid( UUID uuid ) {
+        this.uuid = uuid;
+    }
 
     /**
      Add a new change to change history. Called bu {@link Change} when it is 
@@ -69,8 +114,8 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @param c The new change
      */
     void addChange( Change<T, F> c ) {
-        if ( heads.contains( c.getPrevChange() ) ) {
-            heads.remove( c.getPrevChange() );
+        for ( Change<T,F> parent : c.getParentChanges() ) {
+            heads.remove( parent );
         }
         heads.add( c );
         allChanges.add( c );
@@ -97,7 +142,9 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      version of target obejct
      */
     void applyChange( Change<T,F> c ) {
-        if ( getVersion() != c.getPrevChange()) {
+        Change<T,F> currentVersion = getVersion();
+        if ( currentVersion == null ? !c.getParentChanges().isEmpty() :
+                !c.getParentChanges().contains( currentVersion ) ) {
             throw new IllegalStateException( "Cannot apply change on top of unrelated change" );
         }
         for ( Map.Entry<F,Object> fc : c.getChangedFields().entrySet() ) {
@@ -107,7 +154,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     }
 
     /**
-     Create a new empty change object for target obejct
+     Create a new empty change object for target object
      @return A new, unfrozen Change object
      */
     public Change<T, F> createChange() {
@@ -115,16 +162,23 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     }
 
     /**
-     Get the target
-     @return
+     Returns the target object.
      */
-    T getOwner() {
+    @Transient
+    public T getOwner() {
         return target;
+    }
+    
+    /**
+     Set the owner of this change history
+     */
+    protected void setOwner( T owner ) {
+        this.target = owner;
     }
 
 
     /**
-     Modify the target obejct so that its state matches given version
+     Modify the target object so that its state matches given version
      @param newVersion The new version for the target object
      */
     public void changeToVersion( Change<T,F> newVersion ) {
@@ -180,12 +234,31 @@ public abstract class ChangeSupport<T, F extends Comparable> {
         setVersion( newVersion );
     }
 
-    public List<Change> getChanges() {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    /**
+     Returns all known changes in target objects's history. 
+     */
+    @OneToMany( mappedBy="targetHistory", cascade=CascadeType.ALL )
+    public Set<Change<T,F>> getChanges() {
+        return this.allChanges;
+    }
+    
+    void setChanges( Set c ) {
+        allChanges=c;
     }
 
-    public List<Change> getHeads() {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    /**
+     Returns the set of head changes, i.e. changes that do not have a child.
+     */
+    @OneToMany
+    @JoinTable( name="change_unmerged_branches", 
+                joinColumns=@JoinColumn( name="target_uuid" ), 
+                inverseJoinColumns=@JoinColumn( name = "change_uuid" ) )
+    public Set<Change<T,F>> getHeads() {
+        return heads;
+    }
+    
+    void setHeads( Set heads ) {
+        this.heads = heads;
     }
 
     public Change mergeHeads() {
@@ -196,6 +269,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     /**
      Returns the uuid of the target obejct
      */
+    @Transient
     public abstract UUID getGlobalId();
 
     /**
@@ -203,6 +277,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @param field Field identifier
      @return Current value of given field in target
      */
+    @Transient
     protected abstract Object getField( F field );
     
     /**
@@ -210,6 +285,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @param field Identifier of the field
      @param val New value for the field
      */
+    @Transient
     protected abstract void setField( F field, Object val );
     
     /**
@@ -217,6 +293,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @return Set of all field ids, for example, if the fields are described by 
      enumeration, return EnumSet.allOf( F.class )
      */
+    @Transient
     protected abstract Set<F> allFields();
     
     /**
@@ -228,5 +305,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     /**
      Returns the current version of target obejct
      */
+    @OneToOne
+    @JoinColumn( name = "version_uuid" )
     protected abstract Change<T,F> getVersion( );
 }

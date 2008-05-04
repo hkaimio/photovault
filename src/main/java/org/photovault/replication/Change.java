@@ -20,6 +20,7 @@
 
 package org.photovault.replication;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -33,6 +34,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.annotations.MapKey;
 
 /**
  Description of a change made to an object.
@@ -59,13 +73,13 @@ import java.util.UUID;
  @param <T> Class of the object whose changes are being tracked.
  @param <F> Class that describes individual fields of the change.
  */
+@Entity
+@Table( name="changes" )
 public class Change<T, F extends Comparable> {
     
     static private UUID NULL_UUID = UUID.fromString( "00000000-0000-0000-0000-000000000000" );
-    /**
-     The target object for the change
-     */
-    private T target;
+    
+    static private Log log = LogFactory.getLog( Change.class.getName() );
     
     /**
      ChangeSupport object handling change history of the target object
@@ -94,9 +108,17 @@ public class Change<T, F extends Comparable> {
     private Change mergeChange;
     
     /**
+     True if this change is a head of a branch (i.e. it does not have any child 
+     changes
+     */
+    private boolean head = true;
+    
+    /**
      Changes that are based on this change
      */
-    private Set<Change> childChanges = new HashSet<Change>();
+    private Set<Change<T,F>> childChanges = new HashSet<Change<T,F>>();
+    
+    private Set<Change<T,F>> parentChanges = new HashSet<Change<T,F>>();
     
     /**
      Fields of {@link target} that have been changed by this change
@@ -110,6 +132,14 @@ public class Change<T, F extends Comparable> {
     private Map<F, FieldConflict> fieldConflicts = 
             new HashMap<F, FieldConflict>();
     
+    
+    /**
+     Default constructor, for Hibernate
+     */
+    Change() {
+        frozen = true;
+    }
+    
     /**
      Constructor. This constructor is used by ChangeSupport class to create 
      new changes
@@ -118,16 +148,29 @@ public class Change<T, F extends Comparable> {
      */
     Change( ChangeSupport<T,F> t ) {
         targetHistory = t;
-        this.target = t.getOwner();
     }
     
-    /**
-     Returns the target object of this change
-     */
-    public T getTarget()  {
-        return target;
+    @Id
+    @Column( name="change_uuid" )
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
+    public UUID getUuid() {
+        return uuid;
     }
     
+    void setUuid( UUID uuid ) {
+        this.uuid = uuid;
+    }
+    
+    @ManyToOne( targetEntity=ChangeSupport.class )
+    @JoinColumn( name="target_uuid" )
+    ChangeSupport<T, F> getTargetHistory() {
+        return targetHistory;
+    }
+
+    void setTargetHistory( ChangeSupport<T, F> h ) {
+        targetHistory = h;
+    }
+
     /**
      Set field value. 
      @param field The field to be changed
@@ -160,33 +203,90 @@ public class Change<T, F extends Comparable> {
         return null;
     }
     
+    @Column( name = "serialized" )
+    byte[] getSerializedChange() {
+        byte[] res = null;
+        try {
+            ByteArrayOutputStream s = new ByteArrayOutputStream();
+            ObjectOutputStream os = new ObjectOutputStream( s );
+            writeFieldChanges( os );
+            res = s.toByteArray();
+        } catch ( IOException ex ) {
+            log.debug( ex.getMessage(), ex );
+        }
+        return res;        
+    }
 
+    void setSerializedChange( byte[] c ) {
+        try {
+            ByteArrayInputStream s = new ByteArrayInputStream( c );
+            ObjectInputStream is = new ObjectInputStream(  s );
+            readFieldChanges( is );
+        } catch ( IOException ex ) {
+            log.error( ex.getMessage(), ex );
+        } catch ( ClassNotFoundException ex ) {
+            log.error( ex.getMessage(), ex );
+        }
+    }
+    
+    
     /**
      Get all fields modified in this change
      @return Map from the field description objects to their new values.
      */
+    @Transient
     public Map<F,Object> getChangedFields() {
         return Collections.unmodifiableMap( changedFields );
+    }
+    
+    @ManyToMany( targetEntity=Change.class, cascade=CascadeType.ALL )
+    @JoinTable(name = "change_relations",
+        joinColumns = {@JoinColumn(name = "child_uuid")},
+        inverseJoinColumns = {@JoinColumn(name = "parent_uuid")})
+    Set<Change<T,F>> getParentChanges() {
+        return parentChanges;
+    }
+
+    void setParentChanges(  Set changes ) {
+        parentChanges = changes;
+    }
+    
+    @Column( name = "head" )
+    public boolean isHead() {
+        return head;
+    }
+    
+    void setHead( boolean b ) {
+        head = b;
     }
     
     /**
      Returns the previous change on top of which this change is applied
      */
+    @Transient
     public Change getPrevChange() {
+        if ( prevChange == null && !parentChanges.isEmpty() ) {
+            prevChange = parentChanges.iterator().next();
+        }
         return prevChange;
     }
 
     /**
-     The the predecessor of this change
+     Set the predecessor of this change
      @param c
      @throws IllegalStateException if the change has already been frozen
      */
-    public void setPrevChange( Change c ) {
+    public void setPrevChange( Change<T,F> c ) {
         assertNotFrozen();
-        if ( c.target != target ) {
+        if ( c.targetHistory != targetHistory ) {
             throw new IllegalArgumentException( "Cannot be based on change to different object" );
         }
-        prevChange = c;
+        if ( prevChange != null ) {
+            parentChanges.remove( prevChange );
+            prevChange.removeChildChange( this );
+        }
+        parentChanges.add(  c );
+        prevChange = c;        
     }
     
     /**
@@ -194,15 +294,29 @@ public class Change<T, F extends Comparable> {
      @return The merged change or <code>null</code> if this is not a merge 
      operation
      */
+    @Transient
     public Change getMergedChange() {
+        if ( mergeChange == null && parentChanges.size() > 1 ) {
+            for ( Change<T,F> c : parentChanges ) {
+                if ( c != getParentChanges() ) {
+                    mergeChange = c;
+                    break;
+                }
+            }
+        }
         return mergeChange;
     }
     
     /**
      Returns the children of this change.
      */
-    public Set<Change> getChildChanges() {
+    @ManyToMany( mappedBy="parentChanges", targetEntity=Change.class )
+    public Set<Change<T,F>> getChildChanges() {
         return Collections.unmodifiableSet( childChanges );
+    }
+    
+    void setChildChanges( Set c ) {
+        childChanges = c;
     }
     
     /**
@@ -211,6 +325,7 @@ public class Change<T, F extends Comparable> {
      */
     void addChildChange( Change child ) {
         childChanges.add( child );
+        head = false;
     }
     
     /**
@@ -219,6 +334,7 @@ public class Change<T, F extends Comparable> {
      */
     void removeChildChange( Change child ) {
         childChanges.remove( child );
+        head = childChanges.isEmpty();
     }
     
     /**
@@ -232,6 +348,7 @@ public class Change<T, F extends Comparable> {
      Returns all field conflicts
      @return
      */
+    @Transient
     public Collection<FieldConflict> getFieldConficts() {
         return Collections.unmodifiableCollection( fieldConflicts.values() );
     }
@@ -247,18 +364,18 @@ public class Change<T, F extends Comparable> {
      */
     public Change<T,F> merge( Change<T,F> other ) {
         assertFrozen();
-        if ( other.target != target ) {
+        if ( other.targetHistory != targetHistory ) {
             throw new IllegalArgumentException( "Cannot merge changes to separate objects" );
         }
         
         // Find the common ancestor version
         Set<Change> ancestors = new HashSet<Change>();
-        for ( Change c = this ; c != null; c = c.prevChange ) {
+        for ( Change c = this ; c != null; c = c.getPrevChange() ) {
             ancestors.add( c );
         }
         Change<T,F> commonBase = null;
         Map<F, Object> changedFieldsOther = new HashMap();
-        for ( Change<T,F> c = other ; c != null ; c = c.prevChange ) {
+        for ( Change<T,F> c = other ; c != null ; c = c.getPrevChange() ) {
             if ( ancestors.contains( c ) ) {
                 commonBase = c;
                 break;
@@ -277,7 +394,7 @@ public class Change<T, F extends Comparable> {
          this change
          */
         Map<F, Object> changedFieldsThis = new HashMap();
-        for ( Change<T,F> c = this ; c != commonBase ; c = c.prevChange ) {
+        for ( Change<T,F> c = this ; c != commonBase ; c = c.getPrevChange() ) {
             for ( Map.Entry<F,Object> e : c.changedFields.entrySet() ) {
                 if ( !changedFieldsThis.containsKey( e.getKey() ) ) {
                     changedFieldsThis.put( e.getKey(), e.getValue() );
@@ -291,8 +408,8 @@ public class Change<T, F extends Comparable> {
          conflict is created
          */
         Change<T,F> merged = new Change<T,F>( targetHistory );
-        merged.setPrevChange( this );
-        merged.mergeChange = other;
+        merged.parentChanges.add( this );
+        merged.parentChanges.add( other );
         Set<F> allChangedFields = 
                 new HashSet<F>( changedFieldsThis.keySet() );
         allChangedFields.addAll( changedFieldsOther.keySet() );
@@ -422,10 +539,11 @@ public class Change<T, F extends Comparable> {
             throw new IllegalStateException( "Cannot freeze change that has unresolved conflicts" );
         }
         
-        if ( prevChange == null ) {
-            prevChange = targetHistory.getVersion();
+        Change<T,F> targetVersion = targetHistory.getVersion(); 
+        if ( targetVersion != null ) {
+            parentChanges.add( targetHistory.getVersion() );
         }
-        if ( prevChange == null ) {
+        if ( parentChanges.isEmpty() ) {
             /* This is an initial change so we must populate all fields with 
                their default values
              */
@@ -434,8 +552,8 @@ public class Change<T, F extends Comparable> {
         
         calcUuid();
         frozen = true;
-        if ( prevChange != null ) {
-            prevChange.addChildChange( this );
+        for ( Change<T,F> parent : parentChanges ) {
+            parent.addChildChange( this );
         }
         targetHistory.addChange( this );
         targetHistory.applyChange( this );

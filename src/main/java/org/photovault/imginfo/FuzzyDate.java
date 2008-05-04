@@ -20,15 +20,17 @@
 
 package org.photovault.imginfo;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
-public class FuzzyDate {
+public class FuzzyDate implements Serializable {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FuzzyDate.class.getName() );
+    static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FuzzyDate.class.getName() );
+
     
     public FuzzyDate( Date date, double accuracy ) {
 	this.date = (date != null) ? (Date) date.clone()  : null;
@@ -37,6 +39,7 @@ public class FuzzyDate {
     
     Date date;
     double accuracy;
+
     static final double MILLIS_IN_MINUTE = 60000;
     static final double MILLIS_IN_HOUR = 3600 * 1000;
     static final double MILLIS_IN_DAY = 24 * MILLIS_IN_HOUR;
