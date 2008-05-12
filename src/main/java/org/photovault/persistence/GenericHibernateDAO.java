@@ -41,9 +41,17 @@ public abstract class GenericHibernateDAO<T, ID extends Serializable>
     private Session session;
     
     public GenericHibernateDAO() {
-        this.persistentClass = (Class<T>)
-        ( (ParameterizedType) getClass().getGenericSuperclass() )
+        Object o = ( (ParameterizedType) getClass().getGenericSuperclass() )
         .getActualTypeArguments()[0];
+        if ( o instanceof ParameterizedType ) {
+            o = ((ParameterizedType)o).getRawType();
+        }
+        this.persistentClass = (Class<T>) o;
+        
+    }
+    
+    public GenericHibernateDAO( Class<T> persistentClass ) {
+        this.persistentClass = persistentClass;
     }
     
     public void setSession(Session s) {

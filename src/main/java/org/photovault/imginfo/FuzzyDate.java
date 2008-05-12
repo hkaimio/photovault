@@ -29,7 +29,7 @@ import java.text.ParseException;
 
 public class FuzzyDate implements Serializable {
 
-    static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FuzzyDate.class.getName() );
+    static final transient org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FuzzyDate.class.getName() );
 
     
     public FuzzyDate( Date date, double accuracy ) {
@@ -40,9 +40,9 @@ public class FuzzyDate implements Serializable {
     Date date;
     double accuracy;
 
-    static final double MILLIS_IN_MINUTE = 60000;
-    static final double MILLIS_IN_HOUR = 3600 * 1000;
-    static final double MILLIS_IN_DAY = 24 * MILLIS_IN_HOUR;
+    static final transient double MILLIS_IN_MINUTE = 60000;
+    static final transient double MILLIS_IN_HOUR = 3600 * 1000;
+    static final transient double MILLIS_IN_DAY = 24 * MILLIS_IN_HOUR;
 
     static class FuzzyDateParser {
         
@@ -125,7 +125,7 @@ public class FuzzyDate implements Serializable {
     }
     
 
-    static FuzzyDateParser fdParsers[] = null;
+    static transient FuzzyDateParser fdParsers[] = null;
     
     public Date getDate() {
 	return date != null ? (Date)date.clone() : null;

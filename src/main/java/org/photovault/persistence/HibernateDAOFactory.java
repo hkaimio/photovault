@@ -35,6 +35,8 @@ import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoInfoDAOHibernate;
 import org.photovault.imginfo.VolumeDAO;
 import org.photovault.imginfo.VolumeDAOHibernate;
+import org.photovault.replication.ChangeDAO;
+import org.photovault.replication.ChangeDAOHibernate;
 
 /**
  Factory for creating Hibernate data access objects for Photovault.
@@ -49,7 +51,8 @@ public class HibernateDAOFactory extends DAOFactory {
 
     private GenericHibernateDAO instantiateDAO( Class daoClass ) {
         try {
-            GenericHibernateDAO dao = (GenericHibernateDAO)daoClass.newInstance();
+            Object newdao = daoClass.newInstance();
+            GenericHibernateDAO dao = (GenericHibernateDAO)newdao;
             if ( session != null ) {
                 dao.setSession( session );
             }
@@ -88,6 +91,12 @@ public class HibernateDAOFactory extends DAOFactory {
 
     public ImageDescriptorDAO getImageDescriptorDAO() {
         return (ImageDescriptorDAO) instantiateDAO( ImageDescriptorDAOHibernate.class );        
+    }
+    
+    public  ChangeDAO getChangeDAO( ) {
+        ChangeDAOHibernate dao = new ChangeDAOHibernate();
+        dao.setSession( session );
+        return dao;
     }
 
     @Override

@@ -134,7 +134,10 @@ public class Change<T, F extends Comparable> {
     
     
     /**
-     Default constructor, for Hibernate
+     Default constructor, for construction by Hibernate or {@link ChangeFactory}.
+     This constructor set the frozen field to true, so it is extremely important 
+     that the change must not be accessed by user code before second phase of 
+     construction has been finalized!!!
      */
     Change() {
         frozen = true;
@@ -239,6 +242,10 @@ public class Change<T, F extends Comparable> {
         return Collections.unmodifiableMap( changedFields );
     }
     
+    void setChangedFields( Map<F,Object> changes ) {
+        changedFields = changes;
+    }
+    
     @ManyToMany( targetEntity=Change.class, cascade=CascadeType.ALL )
     @JoinTable(name = "change_relations",
         joinColumns = {@JoinColumn(name = "child_uuid")},
@@ -312,7 +319,7 @@ public class Change<T, F extends Comparable> {
      */
     @ManyToMany( mappedBy="parentChanges", targetEntity=Change.class )
     public Set<Change<T,F>> getChildChanges() {
-        return Collections.unmodifiableSet( childChanges );
+        return childChanges;
     }
     
     void setChildChanges( Set c ) {
@@ -484,16 +491,10 @@ public class Change<T, F extends Comparable> {
      Calculate UUID for this change
      */
     private void calcUuid() {
+        ChangeDTO<T,F> data = new ChangeDTO<T, F>( this );
         try {
-            ByteArrayOutputStream s = new ByteArrayOutputStream();
-            ObjectOutputStream os = new ObjectOutputStream( s );
-            os.writeObject( targetHistory.getGlobalId() );
-            os.writeObject( prevChange != null ? prevChange.uuid : NULL_UUID );
-            os.writeObject( mergeChange != null ? mergeChange.uuid : NULL_UUID );
-            writeFieldChanges( os );
-            uuid = UUID.nameUUIDFromBytes( s.toByteArray() );
+            uuid = data.calcUuid();
         } catch ( IOException e ) {
-
         }
     }
     

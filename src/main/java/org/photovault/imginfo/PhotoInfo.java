@@ -109,7 +109,7 @@ public class PhotoInfo implements java.io.Serializable {
     
     PhotoInfoChangeSupport changeHistory = null;
     
-    @OneToOne
+    @OneToOne( cascade=CascadeType.ALL )
     @JoinColumn( name="photo_uuid", insertable=false, updatable=false )
     public PhotoInfoChangeSupport getHistory() {
         return changeHistory;

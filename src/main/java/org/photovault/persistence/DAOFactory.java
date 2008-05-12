@@ -27,6 +27,7 @@ import org.photovault.imginfo.ImageFileDAO;
 import org.photovault.imginfo.ImageInstanceDAO;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.VolumeDAO;
+import org.photovault.replication.ChangeDAO;
 
 /**
   Abstract factory for creating a DAO.
@@ -68,6 +69,8 @@ public abstract class DAOFactory {
     public abstract ImageDescriptorDAO getImageDescriptorDAO();
     
     public abstract VolumeDAO getVolumeDAO();
+    
+    public abstract ChangeDAO getChangeDAO( );
     
     public abstract ChangeDescDAO getChangeDescDAO();
 }

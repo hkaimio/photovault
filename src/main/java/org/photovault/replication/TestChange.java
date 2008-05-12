@@ -20,6 +20,11 @@
 
 package org.photovault.replication;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -108,12 +113,12 @@ public class TestChange {
             cs.changeToVersion(newVersion);
         }
 
-        public List<Change> getChanges() {
-            return cs.getChanges();
+        public List<Change<TestObject, FieldDescriptor>> getChanges() {
+            return (List<Change<TestObject, FieldDescriptor>>) cs.getChanges();
         }
 
-        public List<Change> getHeads() {
-            return cs.getHeads();
+        public List<Change<TestObject, FieldDescriptor>> getHeads() {
+            return (List<Change<TestObject, FieldDescriptor>>) cs.getHeads();
         }
 
         public Change mergeHeads() {
@@ -178,7 +183,7 @@ public class TestChange {
         assertEquals( 1, t.f1 );
         assertEquals( c, t.getVersion() );
         
-        Change<TestObject, FieldDescriptor> c2 = t.createChange();
+        Change<TestObject, FieldDescriptor<TestObject>> c2 = t.createChange();
         c2.setPrevChange( c );
         c2.setField(f2Desc, 5 );
         c2.freeze();
@@ -261,6 +266,40 @@ public class TestChange {
         f1c.resolve( c2 );
         assertFalse( merged.hasConflicts() );
         assertEquals( 3, merged.getField(f1Desc) );
+    }
+    
+    @Test
+    public void testSerialize() throws IOException, ClassNotFoundException {
+        TestObject t = new TestObject();
+        t.f1 = 1;
+        t.f2 = 2;   
+        
+        Change c = t.createChange();
+        c.setField( f1Desc, 2 );
+        c.setField( f2Desc, 3 );
+        c.freeze();
+        
+        Change c2 = t.createChange();
+        c2.setField(f1Desc, 3);
+        c2.setField(f2Desc, 5);
+        c2.freeze();
+        
+        ByteArrayOutputStream s = new ByteArrayOutputStream();
+        ObjectOutputStream os = new ObjectOutputStream( s );
+        ChangeDTO dto1 = new ChangeDTO( c );
+        ChangeDTO dto2 = new ChangeDTO( c2 );
+        os.writeObject( dto1 );
+        os.writeObject( dto2 );
+        
+        byte[] serialized = s.toByteArray();
+        
+        ByteArrayInputStream is = new ByteArrayInputStream( serialized );
+        ObjectInputStream ios = new ObjectInputStream( is );
+        ChangeDTO readDto1 = (ChangeDTO) ios.readObject();
+        ChangeDTO readDto2 = (ChangeDTO) ios.readObject();
+        
+        readDto1.verify();
+        readDto2.verify();
     }
 
 }

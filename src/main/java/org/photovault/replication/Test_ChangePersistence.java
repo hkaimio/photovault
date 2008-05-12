@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2008 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,11 +20,18 @@
 
 package org.photovault.replication;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import org.hibernate.Transaction;
 import org.hibernate.classic.Session;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeSupport;
+import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoInfoFields;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
@@ -101,5 +108,74 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         assertTrue( s2c2.getChangedFields().containsKey( PhotoInfoFields.CAMERA ) );
         assertEquals( "Canon 30D", s2c2.getChangedFields().get(  PhotoInfoFields.CAMERA ) );
         sess2.close();
+    }
+    
+    
+    /**
+     Test that changes can be serialized correctly and merging them to a 
+     persistence context using {@link ChangeFactory} is successfull
+     @throws java.io.IOException
+     @throws java.lang.ClassNotFoundException
+     */
+    @Test
+    public void testSerialization() throws IOException, ClassNotFoundException {
+        // Create a new photo with associated history
+        PhotoInfo p = PhotoInfo.create();
+        Change<PhotoInfo,PhotoInfoFields> c1 = p.getHistory().createChange();
+        c1.freeze();
+        Transaction tx = session.beginTransaction();
+        session.saveOrUpdate( p );
+        tx.commit();
+        
+        /**
+         Create a few changes that won't be persisted but serialised to a byte array
+         */
+        tx = session.beginTransaction();
+        HibernateDAOFactory daoFactory = new HibernateDAOFactory();
+        daoFactory.setSession( session );
+        ChangeDAO<PhotoInfo, PhotoInfoFields> chDao = daoFactory.getChangeDAO( );
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
+        p = photoDAO.findByUUID( p.getUuid() );
+        
+        Change<PhotoInfo,PhotoInfoFields> c2 = p.getHistory().createChange();
+        c2.setField( PhotoInfoFields.CAMERA, "Canon 30D" );
+        c2.freeze();
+        p.getHistory().changeToVersion( c1 );
+        Change<PhotoInfo,PhotoInfoFields> c3 = p.getHistory().createChange();
+        c3.setField( PhotoInfoFields.PHOTOGRAPHER, "Harri" );
+        c3.freeze();
+        
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream( os );
+        oos.writeObject( new ChangeDTO<PhotoInfo, PhotoInfoFields>( c1 ) );
+        oos.writeObject( new ChangeDTO<PhotoInfo, PhotoInfoFields>( c2 ) );
+        oos.writeObject( new ChangeDTO<PhotoInfo, PhotoInfoFields>( c3 ) );
+        byte[] serialized = os.toByteArray();
+        tx.rollback();
+        
+        // Create a new session so that it is not aware of c2 or c3
+        session.close();
+        session = HibernateUtil.getSessionFactory().openSession();
+        
+        daoFactory.setSession( session );
+        chDao = daoFactory.getChangeDAO( );
+        ChangeFactory<PhotoInfo, PhotoInfoFields> cf = new ChangeFactory( chDao );
+        Change<PhotoInfo, PhotoInfoFields> s2c1 = chDao.findById( c1.getUuid(), false );
+        assertEquals( 0, s2c1.getChildChanges().size() );
+        assertEquals( c1.getUuid(), s2c1.getUuid() );
+        
+        ByteArrayInputStream is = new ByteArrayInputStream(  serialized );
+        ObjectInputStream ios = new ObjectInputStream( is );
+        Change<PhotoInfo, PhotoInfoFields> serc1 = cf.readChange( ios );
+        assertTrue( serc1 == s2c1 );
+        tx = session.beginTransaction();
+        Change<PhotoInfo, PhotoInfoFields> serc2 = cf.readChange( ios );
+        Change<PhotoInfo, PhotoInfoFields> serc3 = cf.readChange( ios );
+        assertEquals( c2.getUuid(), serc2.getUuid() );
+        assertEquals( c3.getUuid(), serc3.getUuid() );
+        assertEquals( 2, s2c1.getChildChanges().size() );
+        assertEquals( 3, s2c1.getTargetHistory().getChanges().size() );
+        assertEquals( 2, s2c1.getTargetHistory().getHeads().size() );
+        tx.commit();
     }
 }
