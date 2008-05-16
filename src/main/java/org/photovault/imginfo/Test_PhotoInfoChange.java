@@ -33,7 +33,7 @@ public class Test_PhotoInfoChange {
     @Test
     public void testPhotoChangeRecord() {
         PhotoInfo photo = PhotoInfo.create();
-        PhotoInfoChangeSupport history = new PhotoInfoChangeSupport(photo);
+        PhotoInfoChangeSupport history = photo.getHistory();
         Change<PhotoInfo,PhotoInfoFields> change = history.createChange();
         change.setField(PhotoInfoFields.PHOTOGRAPHER, "Harri" );
         change.setField(PhotoInfoFields.FSTOP, 5.6 );

@@ -48,6 +48,7 @@ import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.xml.ChangeDesc;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
+import org.photovault.replication.Change;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -347,61 +348,66 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
              current persistence context
              */
             changedPhotos.add( photo );
-            RawSettingsFactory rawSettingsFactory = null;
-            ChannelMapOperationFactory channelMapFactory = null;
+            Change<PhotoInfo,PhotoInfoFields> ch = photo.getHistory().createChange();
             for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
-                PhotoInfoFields field = e.getKey();
-                Object value = e.getValue();
-                if ( rawSettingsFields.contains( field ) ) {
-                    // This is a raw setting field, we must use factory for changing it
-                    if ( rawSettingsFactory == null ) {
-                        rawSettingsFactory = new RawSettingsFactory( photo.getRawSettings() );
-                    }
-                    this.setRawField( rawSettingsFactory, field, value );
-                } else if ( colorCurveFields.contains( field ) ) {
-                    if ( channelMapFactory == null ) {
-                        channelMapFactory = new ChannelMapOperationFactory( photo.getColorChannelMapping() );
-                    }
-                    switch ( field ) {
-                        case COLOR_CURVE_VALUE:
-                            channelMapFactory.setChannelCurve( "value", (ColorCurve) value);
-                            break;
-                        case COLOR_CURVE_RED:
-                            channelMapFactory.setChannelCurve( "red", (ColorCurve) value);
-                            break;
-                        case COLOR_CURVE_BLUE:
-                            channelMapFactory.setChannelCurve( "blue", (ColorCurve) value);
-                            break;
-                        case COLOR_CURVE_GREEN:
-                            channelMapFactory.setChannelCurve( "green", (ColorCurve) value);
-                            break;
-                        case COLOR_CURVE_SATURATION:
-                            channelMapFactory.setChannelCurve( "saturation", (ColorCurve) value);
-                            break;
-                    }
-                } else {
-                    try {
-                        PropertyUtils.setProperty( photo, field.getName(), value );
-                    } catch ( Exception ex) {
-                        log.error( "Exception while executing command", ex );
-                        throw new CommandException( 
-                                "Error while executing command: " 
-                                + ex.getMessage() );
-                    }
-                }                
+                ch.setField( e.getKey(), e.getValue() );
             }
-            if ( rawSettingsFactory != null ) {
-                try {
-                    photo.setRawSettings( rawSettingsFactory.create() );
-                } catch (PhotovaultException ex) {
-                    log.error( "Exception while executing command", ex );
-                    ex.printStackTrace();
-                }
-            }
-            if ( channelMapFactory != null ) {
-                photo.setColorChannelMapping( channelMapFactory.create() );
-                
-            }
+            ch.freeze();
+//            RawSettingsFactory rawSettingsFactory = null;
+//            ChannelMapOperationFactory channelMapFactory = null;
+//            for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
+//                PhotoInfoFields field = e.getKey();
+//                Object value = e.getValue();
+//                if ( rawSettingsFields.contains( field ) ) {
+//                    // This is a raw setting field, we must use factory for changing it
+//                    if ( rawSettingsFactory == null ) {
+//                        rawSettingsFactory = new RawSettingsFactory( photo.getRawSettings() );
+//                    }
+//                    this.setRawField( rawSettingsFactory, field, value );
+//                } else if ( colorCurveFields.contains( field ) ) {
+//                    if ( channelMapFactory == null ) {
+//                        channelMapFactory = new ChannelMapOperationFactory( photo.getColorChannelMapping() );
+//                    }
+//                    switch ( field ) {
+//                        case COLOR_CURVE_VALUE:
+//                            channelMapFactory.setChannelCurve( "value", (ColorCurve) value);
+//                            break;
+//                        case COLOR_CURVE_RED:
+//                            channelMapFactory.setChannelCurve( "red", (ColorCurve) value);
+//                            break;
+//                        case COLOR_CURVE_BLUE:
+//                            channelMapFactory.setChannelCurve( "blue", (ColorCurve) value);
+//                            break;
+//                        case COLOR_CURVE_GREEN:
+//                            channelMapFactory.setChannelCurve( "green", (ColorCurve) value);
+//                            break;
+//                        case COLOR_CURVE_SATURATION:
+//                            channelMapFactory.setChannelCurve( "saturation", (ColorCurve) value);
+//                            break;
+//                    }
+//                } else {
+//                    try {
+//                        PropertyUtils.setProperty( photo, field.getName(), value );
+//                    } catch ( Exception ex) {
+//                        log.error( "Exception while executing command", ex );
+//                        throw new CommandException( 
+//                                "Error while executing command: " 
+//                                + ex.getMessage() );
+//                    }
+//                }                
+//            }
+//            if ( rawSettingsFactory != null ) {
+//                try {
+//                    photo.setRawSettings( rawSettingsFactory.create() );
+//                } catch (PhotovaultException ex) {
+//                    log.error( "Exception while executing command", ex );
+//                    ex.printStackTrace();
+//                }
+//            }
+//            if ( channelMapFactory != null ) {
+//                photo.setColorChannelMapping( channelMapFactory.create() );
+//                
+//            }
             
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
             Set<PhotoFolder> af = new HashSet<PhotoFolder>();

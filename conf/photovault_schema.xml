@@ -353,7 +353,7 @@
               size="11" autoIncrement="false"
               description="Pixel value that is considered white if no EV correction is applied"/>
         <column name="raw_blackpoint" primaryKey="false" required="false" type="INTEGER" 
-              default="0" size="11" autoIncrement="false"
+              size="11" autoIncrement="false"
               description="Pixel value that is considered black"/>
         <column name="raw_ev_corr" primaryKey="false" required="false" type="FLOAT" 
               size="12" autoIncrement="false"

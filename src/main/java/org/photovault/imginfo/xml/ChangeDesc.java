@@ -152,10 +152,7 @@ public abstract class ChangeDesc {
      Get the predecessors of this change
      @return
      */
-    @OneToMany( cascade = CascadeType.ALL )
-    @JoinTable( name = "change_relations",
-                joinColumns = {@JoinColumn( name = "change_uuid" ) },
-                inverseJoinColumns = {@JoinColumn( name = "prev_change_uuid" ) } )
+     @Transient
     public Set<ChangeDesc> getPrevChanges() {
         return prevChanges;
     }

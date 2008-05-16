@@ -105,6 +105,7 @@ public class PhotoInfo implements java.io.Serializable {
         changeListeners = new HashSet();
         this.original = original;
         original.photos.add( this );
+        changeHistory = new PhotoInfoChangeSupport( this );
     }
     
     PhotoInfoChangeSupport changeHistory = null;

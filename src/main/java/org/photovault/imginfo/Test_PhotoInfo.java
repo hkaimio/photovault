@@ -92,6 +92,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
        Test case that verifies that an existing photo infor record 
        can be loaded successfully
     */
+    @Test
     public void testRetrievalSuccess() {
 	int photoId = 1;
         PhotoInfo photo = null;
@@ -105,6 +106,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     /** 
 	Test updating object to DB
     */
+    @Test
     public void testUpdate() {
 	int photoId = 1;
         PhotoInfo photo = null;
@@ -165,7 +167,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     @Test
     public void testPhotoCreation() {
         
-	PhotoInfo photo = new PhotoInfo();
+	PhotoInfo photo = PhotoInfo.create();
 	Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         try {
@@ -174,7 +176,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
             fail( t.getMessage() );
         }
 	assertNotNull( photo );
-        photo.setUuid( UUID.randomUUID() );
 	photo.setPhotographer( "TESTIKUVAAJA" );
 	photo.setShootingPlace( "TESTPLACE" );
 	photo.setShootTime( new java.util.Date() );
@@ -248,7 +249,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         
 	ChangePhotoInfoCommand photoChangeCmd = new ChangePhotoInfoCommand( photo.getId() );
         
-        photoChangeCmd.setUUID( UUID.randomUUID() );
+        // photoChangeCmd.setUUID( UUID.randomUUID() );
 	photoChangeCmd.setPhotographer( "TESTIKUVAAJA" );
 	photoChangeCmd.setShootingPlace( "TESTPLACE" );
 	photoChangeCmd.setShootTime( new java.util.Date() );
