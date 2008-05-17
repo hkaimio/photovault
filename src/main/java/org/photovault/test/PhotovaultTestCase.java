@@ -20,26 +20,17 @@
 
 package org.photovault.test;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import junit.framework.TestCase;
 import org.hibernate.Session;
 import org.photovault.common.JUnitHibernateManager;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.folder.PhotoFolder;
-import org.photovault.imginfo.ImageInstance;
-import org.photovault.imginfo.ImageInstanceDAO;
-import org.photovault.imginfo.ImageInstanceDAOHibernate;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.persistence.DAOFactory;
-import org.photovault.persistence.HibernateDAOFactory;
 
 /**
  * This class extends junit TestCase class so that it sets up the OJB environment
@@ -107,8 +98,9 @@ public class PhotovaultTestCase extends TestCase {
                 assertEquals( s.getBlueGreenRatio(), rs.getDouble("raw_b_g_ratio" ) );
                 assertEquals( s.getDaylightBlueGreenRatio(), rs.getDouble("raw_dl_b_g_ratio" ) );
             }
-            
+//            assertEquals( p.getOriginal().getId(), rs.getLong( "original_id" ) );
             assertTrue( "Photo not correct", p.getUid() == rs.getInt( "photo_id" ) );
+            
         } catch ( SQLException e ) {
             fail( e.getMessage() );
         } finally {
@@ -126,28 +118,7 @@ public class PhotovaultTestCase extends TestCase {
                     fail( e.getMessage() );
                 }
             }
-        }
-        // Check that instance collection matches
-        Set<ImageInstance> instances = p.getInstances();
-        Map<ImageInstance,Boolean> instFound = new HashMap();
-        for ( ImageInstance i : instances ) {
-            instFound.put( i, Boolean.FALSE );
-        }
-        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
-        hdf.setSession( session );
-        
-        ImageInstanceDAO instDAO = hdf.getImageInstanceDAO();
-        List dbInstances = instDAO.findPhotoInstances( p );
-        for ( Object o : dbInstances ) {
-            if ( !instFound.containsKey( (ImageInstance) o ) ) {
-                fail( "ImageInstance " + o.toString() + " in database but not in instances collection" );
-            }
-            instFound.put( (ImageInstance) o, Boolean.TRUE );
-        }
-        if ( instFound.containsValue( Boolean.FALSE ) ) {
-            fail( "Not all instances found in database" );
-        }
-        
+        }        
     }
     
     public static void assertMatchesDb( PhotoFolder folder, Session session ) {

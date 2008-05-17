@@ -29,8 +29,6 @@ import org.photovault.imginfo.ImageDescriptorDAO;
 import org.photovault.imginfo.ImageDescriptorDAOHibernate;
 import org.photovault.imginfo.ImageFileDAO;
 import org.photovault.imginfo.ImageFileDAOHibernate;
-import org.photovault.imginfo.ImageInstanceDAO;
-import org.photovault.imginfo.ImageInstanceDAOHibernate;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoInfoDAOHibernate;
 import org.photovault.imginfo.VolumeDAO;
@@ -75,10 +73,7 @@ public class HibernateDAOFactory extends DAOFactory {
     public PhotoFolderDAO getPhotoFolderDAO() {
         return (PhotoFolderDAO) instantiateDAO( PhotoFolderDAOHibernate.class );
     }
-    
-    public ImageInstanceDAO getImageInstanceDAO() {
-        return (ImageInstanceDAO) instantiateDAO( ImageInstanceDAOHibernate.class );
-    }
+
 
     public ImageFileDAO getImageFileDAO() {
         return (ImageFileDAO) instantiateDAO( ImageFileDAOHibernate.class );        

@@ -22,6 +22,8 @@ package org.photovault.imginfo;
 import java.awt.image.renderable.ParameterBlock;
 import java.util.*;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
 import javax.media.jai.*;
@@ -153,7 +155,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         // For some reason when seeking for e.g. photoId -1, a photo with ID = 1 is returned
         // This sounds like a bug in OJB?????
         if ( photo.getUid() != photoId ) {
-            log.warn( "Found photo with ID = " + photo.getUid() + " while looking for ID " + photoId );
+            log.warn( "Found photo with ID = " + photo.getUuid() + " while looking for ID " + photoId );
             throw new PhotoNotFoundException();
         }
         return photo;
@@ -304,7 +306,16 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         
         // Create the image
         PhotoInfo photo = PhotoInfo.create();
-        photo.addInstance( vol, instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
+        try {
+            ImageFile imgfile;
+            imgfile = new ImageFile( instanceFile );
+            OriginalImageDescriptor orig = new OriginalImageDescriptor( imgfile, "image#0" );
+            photo.setOriginal( orig );
+        } catch ( PhotovaultException ex ) {
+            log.fatal( ex );
+        } catch ( IOException ex ) {
+            log.fatal( ex );
+        }
         photo.setCropBounds( new Rectangle2D.Float( 0.0F, 0.0F, 1.0F, 1.0F ) );
         photo.updateFromOriginalFile();
         return photo;
@@ -454,9 +465,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      */
     public void delete() {
         // First delete all instances
-        for ( ImageInstance f : instances ) {
-            f.delete();
-        }
         
         // Then delete the photo from all folders it belongs to
         if ( folders != null ) {
@@ -613,84 +621,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     public int getUid() {
         return uid.intValue();
     }
-    
-    /**
-     Adds a new image instance for this photo
-     @param i The new instance
-     @deprecated ImageInstance has been refactored.
-     */
-    public void addInstance( ImageInstance i ) {
-        throw new UnsupportedOperationException( "ImageInstance is not anymore in use!!!" );
-    }
-    
-    /**
-     Adds a new instance of the photo into the database.
-     @param volume Volume in which the instance is stored
-     @param instanceFile File name of the instance
-     @param instanceType Type of the instance - original, modified or thumbnail.
-     @return The new instance
-     @deprecated ImageInstance has been refactored.
-     @see ImageInstance class documentation for details.
-     */
-    public ImageInstance addInstance( VolumeBase volume, File instanceFile, int instanceType ) {
-        throw new UnsupportedOperationException( "ImageInstance is not anymore in use!!!" );
-//        ImageInstance instance = ImageInstance.create( volume, instanceFile, this, instanceType );
-//        instances.add( instance );
-//        
-//        // If this is the first instance or we are adding original image we need to invalidate
-//        // thumbnail
-//        if ( instances.size() == 1 || instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-//            invalidateThumbnail();
-//        }
-//        
-//        if ( instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-//            // Store the hash code of original (even if this original instance is later deleted
-//            // we can identify later that another file is an instance of this photo)
-//            origInstanceHash = instance.getHash();
-//            // If an original instance is added notify listeners since some of
-//            // them may be displaying the default thumbnail
-//            modified();
-//        }
-//        return instance;
-    }
-
-    /**
-     Remove an instance from this photo. Also remove any file system resources 
-     held by the instance in question.
-     @param i The instance that will be deleted.
-     */
-    public void removeInstance( ImageInstance i ) {
-        throw new UnsupportedOperationException( "ImageInstance is not anymore in use!!!" );
-//        instances.remove( i );
-//        i.delete();
-    }
-    
-    /**
-     Returns the number of instances of this photo that are stored in database
-     */
-    @Transient
-    public int getNumInstances() {
-        throw new UnsupportedOperationException( "ImageInstance is not anymore in use!!!" );
-//        return instances.size();
-    }
-    
-    
-    /**
-     Returns the arrayList that contains all instances of this file.
-     */
-    @OneToMany(cascade  = { CascadeType.PERSIST, CascadeType.MERGE },
-               mappedBy = "photo")
-    @org.hibernate.annotations.Cascade({
-               org.hibernate.annotations.CascadeType.SAVE_UPDATE })
-    public Set<ImageInstance> getInstances() {
-        return instances;
-    }
-    
-    public void setInstances( Set<ImageInstance> v ) {
-        instances = v;
-    }
-    
-    Set<ImageInstance> instances = new HashSet<ImageInstance>();
   
     private OriginalImageDescriptor original;
 
@@ -959,13 +889,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         }
         return true;
     }
-    
-    private boolean matchesCurrentSettings( ImageInstance instance ) {
-        return Math.abs(instance.getRotated() - prefRotation) < 0.0001
-                && instance.getCropBounds().equals( getCropBounds() )
-                && (channelMap == null || channelMap.equals( instance.getColorChannelMapping()))
-                && ( rawSettings == null || rawSettings.equals( instance.getRawSettings()));            
-        }
         
     
     private boolean isConsistentWithCurrentSettings( CopyImageDescriptor img ) {

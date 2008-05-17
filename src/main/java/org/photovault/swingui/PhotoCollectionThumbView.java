@@ -35,8 +35,6 @@ import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.photovault.command.CommandException;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.imginfo.FuzzyDate;
@@ -83,9 +81,7 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.Volume;
-import org.photovault.imginfo.VolumeBase;
 import org.photovault.imginfo.VolumeDAO;
-import org.photovault.persistence.DAOFactory;
 import org.photovault.swingui.taskscheduler.TaskPriority;
 import org.photovault.taskscheduler.TaskProducer;
 import org.photovault.taskscheduler.BackgroundTask;
@@ -576,7 +572,7 @@ public class PhotoCollectionThumbView
     boolean showQuality = true;
     
     private void paintThumbnail( Graphics2D g2, PhotoInfo photo, int startx, int starty, boolean isSelected ) {
-        log.debug( "paintThumbnail entry " + photo.getUid() );
+        log.debug( "paintThumbnail entry " + photo.getUuid() );
         long startTime = System.currentTimeMillis();
         long thumbReadyTime = 0;
         long thumbDrawnTime = 0;
@@ -590,7 +586,7 @@ public class PhotoCollectionThumbView
         boolean hasThumbnail = photo.hasThumbnail();
         log.debug( "asked if has thumb" );
         if ( hasThumbnail ) {
-            log.debug( "Photo " + photo.getUid() + " has thumbnail" );
+            log.debug( "Photo " + photo.getUuid() + " has thumbnail" );
             thumbnail = photo.getThumbnail();
             log.debug( "got thumbnail" );
         } else {
@@ -729,7 +725,7 @@ public class PhotoCollectionThumbView
         }
         g2.setBackground( prevBkg );
         endTime = System.currentTimeMillis();
-        log.debug( "paintThumbnail: exit " + photo.getUid() );
+        log.debug( "paintThumbnail: exit " + photo.getUuid() );
         log.debug( "Thumb fetch " + (thumbReadyTime - startTime ) + " ms" );
         log.debug( "Thumb draw " + ( thumbDrawnTime - thumbReadyTime ) + " ms" );
         log.debug( "Deacoration draw " + (endTime - thumbDrawnTime ) + " ms" );
@@ -908,7 +904,7 @@ public class PhotoCollectionThumbView
        to create a thumbnail for it.
     */
     public void thumbnailCreated( PhotoInfo photo ) {
-	log.debug( "thumbnailCreated for " + photo.getUid() );
+	log.debug( "thumbnailCreated for " + photo.getUuid() );
         photo = (PhotoInfo) ctrl.getPersistenceContext().merge( photo );
 	repaintPhoto( photo );
 
@@ -926,7 +922,7 @@ public class PhotoCollectionThumbView
 	log.debug( "Finding photo without thumbnail" );
 	for ( int n = 0; n < photos.size(); n++ ) {
             PhotoInfo photoCandidate = photos.get( n );
-	    log.debug( "Photo " + photoCandidate.getUid() );
+	    log.debug( "Photo " + photoCandidate.getUuid() );
 	    if ( !photoCandidate.hasThumbnail() ) {
 		log.debug( "No thumbnail" );
 		Rectangle photoRect = getPhotoBounds( n );
@@ -1276,7 +1272,6 @@ public class PhotoCollectionThumbView
     
     
     JFrame frame = null;
-    PhotoViewer viewer = null;
 
 
     /**

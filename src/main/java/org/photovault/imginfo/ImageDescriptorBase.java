@@ -83,7 +83,7 @@ public class ImageDescriptorBase implements java.io.Serializable {
     @GeneratedValue( generator = "ImageIdGen", strategy = GenerationType.TABLE )
     @TableGenerator( name="ImageIdGen", table="unique_keys", pkColumnName="id_name", 
                      pkColumnValue="hibernate_seq", valueColumnName="next_val" )
-    protected Long getId() {
+    Long getId() {
         return id;
     }
     

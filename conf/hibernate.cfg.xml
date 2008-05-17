@@ -27,7 +27,6 @@
         <!-- List of XML mapping files -->
         <mapping class="org.photovault.imginfo.PhotoInfo"/>
         <mapping class="org.photovault.imginfo.PhotoInfoChangeSupport"/>
-        <mapping class="org.photovault.imginfo.ImageInstance"/>
         <mapping class="org.photovault.imginfo.ImageDescriptorBase"/>
         <mapping class="org.photovault.imginfo.OriginalImageDescriptor"/>
         <mapping class="org.photovault.imginfo.CopyImageDescriptor"/>

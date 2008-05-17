@@ -41,7 +41,6 @@ import org.odmg.Implementation;
 import org.odmg.OQLQuery;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
-import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.persistence.HibernateUtil;
 
@@ -162,6 +161,7 @@ public class SchemaUpdateAction {
 
     /**
      Create hashes for all instances that do not have those.
+     TODO: update this to work without ImageInstance
      */
     private void createHashes() {
         fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_CREATING_HASHES, 0 ) );
@@ -186,19 +186,19 @@ public class SchemaUpdateAction {
         int photoCount = photos.size();
         int processedPhotos = 0;
         while ( iter.hasNext() ) {
-            PhotoInfo photo = (PhotoInfo) iter.next();
-            for ( ImageInstance inst : photo.getInstances() ) {
-                /*
-                 Hashes are generated on demand, so this call calculates the hash
-                 if it has not been calculated previously.
-                 */
-                byte[] hash = inst.getHash();
-            }
-            // Check tha also the photo info object contains original contains hash.
-            byte[] origHash = photo.getOrigInstanceHash();
-            processedPhotos++;
-            fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_CREATING_HASHES,
-                    (processedPhotos*100)/photoCount ) );
+//            PhotoInfo photo = (PhotoInfo) iter.next();
+//            for ( ImageInstance inst : photo.getInstances() ) {
+//                /*
+//                 Hashes are generated on demand, so this call calculates the hash
+//                 if it has not been calculated previously.
+//                 */
+//                byte[] hash = inst.getHash();
+//            }
+//            // Check tha also the photo info object contains original contains hash.
+//            byte[] origHash = photo.getOrigInstanceHash();
+//            processedPhotos++;
+//            fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_CREATING_HASHES,
+//                    (processedPhotos*100)/photoCount ) );
         }
     }
     

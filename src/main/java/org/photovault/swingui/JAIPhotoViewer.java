@@ -162,7 +162,7 @@ public class JAIPhotoViewer extends JPanel implements
         localRawSettings = null;
         localChanMap = null;
 
-        log.debug( "JAIPhotoViewer.setPhoto() photo="  + photo.getUid() );
+        log.debug( "JAIPhotoViewer.setPhoto() photo="  + photo.getUuid() );
 
 	photo.addChangeListener( this );
         try {
@@ -268,7 +268,7 @@ public class JAIPhotoViewer extends JPanel implements
         // if we get this far no instance of the original image has been found
         setImage( null );
         throw new PhotovaultException( "No suitable instance of photo " 
-                + photo.getUid() + " found" );
+                + photo.getUuid() + " found" );
         
     }
     

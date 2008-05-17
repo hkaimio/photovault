@@ -38,7 +38,6 @@ import org.photovault.folder.PhotoFolder;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ChannelMapRuleSet;
 import org.photovault.imginfo.FuzzyDate;
-import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.xml.sax.Attributes;
@@ -261,6 +260,8 @@ public class XmlImporter {
      Factory used for creating and fetching ImageInstance in Digester rule. It
      first tries to find a photo with the uuid specified in XML. If no such 
      photo is found, a new folder is created.
+     
+     TODO: Change this to create ImageDesriptors instead.
      */
     public static class InstanceFactory extends AbstractObjectCreationFactory {
         public InstanceFactory() {
@@ -268,7 +269,7 @@ public class XmlImporter {
         }
         
         public Object createObject( Attributes attrs ) {
-            String uuidStr = attrs.getValue( "id" );
+/*            String uuidStr = attrs.getValue( "id" );
             UUID uuid = UUID.fromString( uuidStr );
             ImageInstance i = null;
             i = ImageInstance.retrieveByUuid(uuid);
@@ -290,6 +291,8 @@ public class XmlImporter {
                 
             }
             return i;
+*/
+            return null;
         }
     }
 
@@ -448,19 +451,23 @@ public class XmlImporter {
         digester.addRule( "*/instance/hash", new Rule() {
             @Override
             public void body( String namespace, String name, String text ) {
+/*                
                 byte[] hash = Base64.decode( text );
                 ImageInstance i = (ImageInstance) digester.peek();
                 i.setHash( hash );
+*/
             }
         } );
         digester.addRuleSet( new ChannelMapRuleSet( "*/instance/") );
         digester.addRule( "*/instance/color-mapping", new Rule() {
             @Override
             public void end( String namespace, String name ) {
+/*
                 ImageInstance i = (ImageInstance) digester.peek(1);
                 ChannelMapOperationFactory f = 
                         (ChannelMapOperationFactory) digester.peek();
                 i.setColorChannelMapping( f.create() );                
+*/
             }
         });
         // Raw conversion parsing was already specified earlier. We just need a 
@@ -469,6 +476,7 @@ public class XmlImporter {
         digester.addRule( "*/instance/raw-conversion", new Rule() {
             @Override
             public void end( String namespace, String name ) {
+/*
                 ImageInstance i = (ImageInstance)digester.peek(1);
                 RawSettingsFactory f = (RawSettingsFactory) digester.peek();
                 try {
@@ -476,6 +484,7 @@ public class XmlImporter {
                 } catch (PhotovaultException ex) {
                     digester.createSAXException( ex );
                 }
+*/
             }
         });  
         /*

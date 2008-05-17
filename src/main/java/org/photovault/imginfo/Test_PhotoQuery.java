@@ -302,11 +302,11 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
         List<PhotoInfo> result = q.queryPhotos( session );
 	for( PhotoInfo photo : result ) {
 	    int m = uids.indexOf( photo.getId() );
-	    log.debug( "Getting photo " + photo.getUid() + " " + photo.getShootTime() + " " + m );
+	    log.debug( "Getting photo " + photo.getUuid() + " " + photo.getShootTime() + " " + m );
 	    if ( m >= 0 ) {
 		if ( expected[m] ) {
 		    expected[m] = false;
-		    log.debug( "Photo " + photo.getUid() + " found" );
+		    log.debug( "Photo " + photo.getUuid() + " found" );
 		} else {
 		    fail( "Photo dated " + photo.getShootTime().toString() + " not expected!!!" );
 		}

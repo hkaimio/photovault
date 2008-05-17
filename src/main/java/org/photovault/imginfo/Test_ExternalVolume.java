@@ -25,14 +25,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Set;
-import junit.framework.Test;
-import junit.framework.TestSuite;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.test.PhotovaultTestCase;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -48,6 +48,8 @@ public class Test_ExternalVolume extends PhotovaultTestCase {
     /**
        Sets ut the test environment
     */
+    @BeforeMethod
+    @Override
     public void setUp() {
         try {
             volumeRoot = File.createTempFile( "photovaultVolumeTest", "" );
@@ -86,6 +88,8 @@ public class Test_ExternalVolume extends PhotovaultTestCase {
     /**
        Tears down the testing environment
     */
+    @AfterMethod
+    @Override
     public void tearDown() {
 	deleteTree( volume.getBaseDir() );
     }
@@ -128,7 +132,8 @@ public class Test_ExternalVolume extends PhotovaultTestCase {
     /**
      Test ta new he basic use case: Add a new photo 
      */
-    public void testAddPhotoInExtVol() {
+    @Test
+    public void testAddPhotoInExtVol() throws IOException {
         File srcFile = new File( testImgDir, "test1.jpg" );
         File dstFile = new File( extvolRoot, "test1.jpg" );
         try {
@@ -144,39 +149,17 @@ public class Test_ExternalVolume extends PhotovaultTestCase {
         }
 
         // Check that the original instance is created in external volume
-        Set<ImageInstance> instances = p.getInstances();
-        Iterator iter = instances.iterator();
+        OriginalImageDescriptor orig = p.getOriginal();
+        Set<FileLocation> locations = orig.getFile().getLocations();
         boolean foundOriginal = false;
-        while ( iter.hasNext() ) {
-            ImageInstance i = (ImageInstance) iter.next();
-            if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
+        for ( FileLocation loc : locations ) {
+            if( loc.getVolume() == extVol ) {
                 foundOriginal = true;
-                assertEquals( "Original must be stored in the external volume", 
-                        extVol, i.getVolume() );
-                try {
-                    assertEquals( "Instance file must be same as the added file",
-                            dstFile.getCanonicalFile(), i.getImageFile().getCanonicalFile() );
-                } catch (IOException ex) {
-                    fail( ex.getMessage() );
-                }
+                assertEquals( loc.getFile().getCanonicalFile(), dstFile.getCanonicalFile() );
             }
         }
         assertTrue( "No original was found", foundOriginal );
     
     }
-    
-    
-    public static Test suite() {
-	return new TestSuite( Test_ExternalVolume.class );
-    }
-    
-    
-    
-    public static void main( String[] args ) {
-	//	org.apache.log4j.BasicConfigurator.configure();
-	// log.setLevel( org.apache.log4j.Level.DEBUG );
-	org.apache.log4j.Logger instLog = org.apache.log4j.Logger.getLogger( ExternalVolume.class.getName() );
-	instLog.setLevel( org.apache.log4j.Level.DEBUG );
-	junit.textui.TestRunner.run( suite() );
-    }
+   
 }

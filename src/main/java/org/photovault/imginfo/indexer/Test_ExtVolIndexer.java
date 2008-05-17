@@ -43,7 +43,6 @@ import org.photovault.imginfo.FileLocation;
 import org.photovault.imginfo.FileUtils;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.ImageFileDAO;
-import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
@@ -123,21 +122,21 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         topFolder.reparentFolder( folderDAO.findRootFolder() );
         
         // Remove the test files from database if they are already there
-        hash1 = ImageInstance.calcHash( testfile1 );
+        hash1 = ImageFile.calcHash( testfile1 );
         List photos1 = photoDAO.findPhotosWithOriginalHash( hash1 );
         if ( photos1.size() > 0 ) {
             for ( Object o : photos1 ) {
                 photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
-        hash2 = ImageInstance.calcHash( testfile2 );
+        hash2 = ImageFile.calcHash( testfile2 );
         List photos2 = photoDAO.findPhotosWithOriginalHash( hash2 );
         if ( photos2.size() > 0 ) {
             for ( Object o : photos2 ) {
                 photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
-        hash3 = ImageInstance.calcHash( testfile3 );
+        hash3 = ImageFile.calcHash( testfile3 );
         List photos3 = photoDAO.findPhotosWithOriginalHash( hash3 );
         if ( photos3.size() > 0 ) {
             for ( Object o : photos3 ) {
@@ -160,21 +159,21 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         folderDAO.makeTransient( topFolder );        
         
         // Remove the test files from database if they are already there
-        hash1 = ImageInstance.calcHash( testfile1 );
+        hash1 = ImageFile.calcHash( testfile1 );
         List photos1 = photoDAO.findPhotosWithOriginalHash( hash1 );
         if ( photos1.size() > 0 ) {
             for ( Object o : photos1 ) {
                 photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
-        hash2 = ImageInstance.calcHash( testfile2 );
+        hash2 = ImageFile.calcHash( testfile2 );
         List photos2 = photoDAO.findPhotosWithOriginalHash( hash2 );
         if ( photos2.size() > 0 ) {
             for ( Object o : photos2 ) {
                 photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
-        hash3 = ImageInstance.calcHash( testfile3 );
+        hash3 = ImageFile.calcHash( testfile3 );
         List photos3 = photoDAO.findPhotosWithOriginalHash( hash3 );
         if ( photos3.size() > 0 ) {
             for ( Object o : photos3 ) {
