@@ -66,6 +66,7 @@ import org.photovault.image.PhotovaultImageFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
+import org.photovault.replication.Setter;
 
 /**
  PhotoInfo represents information about a single photograph
@@ -73,7 +74,7 @@ import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
  */
 @Entity
 @Table( name = "photos" )
-public class PhotoInfo implements java.io.Serializable {
+public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     
     static Log log = LogFactory.getLog( PhotoInfo.class.getName() );
     
@@ -1612,6 +1613,7 @@ public class PhotoInfo implements java.io.Serializable {
      * Set the value of camera.
      * @param v  Value to assign to camera.
      */
+    @Setter( field="camera" )
     public void setCamera(String  v) {
         checkStringProperty( "Camera", v, CAMERA_LENGTH );
         this.camera = v;

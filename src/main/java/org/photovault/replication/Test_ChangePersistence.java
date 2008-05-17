@@ -20,13 +20,20 @@
 
 package org.photovault.replication;
 
+import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Proxy;
+import java.util.Date;
+import java.util.Map;
 import org.hibernate.Transaction;
 import org.hibernate.classic.Session;
+import org.photovault.imginfo.FuzzyDate;
+import org.photovault.imginfo.PhotoEditor;
+import org.photovault.imginfo.PhotoEditorInvocationHandler;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeSupport;
 import org.photovault.imginfo.PhotoInfoDAO;
@@ -177,5 +184,52 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         assertEquals( 3, s2c1.getTargetHistory().getChanges().size() );
         assertEquals( 2, s2c1.getTargetHistory().getHeads().size() );
         tx.commit();
+    }
+    
+    @Test
+    public void testEditor() {
+        PhotoInfo p = PhotoInfo.create();
+        Change<PhotoInfo,PhotoInfoFields> c1 = p.getHistory().createChange();
+        c1.freeze();
+        Transaction tx = session.beginTransaction();
+        session.saveOrUpdate( p );
+        tx.commit();
+        
+        PhotoEditorInvocationHandler ih = 
+                new PhotoEditorInvocationHandler( p.getHistory() );
+        PhotoEditor e = 
+                (PhotoEditor) Proxy.newProxyInstance( 
+                PhotoEditor.class.getClassLoader(), new Class[]{PhotoEditor.class}, ih );
+        e.setCamera( "Canon FTb" );
+        e.setPhotographer( "Harri" );
+        e.setCropBounds( new Rectangle2D.Double( 0.1, 0.2, 0.7, 0.8 ) );
+        e.setDescription( "Desc" );
+        e.setFStop( 5.6 );
+        e.setFilm( "Tri-X" );
+        e.setFilmSpeed( 400 );
+        e.setFocalLength( 50 );
+        e.setFuzzyShootTime( new FuzzyDate( new Date(), 10 ) );
+        e.setLens( "FD 50mm/2.0" );
+        e.setOrigFname( "test.jpg" );
+        e.setPrefRotation( 45.0 );
+        e.setQuality( 2 );
+        e.setShootingPlace( "Rantasalmi" );
+        e.setShutterSpeed( 0.008 );
+        e.setTechNotes( "Test photo" );
+        ih.getChange().freeze();
+        Map<PhotoInfoFields, Object> changes = ih.getChange().getChangedFields();
+        assertEquals( "Canon FTb", p.getCamera() );
+        assertEquals( "Harri", p.getPhotographer() );
+        assertEquals( 5.6, p.getFStop() );
+        assertEquals( "Desc", p.getDescription() );
+        assertEquals( "Tri-X", p.getFilm() );
+        assertEquals( 400, p.getFilmSpeed() );
+        assertEquals( 50.0, p.getFocalLength() );
+        assertEquals( "FD 50mm/2.0", p.getLens() );
+        assertEquals( "test.jpg", p.getOrigFname() );
+        assertEquals( 45.0, p.getPrefRotation() );
+        assertEquals( 2, p.getQuality() );
+        assertEquals( "Rantasalmi", p.getShootingPlace() );
+        assertEquals( 0.008, p.getShutterSpeed() );
     }
 }
