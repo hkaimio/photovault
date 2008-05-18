@@ -395,7 +395,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         }
         for ( int n = 0; n < photos.length; n++ ) {
             if ( !found[n] ) {
-                fail( "Photo " + n + ": " + photos[n].getId() + " not found in folder " 
+                fail( "Photo " + n + ": " + photos[n].getUuid() + " not found in folder " 
                         +  folder.getName() );
             }
         }

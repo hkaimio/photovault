@@ -94,7 +94,7 @@ class ThumbCreatorThread extends Thread {
                         HibernateDAOFactory daoFactory = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
                         daoFactory.setSession( session );
                         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
-                        photo = photoDAO.findById( photo.getId(), false );
+                        photo = photoDAO.findByUUID( photo.getUuid() );
 			Thumbnail thumb = null;
                         
 			while ( thumb == null ) {

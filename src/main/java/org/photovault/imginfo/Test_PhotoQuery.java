@@ -105,7 +105,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	photo.setTimeAccuracy( accuracy );
 	photo.setDescription( desc );
 	photos.add( photo );
-	uids.add( photo.getId() );
+	uids.add( photo.getUuid() );
 	return photo;
     }
     
@@ -301,7 +301,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	log.debug( "Checking results" );
         List<PhotoInfo> result = q.queryPhotos( session );
 	for( PhotoInfo photo : result ) {
-	    int m = uids.indexOf( photo.getId() );
+	    int m = uids.indexOf( photo.getUuid() );
 	    log.debug( "Getting photo " + photo.getUuid() + " " + photo.getShootTime() + " " + m );
 	    if ( m >= 0 ) {
 		if ( expected[m] ) {
@@ -318,7 +318,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	    if ( expected[n] ) {
                 PhotoInfo photo = (PhotoInfo)photos.elementAt( n );
                 FuzzyDate d = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
-		fail( "Photo "+ n + " (id" + photo.getId() + ", dated " + d.format() + ") not included in result set" );
+		fail( "Photo "+ n + " (id" + photo.getUuid() + ", dated " + d.format() + ") not included in result set" );
 	    }
 	}
     }

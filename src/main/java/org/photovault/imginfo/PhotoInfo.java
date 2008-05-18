@@ -22,8 +22,6 @@ package org.photovault.imginfo;
 import java.awt.image.renderable.ParameterBlock;
 import java.util.*;
 import java.io.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
 import javax.media.jai.*;
@@ -43,7 +41,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
@@ -154,7 +151,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         
         // For some reason when seeking for e.g. photoId -1, a photo with ID = 1 is returned
         // This sounds like a bug in OJB?????
-        if ( photo.getUid() != photoId ) {
+        if ( !photo.getUuid().equals( photoId ) ) {
             log.warn( "Found photo with ID = " + photo.getUuid() + " while looking for ID " + photoId );
             throw new PhotoNotFoundException();
         }
@@ -328,6 +325,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      */
     @Column( name = "photo_uuid" )
     @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
+    @Id
     public UUID getUuid() {
         return uuid;
     }    
@@ -600,26 +598,14 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         this.uid = uid;
     }
     
-    @Id 
-    @GeneratedValue( generator = "PhotoIdGen", strategy = GenerationType.TABLE )
-    @TableGenerator( name="PhotoIdGen", table="unique_keys", pkColumnName="id_name", 
-                     pkColumnValue="hibernate_seq", valueColumnName="next_val" )
-    @Column( name = "photo_id" )
-    public Integer getId() {
-        return uid;
-    }
-     
-    public void setUid( int uid ) {
-        this.uid = Integer.valueOf( uid );
-    }
-    
-    /**
-     Returns the uid of the object
-     @deprecated
-     */
+//    @Id 
+//    @GeneratedValue( generator = "PhotoIdGen", strategy = GenerationType.TABLE )
+//    @TableGenerator( name="PhotoIdGen", table="unique_keys", pkColumnName="id_name", 
+//                     pkColumnValue="hibernate_seq", valueColumnName="next_val" )
+//    @Column( name = "photo_id" )
     @Transient
-    public int getUid() {
-        return uid.intValue();
+    public Integer getId() {
+        return -1;
     }
   
     private OriginalImageDescriptor original;

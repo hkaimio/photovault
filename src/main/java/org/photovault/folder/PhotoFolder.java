@@ -194,7 +194,7 @@ public class PhotoFolder implements PhotoCollection {
                org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
     @JoinTable( name = "collection_photos",
                 joinColumns = {@JoinColumn( name = "collection_id" ) },
-                inverseJoinColumns = {@JoinColumn( name = "photo_id" ) } )
+                inverseJoinColumns = {@JoinColumn( name = "photo_uuid" ) } )
     public Set<PhotoInfo> getPhotos() {
         // TODO: Make test case to verify if this works with Hibernate
         return photos;

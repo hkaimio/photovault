@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -178,10 +179,10 @@ public class PhotoViewController extends PersistenceController {
 
     private void imageCreated( CreateCopyImageCommand cmd ) {
         PhotoInfo p = cmd.getPhoto();
-        log.debug( "image created for photo " + p.getId() );
+        log.debug( "image created for photo " + p.getUuid() );
         if ( containsPhoto( p ) ) {
             PhotoInfo mergedPhoto = (PhotoInfo) getPersistenceContext().merge( p );
-            log.debug( "merged chages to photo " + mergedPhoto.getId() );
+            log.debug( "merged chages to photo " + mergedPhoto.getUuid() );
             if ( !mergedPhoto.hasThumbnail() ) {
                 log.error( "he photo does not have a thumbnail!!!" );
                 getPersistenceContext().update( mergedPhoto );
@@ -208,14 +209,14 @@ public class PhotoViewController extends PersistenceController {
      detached instances.
      */
     private void removePhotos( Collection<PhotoInfo> removePhotos ) {
-        Set<Integer> removeIds = new TreeSet<Integer>();
+        Set<UUID> removeIds = new TreeSet<UUID>();
         for ( PhotoInfo p : removePhotos ) {
-            removeIds.add( p.getId() );
+            removeIds.add( p.getUuid() );
         }
         
         ListIterator<PhotoInfo> iter = photos.listIterator();
         while ( iter.hasNext() ) {
-            if ( removeIds.contains( iter.next().getId() ) ) {
+            if ( removeIds.contains( iter.next().getUuid() ) ) {
                 iter.remove();
             }
         }
@@ -229,7 +230,7 @@ public class PhotoViewController extends PersistenceController {
      */
     private boolean containsPhoto( PhotoInfo photo ) {
         for ( PhotoInfo p : photos ) {
-            if ( p.getId().equals( photo.getId() ) ) {
+            if ( p.getUuid().equals( photo.getUuid() ) ) {
                 return true;
             }
         }

@@ -193,7 +193,7 @@ public class Test_PhotovaultSettings {
             fail( ex.getMessage() );
         }
         photo.setPhotographer( "test" );
-        PhotoInfo photo2 = photoDAO.findById( photo.getUid(), false );
+        PhotoInfo photo2 = photoDAO.findByUUID( photo.getUuid() );
         Thumbnail thumb = photo2.getThumbnail();
         assertFalse( "Default thumbnail returned", thumb == Thumbnail.getDefaultThumbnail() );
     }

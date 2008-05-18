@@ -24,7 +24,7 @@
 <database name="pv_test">
     <table name="collection_photos">
         <column name="collection_id" primaryKey="true" required="true" type="INTEGER" size="11"  autoIncrement="false"/>
-        <column name="photo_id" primaryKey="true" required="true" type="INTEGER" size="11" autoIncrement="false"/>
+        <column name="photo_uuid" primaryKey="true" required="true" type="VARCHAR" size="36" autoIncrement="false"/>
 
       <!-- For future use -->
         <column name="cp_desc" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>
@@ -240,8 +240,7 @@
       </index-->
     </table>
     <table name="photos">
-        <column name="photo_id" primaryKey="true" required="true" type="INTEGER" size="11" autoIncrement="false"/>
-        <column name="photo_uuid" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>
+        <column name="photo_uuid" primaryKey="true" required="false" type="VARCHAR" size="36" autoIncrement="false"/>
         <column name="version_uuid" primaryKey="false" required="false" 
               type="VARCHAR" size="36" autoIncrement="false"/>
         <column name="original_id" primaryKey="false" required="false" type="BIGINT" autoIncrement="false"/>

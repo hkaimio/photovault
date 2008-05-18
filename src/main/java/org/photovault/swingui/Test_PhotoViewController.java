@@ -116,7 +116,7 @@ public class Test_PhotoViewController extends PhotovaultTestCase {
         commandHandler.executeCommand( cmd );
         folder = cmd.getCreatedFolder();
         photo = photoDAO.findById( 1, false );
-        ChangePhotoInfoCommand pcmd = new ChangePhotoInfoCommand( photo.getId() );
+        ChangePhotoInfoCommand pcmd = new ChangePhotoInfoCommand( photo.getUuid() );
         pcmd.addToFolder( folder );
         commandHandler.executeCommand( pcmd );
     }
@@ -141,22 +141,22 @@ public class Test_PhotoViewController extends PhotovaultTestCase {
         assertTrue( ctrl.getCollection() == folder );
         List<PhotoInfo> photos = ctrl.getThumbPane().getPhotos();
         assertEquals( 1, photos.size() );
-        assertEquals( photo.getId(), photos.iterator().next().getId() );
+        assertEquals( photo.getUuid(), photos.iterator().next().getUuid() );
         
         // Test that the controller reacts when someone changes the collection
-        ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( photo.getId() );
+        ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( photo.getUuid() );
         cmd.removeFromFolder( folder );
         commandHandler.executeCommand(cmd);
         photos = ctrl.getThumbPane().getPhotos();
         assertEquals( 0, photos.size() );
 
-        cmd = new ChangePhotoInfoCommand( photo.getId() );
+        cmd = new ChangePhotoInfoCommand( photo.getUuid() );
         cmd.addToFolder( folder );
         commandHandler.executeCommand(cmd);
         photos = ctrl.getThumbPane().getPhotos();
         assertEquals( 1, photos.size() );
 
-        cmd = new ChangePhotoInfoCommand( photo.getId() );
+        cmd = new ChangePhotoInfoCommand( photo.getUuid() );
         cmd.setShootingPlace( "testPlace" );
         commandHandler.executeCommand(cmd);
         photos = ctrl.getThumbPane().getPhotos();

@@ -21,14 +21,23 @@
 package org.photovault.swingui;
 
 import java.io.*;
-import junit.framework.*;
+import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Transaction;
+import org.hibernate.classic.Session;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.Change;
 import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.test.PhotovaultTestCase;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 public class Test_PhotoInfoController extends PhotovaultTestCase {
     
@@ -37,30 +46,48 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
     PhotoInfo photo = null;
     PhotoSelectionController ctrl = null;
     String testImgDir = "testfiles";
+    private Session session;
+    private HibernateDAOFactory daoFactory;
+    private PhotoInfoDAO photoDAO;
+    private Transaction tx;
   
+    @BeforeMethod
+    @Override
     public void setUp() {
+        session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        hdf.setSession( session );
+        daoFactory = hdf;
+        photoDAO = daoFactory.getPhotoInfoDAO();
+        tx = session.beginTransaction();
+        
 	photo = PhotoInfo.create();
-
-	photo.setPhotographer( "TESTIKUVAAJA" );
-	photo.setFStop( 5.6 );
+        
+        Change<PhotoInfo,PhotoInfoFields> ch = photo.getHistory().createChange();
+        ch.freeze();
+        ch = photo.getHistory().createChange();
+        ch.setField( PhotoInfoFields.PHOTOGRAPHER, "TESTIKUVAAJA" );   
+        ch.setField( PhotoInfoFields.FSTOP, 5.6 );   
+        ch.freeze();
+        photoDAO.makePersistent( photo );
+        tx.commit();
+        tx = session.beginTransaction();
+//	photo.setPhotographer( "TESTIKUVAAJA" );
+//	photo.setFStop( 5.6 );
 
 	ctrl = new PhotoSelectionController( null );
     }
 
+    @AfterMethod
+    @Override
     public void tearDown() {
 	photo.delete();
+        tx.commit();
+        session.close();        
     }
     
     
-    public static Test suite() {
-	return new TestSuite( Test_PhotoInfoController.class );
-    }
-    
-    public static void main( String[] args ) {
-	junit.textui.TestRunner.run( suite() );
-    }
-
-
+    @Test
     public void testPhotoModification() {
 	ctrl.setPhoto( photo );
 
@@ -69,26 +96,23 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
         
 	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, newValue );
 	assertEquals( "PhotoInfo should not be modified at this stage", oldValue, photo.getPhotographer() );
-	assertEquals( "Ctrl should reflect the modification", newValue, ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ));
+	assertTrue( "Ctrl should reflect the modification", ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ).contains( newValue ));
 
-//	try {
-//	    ctrl.save();
-//	} catch ( Exception e ) {
-//	    fail( "Exception while saving: " + e.getMessage() );
-//	}
-//	assertEquals( "After save photo should also reflect the modifications", newValue, photo.getPhotographer() );
-
-	// Check that the value is also stored in DB
 	try {
-	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-	    
-	    assertEquals( photo2.getPhotographer(), photo.getPhotographer() );
-	    assertTrue( photo2.getFStop() == photo.getFStop() );
-	} catch ( PhotoNotFoundException e ) {
-	    fail ( "inserted photo not found" );
-	}	
+	    ctrl.save();
+	} catch ( Exception e ) {
+	    fail( "Exception while saving: " + e.getMessage() );
+	}
+        assertEquals( "After save photo should also reflect the modifications", newValue, photo.getPhotographer() );
+
+        // Check that the value is also stored in DB
+        PhotoInfo photo2 = photoDAO.findByUUID( photo.getUuid() );
+
+        assertEquals( photo2.getPhotographer(), photo.getPhotographer() );
+        assertTrue( photo2.getFStop() == photo.getFStop() );
     }
 
+    @Test
     public void testChangeDiscarding() {
 	ctrl.setPhoto( photo );
 
@@ -96,97 +120,39 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
 	String newValue = "Test photographer 2";
 	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, newValue );
 
-//	ctrl.discard();
+	ctrl.discard();
 	assertEquals( "PhotoInfo should not be modified", oldValue, photo.getPhotographer() );
-	assertEquals( "Ctrl should have the old value after discard", oldValue, ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ));
-    }
-
-    public void testNewPhotoCreation() {
-      File testFile = new File( testImgDir, "test1.jpg" );
-	
-	ctrl.createNewPhoto( testFile );
-	String photographer = "Test photographer";
-	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, photographer );
-	assertEquals( photographer, ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ) );
-
-	// Saving the ctrl state should create a new photo object
-//	try {
-//	    ctrl.save();
-//	} catch ( Exception e ) {
-//	    e.printStackTrace();
-//	    fail( "Exception while saving: " + e.getMessage() );
-//	}
-	PhotoInfo photo = ctrl.getPhoto();
-	assertTrue( "getPhoto should return PhotoInfo object after save()", photo != null );
-	assertEquals( "PhotoInfo fields should match ctrl",
-		      photographer, photo.getPhotographer() );
-	
-
-	// Check the database also
-	try {
-	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-	    
-	    assertEquals( photo2.getPhotographer(), photo.getPhotographer() );
-	    assertTrue( photo2.getFStop() == photo.getFStop() );
-	} catch ( PhotoNotFoundException e ) {
-	    fail ( "inserted photo not found" );
-	}
-
-	// Test modification to saved
-	String newPhotographer = "New photographer";
-	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, newPhotographer );
-//	try {
-//	    ctrl.save();
-//	} catch ( Exception e ) {
-//	    fail( "Exception while saving: " + e.getMessage() );
-//	}
-	assertEquals( "PhotoInfo fields should match ctrl",
-		      newPhotographer, photo.getPhotographer() );
-	try {
-	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-	    
-	    assertEquals( photo2.getPhotographer(), photo.getPhotographer() );
-	    assertTrue( photo2.getFStop() == photo.getFStop() );
-	} catch ( PhotoNotFoundException e ) {
-	    fail ( "inserted photo not found" );
-	}
-	
-	
-	photo.delete();
-	
+        Set fieldValues = ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER );
+        assertEquals( 1, fieldValues.size() );
+	assertTrue( "Ctrl should have the old value after discard", fieldValues.contains( oldValue ) );
     }
 
 
     /**
        Tests creation of PhotoInfo record without giving image file
     */
+    @Test
     public void testOnlyRecordCreation() {
 	String photographer = "Test photographer";
 	ctrl.viewChanged( null, PhotoInfoFields.PHOTOGRAPHER, photographer );
-	assertEquals( photographer, ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ) );
+	assertTrue( ctrl.getFieldValues( PhotoInfoFields.PHOTOGRAPHER ).contains(  photographer ) );
 
 	// Saving the ctrl state should create a new photo object
-//	try {
-//	    ctrl.save();
-//	} catch ( Exception e ) {
-//	    fail( "Exception while saving: " + e.getMessage() );
-//	}
+	try {
+	    ctrl.save();
+	} catch ( Exception e ) {
+	    fail( "Exception while saving: " + e.getMessage() );
+	}
 	PhotoInfo photo = ctrl.getPhoto();
 	assertTrue( "getPhoto should return PhotoInfo object after save()", photo != null );
 	assertEquals( "PhotoInfo fields should match ctrl",
 		      photographer, photo.getPhotographer() );
 	
 
-	// Check the database also
-	try {
-	    PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-	    
-	    assertEquals( photo2.getPhotographer(), photo.getPhotographer() );
-	    assertTrue( photo2.getFStop() == photo.getFStop() );
-	} catch ( PhotoNotFoundException e ) {
-	    fail ( "inserted photo not found" );
-	}
-	photo.delete();
+        // Check that the value is also stored in DB
+        PhotoInfo photo2 = photoDAO.findByUUID( photo.getUuid() );
+        assertNotNull( photo2 );
+        photo.delete();
 	
     }
 	

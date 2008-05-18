@@ -73,34 +73,38 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
     public ChangePhotoInfoCommand() {
         
     }
-    
+
     /** 
      Creates a new instance of ChangePhotoInfoCommand 
-     @photoId Id of th ePhotoInfo to change 
+     @photoId UUID of the PhotoInfo to change 
      */
-    public ChangePhotoInfoCommand( Integer photoId ) {
-        if ( photoId != null ) {
-            photoIds.add( photoId );
+    public ChangePhotoInfoCommand( UUID photoUuid ) {
+        if ( photoUuid != null ) {
+            photoUuids.add( photoUuid );
         }
     }
     
     /** 
      Creates a new instance of ChangePhotoInfoCommand 
-     @photoId Array of IDs of all PhotoInfo objects that will be changed.
+     @photoId Array of UUIDs of all PhotoInfo objects that will be changed.
      */
-    public ChangePhotoInfoCommand( Integer[] photoIds ) {
-        for ( Integer id : photoIds ) {
-            this.photoIds.add( id );
+    public ChangePhotoInfoCommand( UUID[] photoUuids ) {
+        for ( UUID id : photoUuids ) {
+            this.photoUuids.add( id );
         }
     }
 
     /** 
      Creates a new instance of ChangePhotoInfoCommand 
+     @photoId Collection of UUIDs of all PhotoInfo objects that will be changed.
+     */
+    public ChangePhotoInfoCommand( Collection<UUID> photoIds ) {
+        this.photoUuids.addAll( photoIds );
+    }
+        /** 
+     Creates a new instance of ChangePhotoInfoCommand 
      @photoId Collection of IDs of all PhotoInfo objects that will be changed.
      */
-    public ChangePhotoInfoCommand( Collection<Integer> photoIds ) {
-        this.photoIds.addAll( photoIds );
-    }
     
     /**
      Fields that have been changed by this command
@@ -118,10 +122,10 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
     Set<Integer> removedFromFolders = new HashSet<Integer>();
     
     /**
-     IDs of all photos that will be changed by this command.
+     UUIDs of all photos that will be changed by this command.
      */
-    Set<Integer> photoIds = new HashSet<Integer>();
-
+    Set<UUID> photoUuids = new HashSet<UUID>();
+    
     /**
      Photo instance with the changes applied (in command handler's persistence 
      context or later detached)
@@ -313,7 +317,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             debugMsg = new StringBuffer();
             debugMsg.append( "execute()" );
             boolean isFirst = true;
-            for ( Integer id : photoIds ) { 
+            for ( UUID id : photoUuids ) { 
                 debugMsg.append( isFirst ? "Photo ids: " : ", " );
                 debugMsg.append( id );
             }
@@ -328,12 +332,12 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         }
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
-        if ( photoIds.size() == 0 ) {
+        if ( photoUuids.size() == 0 ) {
             PhotoInfo photo = photoDAO.makePersistent( PhotoInfo.create() );
             photos.add( photo );
         } else {
-            for ( Integer id : photoIds ) {
-                PhotoInfo photo = photoDAO.findById( id, false );
+            for ( UUID id : photoUuids ) {
+                PhotoInfo photo = photoDAO.findByUUID( id );
                 photos.add( photo );
             }
         }

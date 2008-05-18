@@ -88,7 +88,7 @@ class RotateSelectedPhotoAction extends DataAccessAction {
         while ( iter.hasNext() ) {
             PhotoInfo photo = (PhotoInfo) iter.next();
             if ( photo != null ) {
-                ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( photo.getId() );
+                ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( photo.getUuid() );
                 double curRot = photo.getPrefRotation();
                 cmd.setPrefRotation( curRot + rot );
                 Rectangle2D origCrop = photo.getCropBounds();

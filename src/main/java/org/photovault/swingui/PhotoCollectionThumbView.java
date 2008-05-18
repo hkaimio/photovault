@@ -1385,7 +1385,7 @@ public class PhotoCollectionThumbView
 	log.debug( "Finding photo without thumbnail" );
 	for ( int n = 0; n < photos.size(); n++ ) {
             PhotoInfo photoCandidate = photos.get( n );
-	    log.debug( "Photo " + photoCandidate.getId() );
+	    log.debug( "Photo " + photoCandidate.getUuid() );
 	    if ( !photoCandidate.hasThumbnail() ) {
 		log.debug( "No thumbnail" );
 		Rectangle photoRect = getPhotoBounds( n );

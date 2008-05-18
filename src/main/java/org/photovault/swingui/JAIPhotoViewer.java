@@ -359,7 +359,7 @@ public class JAIPhotoViewer extends JPanel implements
     }
 
     public void cropAreaChanged(CropAreaChangeEvent evt) {
-        ChangePhotoInfoCommand changeCmd = new ChangePhotoInfoCommand( photo.getId() );
+        ChangePhotoInfoCommand changeCmd = new ChangePhotoInfoCommand( photo.getUuid() );
         changeCmd.setPrefRotation( evt.getRotation() );
         changeCmd.setCropBounds( evt.getCropArea() );
         try {

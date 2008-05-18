@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
@@ -325,9 +326,9 @@ public class IndexFileTask extends BackgroundTask {
                     (OriginalImageDescriptor) img : 
                     ((CopyImageDescriptor) img).getOriginal();
         Set<PhotoInfo> photos = origImage.getPhotos();
-        List<Integer> photoIds = new ArrayList<Integer>();
+        List<UUID> photoIds = new ArrayList<UUID>();
         for ( PhotoInfo p : photos ) {
-            photoIds.add( p.getId() );
+            photoIds.add( p.getUuid() );
         }
         ChangePhotoInfoCommand addFolderCmd = new ChangePhotoInfoCommand( photoIds );
         addFolderCmd.addToFolder( folder );

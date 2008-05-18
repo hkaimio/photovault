@@ -63,13 +63,13 @@ public class DirectoryIndexer {
      Count how many instances of a certain photo were found during indexing this
      direwctory. Maps photo ID to number of found instances.
      */
-    private HashMap<Integer, Integer> photoInstanceCounts;
+    private HashMap<UUID, Integer> photoInstanceCounts;
     
     /**
      Ids of photos found during indexing that were not previously 
      members of corresponding folder.
      */
-    private Set<Integer> newPhotos = new HashSet<Integer>();
+    private Set<UUID> newPhotos = new HashSet<UUID>();
     
     /**
      UUIDs of those folders that were not found in the volume (i.e. the corresponding
@@ -237,14 +237,14 @@ public class DirectoryIndexer {
          Maintain information how many instances for the photos that were previously 
          added to the folder is found
          */
-        photoInstanceCounts = new HashMap<Integer,Integer>();
+        photoInstanceCounts = new HashMap<UUID,Integer>();
         foldersNotFound = new HashSet<UUID>();
         if ( folder != null ) {
             folder = 
                     (PhotoFolder) HibernateUtil.getSessionFactory().getCurrentSession().
                     get(PhotoFolder.class, folder.getFolderId() );
             for ( PhotoInfo photo : folder.getPhotos() ) {
-                photoInstanceCounts.put( photo.getId(), new Integer( 0 ) );
+                photoInstanceCounts.put( photo.getUuid(), new Integer( 0 ) );
             }
             for ( PhotoFolder f : folder.getSubfolders() ) {
                 foldersNotFound.add(f.getUUID() );
@@ -319,14 +319,14 @@ public class DirectoryIndexer {
         // Keep track of the files we have found
         int previousCount = 0;        
         for ( PhotoInfo p : fileIndexer.getPhotosFound() ) {
-            if ( photoInstanceCounts.containsKey( p.getId() ) ) {
-                previousCount = photoInstanceCounts.get( p.getId() );
+            if ( photoInstanceCounts.containsKey( p.getUuid() ) ) {
+                previousCount = photoInstanceCounts.get( p.getUuid() );
             } else {
                 // The photo was not yet in this folder, add it to those that 
                 // we must add later.
-                newPhotos.add( p.getId() );
+                newPhotos.add( p.getUuid() );
             }
-            photoInstanceCounts.put( p.getId(), previousCount+1 );
+            photoInstanceCounts.put( p.getUuid(), previousCount+1 );
         }
 //        if ( filesLeft == 0 ) {
 //            allFilesIndexed();
@@ -345,8 +345,8 @@ public class DirectoryIndexer {
          this directory
          */
         
-        Set<Integer> photoIdsNotFound = new HashSet<Integer>();
-        for ( Map.Entry<Integer, Integer> e : photoInstanceCounts.entrySet() ) {
+        Set<UUID> photoIdsNotFound = new HashSet<UUID>();
+        for ( Map.Entry<UUID, Integer> e : photoInstanceCounts.entrySet() ) {
             if ( e.getValue() == 0 ) {
                 photoIdsNotFound.add( e.getKey() );
                 log.debug( "photo " + e.getKey() + " not found during indexing" );

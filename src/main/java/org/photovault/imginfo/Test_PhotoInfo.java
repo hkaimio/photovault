@@ -94,9 +94,9 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     */
     @Test
     public void testRetrievalSuccess() {
-	int photoId = 1;
+	UUID photoId = UUID.fromString( "f5d73748-0fb4-40ab-bd05-d3740fb30783");
         PhotoInfo photo = null;
-        photo = photoDAO.findById( Integer.valueOf( photoId ), false );
+        photo = photoDAO.findByUUID( photoId );
         assertNotNull( photo );
 	// TODO: check some other properties of the object
 
@@ -108,9 +108,9 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     */
     @Test
     public void testUpdate() {
-	int photoId = 1;
+	UUID photoId = UUID.fromString( "f5d73748-0fb4-40ab-bd05-d3740fb30783");
         PhotoInfo photo = null;
-        photo = photoDAO.findById( Integer.valueOf( photoId ), false );
+        photo = photoDAO.findByUUID( photoId );
         assertTrue(photo != null );
         
 	// Update the photo
@@ -126,17 +126,13 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     */
     @Test
     public void testNullShootDateUpdate() {
-	int photoId = 1;
+	UUID photoId = UUID.fromString( "f5d73748-0fb4-40ab-bd05-d3740fb30783");
 	PhotoInfo photo = null;	
 	Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
-	try {
-	    photo = PhotoInfo.findPhotoInfo( session, photoId );
-	    assertTrue(photo != null );	    
-	} catch (PhotoNotFoundException e) {
-	    fail( "Photo " + photoId + " not found" );
-	}
-	
+        photo = photoDAO.findByUUID( photoId );
+        assertTrue( photo != null );
+
 	java.util.Date origTime = photo.getShootTime();
 	// Update the photo
 	photo.setShootTime( null );
@@ -146,14 +142,9 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	// retrieve the updated photo from DB and chech that the
 	// modification has been done
         session = HibernateUtil.getSessionFactory().openSession();
-        tx = session.beginTransaction();	
-	try {
-	    photo = PhotoInfo.findPhotoInfo( session, photoId );
-	    assertNull( "Shooting time was supposedly set to null", photo.getShootTime() );	    
-	} catch (PhotoNotFoundException e) {
-	    fail( "Photo " + photoId + " not found after updating" );
-	}
-
+        tx = session.beginTransaction();
+        photo = photoDAO.findByUUID( photoId );
+        assertNull( "Shooting time was supposedly set to null", photo.getShootTime() );
 
 	// restore the shooting place
 	photo.setShootTime( origTime );
@@ -190,38 +181,32 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	photo.setDescription( "This is a long test description that tries to verify that the description mechanism really works" );
 	//	photo.updateDB();
         tx.commit();
-        session.close();
+        // session.close();
         
-        Session session2 = HibernateUtil.getSessionFactory().openSession();
-        tx = session2.beginTransaction();
-        
-        PhotoInfo photo2 = null;
-        try {
-	    photo2 = PhotoInfo.findPhotoInfo( session2, photo.getUid() );
+        tx = session.beginTransaction();
 
-	    assertEquals( photo.getPhotographer(), photo2.getPhotographer() );
-	    assertEquals( photo.getShootingPlace(), photo2.getShootingPlace() );
-	    // assertEquals( photo.getShootTime(), photo2.getShootTime() );
-	    assertEquals(photo.getDescription(), photo2.getDescription() );
-	    assertEquals( photo.getCamera(), photo2.getCamera() );
-	    assertEquals( photo.getLens(), photo2.getLens() );
-	    assertEquals( photo.getFilm(), photo2.getFilm() );
-	    assertTrue( photo.getShutterSpeed() == photo2.getShutterSpeed() );
-	    assertTrue( photo.getFilmSpeed() == photo2.getFilmSpeed() );
-	    assertTrue( photo.getFocalLength() == photo2.getFocalLength() );
-	    assertTrue( photo.getFStop() == photo2.getFStop() );
-	    assertTrue( photo.getUid() == photo2.getUid() );
-	    assertTrue( photo.getUuid().equals( photo2.getUuid() ) );
-            assertTrue( photo.getCropBounds().equals( photo2.getCropBounds() ) );
-            
-	    //	    assertTrue( photo.equals( photo2 ));
-			
-	} catch ( PhotoNotFoundException e ) {
-	    fail ( "inserted photo not found" );
-	}
-        session2.delete( photo2 );
-        tx.commit();
-        session2.close();
+        PhotoInfo photo2 = null;
+        photo2 = photoDAO.findByUUID( photo.getUuid() );
+
+        assertEquals( photo.getPhotographer(), photo2.getPhotographer() );
+        assertEquals( photo.getShootingPlace(), photo2.getShootingPlace() );
+        // assertEquals( photo.getShootTime(), photo2.getShootTime() );
+        assertEquals( photo.getDescription(), photo2.getDescription() );
+        assertEquals( photo.getCamera(), photo2.getCamera() );
+        assertEquals( photo.getLens(), photo2.getLens() );
+        assertEquals( photo.getFilm(), photo2.getFilm() );
+        assertTrue( photo.getShutterSpeed() == photo2.getShutterSpeed() );
+        assertTrue( photo.getFilmSpeed() == photo2.getFilmSpeed() );
+        assertTrue( photo.getFocalLength() == photo2.getFocalLength() );
+        assertTrue( photo.getFStop() == photo2.getFStop() );
+        assertTrue( photo.getUuid().equals( photo2.getUuid() ) );
+        assertTrue( photo.getCropBounds().equals( photo2.getCropBounds() ) );
+
+        //	    assertTrue( photo.equals( photo2 ));
+
+        // session.delete( photo2 );
+        // tx.commit();
+        // session2.close();
     }
 
     /**
@@ -247,7 +232,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         
 	assertNotNull( photo );
         
-	ChangePhotoInfoCommand photoChangeCmd = new ChangePhotoInfoCommand( photo.getId() );
+	ChangePhotoInfoCommand photoChangeCmd = new ChangePhotoInfoCommand( photo.getUuid() );
         
         // photoChangeCmd.setUUID( UUID.randomUUID() );
 	photoChangeCmd.setPhotographer( "TESTIKUVAAJA" );
@@ -281,29 +266,25 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         Transaction tx2 = session2.beginTransaction();
         
         PhotoInfo photo2 = null;
-        try {
-	    photo2 = PhotoInfo.findPhotoInfo( session2, photo.getUid() );
+        photo2 = photoDAO.findByUUID( photo.getUuid() );
 
-	    assertEquals( photo.getPhotographer(), photo2.getPhotographer() );
-	    assertEquals( photo.getShootingPlace(), photo2.getShootingPlace() );
-	    // assertEquals( photo.getShootTime(), photo2.getShootTime() );
-	    assertEquals(photo.getDescription(), photo2.getDescription() );
-	    assertEquals( photo.getCamera(), photo2.getCamera() );
-	    assertEquals( photo.getLens(), photo2.getLens() );
-	    assertEquals( photo.getFilm(), photo2.getFilm() );
-	    assertTrue( photo.getShutterSpeed() == photo2.getShutterSpeed() );
-	    assertTrue( photo.getFilmSpeed() == photo2.getFilmSpeed() );
-	    assertTrue( photo.getFocalLength() == photo2.getFocalLength() );
-	    assertTrue( photo.getFStop() == photo2.getFStop() );
-	    assertTrue( photo.getUid() == photo2.getUid() );
-	    assertTrue( photo.getUuid().equals( photo2.getUuid() ) );
-            assertTrue( photo.getCropBounds().equals( photo2.getCropBounds() ) );
-            
-	    //	    assertTrue( photo.equals( photo2 ));
-			
-	} catch ( PhotoNotFoundException e ) {
-	    fail ( "inserted photo not found" );
-	}
+        assertEquals( photo.getPhotographer(), photo2.getPhotographer() );
+        assertEquals( photo.getShootingPlace(), photo2.getShootingPlace() );
+        // assertEquals( photo.getShootTime(), photo2.getShootTime() );
+        assertEquals( photo.getDescription(), photo2.getDescription() );
+        assertEquals( photo.getCamera(), photo2.getCamera() );
+        assertEquals( photo.getLens(), photo2.getLens() );
+        assertEquals( photo.getFilm(), photo2.getFilm() );
+        assertTrue( photo.getShutterSpeed() == photo2.getShutterSpeed() );
+        assertTrue( photo.getFilmSpeed() == photo2.getFilmSpeed() );
+        assertTrue( photo.getFocalLength() == photo2.getFocalLength() );
+        assertTrue( photo.getFStop() == photo2.getFStop() );
+//        assertTrue( photo.getUid() == photo2.getUid() );
+        assertTrue( photo.getUuid().equals( photo2.getUuid() ) );
+        assertTrue( photo.getCropBounds().equals( photo2.getCropBounds() ) );
+
+        //	    assertTrue( photo.equals( photo2 ));
+
         tx2.commit();
         session2.close();
     }
@@ -319,7 +300,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	// Check that the photo can be retrieved from DB
 
 	Connection conn = session.connection();
-	String sql = "SELECT * FROM photos WHERE photo_id = " + photo.getUid();
+	String sql = "SELECT * FROM photos WHERE photo_uuid = '" + photo.getUuid() + "'";
 	Statement stmt = null;
 	ResultSet rs = null;
 	try {

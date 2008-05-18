@@ -33,8 +33,7 @@
     <photo_collections collection_id="2" parent="1" 
         collection_name="testPhotoRetrieval" 
         collection_desc="Folder for testPhotoRetrieval"/>
-    <photos photo_id="1" 
-    photo_uuid="f5d73748-0fb4-40ab-bd05-d3740fb30783"
+    <photos photo_uuid="f5d73748-0fb4-40ab-bd05-d3740fb30783"
     time_accuracy="0"
     f_stop="1.2"
     focal_length="20"
@@ -44,8 +43,7 @@
     photo_quality="1"
     description="testPhotoRetrieval1"
     />
-    <photos photo_id="2"
-        photo_uuid="f5d73748-0fb4-40ab-bd05-d3740fb30745"
+    <photos photo_uuid="f5d73748-0fb4-40ab-bd05-d3740fb30745"
         time_accuracy="0"
         f_stop="2.8"
         focal_length="20"
@@ -63,8 +61,8 @@
         class_discriminator="photo"
     />
     
-    <collection_photos collection_id="2" photo_id="1"/>
-    <collection_photos collection_id="2" photo_id="2"/>
+    <collection_photos collection_id="2" photo_uuid="f5d73748-0fb4-40ab-bd05-d3740fb30783"/>
+    <collection_photos collection_id="2" photo_uuid="f5d73748-0fb4-40ab-bd05-d3740fb30745"/>
     
     <!-- Test_PhotoFolder#testSubfolders -->
     <photo_collections collection_id="3" parent="1" 

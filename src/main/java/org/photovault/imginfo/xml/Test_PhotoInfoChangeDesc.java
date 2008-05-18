@@ -81,7 +81,7 @@ public class Test_PhotoInfoChangeDesc extends PhotovaultTestCase {
         PhotoInfo p = photoCreateCmd.getChangedPhotos().iterator().next();
         
 	ChangePhotoInfoCommand photoChangeCmd = 
-                new ChangePhotoInfoCommand( p.getId() );
+                new ChangePhotoInfoCommand( p.getUuid() );
         photoChangeCmd.setPhotographer("Harri" );
         photoChangeCmd.setFStop( 5.6 );
         ColorCurve c = new ColorCurve();

@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import junit.framework.TestCase;
 import org.hibernate.Session;
 import org.photovault.common.JUnitHibernateManager;
@@ -58,7 +59,7 @@ public class PhotovaultTestCase extends TestCase {
      @param session Hibernate persistence context used to query the database
      */
     public static void assertMatchesDb( PhotoInfo p, Session session ) {
-        String sql = "select * from photos where photo_id = " + p.getId();
+        String sql = "select * from photos where photo_uuid = '" + p.getUuid() + "'";
         Statement stmt = null;
         ResultSet rs = null;
         try {
@@ -99,7 +100,7 @@ public class PhotovaultTestCase extends TestCase {
                 assertEquals( s.getDaylightBlueGreenRatio(), rs.getDouble("raw_dl_b_g_ratio" ) );
             }
 //            assertEquals( p.getOriginal().getId(), rs.getLong( "original_id" ) );
-            assertTrue( "Photo not correct", p.getUid() == rs.getInt( "photo_id" ) );
+//            assertTrue( "Photo not correct", p.getUid() == rs.getInt( "photo_id" ) );
             
         } catch ( SQLException e ) {
             fail( e.getMessage() );
@@ -159,12 +160,12 @@ public class PhotovaultTestCase extends TestCase {
             
             // Check that photos collection matches database
             rs = stmt.executeQuery( "select * from collection_photos where collection_id = " + id );
-            Set<Integer> photoIds = new HashSet<Integer>();
+            Set<UUID> photoIds = new HashSet<UUID>();
             for ( PhotoInfo p : folder.getPhotos() ) {
-                photoIds.add( p.getId() );
+                photoIds.add( p.getUuid() );
             }
             while ( rs.next() ) {
-                int photoId = rs.getInt( "photo_id" );
+                UUID photoId = UUID.fromString( rs.getString( "photo_uuid" ) );
                 assertTrue( "photo " + photoId + " not in memory copy", 
                         photoIds.remove( photoId ) );                
             }            

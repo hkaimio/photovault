@@ -84,7 +84,7 @@ class FolderNode {
      * Adds a photo to this folder.
      */
     public void addPhoto( PhotoInfo photo ) {
-        log.debug( "addPhoto node " + this + " photo " + photo.getId() );
+        log.debug( "addPhoto node " + this + " photo " + photo.getUuid() );
 	photos.add( photo );
     }
 

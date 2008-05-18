@@ -100,7 +100,7 @@ public class PhotoSelectionController extends PersistenceController {
         }
         this.photos = new PhotoInfo[1];
         photos[0] = (PhotoInfo) getPersistenceContext().merge( photo );
-        cmd = new ChangePhotoInfoCommand( photo.getId() );
+        cmd = new ChangePhotoInfoCommand( photo.getUuid() );
         for ( PhotoInfoFields f : EnumSet.allOf( PhotoInfoFields.class ) ) {
             updateViews( null, f );
         }
@@ -127,10 +127,10 @@ public class PhotoSelectionController extends PersistenceController {
         }
         // If we are editing several photos simultaneously we certainly are not creating a new photo...
         isCreatingNew = false;
-        List<Integer> photoIds = new ArrayList<Integer>();
+        List<UUID> photoIds = new ArrayList<UUID>();
         if ( photos != null ) {
             for ( PhotoInfo p : photos ) {
-                photoIds.add( p.getId() );
+                photoIds.add( p.getUuid() );
             }
         }
         this.cmd = new ChangePhotoInfoCommand( photoIds );
@@ -171,16 +171,6 @@ public class PhotoSelectionController extends PersistenceController {
     }
     
     /**
-     Sets up the controller to create a new PhotoInfo
-     @param imageFile the original image that is to be added to database
-     */
-    public void createNewPhoto( File imageFile ) {
-        setPhoto( null );
-        originalFile = imageFile;
-        isCreatingNew = true;
-    }
-    
-    /**
      Returns the hotoInfo record that is currently edited.
      */
     public PhotoInfo getPhoto() {
@@ -215,7 +205,7 @@ public class PhotoSelectionController extends PersistenceController {
     /**
      Save the modifications made to the PhotoInfo record
      */
-    protected void save() {
+    public void save() {
         /*
          Use change listener to ensure that all changes are merged into current 
          persistence context before returning from this method.

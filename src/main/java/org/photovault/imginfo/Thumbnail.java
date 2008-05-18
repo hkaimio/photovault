@@ -77,7 +77,7 @@ public class Thumbnail {
 	}
 	Thumbnail thumb = new Thumbnail();
 	thumb.photo = photo;
-	log.debug( "Creating thumbnail for " + photo.getId() );
+	log.debug( "Creating thumbnail for " + photo.getUuid() );
 	log.debug( " - " + thumbnailFile.getPath() );
 	try {
 	    thumb.image = ImageIO.read( thumbnailFile );
