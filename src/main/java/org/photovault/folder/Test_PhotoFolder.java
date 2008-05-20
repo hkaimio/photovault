@@ -20,32 +20,36 @@
 
 package org.photovault.folder;
 
-import junit.framework.*;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import java.util.*;
-import java.sql.*;
 import java.io.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Transaction;
 import org.hibernate.context.ManagedSessionContext;
-import org.photovault.command.Command;
 import org.photovault.command.CommandException;
 import org.photovault.command.PhotovaultCommandHandler;
-import org.photovault.dbhelper.ImageDb;
-import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoNotFoundException;
-import org.photovault.common.PhotovaultSettings;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 public class Test_PhotoFolder extends PhotovaultTestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolder.class.getName() );
+    static Log log = LogFactory.getLog( Test_PhotoFolder.class.getName() );
 
     String testImgDir = "testfiles";
-    PhotoFolderDAO folderDAO = new PhotoFolderDAOHibernate();
+    PhotoFolderDAO folderDAO;
+    PhotoInfoDAO photoDAO;
+    HibernateDAOFactory daoFactory;
     Session session = null;
     Transaction tx = null;
     
@@ -53,29 +57,26 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
        Sets up the test environment. retrieves from database the hierarchy with 
        "subfolderTest" as root and creates a TreeModel from it
     */
+    @BeforeMethod
+    @Override
     public void setUp() {
         session = HibernateUtil.getSessionFactory().openSession();
         ManagedSessionContext.bind( (org.hibernate.classic.Session) session);
+        daoFactory = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        daoFactory.setSession( session );
+        folderDAO = daoFactory.getPhotoFolderDAO();
+        photoDAO = daoFactory.getPhotoInfoDAO();
         tx = session.beginTransaction();
     }
 
+    @AfterMethod
+    @Override
     public void tearDown() {
         tx.commit();
         session.close();
     }
 
-    public static Test suite() {
-	return new TestSuite( Test_PhotoFolder.class );
-    }
-
-    public static void main( String[] args ) {
-	//	org.apache.log4j.BasicConfigurator.configure();
-	log.setLevel( org.apache.log4j.Level.DEBUG );
-	org.apache.log4j.Logger folderLog = org.apache.log4j.Logger.getLogger( PhotoFolder.class.getName() );
-	folderLog.setLevel( org.apache.log4j.Level.DEBUG );
-	junit.textui.TestRunner.run( suite() );
-    }
-
+    @Test
     public void testCreate() {
 	
 	PhotoFolder folder = PhotoFolder.create( "Top", null );
@@ -83,7 +84,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         folderDAO.flush();
         assertMatchesDb( folder, session );
         
-        log.debug( "Changing folder name for " + folder.getFolderId() );
+        log.debug( "Changing folder name for " + folder.getUUID() );
 	folder.setName( "testTop" );
 	log.debug( "Folder name changed" );
 	
@@ -98,7 +99,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 
         for ( Object o : folders ) {
             PhotoFolder folder2 = (PhotoFolder) o;
-	    log.debug( "found top, id = " + folder2.getFolderId() );
+	    log.debug( "found top, id = " + folder2.getUUID() );
 	    assertEquals( "Folder name does not match", folder2.getName(), "testTop" );
 	    log.debug( "Modifying desc" );
 	    folder2.setDescription( "Test description" );
@@ -106,6 +107,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     }
     
     // Tests the retrieval of existing folder from database
+    @Test
     public void testRetrieve() {
         List folders = null;
         PhotoFolder folder = folderDAO.findById( 1, false );
@@ -116,16 +118,13 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     /** A new photo is created & added to the folder. Verify that it
      * is both persistent & visible in the folder
      */
-
+    @Test
     public void testPhotoAddition() {
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
-	PhotoInfo photo = null;
-	try {
-	    photo = PhotoInfo.addToDB( f );
-	} catch ( PhotoNotFoundException e ) {
-	    fail( "Could not find photo: " + e.getMessage() );
-	}
+        PhotoInfo photo = PhotoInfo.create();
+        photo.getHistory().createChange().freeze();
+        photoDAO.makePersistent( photo );
         
 	PhotoFolder folder = null;
         // Create a folder for the photo
@@ -173,6 +172,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     /**
        Tests that persistence operations succeed.
     */
+    @Test
     public void testPersistence() {
 	// Test creation of a new folder
 	PhotoFolder f = PhotoFolder.create( "persistenceTest", null );
@@ -233,6 +233,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     /**
        Test that subfolders are created correctly
     */
+    @Test
     public void testSubfolders() {
         Query q = session.createQuery( "from PhotoFolder where name = :name" );
         q.setString("name", "subfolderTest" );
@@ -299,6 +300,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 
     }
 
+    @Test
     public void testListener() {
 	PhotoFolder folder = PhotoFolder.create( "testListener", null );
 	TestListener l1 = new TestListener();
@@ -338,12 +340,10 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	// Test that photo addition is notified
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
-	PhotoInfo photo = null;
-	try {
-	    photo = PhotoInfo.addToDB( f );
-	} catch ( PhotoNotFoundException e ) {
-	    fail( "Could not find photo: " + e.getMessage() );
-	}
+        PhotoInfo photo = PhotoInfo.create();
+        photo.getHistory().createChange().freeze();
+        photoDAO.makePersistent( photo );
+
 	l1.modified = false;
 	folder.addPhoto( photo );
 	assertTrue( "l1 not called when adding photo", l1.modified );
@@ -363,17 +363,16 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     /**
        test that when a photo is deleted from database the folder is also modified
     */
+    @Test
     public void testPhotoDelete() {
 	PhotoFolder folder = PhotoFolder.create( "testListener", null );
         folderDAO.makePersistent( folder );
 	String fname = "test1.jpg";
 	File f = new File( testImgDir, fname );
-	PhotoInfo photo = null;
-	try {
-	    photo = PhotoInfo.addToDB( f );
-	} catch ( PhotoNotFoundException e ) {
-	    fail( "Could not find photo: " + e.getMessage() );
-	}
+        PhotoInfo photo = PhotoInfo.create();
+        photo.getHistory().createChange().freeze();
+        photoDAO.makePersistent( photo );
+
 
 	folder.addPhoto( photo );
         folderDAO.flush();
@@ -389,6 +388,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
        Tests that getRoot() method returns the root folder and that it returns the same
        instance all the time.
     */
+    @Test
     public void testGetRoot() {
 	PhotoFolder root1 = folderDAO.findRootFolder();
 	PhotoFolder root2 = folderDAO.findRootFolder();

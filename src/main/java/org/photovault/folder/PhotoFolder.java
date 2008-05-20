@@ -565,17 +565,6 @@ public class PhotoFolder implements PhotoCollection {
         throw new UnsupportedOperationException( 
                 "PhotoFolder#getFolderByUUID() not implemented, use PhotoFolderDAO#findByUUID() instead");
     }
-
-    /**
-     Returns the root folder with givenId.
-     @param id id of the folder to retrieve
-     @return The given folder or <code>null</code> if not found
-     @deprecated Does not work with Hibernate, use PhotoFolderDAO#findById() instead.
-    */
-    public static PhotoFolder getFolderById( int id ) {
-        throw new UnsupportedOperationException( 
-                "PhotoFolder#getFolderById() not implemented, use PhotoFolderDAO#findById() instead");
-    }
     
     static PhotoFolder rootFolder = null;
 
