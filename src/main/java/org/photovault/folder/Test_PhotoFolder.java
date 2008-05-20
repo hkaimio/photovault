@@ -84,22 +84,22 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         folderDAO.flush();
         assertMatchesDb( folder, session );
         
-        log.debug( "Changing folder name for " + folder.getUUID() );
+        log.debug( "Changing folder name for " + folder.getUuid() );
 	folder.setName( "testTop" );
 	log.debug( "Folder name changed" );
 	
 	// Try to find the object from DB
 	List folders = null;
 	try {
-	    folders = session.createQuery("from PhotoFolder where id = :id" ).
-                    setInteger( "id", folder.getFolderId() ).list();
+	    folders = session.createQuery("from PhotoFolder where uuid = :id" ).
+                    setString( "id", folder.getUuid().toString() ).list();
 	} catch ( Exception e ) {
 	    fail( e.getMessage() );
 	}
 
         for ( Object o : folders ) {
             PhotoFolder folder2 = (PhotoFolder) o;
-	    log.debug( "found top, id = " + folder2.getUUID() );
+	    log.debug( "found top, id = " + folder2.getUuid() );
 	    assertEquals( "Folder name does not match", folder2.getName(), "testTop" );
 	    log.debug( "Modifying desc" );
 	    folder2.setDescription( "Test description" );
@@ -110,7 +110,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     @Test
     public void testRetrieve() {
         List folders = null;
-        PhotoFolder folder = folderDAO.findById( 1, false );
+        PhotoFolder folder = folderDAO.findById( PhotoFolder.ROOT_UUID, false );
         assertMatchesDb( folder, session );
     }
 

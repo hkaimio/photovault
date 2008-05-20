@@ -105,7 +105,7 @@ public class Test_DirTreeIndexerTask extends PhotovaultTestCase {
         
         session.clear();
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
-        topFolder = folderDAO.findById( topFolder.getFolderId(), false );
+        topFolder = folderDAO.findById( topFolder.getUuid(), false );
         assertEquals( 1, topFolder.getSubfolders().size() );
         ExternalDir topDirDesc = topFolder.getExternalDir();
         assertEquals( vol.getId(), topDirDesc.getVolume().getId() );
@@ -135,7 +135,7 @@ public class Test_DirTreeIndexerTask extends PhotovaultTestCase {
         
         session.clear();
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
-        topFolder = folderDAO.findById( topFolder.getFolderId(), false );
+        topFolder = folderDAO.findById( topFolder.getUuid(), false );
         assertEquals( 2, topFolder.getSubfolders().size() );
         PhotoFolder subfolder = topFolder.getSubfolders().iterator().next();
         assertEquals( 18, subfolder.getSubfolders().size() );

@@ -26,7 +26,7 @@ import org.photovault.persistence.GenericDAO;
 /**
  Data access object for doing persistence operations for {@link PhotoFolder}.
  */
-public interface PhotoFolderDAO extends GenericDAO<PhotoFolder, Integer> {
+public interface PhotoFolderDAO extends GenericDAO<PhotoFolder, UUID> {
     
     /**
      Find the root folder

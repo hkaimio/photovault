@@ -148,7 +148,7 @@ public class DirTreeIndexerTask extends BackgroundTask {
         for ( PhotoFolder f : folders.values() ) {
             try {
                 DeletePhotoFolderCommand deleteCmd =
-                        new DeletePhotoFolderCommand( f.getUUID() );
+                        new DeletePhotoFolderCommand( f.getUuid() );
                 cmdHandler.executeCommand( deleteCmd );
                 deletedFolderCount++;
             } catch ( CommandException ex ) {

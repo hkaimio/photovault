@@ -258,7 +258,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         v = (ExternalVolume) session.merge( v );
         log.debug( "Cleared session" );
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
-        topFolder = folderDAO.findById( topFolder.getFolderId(), false );
+        topFolder = folderDAO.findById( topFolder.getUuid(), false );
         // Check that all the files can be found
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
@@ -361,7 +361,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         v = (ExternalVolume) session.merge( v );
         log.debug( "session cleared" );
         folderDAO = daoFactory.getPhotoFolderDAO();
-        topFolder = folderDAO.findById( topFolder.getFolderId(), false );
+        topFolder = folderDAO.findById( topFolder.getUuid(), false );
         
         // Check that the folders have the correct photos
 

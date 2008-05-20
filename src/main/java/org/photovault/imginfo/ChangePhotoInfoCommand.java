@@ -114,12 +114,12 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
     /**
      Folders the photos should be added to
      */
-    Set<Integer> addedToFolders = new HashSet<Integer>();
+    Set<UUID> addedToFolders = new HashSet<UUID>();
 
     /**
      Folders the photos should be removed from
      */    
-    Set<Integer> removedFromFolders = new HashSet<Integer>();
+    Set<UUID> removedFromFolders = new HashSet<UUID>();
     
     /**
      UUIDs of all photos that will be changed by this command.
@@ -258,8 +258,8 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      @param folder The folder into which the photos will be added
      */
     public void addToFolder( PhotoFolder folder ) {
-        removedFromFolders.remove( folder.getFolderId() );
-        addedToFolders.add( folder.getFolderId() );
+        removedFromFolders.remove( folder.getUuid() );
+        addedToFolders.add( folder.getUuid() );
     }
     
     /**
@@ -267,15 +267,15 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      @param folder The folder into which the photos will be added
      */
     public void removeFromFolder( PhotoFolder folder ) {
-        addedToFolders.remove( folder.getFolderId() );
-        removedFromFolders.add( folder.getFolderId() );
+        addedToFolders.remove( folder.getUuid() );
+        removedFromFolders.add( folder.getUuid() );
     }
     
     
     public FolderStates getFolderState( PhotoFolder folder ) {
-        if ( addedToFolders.contains( folder.getFolderId() ) ) {
+        if ( addedToFolders.contains( folder.getUuid() ) ) {
             return FolderStates.ADDED;        
-        } else if ( removedFromFolders.contains( folder.getFolderId() ) ) {
+        } else if ( removedFromFolders.contains( folder.getUuid() ) ) {
             return FolderStates.REMOVED;
         }
         return FolderStates.UNMODIFIED;
@@ -415,13 +415,13 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
             Set<PhotoFolder> af = new HashSet<PhotoFolder>();
-            for ( Integer folderId : addedToFolders ) {
+            for ( UUID folderId : addedToFolders ) {
                 PhotoFolder folder = folderDAO.findById( folderId, false );
                 folder.addPhoto ( photo );
                 af.add(folder);
             }
             Set<PhotoFolder> rf = new HashSet<PhotoFolder>();
-            for ( Integer folderId : removedFromFolders ) {
+            for ( UUID folderId : removedFromFolders ) {
                 PhotoFolder folder = folderDAO.findById( folderId, false );
                 folder.removePhoto( photo );
             }
@@ -480,18 +480,18 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             if ( addedToFolders.size() > 0 ) {
                 Element addedFolders = doc.createElement( "folders-added" );
                 changeDesc.appendChild( addedFolders );
-                for ( Integer i : addedToFolders ) {
+                for ( UUID id : addedToFolders ) {
                     Element f = doc.createElement( "folder" );
-                    f.setAttribute( "uuid", i.toString() );
+                    f.setAttribute( "uuid", id.toString() );
                     addedFolders.appendChild( f );
                 }
             }
             if ( removedFromFolders.size() > 0 ) {
                 Element removedFolders = doc.createElement( "folders-removed" );
                 changeDesc.appendChild( removedFolders );
-                for ( Integer i : removedFromFolders ) {
+                for ( UUID id : removedFromFolders ) {
                     Element f = doc.createElement( "folder" );
-                    f.setAttribute( "uuid", i.toString() );
+                    f.setAttribute( "uuid", id.toString() );
                     removedFolders.appendChild( f );
                 }
             }

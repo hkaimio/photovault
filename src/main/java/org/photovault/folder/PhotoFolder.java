@@ -51,6 +51,14 @@ public class PhotoFolder implements PhotoCollection {
     static Log log = LogFactory.getLog( PhotoFolder.class.getName() );
 
     /**
+     UUID of the root folder. TODO: this should not be needed, instead we should 
+     have database support for several folder trees as some trees can be 
+     replicated from other databases.
+     */
+    public static final UUID ROOT_UUID = 
+            UUID.fromString( "939db304-2dec-4a59-ae24-8e1a6b165105" );
+    
+    /**
      Maximum length of the "name" property
      */
     static public final int NAME_LENGTH = 30;
@@ -73,40 +81,19 @@ public class PhotoFolder implements PhotoCollection {
 
     UUID uuid = null;
     
+    @Id
     @Column( name = "collection_uuid" )
     @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
-    public UUID getUUID() {
+    public UUID getUuid() {
         if ( uuid == null ) {
-            setUUID( UUID.randomUUID() );
+            setUuid( UUID.randomUUID() );
         }
         return uuid;
     }    
     
-    public void setUUID( UUID uuid ) {
+    public void setUuid( UUID uuid ) {
 	this.uuid = uuid;
 	modified();
-    }
-    /**
-       Persistent ID for this folder
-    */
-    
-    int folderId;
-    
-    /**
-     * Get the value of folderId.
-     * @return value of folderId.
-     */
-    @Id 
-    @GeneratedValue( generator = "folder_id_gen", strategy = GenerationType.TABLE )
-    @TableGenerator( name="folder_id_gen", table="unique_keys", pkColumnName="id_name", 
-                     pkColumnValue="folder_id_gen", valueColumnName="next_val", initialValue=10 )
-    @Column( name = "collection_id" )
-    public int getFolderId() {
-	return folderId;
-    }
-    
-    protected void setFolderId( int newId ) {
-        folderId = newId;
     }
     /**
        Name of this folder
@@ -193,7 +180,7 @@ public class PhotoFolder implements PhotoCollection {
     @org.hibernate.annotations.Cascade({
                org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
     @JoinTable( name = "collection_photos",
-                joinColumns = {@JoinColumn( name = "collection_id" ) },
+                joinColumns = {@JoinColumn( name = "collection_uuid" ) },
                 inverseJoinColumns = {@JoinColumn( name = "photo_uuid" ) } )
     public Set<PhotoInfo> getPhotos() {
         // TODO: Make test case to verify if this works with Hibernate
@@ -347,7 +334,7 @@ public class PhotoFolder implements PhotoCollection {
     */
     @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
     @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
-    @JoinColumn( name = "parent", nullable = true )
+    @JoinColumn( name = "parent_uuid", nullable = true )
     // This is needed since OJB set parent to 0 for the root folder.
     @org.hibernate.annotations.NotFound( action = org.hibernate.annotations.NotFoundAction.IGNORE )
     public PhotoFolder getParentFolder() {

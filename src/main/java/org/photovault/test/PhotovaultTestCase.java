@@ -123,8 +123,8 @@ public class PhotovaultTestCase extends TestCase {
     }
     
     public static void assertMatchesDb( PhotoFolder folder, Session session ) {
-	int id = folder.getFolderId();
-	String sql = "select * from photo_collections where collection_id = " + id;
+	UUID id = folder.getUuid();
+	String sql = "select * from photo_collections where collection_uuid = '" + id + "'";
 	Statement stmt = null;
 	ResultSet rs = null;
 	try {
@@ -135,22 +135,23 @@ public class PhotovaultTestCase extends TestCase {
 	    }
 	    assertEquals( "name doesn't match", folder.getName(), rs.getString( "collection_name" ) );
 	    assertEquals( "description doesn't match", folder.getDescription(), rs.getString( "collection_desc" ) );
-            int parentId = rs.getInt( "parent" );
+            String parentIdStr =  rs.getString( "parent_uuid" );
             if ( rs.wasNull() ) {
                 assertNull( folder.getParentFolder() );
             } else {
-                assertEquals( parentId, folder.getParentFolder().getFolderId() );
+                UUID parentId = UUID.fromString( parentIdStr );
+                assertEquals( parentId, folder.getParentFolder().getUuid() );
             }
             rs.close();
             
             // Check that subfolders collection matches database
-            rs = stmt.executeQuery( "select * from photo_collections where parent = " + id );
-            Set<Integer> folderIds = new HashSet<Integer>();
+            rs = stmt.executeQuery( "select * from photo_collections where parent_uuid = '" + id + "'" );
+            Set<UUID> folderIds = new HashSet<UUID>();
             for ( PhotoFolder f : folder.getSubfolders() ) {
-                folderIds.add( f.getFolderId() );
+                folderIds.add( f.getUuid() );
             }
             while ( rs.next() ) {
-                int subId = rs.getInt( "collection_id" );
+                UUID subId = UUID.fromString( rs.getString( "collection_uuid" ) );
                 assertTrue( "folder " + subId + " not in memory copy", 
                         folderIds.remove( subId ) );
                 
@@ -159,7 +160,7 @@ public class PhotovaultTestCase extends TestCase {
             rs.close();
             
             // Check that photos collection matches database
-            rs = stmt.executeQuery( "select * from collection_photos where collection_id = " + id );
+            rs = stmt.executeQuery( "select * from collection_photos where collection_uuid = '" + id +"'" );
             Set<UUID> photoIds = new HashSet<UUID>();
             for ( PhotoInfo p : folder.getPhotos() ) {
                 photoIds.add( p.getUuid() );

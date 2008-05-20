@@ -274,10 +274,10 @@ public class PhotoInfoChangeDesc extends ChangeDesc {
         }
         setTargetUuid( changedPhoto.getUuid() );
         for ( PhotoFolder f : addedToFolders ) {
-            folderChanges.put( f.getUUID(), AssocChangeType.ADDED );
+            folderChanges.put( f.getUuid(), AssocChangeType.ADDED );
         }
         for ( PhotoFolder f : removedFromFolders ) {
-            folderChanges.put( f.getUUID(), AssocChangeType.REMOVED );
+            folderChanges.put( f.getUuid(), AssocChangeType.REMOVED );
         }
         
         this.changedFields = changedFields;

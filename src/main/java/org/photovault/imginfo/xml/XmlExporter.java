@@ -212,7 +212,7 @@ public class XmlExporter {
         Set remainingFolders = new HashSet( folders );
         PhotoFolder rootFolder = PhotoFolder.getRoot();
         writer.write( getIndent() + "<folders root-uuid=\"" + 
-                rootFolder.getUUID() + "\">" );
+                rootFolder.getUuid() + "\">" );
         writer.newLine();
         indent += 2;
         writeFolder( rootFolder, remainingFolders, true );
@@ -281,12 +281,12 @@ public class XmlExporter {
      @throws IOException if error occurs during writing
      */
     private void writeFolder(PhotoFolder folder, Set remainingFolders, boolean writeParentId) throws IOException {
-        UUID folderUUID = folder.getUUID();
+        UUID folderUUID = folder.getUuid();
         writer.write( getIndent() + "<folder id=\"" + folderUUID + "\"" );
         if ( writeParentId ) {
             PhotoFolder parent = folder.getParentFolder();
             if ( parent != null ) {
-                writer.write( " parent-id=\"" + parent.getUUID() + "\"" );
+                writer.write( " parent-id=\"" + parent.getUuid() + "\"" );
             }
         }
         Date createTime = folder.getCreationDate();
@@ -404,7 +404,7 @@ public class XmlExporter {
             Iterator iter = folders.iterator();
             while ( iter.hasNext() ) {
                 PhotoFolder f = (PhotoFolder) iter.next();
-                writer.write( getIndent() + "<folder-ref id=\"" + f.getUUID() + "\"/>" );
+                writer.write( getIndent() + "<folder-ref id=\"" + f.getUuid() + "\"/>" );
                 writer.newLine();
             }
             indent -= 2;

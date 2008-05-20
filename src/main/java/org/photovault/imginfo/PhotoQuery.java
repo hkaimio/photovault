@@ -149,9 +149,9 @@ public class PhotoQuery implements PhotoCollection {
      @return List of ids of all folders in the hierarchy
     */
 
-    private List<Integer> getSubfolderIds( PhotoFolder folder ) {
-        List<Integer> folders = new ArrayList<Integer>();
-        folders.add( folder.getFolderId() );
+    private List<UUID> getSubfolderIds( PhotoFolder folder ) {
+        List<UUID> folders = new ArrayList<UUID>();
+        folders.add( folder.getUuid() );
 	appendSubfolderIds( folders, folder );
 	return folders;
     }
@@ -161,9 +161,9 @@ public class PhotoQuery implements PhotoCollection {
      @param folders List to which the ids are added
      @param folder Root folder for the hierarchy     
      */
-    private void appendSubfolderIds( List<Integer> folders, PhotoFolder folder ) {
+    private void appendSubfolderIds( List<UUID> folders, PhotoFolder folder ) {
 	for ( PhotoFolder subfolder : folder.getSubfolders() ) {
-	    folders.add( subfolder.getFolderId() );
+	    folders.add( subfolder.getUuid() );
 	    appendSubfolderIds( folders, subfolder );
 	}
     }
@@ -305,7 +305,7 @@ public class PhotoQuery implements PhotoCollection {
 
 	    if ( limitFolder != null ) {
  		Collection folders = getSubfolderIds( limitFolder );
- 		crit.createCriteria( "folders" ).add( Restrictions.in( "folderId", folders ));
+ 		crit.createCriteria( "folders" ).add( Restrictions.in( "uuid", folders ));
 	    }
 	    
 	    result = crit.list();

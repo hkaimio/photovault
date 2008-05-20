@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
@@ -63,9 +64,7 @@ public class ExtVolIndexer implements Runnable {
      */
     public ExtVolIndexer( ExternalVolume vol ) {
         volume = vol;
-        if ( vol.getFolderId() >= 0 ) {
-            topFolderId = vol.getFolderId();
-        }
+        topFolderId = vol.getFolderId();
     }
     
     /** The volume that is indexed by this instance */
@@ -81,7 +80,7 @@ public class ExtVolIndexer implements Runnable {
      Folder used as top of created folder gierarchy or <code>null</code>
      if no folders should be created
      */
-    private Integer topFolderId = null;
+    private UUID topFolderId = null;
     
     private ExtVolIndexerEvent currentEvent = null;
     
@@ -99,9 +98,9 @@ public class ExtVolIndexer implements Runnable {
      should be created.
      */
     public void setTopFolder(PhotoFolder topFolder) {
-        this.topFolderId = topFolder.getFolderId();
+        this.topFolderId = topFolder.getUuid();
         if ( volume != null ) {
-            volume.setFolderId( topFolder.getFolderId() );
+            volume.setFolderId( topFolder.getUuid() );
         }
     }
 

@@ -119,7 +119,7 @@ public class ChangePhotoFolderCommand extends DataAccessCommand {
     
     public void execute() throws CommandException {
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
-        PhotoFolder f = folderDAO.findById( folder.getFolderId(), false );
+        PhotoFolder f = folderDAO.findById( folder.getUuid(), false );
         for ( Map.Entry<PhotoFolderFields,Object> change: changedFields.entrySet() ) {
             PhotoFolderFields field = change.getKey();
             switch ( field ) {

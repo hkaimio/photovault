@@ -23,6 +23,7 @@ package org.photovault.imginfo;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -81,7 +82,7 @@ public class ExternalVolume extends VolumeBase {
         return null;
     }
     
-    int folderId = -1;
+    UUID folderId = null;
     
     /**
      *     Returns the ID of the folder that is used to represent this external volume. 
@@ -91,7 +92,7 @@ public class ExternalVolume extends VolumeBase {
      * that returns the folder itself.
      */
     @Transient
-    public int getFolderId() {
+    public UUID getFolderId() {
         return folderId;
     }
     
@@ -100,14 +101,14 @@ public class ExternalVolume extends VolumeBase {
      @param id The id of new folder of -1 to disassociate this volume from any 
      folder.
      */
-    public void setFolderId( int id ) {
+    public void setFolderId( UUID id ) {
         folderId = id;
     }
     
     private PhotoFolder folder;
     
     @OneToOne
-    @JoinColumn( name="folder_id", nullable = true )
+    @JoinColumn( name="folder_uuid", nullable = true )
     public PhotoFolder getFolder() {
         return folder;
     }
@@ -126,7 +127,7 @@ public class ExternalVolume extends VolumeBase {
         String s = "                                ".substring( 0, indent );
         outputWriter.write( s+ "<external-volume name=\"" + getName() +
                 "\" basedir=\"" + getBaseDir() +
-                "\" folder=\"" + getFolderId() + "\"/>\n" );
+                "\" folder=\"" + getFolderId().toString() + "\"/>\n" );
     }
     
 }

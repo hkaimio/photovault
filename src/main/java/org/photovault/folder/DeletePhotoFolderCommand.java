@@ -48,7 +48,7 @@ public class DeletePhotoFolderCommand extends DataAccessCommand {
      */
     public DeletePhotoFolderCommand( PhotoFolder f ) {
         super();
-        folderId = f.getUUID();        
+        folderId = f.getUuid();        
     }
 
     /**

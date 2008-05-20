@@ -19,7 +19,6 @@
 */
 package org.photovault.folder;
 
-import java.util.List;
 import java.util.UUID;
 import org.hibernate.Query;
 import org.photovault.persistence.GenericHibernateDAO;
@@ -29,7 +28,7 @@ import org.photovault.persistence.GenericHibernateDAO;
  * @author harri
  */
 public class PhotoFolderDAOHibernate 
-        extends GenericHibernateDAO<PhotoFolder, Integer>
+        extends GenericHibernateDAO<PhotoFolder, UUID>
         implements PhotoFolderDAO {
     
     /** Creates a new instance of PhotoFolderDAOHibernate */
@@ -37,12 +36,16 @@ public class PhotoFolderDAOHibernate
         super();
     }
 
+    /**
+     Find the root folder of folder tree
+     @return Root folder in associated persistence context.
+     */
     public PhotoFolder findRootFolder() {
-        return findById( 1, false );
+        return findById( PhotoFolder.ROOT_UUID, false );
     }
 
     public PhotoFolder findByUUID(UUID uuid) {
-        Query q = getSession().createQuery( "from PhotoFolder where UUID = :uuid" );
+        Query q = getSession().createQuery( "from PhotoFolder where uuid = :uuid" );
         q.setParameter("uuid", uuid );
         return (PhotoFolder) q.uniqueResult();
     }

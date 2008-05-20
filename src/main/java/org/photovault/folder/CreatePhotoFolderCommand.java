@@ -20,6 +20,7 @@
 
 package org.photovault.folder;
 
+import java.util.UUID;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.imginfo.ExternalVolume;
@@ -28,7 +29,7 @@ import org.photovault.imginfo.ExternalVolume;
   Command for creating a new {@link PhotoFolder}.
  */
 public class CreatePhotoFolderCommand extends DataAccessCommand {
-    Integer parentId = null;
+    UUID parentId = null;
     String name = null;
     String description = null;
     PhotoFolder createdFolder = null;
@@ -42,7 +43,7 @@ public class CreatePhotoFolderCommand extends DataAccessCommand {
     public CreatePhotoFolderCommand( PhotoFolder parent, String folderName, 
             String folderDescription ) {
         if ( parent != null ) {
-            parentId = parent.getFolderId();
+            parentId = parent.getUuid();
         }
         name = folderName;
         description = folderDescription;

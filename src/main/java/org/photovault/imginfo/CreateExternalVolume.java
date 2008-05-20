@@ -111,7 +111,7 @@ public class CreateExternalVolume extends DataAccessCommand {
             }
             
             if ( topFolder != null ) {
-                volume.setFolder( folderDAO.findById( topFolder.getFolderId(), false ) );
+                volume.setFolder( folderDAO.findById( topFolder.getUuid(), false ) );
             }
             
             // Ensure that this directory will be looked for volumes

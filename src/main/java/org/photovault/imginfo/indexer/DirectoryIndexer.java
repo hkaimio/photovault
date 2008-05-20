@@ -242,12 +242,12 @@ public class DirectoryIndexer {
         if ( folder != null ) {
             folder = 
                     (PhotoFolder) HibernateUtil.getSessionFactory().getCurrentSession().
-                    get(PhotoFolder.class, folder.getFolderId() );
+                    get(PhotoFolder.class, folder.getUuid() );
             for ( PhotoInfo photo : folder.getPhotos() ) {
                 photoInstanceCounts.put( photo.getUuid(), new Integer( 0 ) );
             }
             for ( PhotoFolder f : folder.getSubfolders() ) {
-                foldersNotFound.add(f.getUUID() );
+                foldersNotFound.add(f.getUuid() );
             }
         }
         
@@ -291,7 +291,7 @@ public class DirectoryIndexer {
                     subfolder = createFolder.getCreatedFolder();
                     // newFolderCount++;
                 } else {
-                    foldersNotFound.remove( subfolder.getUUID(  ) );
+                    foldersNotFound.remove( subfolder.getUuid(  ) );
                 }
                 subdirIndexers.add( 
                         new DirectoryIndexer( subdir, subfolder, volume ) );
