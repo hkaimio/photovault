@@ -21,6 +21,7 @@
 
 package org.photovault.replication;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +81,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      All changes to target obejct that are known 
      */
     Set<Change<T, F>> allChanges = new HashSet<Change<T, F>>();
+
 
     /**
      Default constructor for persistence layer, do not use otherwise
@@ -279,6 +281,8 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      */
     @Transient
     protected abstract Object getField( F field );
+    
+    protected abstract FieldDescriptor<T> getFieldDescriptor( F field );
     
     /**
      Set value of a field in target object

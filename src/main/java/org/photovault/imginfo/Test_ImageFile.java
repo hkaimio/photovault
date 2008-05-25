@@ -20,6 +20,8 @@
 
 package org.photovault.imginfo;
 
+import org.photovault.imginfo.dto.ImageFileDtoResolver;
+import org.photovault.imginfo.dto.ImageFileDTO;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
@@ -234,6 +236,44 @@ public class Test_ImageFile extends PhotovaultTestCase {
         }
         assert foundP2;
         assert foundP3;
+    }
+    
+    @Test
+    public void testDto() {
+        Transaction tx = session.beginTransaction();
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
+        ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
+        ImageFile f1 = new ImageFile();
+        f1.setId( UUID.randomUUID() );
+        ifDAO.makePersistent( f1 );
+        
+        OriginalImageDescriptor i11 = new OriginalImageDescriptor( f1, "image#0" );
+        i11.setWidth( 1200 );
+        i11.setHeight( 1400 );
+        idDAO.makePersistent( i11 );
+        PhotoInfo p1 = new PhotoInfo( i11 );
+        photoDAO.makePersistent( p1 );
+        tx.commit();
+        
+        // Create another ImageFile but don't persist it, just create mathcihng DTO
+        ImageFile f2 = new ImageFile();
+        f2.setId( UUID.randomUUID() );
+        CopyImageDescriptor i21 = new CopyImageDescriptor( f2, "image#0", i11 );
+        i21.setWidth( 2000 );
+        i21.setHeight( 3000 );
+        
+        ImageFileDTO fdto1 = new ImageFileDTO( f2 );
+        assertEquals(  fdto1.getUuid() ,f2.getId() );
+        assertEquals(  fdto1.getHash() ,f2.getHash() );        
+        assertEquals(  fdto1.getSize() ,f2.getFileSize() );
+
+        tx = session.beginTransaction();
+                
+        ImageFileDtoResolver resolver = new ImageFileDtoResolver();
+        resolver.setSession( session );
+        ImageFile resolvedf2 = resolver.getObjectFromDto( fdto1 );
+        assertEquals(f2.getId(), resolvedf2.getId() );
+        assertTrue( ((CopyImageDescriptor)resolvedf2.getImage( "image#0")).getOriginal() == i11 );
     }
     
     @Test

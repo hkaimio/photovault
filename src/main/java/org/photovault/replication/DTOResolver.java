@@ -20,34 +20,20 @@
 
 package org.photovault.replication;
 
-import java.io.Serializable;
-
 /**
- Test class of field descriptors
- @deprecated There isno need to use this class in production code
+ Interface that must be implemented by objects that are used to convert data 
+ transfer objects used in change descriptors to persistent objects and vice 
+ versa.
+ 
+ @param T Type of the persistent object
+ @param D Type of the DTO
+ 
+ @author Harri Kaimio
+ @since 0.6.0
  */
-public abstract class FieldDescriptor<T> implements Comparable, Serializable {
+public interface DTOResolver<T, D> {
+    T getObjectFromDto( D dto );
     
-    private String name;
-    
-    public FieldDescriptor( String name ) {
-        this.name = name;
-    }
-
-    abstract Object getValue( T target );
-    
-    abstract Object getValueDTO( T target );
-    
-    abstract void setValue( T target, Object newValue );
-    
-    @Override
-    public String toString() {
-        return name;
-    }
-    
-    public int compareTo( Object o ) {
-        FieldDescriptor t = (FieldDescriptor)o;
-        return name.compareTo( t.name );
-    }
+    D getDtoFromObject( T object );
 
 }

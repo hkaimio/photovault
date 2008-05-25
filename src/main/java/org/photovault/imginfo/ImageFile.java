@@ -86,7 +86,7 @@ public class ImageFile implements java.io.Serializable {
     static Log log = LogFactory.getLog( ImageFile.class );
     
     /** Creates a new instance of ImageFile */
-    protected ImageFile() {
+    public ImageFile() {
         id = UUID.randomUUID();
     }
     
@@ -145,7 +145,7 @@ public class ImageFile implements java.io.Serializable {
      * only.
      * @param id UUID for the ImageFile object.
      */
-    protected void setId( UUID id ) {
+    public void setId( UUID id ) {
         this.id = id;
     }
 

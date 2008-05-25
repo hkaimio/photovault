@@ -18,36 +18,33 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 
-package org.photovault.replication;
+package org.photovault.imginfo.dto;
 
-import java.io.Serializable;
+import org.photovault.imginfo.*;
+import java.util.Map;
+import java.util.UUID;
 
 /**
- Test class of field descriptors
- @deprecated There isno need to use this class in production code
+ Data transfer object of {@link OriginalImageDescriptor} objects.
+ 
+ @since 0.6.0
+ @author Harri Kaimio
+ @see OriginalImageDescriptor
+ @see ImageDescriptorDTO
  */
-public abstract class FieldDescriptor<T> implements Comparable, Serializable {
-    
-    private String name;
-    
-    public FieldDescriptor( String name ) {
-        this.name = name;
+public class OrigImageDescriptorDTO extends ImageDescriptorDTO {
+
+    /**
+     Constructor used internally
+     @param img Image used to construct this object
+     @param createdFiles Files already created in this graph
+     */
+    OrigImageDescriptorDTO( ImageDescriptorBase img, Map<UUID, ImageFileDTO> createdFiles ) {
+        super( img );
     }
 
-    abstract Object getValue( T target );
-    
-    abstract Object getValueDTO( T target );
-    
-    abstract void setValue( T target, Object newValue );
-    
     @Override
-    public String toString() {
-        return name;
+    protected ImageDescriptorBase createImageDescriptor() {
+        return new OriginalImageDescriptor();
     }
-    
-    public int compareTo( Object o ) {
-        FieldDescriptor t = (FieldDescriptor)o;
-        return name.compareTo( t.name );
-    }
-
 }

@@ -17,37 +17,10 @@
   along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
-
-package org.photovault.replication;
-
-import java.io.Serializable;
+package org.photovault.imginfo.dto;
 
 /**
- Test class of field descriptors
- @deprecated There isno need to use this class in production code
+ This package contains utility classes that are used to transfer portions of 
+ Photovault data between different contexts.
  */
-public abstract class FieldDescriptor<T> implements Comparable, Serializable {
-    
-    private String name;
-    
-    public FieldDescriptor( String name ) {
-        this.name = name;
-    }
 
-    abstract Object getValue( T target );
-    
-    abstract Object getValueDTO( T target );
-    
-    abstract void setValue( T target, Object newValue );
-    
-    @Override
-    public String toString() {
-        return name;
-    }
-    
-    public int compareTo( Object o ) {
-        FieldDescriptor t = (FieldDescriptor)o;
-        return name.compareTo( t.name );
-    }
-
-}
