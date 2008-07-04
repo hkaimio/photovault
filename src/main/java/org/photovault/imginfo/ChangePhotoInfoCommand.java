@@ -352,9 +352,9 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
              current persistence context
              */
             changedPhotos.add( photo );
-            Change<PhotoInfo,PhotoInfoFields> ch = photo.getHistory().createChange();
+            Change<PhotoInfo,String> ch = photo.getHistory().createChange();
             for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
-                ch.setField( e.getKey(), e.getValue() );
+                ch.setField( e.getKey().getName(), e.getValue() );
             }
             ch.freeze();
 //            RawSettingsFactory rawSettingsFactory = null;

@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- ChangeFactory provides a ling between the change replication logic and local 
+ ChangeFactory provides a link between the change replication logic and local 
  persistence management layer. It can be used to create local persistent 
  instances from a serialized change.
  */
@@ -53,7 +53,7 @@ public class ChangeFactory<T,F extends Comparable> {
      @param is The stream from which the change is read
      @return The read change
      @throws IOException if reading the change fails
-     @throws ClassNotFoundException if the change subclass oe some of its fields
+     @throws ClassNotFoundException if the change subclass or some of its fields
      are not known.
      @throws IllegalStateException if the serialized change is somehow corrupted
      (i.e. its content does not match its UUID)
@@ -71,6 +71,24 @@ public class ChangeFactory<T,F extends Comparable> {
          the target object.
          */
         ChangeSupport<T,F> targetHistory = dao.findObjectHistory( data.targetUuid );
+        if ( targetHistory == null ) {
+            /*
+             The target object was not known to local database.
+             Create local copy
+             */
+            try {
+               targetHistory = (ChangeSupport<T, F>) data.historyClass.newInstance();
+               targetHistory.initLocalReplica( data.targetUuid );
+               dao.makePersistent( targetHistory );
+            } catch ( InstantiationException ex ) {
+                throw new IOException( "Cannot instantiate history of class " + 
+                        data.historyClass + " for object " + data.targetUuid, ex );
+            } catch ( IllegalAccessException ex ) {
+                throw new IOException( "Cannot instantiate history of class " + 
+                        data.historyClass + " for object " + data.targetUuid, ex );
+            }
+            
+        }
         Change<T,F> change = new Change<T, F>();
         change.setTargetHistory( targetHistory );
         change.setUuid( data.changeUuid );

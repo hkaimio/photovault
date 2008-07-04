@@ -20,23 +20,38 @@
 
 package org.photovault.imginfo.dto;
 
-import org.photovault.imginfo.*;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
+import org.photovault.imginfo.CopyImageDescriptor;
+import org.photovault.imginfo.ImageDescriptorBase;
+import org.photovault.imginfo.ImageFile;
+import org.photovault.imginfo.OriginalImageDescriptor;
 
 /**
  Data transfer object of {@link CopyImageDescriptor} objects.
+ 
+ @serial TODO write decent serialization doc
  
  @since 0.6.0
  @author Harri Kaimio
  @see CopyImageDescriptor
  @see ImageDescriptorDTO
  */
-public class CopyImageDescriptorDTO extends ImageDescriptorDTO {
+public class CopyImageDescriptorDTO 
+        extends ImageDescriptorDTO implements Serializable {
     
+    /**
+     Creates a new instance
+     @param img Image whose DTO is created
+     @param createdFiles Map from image file uuids whose DTO has already been created
+     as part of this transaction to the actual DTOs. This is used to decide
+     whether to create a DTO for the file or to use the existing one. The map is 
+     updated with all DTOs that are created by the constructor.
+     */
     CopyImageDescriptorDTO( CopyImageDescriptor img, Map<UUID, ImageFileDTO> createdFiles ) {
         super( img );
         colorChannelMapping = img.getColorChannelMapping();
@@ -54,18 +69,61 @@ public class CopyImageDescriptorDTO extends ImageDescriptorDTO {
         }
         origLocator = img.getLocator();
     }
+
+    /**
+     Default constructor
+     */
+    CopyImageDescriptorDTO() {
+        super();
+    }
+    
+    
+    /**
+     Color corrections applied to the image
+     @serialField 
+     */
     private ChannelMapOperation colorChannelMapping;
+    /**
+     Cropping for the copy
+     @serialField 
+     */
     private Rectangle2D cropArea;
+    /**
+     Rotation applied to the copy
+     @serialField 
+     */
     private double rotation;
+    /**
+     Raw conversion applied to the copy or <code>null</code> if the original
+     is not a camera raw file
+     @serialField 
+     */
     private RawConversionSettings rawSettings;
+    /**
+     DTO of the file that contains this iamge
+     @serialField 
+     */
     private ImageFileDTO origImageFile;
+    /**
+     Location of the image inside the file
+     @serialField 
+     */
     private String origLocator;
 
+    /**
+     Create a new {@link CopyImageDescriptor}. Used by getImageDescriptor()
+     to instantiate the correct class.
+     */
     @Override
     protected ImageDescriptorBase createImageDescriptor() {
         return new CopyImageDescriptor();
     }
     
+    /**
+     Updates a {@link CopyImageDescriptor} to match the state of this DTO
+     @param img The CopyImageDesciptor that will be updated
+     @param fileResolver resolver used to resolve any image file references.
+     */
     @Override
     protected void updateDescriptor( ImageDescriptorBase img,
             ImageFileDtoResolver fileResolver ) {

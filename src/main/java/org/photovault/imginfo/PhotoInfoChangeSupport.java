@@ -20,23 +20,22 @@
 
 package org.photovault.imginfo;
 
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.Map;
 import java.util.UUID;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.photovault.common.PhotovaultException;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawSettingsFactory;
-import org.photovault.image.ChannelMapOperationFactory;
-import org.photovault.image.ColorCurve;
+import org.photovault.replication.AnnotatedClassHistory;
 import org.photovault.replication.Change;
-import org.photovault.replication.ChangeSupport;
+import org.photovault.replication.DTOResolver;
+import org.photovault.replication.FieldDescriptor;
 
 /**
  *
@@ -44,23 +43,39 @@ import org.photovault.replication.ChangeSupport;
  */
 @Entity
 @DiscriminatorValue( "photo" )
-public class PhotoInfoChangeSupport extends ChangeSupport<PhotoInfo, PhotoInfoFields> {
+public class PhotoInfoChangeSupport extends AnnotatedClassHistory<PhotoInfo> {
     
     private static Log log = LogFactory.getLog( ChangePhotoInfoCommand.class );
     
-    Change<PhotoInfo, PhotoInfoFields> currentVersion;
+    Change<PhotoInfo, String> currentVersion;
     
     public PhotoInfoChangeSupport( PhotoInfo p ) {
         super( p );
         setTargetUuid( p.getUuid() );
     }
     
-    protected PhotoInfoChangeSupport() { super(); }
+    public PhotoInfoChangeSupport() {
+        super();
+    }
+    
+    
+    PhotoInfoChangeSupport( PhotoInfo p, OriginalImageDescriptor img ) {
+        this( p );
+        Change <PhotoInfo, String> initialChange = createChange();
+        // initialChange.setField( PhotoInfoFields, log);
+        initialChange.freeze();
+    }
     
     @OneToOne( mappedBy="history" )
+    @Cascade( CascadeType.ALL )
     @Override
     public PhotoInfo getOwner() {
         return super.getOwner();
+    }
+    
+    @Override
+    public void setOwner( PhotoInfo p ) {
+        super.setOwner( p );
     }
     
     @Override
@@ -70,89 +85,13 @@ public class PhotoInfoChangeSupport extends ChangeSupport<PhotoInfo, PhotoInfoFi
     }
 
     @Override
-    protected Object getField( PhotoInfoFields field ) {
-        return field.getFieldValue(getOwner(), field);
-    }
-
-    @Override
-    protected void setField( PhotoInfoFields field, Object value ) {
-        Set<PhotoInfoFields> rawSettingsFields =
-                EnumSet.range( PhotoInfoFields.RAW_BLACK_LEVEL, PhotoInfoFields.RAW_COLOR_PROFILE );
-        Set<PhotoInfoFields> colorCurveFields =
-                EnumSet.range( PhotoInfoFields.COLOR_CURVE_VALUE, PhotoInfoFields.COLOR_CURVE_SATURATION );
-        RawSettingsFactory rawSettingsFactory = null;
-        ChannelMapOperationFactory channelMapFactory = null;
-        if ( rawSettingsFields.contains( field ) ) {
-            if ( value != null ) {
-                // This is a raw setting field, we must use factory for changing it
-                if ( rawSettingsFactory == null ) {
-                    rawSettingsFactory = new RawSettingsFactory( getOwner().getRawSettings() );
-                }
-                this.setRawField( rawSettingsFactory, field, value );
-            }
-        } else if ( colorCurveFields.contains( field ) ) {
-            if ( value != null ) {
-                if ( channelMapFactory == null ) {
-                    channelMapFactory = new ChannelMapOperationFactory( getOwner().getColorChannelMapping() );
-                }
-                switch ( field ) {
-                    case COLOR_CURVE_VALUE:
-                        channelMapFactory.setChannelCurve( "value", (ColorCurve) value );
-                        break;
-                    case COLOR_CURVE_RED:
-                        channelMapFactory.setChannelCurve( "red", (ColorCurve) value );
-                        break;
-                    case COLOR_CURVE_BLUE:
-                        channelMapFactory.setChannelCurve( "blue", (ColorCurve) value );
-                        break;
-                    case COLOR_CURVE_GREEN:
-                        channelMapFactory.setChannelCurve( "green", (ColorCurve) value );
-                        break;
-                    case COLOR_CURVE_SATURATION:
-                        channelMapFactory.setChannelCurve( "saturation", (ColorCurve) value );
-                        break;
-                }
-            }
-        } else if ( field != PhotoInfoFields.FUZZY_SHOOT_TIME ) {
-            /*
-             TODO: The test above is needed beaucse of the current unclear presentation
-             of fuzzy time. How to get rid of it?
-             */
-            try {
-                PropertyUtils.setProperty( getOwner(), field.getName(), value );
-            } catch ( Exception ex ) {
-                log.error( "Exception while executing command", ex );
-                throw new IllegalArgumentException( "Error while setting field " + field.getName() );
-            } 
-        }
-
-        if ( rawSettingsFactory != null ) {
-            try {
-                getOwner().setRawSettings( rawSettingsFactory.create() );
-            } catch ( PhotovaultException ex ) {
-                log.error( "Exception while executing command", ex );
-                ex.printStackTrace();
-            }
-        }
-        if ( channelMapFactory != null ) {
-            getOwner().setColorChannelMapping( channelMapFactory.create() );
-
-        }
-    }
-
-    @Override
-    protected Set<PhotoInfoFields> allFields() {
-        return EnumSet.allOf( PhotoInfoFields.class );
-    }
-
-    @Override
-    protected void setVersion( Change<PhotoInfo, PhotoInfoFields> version ) {
+    protected void setVersion( Change<PhotoInfo, String> version ) {
         currentVersion = version;
     }
 
     @Override
     @Transient
-    protected Change<PhotoInfo, PhotoInfoFields> getVersion() {
+    protected Change<PhotoInfo, String> getVersion() {
         return currentVersion;
     }
     
@@ -180,6 +119,64 @@ public class PhotoInfoChangeSupport extends ChangeSupport<PhotoInfo, PhotoInfoFi
                 settings.setColorProfile( (ColorProfileDesc) newValue);
                 break;
         }
+    }
+  
+    static private Map<String,FieldDescriptor<PhotoInfo>> fieldDescriptors;
+
+    static class PhotoFieldDesc extends FieldDescriptor<PhotoInfo> {
+        
+        Class<? extends DTOResolver> resolverClass = null;
+        PhotoInfoFields field = null;
+        
+        PhotoFieldDesc( String name, PhotoInfoFields field, Class<? extends DTOResolver> resolverClass ) {
+            super( name );
+            this.resolverClass = resolverClass;
+            this.field = field;
+        }
+        
+        @Override
+        public Class<? extends DTOResolver> getDtoResolverClass() {
+            return resolverClass;
+        }
+
+        @Override
+        public Object getValue( PhotoInfo target ) {
+            return field.getFieldValue( target, field );
+        }
+
+        @Override
+        public void setValue( PhotoInfo target, Object newValue ) {
+            
+        }
+        
+        
+    }
+    
+    /*
+     Initialize field descriptors
+     */
+//    static {
+//        for ( PhotoInfoFields f : EnumSet.allOf( PhotoInfoFields.class ) ) {
+//            f.ge
+//        }
+//    }
+//    
+    @Override
+    protected FieldDescriptor<PhotoInfo> getFieldDescriptor( String field ) {
+        return fieldDescriptors.get( field );
+    }
+
+    @Override
+    @Transient
+    protected Map<String, FieldDescriptor<PhotoInfo>> getFieldDescriptors() {
+        return null;
+    }
+
+    @Override
+    protected PhotoInfo createTarget() {
+        PhotoInfo p = PhotoInfo.create( getTargetUuid() );
+        p.setHistory( this );
+        return p;
     }
         
     

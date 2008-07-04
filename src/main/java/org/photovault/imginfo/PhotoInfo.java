@@ -35,15 +35,12 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
@@ -64,6 +61,8 @@ import org.photovault.image.PhotovaultImageFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.dto.ImageFileDtoResolver;
+import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
 import org.photovault.replication.Setter;
 
@@ -105,7 +104,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         changeListeners = new HashSet();
         this.original = original;
         original.photos.add( this );
-        changeHistory = new PhotoInfoChangeSupport( this );
+        changeHistory = new PhotoInfoChangeSupport( this, original );
     }
     
     PhotoInfoChangeSupport changeHistory = null;
@@ -118,44 +117,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     
     public void setHistory( PhotoInfoChangeSupport h ) {
         changeHistory = h;
-    }
-    
-    /**
-     Static method to load photo info from database by photo id.
-     @param photoId ID of the photo to be retrieved
-     @deprecated Use findPhotoInfo( int photoId ) instead
-     */
-    public static PhotoInfo retrievePhotoInfo( int photoId ) throws PhotoNotFoundException {
-        log.debug( "Fetching PhotoInfo with ID " + photoId );
-        String oql = "select photos from " + PhotoInfo.class.getName() + " where uid=" + photoId;
-        List photos = null;
-        
-        // Get transaction context
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( oql );
-            photos = (List) query.execute();
-            txw.commit();
-        } catch (Exception e ) {
-            log.warn( "Error fetching record: " + e.getMessage() );
-            txw.abort();
-            throw new PhotoNotFoundException();
-        }
-        if ( photos.size() == 0 ) {
-            throw new PhotoNotFoundException();
-        }
-        PhotoInfo photo = (PhotoInfo) photos.get(0);
-        
-        // For some reason when seeking for e.g. photoId -1, a photo with ID = 1 is returned
-        // This sounds like a bug in OJB?????
-        if ( !photo.getUuid().equals( photoId ) ) {
-            log.warn( "Found photo with ID = " + photo.getUuid() + " while looking for ID " + photoId );
-            throw new PhotoNotFoundException();
-        }
-        return photo;
     }
     
     /**
@@ -626,8 +587,12 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      by persistence layer. Otherwise the original must be set in constructor.
      @param original image descriptor for the original
      */
-    protected void setOriginal( OriginalImageDescriptor original ) {
+    @Setter( field="original", dtoResolver=OrigImageRefResolver.class )
+    public void setOriginal( OriginalImageDescriptor original ) {
         this.original = original;
+        if ( original != null ) {
+            original.photos.add( this );
+        }
     }
     
     
@@ -1375,9 +1340,16 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Set both shooting time & accuracy directly using a FuzzyTime object
      @param v FuzzyTime containing new values.
      */
+    @Setter( field = "fuzzyShootTime" )
     public void setFuzzyShootTime( FuzzyDate v ) {
-        this.shootTime = (java.util.Date) v.getDate().clone();
-        this.timeAccuracy = v.getAccuracy();
+        if ( v != null ) {
+            java.util.Date d = v.getDate();
+            this.shootTime = (d != null ) ? (java.util.Date) d.clone() : null;
+            this.timeAccuracy = v.getAccuracy();
+        } else {
+            this.shootTime = null;
+            this.timeAccuracy = 0.0;
+        }
         modified();
     }
     
@@ -1424,6 +1396,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of FStop.
      * @param v  Value to assign to FStop.
      */
+    @Setter( field="FStop" )
     public void setFStop(double  v) {
         this.FStop = v;
         modified();
@@ -1443,6 +1416,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of focalLength.
      * @param v  Value to assign to focalLength.
      */
+    @Setter( field="focalLength" )
     public void setFocalLength(double  v) {
         this.focalLength = v;
         modified();
@@ -1462,6 +1436,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of shootingPlace.
      * @param v  Value to assign to shootingPlace.
      */
+    @Setter( field="shootingPlace" )
     public void setShootingPlace(String  v) {
         checkStringProperty( "Shooting place", v, SHOOTING_PLACE_LENGTH );
         this.shootingPlace = v;
@@ -1483,6 +1458,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * @param v  Value to assign to photographer.
      */
     @SuppressWarnings("static-access")
+    @Setter( field="photographer" )
     public void setPhotographer(String  v) {
         checkStringProperty( "Photographer", v, this.PHOTOGRAPHER_LENGTH );
         this.photographer = v;
@@ -1503,6 +1479,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of shutterSpeed.
      * @param v  Value to assign to shutterSpeed.
      */
+    @Setter( field="shutterSpeed" )
     public void setShutterSpeed(double  v) {
         this.shutterSpeed = v;
         modified();
@@ -1543,6 +1520,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of lens.
      * @param v  Value to assign to lens.
      */
+    @Setter( field="lens" )
     public void setLens(String  v) {
         checkStringProperty( "Lens", v, LENS_LENGTH );
         this.lens = v;
@@ -1563,6 +1541,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of film.
      * @param v  Value to assign to film.
      */
+    @Setter( field="film" )
     public void setFilm(String  v) {
         checkStringProperty( "Film", v, FILM_LENGTH );
         this.film = v;
@@ -1583,6 +1562,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of filmSpeed.
      * @param v  Value to assign to filmSpeed.
      */
+    @Setter( field="filmSpeed" )
     public void setFilmSpeed(int  v) {
         this.filmSpeed = v;
         modified();
@@ -1605,6 +1585,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      @param v  New preferred rotation in degrees. The value should be in range 
      0.0 <= v < 360, otherwise v is normalized to be between these values.
      */
+    @Setter( field="prefRotation" )
     public void setPrefRotation(double  v) {
         // Normalize rotation
         while ( v < 0.0 ) {
@@ -1665,6 +1646,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Set the preferred cropping operation
      @param cropBounds New crop bounds
      */
+    @Setter( field="cropBounds" )
     public void setCropBounds( Rectangle2D cropBounds ) {
         if ( cropBounds == null ) {
             cropBounds = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
@@ -1705,6 +1687,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Set the preferred color channel mapping
      @param cm the new color channel mapping
      */
+    @Setter( field="colorChannelMapping" )
     public void setColorChannelMapping( ChannelMapOperation cm ) {
         if ( cm != null ) {
             if ( !cm.equals( channelMap ) ) {
@@ -1775,6 +1758,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      the object.     
      */
     @Embedded
+    @Setter( field="rawSettings" )
     public void setRawSettings( RawConversionSettings s ) {
         log.debug( "entry: setRawSettings()" );
         if ( s != null ) {
@@ -1811,6 +1795,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of description.
      * @param v  Value to assign to description.
      */
+    @Setter( field="description" )
     public void setDescription(String  v) {
         this.description = v;
         modified();
@@ -1848,6 +1833,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      *
      * @param newQuality The new Quality value.
      */
+    @Setter( field="quality" )
     public void setQuality(final int newQuality) {
         this.quality = newQuality;
         modified();
@@ -1863,6 +1849,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         return lastModified != null ? (java.util.Date) lastModified.clone() : null;
     }
     
+    @Setter( field="lastModified" )
     public  void setLastModified(final java.util.Date newDate) {
         this.lastModified = (newDate != null) ? (java.util.Date) newDate.clone()  : null;
         modified();
@@ -1883,6 +1870,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      *
      * @param newTechNotes The new TechNotes value.
      */
+    @Setter( field="techNotes" )
     public void setTechNotes( String newTechNotes ) {
         this.techNotes = newTechNotes;
         modified();
@@ -1905,6 +1893,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      @throws IllegalArgumentException if the given file name is longer than
      {@link #ORIG_FNAME_LENGTH}
      */
+    @Setter( field="origFname" )
     public void setOrigFname(final String newFname) {
         checkStringProperty( "OrigFname", newFname, ORIG_FNAME_LENGTH );
         this.origFname = newFname;

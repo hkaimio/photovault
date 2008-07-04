@@ -20,7 +20,11 @@
 
 package org.photovault.imginfo;
 
+import java.util.UUID;
 import org.photovault.replication.Change;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.HibernateDtoResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.*;
 
@@ -34,12 +38,15 @@ public class Test_PhotoInfoChange {
     public void testPhotoChangeRecord() {
         PhotoInfo photo = PhotoInfo.create();
         PhotoInfoChangeSupport history = photo.getHistory();
-        Change<PhotoInfo,PhotoInfoFields> change = history.createChange();
-        change.setField(PhotoInfoFields.PHOTOGRAPHER, "Harri" );
-        change.setField(PhotoInfoFields.FSTOP, 5.6 );
+        Change<PhotoInfo,String> change = history.createChange();
+        change.setField(PhotoInfoFields.PHOTOGRAPHER.getName(), "Harri" );
+        change.setField(PhotoInfoFields.FSTOP.getName(), 5.6 );
+        change.setField( "film", "Tri-X" );
         change.freeze();
         assertEquals( "Harri", photo.getPhotographer() );
         assertEquals( 5.6, photo.getFStop() );
+        assertEquals( "Tri-X", photo.getFilm() );
     }
+
 
 }

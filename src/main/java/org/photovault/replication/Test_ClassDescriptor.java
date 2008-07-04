@@ -20,26 +20,26 @@
 
 package org.photovault.replication;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.reflect.InvocationTargetException;
+import org.photovault.imginfo.PhotoInfo;
+import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 
 /**
- Annotation that is used to devine the setter method for replicatble fields
+ Test cases for class descriptor
  */
-@Retention( RetentionPolicy.RUNTIME )
-@Target(ElementType.METHOD)
-public @interface Setter {
-    
-    /**
-     Returns the name of the field
-     */
-    String field();
-    
-    /**
-     Resolver for convertion this field to DTO and vice versa
-     @return
-     */
-    Class dtoResolver() default DefaultDtoResolver.class;
+@Test
+public class Test_ClassDescriptor {
+
+    @Test
+    public void testClassAnalysis() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        VersionedClassDesc photoClassDesc = new VersionedClassDesc( PhotoInfo.class );
+        PhotoInfo p = PhotoInfo.create();
+        
+        photoClassDesc.setFieldValue( p, "photographer", "Harri" );
+        assertEquals( "Harri", p.getPhotographer() );
+        assertEquals( "Harri", photoClassDesc.getFieldValue( p, "photographer" ) );
+        
+        System.out.println( photoClassDesc );
+    }
 }

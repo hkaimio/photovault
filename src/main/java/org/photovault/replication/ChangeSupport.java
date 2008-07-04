@@ -84,9 +84,9 @@ public abstract class ChangeSupport<T, F extends Comparable> {
 
 
     /**
-     Default constructor for persistence layer, do not use otherwise
+     Default constructor for persistence & replication layers, do not use otherwise
      */
-    protected ChangeSupport() {}
+    public ChangeSupport() {}
     
     /**
      Constructor
@@ -95,6 +95,20 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     public ChangeSupport( T target ) {
         this.target = target;
     }
+    
+
+    /**
+     Creates a new local replica of the object associated with this change 
+     history. This method is called by {@link ChangeFactory} when it encounters 
+     a change that is not known locally. The object is created by calling 
+     createTarget() method that derived classes must override.
+     
+     @param targetUuid UUID of the unknown object
+     */
+    void initLocalReplica( UUID targetUuid ) {
+        this.uuid = targetUuid; 
+        target = createTarget();
+    }    
     
     /**
      Returns the UUID of the target obejct
@@ -182,6 +196,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     /**
      Modify the target object so that its state matches given version
      @param newVersion The new version for the target object
+     @deprecated Use VersionedObjectEditor#changeToVersion instead.s
      */
     public void changeToVersion( Change<T,F> newVersion ) {
         Change<T,F> oldVersion = getVersion();
@@ -243,6 +258,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     public Set<Change<T,F>> getChanges() {
         return this.allChanges;
     }
+
     
     void setChanges( Set c ) {
         allChanges=c;
@@ -267,7 +283,8 @@ public abstract class ChangeSupport<T, F extends Comparable> {
         throw new UnsupportedOperationException( "Not supported yet." );
     }
 
-
+    protected abstract T createTarget();
+    
     /**
      Returns the uuid of the target obejct
      */
@@ -282,7 +299,10 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     @Transient
     protected abstract Object getField( F field );
     
-    protected abstract FieldDescriptor<T> getFieldDescriptor( F field );
+    protected abstract FieldDescriptor<T> getFieldDescriptor( String field );
+    
+    @Transient
+    protected abstract Map<String, FieldDescriptor<T>> getFieldDescriptors();
     
     /**
      Set value of a field in target object

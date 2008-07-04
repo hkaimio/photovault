@@ -539,25 +539,26 @@ public class Change<T, F extends Comparable> {
         if ( hasConflicts() ) {
             throw new IllegalStateException( "Cannot freeze change that has unresolved conflicts" );
         }
-        
-        Change<T,F> targetVersion = targetHistory.getVersion(); 
-        if ( targetVersion != null ) {
-            parentChanges.add( targetHistory.getVersion() );
-        }
+
+        // TODO: Parent change handling should probably be done in editor...
         if ( parentChanges.isEmpty() ) {
+            Change<T, F> targetVersion = targetHistory.getVersion();
+            if ( targetVersion != null ) {
+                parentChanges.add( targetHistory.getVersion() );
+            }
             /* This is an initial change so we must populate all fields with 
-               their default values
+            their default values
              */
             targetHistory.initFirstChange( this );
         }
-        
+
         calcUuid();
         frozen = true;
         for ( Change<T,F> parent : parentChanges ) {
             parent.addChildChange( this );
         }
         targetHistory.addChange( this );
-        targetHistory.applyChange( this );
+//        targetHistory.applyChange( this );
     }
     
     /**

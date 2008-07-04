@@ -20,9 +20,9 @@
 
 package org.photovault.imginfo.dto;
 
-import org.photovault.imginfo.*;
 import org.hibernate.Session;
-import org.photovault.replication.DTOResolver;
+import org.photovault.imginfo.*;
+import org.photovault.replication.HibernateDTOResolver;
 
 /**
  Utility class used to merge image files described by {@link ImageFileDTO} to 
@@ -32,26 +32,23 @@ import org.photovault.replication.DTOResolver;
  @since 0.6.0
  @see ImageFileDTO
  */
-public class ImageFileDtoResolver implements DTOResolver<ImageFile, ImageFileDTO> {
+public class ImageFileDtoResolver extends HibernateDTOResolver<ImageFile, ImageFileDTO> {
 
-    /**
-     Hibernate session used to do queries and persist created objects.
-     */
-    private Session session;
 
     /**
      Creates a new resolver.
      */
     public ImageFileDtoResolver() {
-        
+        super();
     }
-    
+        
     /**
-     Set the Hibernate session used.
-     @param s The session.
+     Constructor for creating resolver as part of {@link OrigImageRefResolver}.
+     @param s
      */
-    public void setSession( Session s ) {
-        session = s;
+    ImageFileDtoResolver( Session s ) {
+        super();
+        setSession( s );
     }
     
     /**
@@ -63,7 +60,7 @@ public class ImageFileDtoResolver implements DTOResolver<ImageFile, ImageFileDTO
      */
     public ImageFile getObjectFromDto( ImageFileDTO dto ) {
         ImageFile file = 
-                (ImageFile) session.get(  ImageFile.class,dto.getUuid() );
+                (ImageFile) getSession().get(  ImageFile.class, dto.getUuid() );
         if ( file == null ) {
             file = new ImageFile();
             file.setId( dto.getUuid() );
@@ -74,7 +71,7 @@ public class ImageFileDtoResolver implements DTOResolver<ImageFile, ImageFileDTO
                 img.setFile( file );
                 file.getImages().put( imgdto.getLocator(), img  );
             }
-            session.save( file );
+            getSession().save( file ); 
         }
         return file;
     }

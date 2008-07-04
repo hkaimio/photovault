@@ -20,29 +20,37 @@
 
 package org.photovault.replication;
 
-import java.util.UUID;
-import org.photovault.persistence.GenericDAO;
+import org.hibernate.Session;
 
 /**
- Data access object interface for managing persistenc {@link Change} instances
+ Base class for DTO resolvers that use Hibernate persistence to look up for
+ existing objects. The only addition to {@link DTOResolver} is the addition
+ of session field to access Hibernate session.
+ 
+ @since 0.6.0
+ @author Harri Kaimio
+ @see DTOResolver
  */
-public interface ChangeDAO<T,F extends Comparable> 
-        extends GenericDAO<Change<T,F>,UUID> {
+public abstract class HibernateDTOResolver<T,D> implements DTOResolver<T,D> {
+
+    /**
+     Session used to look up instances
+     */
+    private Session session;
     
     /**
-     Find the change history of the given object
+     Set the session used by this object
+     @param s The Hibernate session that will be used
      */
-    ChangeSupport<T,F> findObjectHistory( UUID id );
+    final public void setSession( Session s ) {
+        session = s;
+    }
     
     /**
-     Find change with given ID. Unlike the standard findById method this method 
-     is guaranteed to check whether object with given ID exists in database and
-     not to return an proxy for nonexistent object.
-     @param id UUID of the change
-     @return Change if it is found from local context, <code>null</code> 
-     otherwise.
+     Get the session that is used for looking up objetcs
+     @return
      */
-    Change<T,F> findChange( UUID id );
-    
-    void makePersistent( ChangeSupport<T,F> objectHistory );
+    final protected Session getSession() {
+        return session;
+    }
 }

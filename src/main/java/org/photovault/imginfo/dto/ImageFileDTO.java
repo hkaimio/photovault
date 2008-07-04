@@ -20,6 +20,10 @@
 
 package org.photovault.imginfo.dto;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import org.photovault.imginfo.*;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,7 +44,7 @@ import java.util.UUID;
  @since 0.6.0
  @author Harri Kaimio
  */
-public class ImageFileDTO {
+public class ImageFileDTO implements Serializable {
     
     /**
      Constructs an ImageFileDTO based on ImageFile object
@@ -74,38 +78,76 @@ public class ImageFileDTO {
     }
     /**
      UUID of the image file
+     @serialField 
      */
     private UUID uuid;
     
     /**
      MD5 hash of the image file
+     @serialField 
      */
     private byte[] hash;
     
     /**
      Size of the image file (in bytes)
+     @serialField 
      */
     private long size;
     
     /**
      Images belonging to the file
      */
-    private Map<String, ImageDescriptorDTO> images;
+    transient private Map<String, ImageDescriptorDTO> images;
 
+    /**
+     Returns UUID of the described image file
+     */
     public UUID getUuid() {
         return uuid;
     }
 
+    /**
+     Returns hash of the described image file
+     */
     public byte[] getHash() {
         return hash;
     }
 
+    /**
+     Returns size of the described image file in bytes
+     */
     public long getSize() {
         return size;
     }
 
+    /**
+     Returns all images contained in the file
+     */
     public Map<String, ImageDescriptorDTO> getImages() {
         return Collections.unmodifiableMap( images );
     }
-
+    
+    /**
+     Write the obejct to stream
+     @param is
+     */
+    void writeObject( ObjectOutputStream os ) throws IOException {
+        os.defaultWriteObject();
+        os.writeInt( images.size() );
+        for ( Map.Entry<String,ImageDescriptorDTO> e : images.entrySet() ) {
+            os.writeObject( e.getKey() );
+            os.writeObject( e.getValue() );
+        }
+    }
+    
+    void readObject( ObjectInputStream is ) 
+            throws IOException, ClassNotFoundException {
+        is.defaultReadObject();
+        int imageCount = is.readInt();
+        for ( int n = 0 ; n < imageCount ; n++ ) {
+            String locator = (String) is.readObject();
+            ImageDescriptorDTO dto = (ImageDescriptorDTO) is.readObject();
+            images.put( locator, dto );
+        }
+    }
 }

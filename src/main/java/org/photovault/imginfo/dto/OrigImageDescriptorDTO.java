@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo.dto;
 
+import java.io.Serializable;
 import org.photovault.imginfo.*;
 import java.util.Map;
 import java.util.UUID;
@@ -27,12 +28,15 @@ import java.util.UUID;
 /**
  Data transfer object of {@link OriginalImageDescriptor} objects.
  
+ @serial TODO write decent serialized form documentation 
+ 
  @since 0.6.0
  @author Harri Kaimio
  @see OriginalImageDescriptor
  @see ImageDescriptorDTO
  */
-public class OrigImageDescriptorDTO extends ImageDescriptorDTO {
+public class OrigImageDescriptorDTO 
+        extends ImageDescriptorDTO implements Serializable {
 
     /**
      Constructor used internally
@@ -43,6 +47,15 @@ public class OrigImageDescriptorDTO extends ImageDescriptorDTO {
         super( img );
     }
 
+    /**
+     Default constructor, for serialization
+     */
+    OrigImageDescriptorDTO() {
+        super();
+    }
+
+    
+    
     @Override
     protected ImageDescriptorBase createImageDescriptor() {
         return new OriginalImageDescriptor();

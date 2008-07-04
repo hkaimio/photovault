@@ -99,10 +99,19 @@ public abstract class ObjectEditorInvocationHandler<T,F extends Comparable>
     
     public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
         String name = method.getName();
-        F field = getField( method );
         Object ret = null;
-        if ( field != null ) {
-            change.setField( field, args[0] );
+        if ( method.isAnnotationPresent( Setter.class ) ) {
+            Setter ann = method.getAnnotation( Setter.class );
+            String fieldName = ann.field();
+            F field = getFieldForName( fieldName );
+            Class dtoResolvClass = ann.dtoResolver();
+            DTOResolver dtoResovler = null;
+            Object val = args[0];
+            if ( dtoResolvClass != DefaultDtoResolver.class ) {
+                dtoResovler = (DTOResolver) dtoResolvClass.newInstance();
+                val = dtoResovler.getDtoFromObject( val );
+            }
+            change.setField( field, val );
         } else {
             ret = method.invoke( target, method );
         }

@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.testng.annotations.Test;
@@ -82,6 +83,21 @@ public class TestChange {
         @Override
         public UUID getGlobalId() {
             return target.uuid;
+        }
+
+        @Override
+        protected FieldDescriptor<TestObject> getFieldDescriptor( String field ) {
+            throw new UnsupportedOperationException( "Not supported yet." );
+        }
+
+        @Override
+        protected Map<String, FieldDescriptor<TestObject>> getFieldDescriptors() {
+            throw new UnsupportedOperationException( "Not supported yet." );
+        }
+
+        @Override
+        protected TestObject createTarget() {
+            throw new UnsupportedOperationException( "Not supported yet." );
         }
 
     }
@@ -138,12 +154,12 @@ public class TestChange {
         }
 
         @Override
-        Object getValue( TestObject target ) {
+        public Object getValue( TestObject target ) {
             return ((TestObject)target).f1;
         }
 
         @Override
-        void setValue( TestObject target, Object newValue ) {
+        public void setValue( TestObject target, Object newValue ) {
             TestObject t = (TestObject)target;
             t.f1 = (Integer)newValue;
         }
@@ -157,12 +173,12 @@ public class TestChange {
         }
 
         @Override
-        Object getValue(  TestObject target ) {
+        public Object getValue(  TestObject target ) {
             return target.f2;
         }
 
         @Override
-        void setValue(  TestObject target,  Object newValue ) {
+        public void setValue(  TestObject target,  Object newValue ) {
             target.f2 = (Integer) newValue;
         }
     }

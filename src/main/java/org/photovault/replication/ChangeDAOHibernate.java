@@ -51,4 +51,9 @@ public class ChangeDAOHibernate<T,F extends Comparable>
         return (Change<T, F>) q.uniqueResult();
     }
 
+    public void makePersistent( ChangeSupport<T, F> objectHistory ) {
+        getSession().saveOrUpdate( objectHistory );
+        getSession().saveOrUpdate( objectHistory.getOwner() );
+    }
+
 }

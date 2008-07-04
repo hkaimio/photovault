@@ -26,15 +26,15 @@ import org.photovault.replication.ObjectEditorInvocationHandler;
  Invocation handler for {@link PhotoEditor}
  */
 public class PhotoEditorInvocationHandler 
-        extends ObjectEditorInvocationHandler<PhotoInfo, PhotoInfoFields> {
+        extends ObjectEditorInvocationHandler<PhotoInfo, String> {
 
     public PhotoEditorInvocationHandler( PhotoInfoChangeSupport history ) {
         super( history );
     }
     
     @Override
-    protected PhotoInfoFields getFieldForName( String name ) {
-        return PhotoInfoFields.getByName( name );
+    protected String getFieldForName( String name ) {
+        return name;
     }
 
 }

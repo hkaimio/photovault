@@ -37,12 +37,15 @@ public abstract class ImageDescriptorDTO {
 
     /**
      Constructor
-     @param img The iamge used to construct this DTO
+     @param img The image used to construct this DTO
      */
     ImageDescriptorDTO( ImageDescriptorBase img ) {
         width = img.getWidth();
         height = img.getHeight();
         locator = img.getLocator();
+    }
+
+    ImageDescriptorDTO() {
     }
     
     /**
@@ -63,7 +66,7 @@ public abstract class ImageDescriptorDTO {
     /**
      Create a new image descriptor based on this DTO. Used internally by 
      {@link ImageFileDtoResolver}. The method first calls createImageDescriptor()
-     to isntantiate correct subclass of ImageDescriptorBAse. After that it calls
+     to instantiate correct subclass of ImageDescriptorBAse. After that it calls
      updateDescriptor() to set the fields to correct values.
      @param resolver The resolver used to find or create referenced ImageFile 
      instances

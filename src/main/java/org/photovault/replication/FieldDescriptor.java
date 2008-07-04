@@ -24,7 +24,6 @@ import java.io.Serializable;
 
 /**
  Test class of field descriptors
- @deprecated There isno need to use this class in production code
  */
 public abstract class FieldDescriptor<T> implements Comparable, Serializable {
     
@@ -34,11 +33,13 @@ public abstract class FieldDescriptor<T> implements Comparable, Serializable {
         this.name = name;
     }
 
-    abstract Object getValue( T target );
+    public abstract Object getValue( T target );
     
-    abstract Object getValueDTO( T target );
+    public Class<? extends DTOResolver> getDtoResolverClass() {
+        return null;
+    }
     
-    abstract void setValue( T target, Object newValue );
+    public abstract void setValue( T target, Object newValue );
     
     @Override
     public String toString() {
