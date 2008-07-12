@@ -31,6 +31,7 @@ import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.dcraw.RawImage;
 import org.photovault.image.PhotovaultImage;
+import org.photovault.replication.VersionedObjectEditor;
 
 /**
  Command for modifying an {@link ImageFile}. The only operations supported are
@@ -144,7 +145,12 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                 if ( imgDesc == null ) {
                     throw new CommandException( file.getPath() + " is not an image" );
                 }
-                PhotoInfo photo = new PhotoInfo( imgDesc );
+                PhotoInfo photo = PhotoInfo.create();
+                VersionedObjectEditor<PhotoInfo> e = 
+                        new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), 
+                        daoFactory.getDTOResolverFactory() );
+                PhotoEditor photoEditor = (PhotoEditor) e.getProxy();
+                e.setField( "original", imgDesc );
                 if ( img != null ) {
                     /**
                      TODO: this should be implemented using 
@@ -152,23 +158,24 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                      dependency from org.photovault.image to imginfo. Try to figure 
                      out something more maintainable.
                      */
-                    photo.setFStop( img.getAperture() );
-                    photo.setFilmSpeed( img.getFilmSpeed() );
-                    photo.setShootTime( img.getTimestamp() );
+                    photoEditor.setFStop( img.getAperture() );
+                    photoEditor.setFilmSpeed( img.getFilmSpeed() );
+                    photoEditor.setShootTime( img.getTimestamp() );
 
-                    photo.setShutterSpeed( img.getShutterSpeed() );
-                    photo.setFocalLength( img.getFocalLength() );
+                    photoEditor.setShutterSpeed( img.getShutterSpeed() );
+                    photoEditor.setFocalLength( img.getFocalLength() );
                     String camera = img.getCamera();
                     if ( camera.length() > PhotoInfo.CAMERA_LENGTH ) {
                         camera = camera.substring( 0, PhotoInfo.CAMERA_LENGTH );
                     }
-                    photo.setCamera( camera );
+                    photoEditor.setCamera( camera );
                     if ( img instanceof RawImage ) {
-                        photo.setRawSettings( ((RawImage)img).getRawSettings() );
+                        photoEditor.setRawSettings( ((RawImage)img).getRawSettings() );
                     }
                 }
+                e.apply();
                 // photo.updateFromFileMetadata( file );
-                photoDAO.makePersistent( photo );
+                // photoDAO.makePersistent( photo );
                 createdPhotos.add( photo );
             } catch ( Exception e ) {
                 log.error( "Error in creating image file: " + e.getMessage() );

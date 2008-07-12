@@ -26,8 +26,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -46,6 +44,11 @@ public class VersionedClassDesc {
      Class described by this instance
      */
     private Class clazz;
+    
+    /**
+     Interface used for editing the class
+     */    
+    private Class editorIntf;
     
     /**
      Construct a new class description by analyzing given class
@@ -89,6 +92,10 @@ public class VersionedClassDesc {
         if ( scl != null ) {
             analyzeClass( scl );
         }
+        Versioned info = (Versioned) cl.getAnnotation( Versioned.class );
+        if ( info != null ) {
+            editorIntf = info.editor();
+        }
         for ( Method m : cl.getDeclaredMethods() ) {
             Setter s = m.getAnnotation( Setter.class );
             if ( s != null ) {
@@ -96,6 +103,7 @@ public class VersionedClassDesc {
                 FieldDesc fd = fields.get( fieldName );
                 if ( fd == null ) {
                     fd = new FieldDesc();
+                    fd.name = fieldName;
                     fields.put( fieldName, fd );
                 }
                 fd.setter = m;
@@ -124,7 +132,34 @@ public class VersionedClassDesc {
                 if ( fd.getter != null ) {
                     methodRoles.put(  fd.getter, new MethodRole( fd, FieldOper.GET ) );
                 }
-                
+                if ( editorIntf != null ) {
+                    /*
+                     Find the methods with the same names from editor interface
+                     */
+                    if ( fd.setter != null ) {
+                        try {
+                            Method es = editorIntf.getMethod( fd.setter.getName(),
+                                    fd.clazz );
+                            editorMethodRoles.put( es,
+                                    new MethodRole( fd, FieldOper.SET ) );
+                        } catch ( NoSuchMethodException ex ) {
+                            log.warn( ex );
+                        } catch ( SecurityException ex ) {
+                            log.warn( ex );
+                        }
+                    }
+                    if ( fd.getter != null ) {
+                        try {
+                            Method es = editorIntf.getMethod( fd.getter.getName() );
+                            editorMethodRoles.put( es,
+                                    new MethodRole( fd, FieldOper.GET ) );
+                        } catch ( NoSuchMethodException ex ) {
+                            log.warn( ex );
+                        } catch ( SecurityException ex ) {
+                            log.warn( ex );
+                        }
+                    }
+                }
             }
         }
     }
@@ -186,7 +221,8 @@ public class VersionedClassDesc {
     /**
      Description of a single field
      */
-    private static class FieldDesc {
+    static class FieldDesc {
+        public String name;
         /**
          Setter for this field
          */
@@ -207,7 +243,8 @@ public class VersionedClassDesc {
         
         private FieldDesc() {}
 
-        private FieldDesc( Class fieldClass, Class<DTOResolver> dtoResolverClass, Method setter, Method getter ) {
+        private FieldDesc( String name, Class fieldClass, Class<DTOResolver> dtoResolverClass, Method setter, Method getter ) {
+            this.name = name;
             clazz = fieldClass;
             this.dtoResolverClass = dtoResolverClass;
             this.setter = setter;
@@ -218,12 +255,12 @@ public class VersionedClassDesc {
     /**
      Operations for the field
      */
-    enum FieldOper {
+    static enum FieldOper {
         SET,
         GET
     }
     
-    private static class MethodRole {
+    static class MethodRole {
         FieldDesc field;
         FieldOper operation;
         
@@ -236,5 +273,16 @@ public class VersionedClassDesc {
     private Map<String,FieldDesc> fields = new HashMap<String, FieldDesc>();
     
     private Map<Method, MethodRole> methodRoles = new HashMap<Method,MethodRole>();
+    
+    private Map<Method, MethodRole> editorMethodRoles = 
+            new HashMap<Method,MethodRole>();
+    
+    MethodRole getEditorMethodRole( Method m ) {
+        return editorMethodRoles.get( m );
+    }
+    
+    Class getEditorClass() {
+        return editorIntf;
+    }
 
 }

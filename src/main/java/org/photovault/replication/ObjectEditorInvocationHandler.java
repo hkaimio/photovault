@@ -115,6 +115,7 @@ public abstract class ObjectEditorInvocationHandler<T,F extends Comparable>
         } else {
             ret = method.invoke( target, method );
         }
+        
         return ret;
     }
 }

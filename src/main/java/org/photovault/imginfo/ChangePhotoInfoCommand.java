@@ -29,14 +29,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.apache.commons.beanutils.PropertyUtils;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.dom.DOMImplementationImpl;
-import org.apache.xml.security.c14n.Canonicalizer;
-import org.apache.xml.serialize.SerializerFactory;
 import org.photovault.command.CommandException;
-import org.photovault.command.CommandExecutedEvent;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.ColorProfileDesc;
@@ -48,7 +45,11 @@ import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.xml.ChangeDesc;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.replication.Change;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.HibernateDtoResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -346,17 +347,71 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 EnumSet.range( PhotoInfoFields.RAW_BLACK_LEVEL, PhotoInfoFields.RAW_COLOR_PROFILE);
         Set<PhotoInfoFields> colorCurveFields = 
                 EnumSet.range( PhotoInfoFields.COLOR_CURVE_VALUE, PhotoInfoFields.COLOR_CURVE_SATURATION );
+        
+        DTOResolverFactory resolverFactory = daoFactory.getDTOResolverFactory();
         for ( PhotoInfo photo : photos ) {
             /*
-             Ensure that this photo is persistence & the instance belongs to 
-             current persistence context
+            Ensure that this photo is persistence & the instance belongs to 
+            current persistence context
              */
             changedPhotos.add( photo );
-            Change<PhotoInfo,String> ch = photo.getHistory().createChange();
-            for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
-                ch.setField( e.getKey().getName(), e.getValue() );
+            VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor(
+                    photo.getHistory(), resolverFactory );
+            RawSettingsFactory rawSettingsFactory = null;
+            ChannelMapOperationFactory channelMapFactory = null;
+            for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
+                PhotoInfoFields field = e.getKey();
+                Object value = e.getValue();
+                if ( rawSettingsFields.contains( field ) ) {
+                    // This is a raw setting field, we must use factory for changing it
+                    if ( rawSettingsFactory == null ) {
+                        rawSettingsFactory = new RawSettingsFactory(
+                                photo.getRawSettings() );
+                    }
+                    this.setRawField( rawSettingsFactory, field, value );
+                } else if ( colorCurveFields.contains( field ) ) {
+                    if ( channelMapFactory == null ) {
+                        channelMapFactory = new ChannelMapOperationFactory(
+                                photo.getColorChannelMapping() );
+                    }
+                    switch ( field ) {
+                        case COLOR_CURVE_VALUE:
+                            channelMapFactory.setChannelCurve( "value",
+                                    (ColorCurve) value );
+                            break;
+                        case COLOR_CURVE_RED:
+                            channelMapFactory.setChannelCurve( "red",
+                                    (ColorCurve) value );
+                            break;
+                        case COLOR_CURVE_BLUE:
+                            channelMapFactory.setChannelCurve( "blue",
+                                    (ColorCurve) value );
+                            break;
+                        case COLOR_CURVE_GREEN:
+                            channelMapFactory.setChannelCurve( "green",
+                                    (ColorCurve) value );
+                            break;
+                        case COLOR_CURVE_SATURATION:
+                            channelMapFactory.setChannelCurve( "saturation",
+                                    (ColorCurve) value );
+                            break;
+                    }
+                } else {
+                    pe.setField( e.getKey().getName(), e.getValue() );
+                }
             }
-            ch.freeze();
+            if ( rawSettingsFactory != null ) {
+                try {
+                    pe.setField( "rawSettings", rawSettingsFactory.create() );
+                } catch ( PhotovaultException ex ) {
+                    throw new CommandException( "Cannot set raw settings:" + ex.getMessage() );
+                }
+            }
+            if ( channelMapFactory != null ) {
+                pe.setField( "colorChannelMapping", channelMapFactory.create() );
+            }
+            
+            pe.apply();
 //            RawSettingsFactory rawSettingsFactory = null;
 //            ChannelMapOperationFactory channelMapFactory = null;
 //            for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
@@ -494,19 +549,6 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                     f.setAttribute( "uuid", id.toString() );
                     removedFolders.appendChild( f );
                 }
-            }
-            try {
-                if ( !org.apache.xml.security.Init.isInitialized() ) {
-                    org.apache.xml.security.Init.init();
-                }
-                Canonicalizer c14n = Canonicalizer.getInstance(
-                        "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments" );
-                byte[] xmlData = c14n.canonicalizeSubtree( changeDesc );
-                log.debug( "Canonicalized description:\n" + new String( xmlData, "utf-8" ) );
-                UUID uuid = UUID.nameUUIDFromBytes( xmlData );
-                changeEnvelope.setAttribute( "uuid", uuid.toString() );
-            } catch ( Exception e ) {
-                log.warn( "Exception calculating uuid: " + e.getMessage() );
             }
             LSSerializer writer = ((DOMImplementationLS)domImpl).createLSSerializer();
             xml = writer.writeToString(doc);            

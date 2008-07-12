@@ -61,10 +61,10 @@ import org.photovault.image.PhotovaultImageFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.photovault.imginfo.dto.ImageFileDtoResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
 import org.photovault.replication.Setter;
+import org.photovault.replication.Versioned;
 
 /**
  PhotoInfo represents information about a single photograph
@@ -72,6 +72,7 @@ import org.photovault.replication.Setter;
  */
 @Entity
 @Table( name = "photos" )
+@Versioned( editor = PhotoEditor.class )
 public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     
     static Log log = LogFactory.getLog( PhotoInfo.class.getName() );

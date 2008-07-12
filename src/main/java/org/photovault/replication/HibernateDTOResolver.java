@@ -21,6 +21,7 @@
 package org.photovault.replication;
 
 import org.hibernate.Session;
+import org.photovault.persistence.HibernateUtil;
 
 /**
  Base class for DTO resolvers that use Hibernate persistence to look up for
@@ -48,9 +49,13 @@ public abstract class HibernateDTOResolver<T,D> implements DTOResolver<T,D> {
     
     /**
      Get the session that is used for looking up objetcs
-     @return
+     @return The session set by setSession. If this is <code>null</code>, returns
+     the current sesson bount to this thread.
      */
     final protected Session getSession() {
+        if (session == null)
+            session = HibernateUtil.getSessionFactory()
+            .getCurrentSession();
         return session;
     }
 }

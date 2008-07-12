@@ -35,6 +35,8 @@ import org.photovault.imginfo.VolumeDAO;
 import org.photovault.imginfo.VolumeDAOHibernate;
 import org.photovault.replication.ChangeDAO;
 import org.photovault.replication.ChangeDAOHibernate;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.HibernateDtoResolverFactory;
 
 /**
  Factory for creating Hibernate data access objects for Photovault.
@@ -63,6 +65,10 @@ public class HibernateDAOFactory extends DAOFactory {
     
     public void setSession( Session session ) {
         this.session = session;
+    }
+    
+    public Session getSession() {
+        return session;
     }
     
     
@@ -96,6 +102,12 @@ public class HibernateDAOFactory extends DAOFactory {
     @Override
     public ChangeDescDAO getChangeDescDAO() {
         return (ChangeDescDAO) instantiateDAO( ChangeDescDAOHibernate.class );        
+    }
+
+    @Override
+    public DTOResolverFactory getDTOResolverFactory() {
+        HibernateDtoResolverFactory df = new HibernateDtoResolverFactory( session );
+        return df;
     }
     
 }

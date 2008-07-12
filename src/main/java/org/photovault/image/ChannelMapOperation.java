@@ -21,6 +21,10 @@
 package org.photovault.image;
 
 import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,7 +39,7 @@ import java.util.Set;
  This class is immutable, new objects should be created using {@link 
  ChannelMapOperationFactory}.
  */
-public class ChannelMapOperation {
+public class ChannelMapOperation implements Serializable {
     
     /**
      * Creates a new instance of ChannelMapOperation. Should not be used by 
@@ -46,8 +50,8 @@ public class ChannelMapOperation {
     
     /**
      Map from channel name to an array of control points (Point2D objects)
-     */
-    Map channelPoints = new HashMap();
+      */
+    transient Map<String, Point2D[]> channelPoints = new HashMap();
     
     /**
      Get names of defined channels
@@ -208,4 +212,42 @@ public class ChannelMapOperation {
         return hash;
     }
 
+    /**
+     Serialize the object
+     @param os The object stream
+     @throws java.io.IOException
+     @serialData Number of channels, followed by for each channel: the number 
+     of points, for each point x and y coordinates
+     */
+    private void writeObject( ObjectOutputStream os ) throws IOException {
+        os.defaultWriteObject();
+        os.writeInt( channelPoints.size() );
+        for ( Map.Entry<String, Point2D[]> e : channelPoints.entrySet() ) {
+            os.writeObject( e.getKey() );
+            Point2D[] points = e.getValue();
+            os.writeInt( points.length );
+            for ( Point2D p : points ) {
+               os.writeDouble( p.getX() ); 
+               os.writeDouble( p.getY() ); 
+            }
+        }
+    }
+    
+    private void readObject( ObjectInputStream is ) 
+            throws IOException, ClassNotFoundException {
+        is.defaultReadObject();
+        channelPoints = new HashMap<String, Point2D[]>();
+        int chanCount = is.readInt();
+        for ( int n = 0 ; n < chanCount ; n++ ) {
+            String chanName = (String) is.readObject();
+            int pointCount = is.readInt();
+            Point2D[] points = new Point2D[pointCount];
+            for ( int m = 0 ; m < pointCount ; m++ ) {
+                double x = is.readDouble();
+                double y = is.readDouble();
+                points[m] = new Point2D.Double( x, y );
+            }
+            channelPoints.put(  chanName, points );
+        }
+    }
 }

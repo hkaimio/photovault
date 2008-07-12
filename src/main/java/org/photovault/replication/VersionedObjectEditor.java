@@ -20,6 +20,7 @@
 
 package org.photovault.replication;
 
+import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -75,6 +76,21 @@ public class VersionedObjectEditor<T> {
         if ( prevChange != null ) {
             change.setPrevChange( history.getVersion() );
         }
+    }
+    
+    public Object getProxy() {
+        EditorProxyInvocationHandler ih = 
+                new EditorProxyInvocationHandler( this, classDesc );
+        Class editorClass = classDesc.getEditorClass();
+        if ( editorClass == null ) {
+            throw new IllegalStateException( 
+                    "Cannot create editor proxy for class " + 
+                    history.getOwner().getClass().getName() + 
+                    "as it has not been defined" );
+        }
+        return Proxy.newProxyInstance( 
+                this.getClass().getClassLoader(), 
+                new Class[]{editorClass}, ih );
     }
 
     /**
