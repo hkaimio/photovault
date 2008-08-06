@@ -119,9 +119,13 @@ public class Test_CurrentFolderIndexer extends PhotovaultTestCase {
         
         task.executeTask(session, cmdHandler);
         task = indexer.requestTask();
+        task.executeTask( session, cmdHandler );
+        task = indexer.requestTask();
         assertTrue( task instanceof IndexFileTask );
         task.executeTask(session, cmdHandler);        
         task = indexer.requestTask();
+        task.executeTask(session, cmdHandler);        
+        task = indexer.requestTask(); 
         assertNull( task );
     }
     
@@ -149,6 +153,10 @@ public class Test_CurrentFolderIndexer extends PhotovaultTestCase {
         File tt2 = new File( topDir, "subdir/test2.jpg" );
         FileUtils.copyFile(t2, tt2);
         task = indexer.requestTask();
+        while ( !( task instanceof IndexFileTask ) ) {
+            task.executeTask(session, cmdHandler);                
+            task = indexer.requestTask();            
+        }
         assertEquals( tt2, ((IndexFileTask)task).getFile() );
     }
 }

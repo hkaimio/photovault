@@ -481,10 +481,10 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 folder.removePhoto( photo );
             }
             
-            PhotoInfoChangeDesc change = new PhotoInfoChangeDesc( 
-                    photo, changedFields, af, rf );
-            changes.add( change );
-            photo.setVersion( change );
+//            PhotoInfoChangeDesc change = new PhotoInfoChangeDesc( 
+//                    photo, changedFields, af, rf );
+//            changes.add( change );
+//            photo.setVersion( change );
         }
     }
     String xml = null;

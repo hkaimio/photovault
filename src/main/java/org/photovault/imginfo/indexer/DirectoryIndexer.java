@@ -258,8 +258,10 @@ public class DirectoryIndexer {
         int subdirCount = 0;
         for ( File entry : entries ) {
             if ( entry.isDirectory() ) {
-                subdirCount++;
-                subdirs.add( entry );
+                if ( !entry.getName().equals( ".photovault_volume" ) ) {
+                    subdirCount++;
+                    subdirs.add( entry );
+                }
             } else {
                 filesLeft++;
                 files.add( entry );
@@ -280,9 +282,16 @@ public class DirectoryIndexer {
                 }
                 subfolder = findSubfolderByName( folder, folderName );
                 if ( subfolder == null ) {
-                    CreatePhotoFolderCommand createFolder = 
+                    CreatePhotoFolderCommand createFolder =
                             new CreatePhotoFolderCommand( folder, folderName,
                             "imported from " + subdir.getAbsolutePath() );
+                    StringBuffer pathBuf =
+                            new StringBuffer( folder.getExternalDir().getPath() );
+                    if ( pathBuf.length() > 0 ) {
+                        pathBuf.append( "/" );
+                    }
+                    pathBuf.append( subdir.getName() );
+                    createFolder.setExtDir( volume, pathBuf.toString() );
                     try {
                         cmdHandler.executeCommand( createFolder );
                     } catch (CommandException ex) {

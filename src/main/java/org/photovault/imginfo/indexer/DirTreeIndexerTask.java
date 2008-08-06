@@ -113,7 +113,7 @@ public class DirTreeIndexerTask extends BackgroundTask {
         }
         File[] dirEntries = dir.listFiles();
         for ( File d : dirEntries ) {
-            if ( d.isDirectory() ) {
+            if ( d.isDirectory() && !d.getName().equals( ".photovault_volume" ) ) {
                 folderCount++;
                 PhotoFolder f = null;
                 // Is there an existing folder for this directory?

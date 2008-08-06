@@ -579,6 +579,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
     @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
     @JoinColumn( name = "original_id", nullable = true )    
+    @org.hibernate.annotations.AccessType( "field" )
     public OriginalImageDescriptor getOriginal() {
         return original;
     }

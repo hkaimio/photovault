@@ -203,6 +203,7 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
         try {
             task.executeTask( session, cmdHandler );
         } catch ( Exception e ) {
+            log.warn( e.getMessage() );
             throw e;
         } finally {
             session.close(  );

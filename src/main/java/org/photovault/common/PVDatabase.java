@@ -398,6 +398,7 @@ public class PVDatabase {
             volInfo.set( "volume_name", defVol.getName() );
             platform.insert( dbModel, volInfo );
             VolumeManager.instance().initVolume( defVol, defVolDir );
+            mountPoints.add(  defVolDir );
 
             DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
             dbInfo.set( "database_id", idStr );

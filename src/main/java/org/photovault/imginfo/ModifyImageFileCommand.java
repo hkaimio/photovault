@@ -146,6 +146,7 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                     throw new CommandException( file.getPath() + " is not an image" );
                 }
                 PhotoInfo photo = PhotoInfo.create();
+                photoDAO.makePersistent( photo );
                 VersionedObjectEditor<PhotoInfo> e = 
                         new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), 
                         daoFactory.getDTOResolverFactory() );

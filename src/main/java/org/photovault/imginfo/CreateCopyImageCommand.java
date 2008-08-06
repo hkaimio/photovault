@@ -398,10 +398,12 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
             
             
             Date shootDate = photo.getShootTime();
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
-            String xmpShootDate = df.format(shootDate);
-            
-            meta.setProperty( NS_XMP_BASIC, "CreateDate", xmpShootDate  );
+            if ( shootDate != null ) {
+                DateFormat df = new SimpleDateFormat( 
+                        "yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
+                String xmpShootDate = df.format( shootDate );
+                meta.setProperty( NS_XMP_BASIC, "CreateDate", xmpShootDate );
+            }
 
             // Save technical data
             meta.setProperty( NS_TIFF, "Model", photo.getCamera() );
