@@ -293,6 +293,7 @@
             <jvmarg value="-Xnoagent"/>
             <jvmarg value="-Djava.compiler=none"/>
             <jvmarg value="-Dbasedir=${basedir}"/>
+            <jvmarg value="-Dlog4j.configuration=photovault_log4j.properties"/>
             
             <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>                
             <classpath>
