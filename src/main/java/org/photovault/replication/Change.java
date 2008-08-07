@@ -213,6 +213,7 @@ public class Change<T, F extends Comparable> {
             ByteArrayOutputStream s = new ByteArrayOutputStream();
             ObjectOutputStream os = new ObjectOutputStream( s );
             writeFieldChanges( os );
+            os.flush();
             res = s.toByteArray();
         } catch ( IOException ex ) {
             log.debug( ex.getMessage(), ex );
