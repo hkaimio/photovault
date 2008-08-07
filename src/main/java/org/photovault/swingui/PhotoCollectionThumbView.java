@@ -327,7 +327,8 @@ public class PhotoCollectionThumbView
                 "Show the selected phot(s)",
                 KeyEvent.VK_S );
         JMenuItem showItem = new JMenuItem( showSelectedPhotoAction );
-        
+        showHistoryAction = new ShowPhotoHistoryAction( this, "Show history", 
+                null, "Show history of selected photo", KeyEvent.VK_H, null );
         
         JMenuItem rotateCW = new JMenuItem( ctrl.getActionAdapter( "rotate_cw" ) );
         JMenuItem rotateCCW = new JMenuItem( ctrl.getActionAdapter( "rotate_ccw" ) );
@@ -377,6 +378,7 @@ public class PhotoCollectionThumbView
         
         rawIcon = getIcon( "raw_icon.png" );
         
+        JMenuItem showHistory = new JMenuItem( showHistoryAction );
         
         popup.add( showItem );
         popup.add( propsItem );
@@ -388,6 +390,7 @@ public class PhotoCollectionThumbView
         popup.add( addToFolder );
         popup.add( exportSelected );
         popup.add( deleteSelected );
+        popup.add( showHistory );
         MouseListener popupListener = new PopupListener();
         addMouseListener( popupListener );
         
@@ -466,6 +469,7 @@ public class PhotoCollectionThumbView
     private AbstractAction selectNextAction;
     private AbstractAction selectPrevAction;
     private AbstractAction deleteSelectedAction;
+    private AbstractAction showHistoryAction;
     
 
     public AbstractAction getExportSelectedAction() {

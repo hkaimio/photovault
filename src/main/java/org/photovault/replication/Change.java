@@ -251,7 +251,7 @@ public class Change<T, F extends Comparable> {
     @JoinTable(name = "change_relations",
         joinColumns = {@JoinColumn(name = "child_uuid")},
         inverseJoinColumns = {@JoinColumn(name = "parent_uuid")})
-    Set<Change<T,F>> getParentChanges() {
+    public Set<Change<T,F>> getParentChanges() {
         return parentChanges;
     }
 
@@ -607,5 +607,33 @@ public class Change<T, F extends Comparable> {
         int hash = 3;
         hash = 89 * hash + (this.uuid != null ? this.uuid.hashCode() : 0);
         return hash;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuffer buf = new StringBuffer();
+        buf.append("UUID: " ).append( this.uuid ).append( "\n" );
+        buf.append( "Target: " ).append( this.targetHistory.getTargetUuid() ).append( "\n" );
+        buf.append( "Predecessors:\n" );
+        if ( parentChanges.size() == 0 ) {
+            buf.append( "  None\n" );
+        }
+        for ( Change c : this.parentChanges ) {
+            buf.append( "  " );
+            buf.append( c.getUuid() );
+            buf.append(  "\n" );
+        }
+        buf.append( "Changed fields:\n" );
+        if ( changedFields.size() == 0 ) {
+            buf.append( "  None\n" );
+        }
+        for ( Map.Entry<F,Object> fc : this.changedFields.entrySet() ) {
+            buf.append( "  " );
+            buf.append( fc.getKey() );
+            buf.append( " -> " );
+            buf.append( fc.getValue() );
+            buf.append(  "\n" );
+        }
+        return buf.toString();
     }
 }
