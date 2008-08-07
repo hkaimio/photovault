@@ -830,7 +830,7 @@ public class PhotoCollectionThumbView
         int row = y / rowHeight;
         int col = x / columnWidth;
         int photoNum = row * columnsToPaint + col;
-        log.warn( "Located photo # " + photoNum ); 
+        log.debug( "Located photo # " + photoNum ); 
         
         if ( photoNum < photos.size() ) {
             Rectangle imgRect = getPhotoBounds( photoNum );
@@ -964,7 +964,7 @@ public class PhotoCollectionThumbView
      * @param mouseEvent a <code>MouseEvent</code> value
      */
     public void mouseClicked(MouseEvent mouseEvent) {
-        log.warn( "mouseClicked (" + mouseEvent.getX() + ", " + mouseEvent.getY() );
+        log.debug( "mouseClicked (" + mouseEvent.getX() + ", " + mouseEvent.getY() );
 
 	if ( dragJustEnded ) {
 	    // Selection was already handled by drag handler so do nothing
@@ -1183,7 +1183,7 @@ public class PhotoCollectionThumbView
         }
 
         if (firstMouseEvent != null) {
-            log.warn( "considering drag" );
+            log.debug( "considering drag" );
             e.consume();
 
             
@@ -1197,7 +1197,7 @@ public class PhotoCollectionThumbView
             //Arbitrarily define a 5-pixel shift as the
             //official beginning of a drag.
             if (dx > 5 || dy > 5) {
-                log.warn( "Start a drag" );
+                log.debug( "Start a drag" );
                 //This is a drag, not a click.
                 JComponent c = (JComponent)e.getSource();
                 //Tell the transfer handler to initiate the drag.

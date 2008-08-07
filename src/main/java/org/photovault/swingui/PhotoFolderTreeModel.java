@@ -21,13 +21,13 @@
 package org.photovault.swingui;
 
 import javax.swing.SwingUtilities;
-import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.folder.*;
 import javax.swing.tree.*;
 import javax.swing.event.*;
 import org.photovault.imginfo.*;
 import java.util.*;
-import org.photovault.persistence.DAOFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 
 /**
@@ -35,7 +35,7 @@ import org.photovault.persistence.DAOFactory;
 */
 
 public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListener {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoFolderTreeModel.class.getName() );
+    static Log log = LogFactory.getLog( PhotoFolderTreeModel.class.getName() );
 
     FolderNodeMapper nodeMapper = null;
     
@@ -213,7 +213,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
         	    l.treeStructureChanged( fe );                    
                 }
             });
-	    log.warn( "Sending treeModelEvent" );
+	    log.debug( "Sending treeModelEvent" );
 	}
     }
     
@@ -234,7 +234,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
-	log.warn( "collectionChanged " + path.length );
+	log.debug( "collectionChanged " + path.length );
 	fireTreeModelEvent( treeEvent );
     }
 
@@ -247,7 +247,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
-	log.warn( "subfolderChanged " + path.length );
+	log.debug( "subfolderChanged " + path.length );
 	fireTreeModelEvent( treeEvent );
 	
     }
@@ -261,7 +261,7 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	
 	// Construct the correct event
 	TreeModelEvent treeEvent = new TreeModelEvent( changedFolder, path );
-	log.warn( "structureChanged " + path.length );
+	log.debug( "structureChanged " + path.length );
 	fireTreeModelEvent( treeEvent );
     }
 
@@ -276,10 +276,10 @@ public class PhotoFolderTreeModel implements TreeModel, PhotoFolderChangeListene
 	Vector ancestors = new Vector();
 	// Add first the final folder
 	ancestors.add( folder );
-	log.warn( "starting finding path for " + folder.getName() );
+	log.debug( "starting finding path for " + folder.getName() );
 	PhotoFolder ancestor = folder.getParentFolder();
 	while ( ancestor != rootFolder && ancestor != null ) {
-	    log.warn( "ancestor " + ancestor.getName() );
+	    log.debug( "ancestor " + ancestor.getName() );
 	    ancestors.add( ancestor );
 	    ancestor = ancestor.getParentFolder();
 	}
