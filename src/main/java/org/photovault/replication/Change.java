@@ -40,6 +40,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -74,7 +75,7 @@ import org.hibernate.annotations.MapKey;
  @param <F> Class that describes individual fields of the change.
  */
 @Entity
-@Table( name="changes" )
+@Table( name="pv_changes" )
 public class Change<T, F extends Comparable> {
     
     static private UUID NULL_UUID = UUID.fromString( "00000000-0000-0000-0000-000000000000" );
@@ -206,7 +207,8 @@ public class Change<T, F extends Comparable> {
         return null;
     }
     
-    @Column( name = "serialized" )
+    @Column( name = "serialized", length = 1048576  )
+    @Lob
     byte[] getSerializedChange() {
         byte[] res = null;
         try {
@@ -535,6 +537,10 @@ public class Change<T, F extends Comparable> {
      </ul>
      
      After freezing a change it cannot be modified anymore.
+     
+     TODO: Now calling initFirstChange here is dangerous because it cannot 
+     initialize fields with special resolvers properly. This method should 
+     probably throw an exception instead.
      */
     public void freeze() {
         if ( hasConflicts() ) {

@@ -30,11 +30,12 @@ import org.photovault.common.PhotovaultException;
  */ 
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
+    private static Configuration cfg;
     
     static public void init( String user, String passwd, PVDatabase dbDesc )
     throws PhotovaultException {
         try {
-            AnnotationConfiguration cfg = new AnnotationConfiguration();
+            cfg = new AnnotationConfiguration();
             cfg.configure();
             if ( dbDesc.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
                 cfg.setProperty( "hibernate.connection.driver_class", 
@@ -73,6 +74,11 @@ public class HibernateUtil {
 // Alternatively, you could look up in JNDI here
         return sessionFactory;
     }
+    
+    public static Configuration getConfiguration() {
+        return cfg;
+    }
+    
     public static void shutdown() {
 // Close caches and connection pools
         getSessionFactory().close();

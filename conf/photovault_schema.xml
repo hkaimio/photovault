@@ -211,8 +211,8 @@
         <unique-column name="NAME"/>
       </unique-->
     </table>
-    <table name="photo_collections">
-        <column name="collection_uuid" primaryKey="true" required="true" type="VARCHAR" size="36" autoIncrement="false"/>
+    <table name="pv_folders">
+        <column name="folder_uuid" primaryKey="true" required="true" type="VARCHAR" size="36" autoIncrement="false"/>
         <column name="parent_uuid" primaryKey="false" required="false" type="VARCHAR" size="36" autoIncrement="false"/>
         <column name="collection_name" primaryKey="false" required="true" type="VARCHAR" size="30" autoIncrement="false"/>
         <column name="collection_desc" primaryKey="false" required="false" type="LONGVARCHAR" size="65535" autoIncrement="false"/>

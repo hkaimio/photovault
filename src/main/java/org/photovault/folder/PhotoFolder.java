@@ -45,7 +45,7 @@ import org.apache.commons.logging.LogFactory;
 */
 
 @Entity
-@Table( name = "photo_collections" )
+@Table( name = "pv_folders" )
 public class PhotoFolder implements PhotoCollection {
 
     static Log log = LogFactory.getLog( PhotoFolder.class.getName() );
@@ -82,7 +82,7 @@ public class PhotoFolder implements PhotoCollection {
     UUID uuid = null;
     
     @Id
-    @Column( name = "collection_uuid" )
+    @Column( name = "folder_uuid" )
     @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
     public UUID getUuid() {
         if ( uuid == null ) {

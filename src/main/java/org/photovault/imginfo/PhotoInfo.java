@@ -71,7 +71,7 @@ import org.photovault.replication.Versioned;
  TODO: write a decent doc!
  */
 @Entity
-@Table( name = "photos" )
+@Table( name = "pv_photos" )
 @Versioned( editor = PhotoEditor.class )
 public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     
@@ -210,6 +210,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     public static PhotoInfo create(UUID uuid) {
         PhotoInfo photo = new PhotoInfo();
         photo.uuid = uuid;
+        photo.setHistory( new PhotoInfoChangeSupport( photo ) );
         return photo;
     }
     

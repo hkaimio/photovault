@@ -141,6 +141,8 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      Initialize the first change by setting all fields in it to current values 
      of target object fields
      @param c
+     @deprecated Since initFirstChange does not have resolver context, it cannot 
+     initialize fields with special resolver properly. So this should be removed.
      */
     void initFirstChange( Change<T,F> c ) {
         Map<F,Object> changedFields = c.getChangedFields();
