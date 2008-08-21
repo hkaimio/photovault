@@ -53,6 +53,7 @@ import org.apache.ddlutils.model.Database;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.odmg.Implementation;
 import org.odmg.OQLQuery;
 import org.photovault.dbhelper.ODMG;
@@ -110,23 +111,27 @@ public class SchemaUpdateAction {
         
         int oldVersion = db.getSchemaVersion();
         
-        // Find needed information fr DdlUtils
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        Platform platform = null;
-        if ( db.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
-            platform = PlatformFactory.createNewPlatformInstance( "derby" );            
-        } else if ( db.getInstanceType() == PVDatabase.TYPE_SERVER ) {
-            platform = PlatformFactory.createNewPlatformInstance( "mysql" );
-        }
-        platform.getPlatformInfo().setDelimiterToken( "" );
+//        // Find needed information fr DdlUtils
+//        Platform platform = null;
+//        if ( db.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
+//            platform = PlatformFactory.createNewPlatformInstance( "derby" );            
+//        } else if ( db.getInstanceType() == PVDatabase.TYPE_SERVER ) {
+//            platform = PlatformFactory.createNewPlatformInstance( "mysql" );
+//        }
+//        platform.getPlatformInfo().setDelimiterToken( "" );
+//        
+//        // Get the database schema XML file
+//        InputStream schemaIS = getClass().getClassLoader().getResourceAsStream( "photovault_schema.xml" );
+//        DatabaseIO dbio = new DatabaseIO();
+//        dbio.setValidateXml( false );
+//        Database dbModel = dbio.read( new InputStreamReader( schemaIS ) );
         
-        // Get the database schema XML file
-        InputStream schemaIS = getClass().getClassLoader().getResourceAsStream( "photovault_schema.xml" );
-        DatabaseIO dbio = new DatabaseIO();
-        dbio.setValidateXml( false );
-        Database dbModel = dbio.read( new InputStreamReader( schemaIS ) );
         
+        SchemaExport schexport = new SchemaExport( HibernateUtil.getConfiguration() );
+        schexport.create( true, true );
+       
         // Alter tables to match corrent schema
+        Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         Connection con = session.connection();
         
@@ -154,7 +159,7 @@ public class SchemaUpdateAction {
             // In older version hashcolumn was not included in schema so we must fill it.
             createHashes();
         }
-        
+        /*
         if ( oldVersion < 10 ) {
             // Initialize Hibernate sequence generators
             Query q = session.createQuery( "select max( rs.rawSettingId ) from RawConversionSettings rs" );
@@ -182,11 +187,13 @@ public class SchemaUpdateAction {
                 sqlex.printStackTrace();
             }
         }
+        */
         
+        /*
         if ( oldVersion < 11 ) {
             upgrade11( session );
         }
-        
+        */
         if ( oldVersion < 12 ) {
             migrateToVersionedSchema();
         }
@@ -282,7 +289,13 @@ public class SchemaUpdateAction {
                 (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
         df.setSession( s );
         PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
-        foldersById.put(  1, folderDao.findRootFolder() );
+        PhotoFolder topFolder = folderDao.findByUUID( PhotoFolder.ROOT_UUID );
+        if ( topFolder == null ) {
+            topFolder = PhotoFolder.create( PhotoFolder.ROOT_UUID, null );
+            topFolder.setName( "Top" );
+            s.save( topFolder );
+        }
+        foldersById.put(  1, topFolder );
         PreparedStatement stmt = conn.prepareStatement( 
                 "select * from photo_collections where parent = ?" );
         while ( !waiting.isEmpty() ) {
@@ -431,8 +444,22 @@ public class SchemaUpdateAction {
         ResultSet rs = stmt.executeQuery( oldPhotoQuerySql  );
         int currentPhotoId = -1;
         OriginalImageDescriptor currentOriginal = null;
+        long photoStartTime = -1;
         
         while ( rs.next() ) {
+            int photoId = rs.getInt( "p_photo_id" );
+            if ( photoId != currentPhotoId ) {
+                s.flush();
+                /*
+                 Photos are not dependent from each other, so clear the session 
+                 cache to improve performance and memory usage.
+                 */
+                s.clear();
+                log.debug(  "finished photo " + currentPhotoId + " in " + 
+                        (System.currentTimeMillis() - photoStartTime) + " ms" );
+                log.debug( "Starting photo " + photoId );
+                photoStartTime = System.currentTimeMillis();
+            }
             // Create the image file corresponding to this row
             ImageFile imgf = new ImageFile();
             imgf.setFileSize( rs.getInt( "i_file_size" ) );
@@ -440,7 +467,6 @@ public class SchemaUpdateAction {
             imgf.setId( UUID.fromString( rs.getString( "i_instance_uuid"  ) ) );
             ifDao.makePersistent( imgf );
             
-            int photoId = rs.getInt( "p_photo_id" );
             if ( photoId != currentPhotoId ) {
                 currentPhotoId = photoId;
                  // instances of new photo start here
@@ -605,7 +631,7 @@ public class SchemaUpdateAction {
 
     
     /**
-     Upgrade to chema version 11 (move raw settings to photos & image_instances
+     Upgrade to schema version 11 (move raw settings to photos & image_instances
      tables.
      */
     private void upgrade11(Session session) {

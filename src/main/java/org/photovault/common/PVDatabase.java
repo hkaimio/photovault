@@ -23,45 +23,26 @@ package org.photovault.common;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.io.InputStream;
 import  org.photovault.imginfo.Volume;
 import java.util.Random;
-import javax.sql.DataSource;
-import org.apache.commons.beanutils.DynaBean;
-import org.apache.ddlutils.io.DatabaseIO;
-import org.apache.ddlutils.model.Database;
-import org.apache.ddlutils.Platform;
-import org.apache.ddlutils.PlatformFactory;
-import org.apache.ddlutils.io.DataToDatabaseSink;
-import org.apache.ddlutils.io.DataReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.photovault.imginfo.VolumeBase;
-import org.xml.sax.SAXException;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-import java.sql.Connection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ddlutils.DatabaseOperationException;
-import org.apache.derby.jdbc.EmbeddedConnectionPoolDataSource;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.photovault.folder.PhotoFolder;
-import org.photovault.imginfo.VolumeManager;
 import org.photovault.persistence.HibernateUtil;
 
 /**
- * PVDatabase represents metadata about a single Photrovault database. A database 
+ * PVDatabase represents metadata about a single Photovault database. A database 
  * consists of an SQL database for storing photo metadata and 1 or more volumes 
  * for storing the actual photos
  * @author Harri Kaimio
@@ -321,85 +302,6 @@ public class PVDatabase {
         topFolder.setName( "Top" );
         s.save( topFolder );
         
-//        InputStream schemaIS = getClass().getClassLoader().getResourceAsStream( "photovault_schema.xml" );
-//        DatabaseIO dbio = new DatabaseIO();
-//        dbio.setValidateXml( false );
-//        Database dbModel = dbio.read( new InputStreamReader( schemaIS ) );
-//        
-//        // Create the datasource for accessing this database
-//        
-//        String driverName = "com.mysql.jdbc.Driver";
-//        String dbUrl = "jdbc:mysql://" + getHost() + "/" + getDbName();
-//        
-//        DataSource ds = null;
-//        if ( !dataDirectory.exists() ) {
-//            dataDirectory.mkdirs();
-//        }
-//        File defVolDir = dataDirectory;
-//        
-//        if ( instanceType == TYPE_EMBEDDED ) {
-//            File derbyDir = new File( dataDirectory, "derby"  );
-//            defVolDir = new File( dataDirectory, "photos");
-//            System.setProperty( "derby.system.home", derbyDir.getAbsolutePath() );
-//            driverName = "org.apache.derby.jdbc.EmbeddedDriver";
-//            dbUrl = "jdbc:derby:photovault;create=true";
-//            EmbeddedDataSource derbyDs = new EmbeddedConnectionPoolDataSource();
-//            derbyDs.setDatabaseName( "photovault" );
-//            derbyDs.setCreateDatabase( "create" );
-//            ds = derbyDs;
-//        } else {
-//            MysqlDataSource mysqlDs = new MysqlDataSource();
-//            mysqlDs.setURL( dbUrl );
-//            mysqlDs.setUser( user );
-//            mysqlDs.setPassword( passwd );
-//            ds = mysqlDs;
-//        }
-//        
-//        Platform platform = PlatformFactory.createNewPlatformInstance( ds );
-//        
-//        /*
-//         * Do not use delimiters for the database object names in SQL statements.
-//         * This is to avoid case sensitivity problems with SQL92 compliant 
-//         * databases like Derby - non-delimited identifiers are interpreted as case 
-//         *  insensitive.
-//         *
-//         * I am not sure if this is the correct way to solve the issue, however,
-//         * I am not willing to make a big change of schema definitions either.
-//         */
-//        platform.getPlatformInfo().setDelimiterToken( "" );
-//        platform.setUsername( user );
-//        platform.setPassword( passwd );
-//        platform.createTables( dbModel, true, true );
-//        
-//        // Insert the seed data to database
-//        DataToDatabaseSink sink = new DataToDatabaseSink( platform, dbModel );
-//        DataReader reader = new DataReader();
-//        reader.setModel( dbModel );
-//        reader.setSink( sink );
-//        
-//
-//        InputStream seedDataStream = this.getClass().getClassLoader().getResourceAsStream( "photovault_seed_data.xml" );
-//        try {
-//            reader.parse( seedDataStream );
-//        } catch (SAXException ex) {
-//            ex.printStackTrace();
-//        } catch (IOException ex) {
-//            ex.printStackTrace();
-//        }
-//        
-//        if ( seedDataResource != null ) {
-//            seedDataStream = this.getClass().getClassLoader().getResourceAsStream( seedDataResource );
-//            try {
-//                reader.parse( seedDataStream );
-//            } catch (SAXException ex) {
-//                ex.printStackTrace();
-//            } catch (IOException ex) {
-//                ex.printStackTrace();
-//            }
-//        }
-//        
-//        // Create the database 
-//        
         // TODO: Since the seed has only 48 significant bits this id is not really an 
         // 128-bit random number!!!
         Random rnd = new Random();
@@ -425,27 +327,6 @@ public class PVDatabase {
         s.flush();
         tr.commit();
         s.close();
-        
-//        try {
-//            DynaBean volInfo = dbModel.createDynaBeanFor( "pv_volumes", false );
-//            volInfo.set( "volume_id", defVol.getId().toString() );
-//            volInfo.set( "volume_type", "volume" );
-//            volInfo.set( "volume_name", defVol.getName() );
-//            platform.insert( dbModel, volInfo );
-//            VolumeManager.instance().initVolume( defVol, defVolDir );
-//            mountPoints.add(  defVolDir );
-//
-//            DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
-//            dbInfo.set( "database_id", idStr );
-//            dbInfo.set( "schema_version", new Integer( CURRENT_SCHEMA_VERSION ) );
-//            dbInfo.set( "create_time", new Timestamp( System.currentTimeMillis() ) );
-//            dbInfo.set( "default_volume_id", defVol.getId().toString() );
-//            platform.insert( dbModel, dbInfo );
-//        } catch ( PhotovaultException e ) {
-//            log.error( "Error storing volume information to database", e );
-//        } catch ( DatabaseOperationException e ) {
-//            log.error( "DdlUtils error while initializing database: ", e );
-//        }
     }
 
     /**

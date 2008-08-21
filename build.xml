@@ -21,7 +21,7 @@
     <description>
         Photovault image organization system
     </description>
-  <!-- set global properties for this build -->
+    <!-- set global properties for this build -->
     <property name="src" location="src/main/java"/>
     <property name="nsis-src" value="src/main/win32/installer"/>
     <property name="build" location="build"/>

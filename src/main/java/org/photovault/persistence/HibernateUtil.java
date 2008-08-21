@@ -57,7 +57,7 @@ public class HibernateUtil {
                 cfg.setProperty( "hibernate.connection.driver_class", 
                         "com.mysql.jdbc.Driver" );
                 cfg.setProperty( "hibernate.dialect", 
-                        "org.hibernate.dialect.MysqlDialect" );
+                        "org.hibernate.dialect.MySQLDialect" );
                 cfg.setProperty( "hibernate.connection.url", 
                         "jdbc:mysql://" + dbhost + "/" + dbname );
                 cfg.setProperty( "hibernate.connection.username", user );
