@@ -19,6 +19,10 @@
 */
 package org.photovault.dcraw;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Transient;
@@ -29,93 +33,93 @@ import javax.persistence.Transient;
  * @author Harri Kaimio
  */
 @Embeddable
-public class RawConversionSettings implements Cloneable {
+public class RawConversionSettings implements Cloneable, Externalizable {
     
+    static final long serialVersionUUI = 1131589578728161524L;
     /**
-     OJB identifier
+    Version of the serialized for of this object
      */
-    int rawSettingId;
-    
+    static final int version = 1;
     /**
-     The white pixel value in raw image (unadjusted)
+    The white pixel value in raw image (unadjusted)
      */
     int white;
     
     /**
-     EV correction of the image
+    EV correction of the image
      */
     double evCorr;
     
     /**
-     Highlight compression (in f-stops)
+    Highlight compression (in f-stops)
      */
     double hlightComp;
     
     /**
-     black level
+    black level
      */
     int black;
     
     /**
-     Whether the ICC profile embedded to raw file should be used
+    Whether the ICC profile embedded to raw file should be used
      */
     boolean useEmbeddedICCProfile;
     
     /**
-     Database ID for the color profile (used by OJB)
+    Database ID for the color profile (used by OJB)
      */
     int colorProfileId;
     
     /**
-     ICC color profile used for raw conversion.
+    ICC color profile used for raw conversion.
      */
     ColorProfileDesc colorProfile;
     
     /**
-     Methodfor setting the white balance
+    Methodfor setting the white balance
      */
     int whiteBalanceType;
     
     /**
-     Invalid default value
+    Invalid default value
      */
     final public static int WB_INVALID = 0;
 
     /**
-     Use camera WB settings
+    Use camera WB settings
      */
     final public static int WB_CAMERA = 1;
 
     /**
-     User dcraw's automatic WB algorithm
+    User dcraw's automatic WB algorithm
      */
     final public static int WB_AUTOMATIC = 2;
     
     /**
-     Set white balance manually
+    Set white balance manually
      */
     final public static int WB_MANUAL = 3;
     
     /**
-     Ratio of red & green channel multipliers
+    Ratio of red & green channel multipliers
      */
     double redGreenRatio;
 
     /**
-     Ratio of blue & green channel multipliers
+    Ratio of blue & green channel multipliers
      */
     double blueGreenRatio;
     
     /**
-     Ratio of red & green channel multipliers in daylight
+    Ratio of red & green channel multipliers in daylight
      */
     double daylightRedGreenRatio;
 
     /**
-     Ratio of blue & green channel multipliers in daylight
+    Ratio of blue & green channel multipliers in daylight
      */
     double daylightBlueGreenRatio;
-    
+
     /** Creates a new instance of RawConversionSettings */
     public RawConversionSettings() {
     }
@@ -124,11 +128,11 @@ public class RawConversionSettings implements Cloneable {
      *     Get the white point
      * @return See {@link #white}
      */
-    @Column( name = "raw_whitepoint" )
+    @Column(name = "raw_whitepoint")
     public int getWhite() {
         return white;
     }
-    
+
     protected void setWhite( int white ) {
         this.white = white;
     }
@@ -138,7 +142,7 @@ public class RawConversionSettings implements Cloneable {
      * 
      * @return See {@link #black}
      */
-    @Column( name = "raw_blackpoint" ) 
+    @Column(name = "raw_blackpoint")
     public int getBlack() {
         return black;
     }
@@ -147,12 +151,11 @@ public class RawConversionSettings implements Cloneable {
         this.black = black;
     }
 
-
     /**
      *     Get exposure correction
      * @return See {@link #evCorr}
      */
-    @Column( name = "raw_ev_corr" )
+    @Column(name = "raw_ev_corr")
     public double getEvCorr() {
         return evCorr;
     }
@@ -447,18 +450,6 @@ public class RawConversionSettings implements Cloneable {
         } catch (CloneNotSupportedException ex) {
             return null;
         }
-        s.rawSettingId = 0;
-//        s.blueGreenRatio = blueGreenRatio;
-//        s.redGreenRatio = redGreenRatio;
-//        s.daylightBlueGreenRatio = daylightBlueGreenRatio;
-//        s.daylightRedGreenRatio = daylightRedGreenRatio;
-//        s.evCorr = evCorr;
-//        s.hlightComp = hlightComp;
-//        s.useEmbeddedICCProfile = useEmbeddedICCProfile;
-//        s.colorProfile = colorProfile;
-//        s.white = white;
-//        s.black = black;
-//        s.whiteBalanceType = whiteBalanceType;
         return s;
     }
     
@@ -502,5 +493,55 @@ public class RawConversionSettings implements Cloneable {
     public int hashCode() {
         return ( white + black + (int) (blueGreenRatio * 1000000.0) + 
                 (int)( redGreenRatio * 1000000.0 ) );
+    }
+    
+
+    /**
+     Searializes the object.
+     @param oo 
+     @throws java.io.IOException
+     
+     @serialData
+     RawConversionSettings serial format starts with version ID (which is 1 for
+     current settings format. After that the fields are stored in the following 
+     order:
+     <ul>    
+      <li>black point (int)</li>
+      <li>white point (int)</li>
+      <li>evCorr (double)</li>
+      <li>hlightComp (double)</li>
+      <li>daylightRedGreenRatio (double)</li>
+      <li>daylightBlueGreenRatio (double)</li>
+      <li>redGreenRatio (double)</li>
+      <li>blueGreenRatio (double)</li>
+    </ul>
+     
+     */
+    public void writeExternal( ObjectOutput oo ) throws IOException {
+        oo.writeInt( version );
+        oo.writeInt( black );
+        oo.writeInt(  white );
+        oo.writeDouble( evCorr );
+        oo.writeDouble( hlightComp );
+        oo.writeDouble( daylightRedGreenRatio );
+        oo.writeDouble( daylightBlueGreenRatio );
+        oo.writeDouble( redGreenRatio );
+        oo.writeDouble( blueGreenRatio );
+    }
+
+    public void readExternal( ObjectInput oi ) 
+            throws IOException, ClassNotFoundException {
+        int v = oi.readInt();
+        if ( v > 1 ) { 
+            throw new IOException( "Too new version " + v );
+        }
+        black = oi.readInt();
+        white = oi.readInt();
+        evCorr = oi.readDouble();
+        hlightComp = oi.readDouble();
+        daylightRedGreenRatio = oi.readDouble();
+        daylightBlueGreenRatio = oi.readDouble();
+        redGreenRatio = oi.readDouble();
+        blueGreenRatio = oi.readDouble();
     }
 }
