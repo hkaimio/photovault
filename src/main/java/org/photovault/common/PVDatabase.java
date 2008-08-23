@@ -68,7 +68,7 @@ public class PVDatabase {
      file.
      */
     
-    static class LegacyVolume {
+    public static class LegacyVolume {
         
         public LegacyVolume() {};
         
@@ -102,7 +102,7 @@ public class PVDatabase {
      Class for describing the pre-0.6.0 external volume still present in 
      configuration file.
      */
-    static class LegacyExtVolume extends LegacyVolume {
+    public static class LegacyExtVolume extends LegacyVolume {
         
         public LegacyExtVolume() {
             super();
@@ -198,7 +198,7 @@ public class PVDatabase {
     
     List<LegacyVolume> legacyVolumes = new ArrayList<LegacyVolume>();
     
-    void addLegacyVolume( LegacyVolume v ) {
+    public void addLegacyVolume( LegacyVolume v ) {
         legacyVolumes.add( v );
     }
     

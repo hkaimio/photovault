@@ -20,13 +20,14 @@
 
 package org.photovault.common;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.UUID;
 import javax.sql.DataSource;
@@ -41,7 +42,11 @@ import org.apache.ddlutils.io.DatabaseIO;
 import org.apache.ddlutils.model.Database;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.imginfo.CopyImageDescriptor;
+import org.photovault.imginfo.FileUtils;
 import org.photovault.imginfo.FuzzyDate;
+import org.photovault.imginfo.ImageOperations;
 import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeSupport;
@@ -66,7 +71,7 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
      Add the tables from previous schema and polupate with data
      */
     @BeforeClass
-    public void setUpTestCase() throws DdlUtilsException, SQLException  {
+    public void setUpTestCase() throws DdlUtilsException, SQLException, IOException  {
         PVDatabase db = PhotovaultSettings.getSettings().getCurrentDatabase();
         int oldVersion = db.getSchemaVersion();
         
@@ -152,11 +157,45 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         } catch (IOException ex) {
             log.error( "IOException: " + ex.getMessage(), ex );
         }        
-        
+        initTestVolume( db );
+        initTestExtVolume( db );
+    }
+    
+    private void initTestVolume( PVDatabase db ) throws IOException {
+        File voldir = File.createTempFile( "pv_conversion_testvol", "" );
+        voldir.delete();
+        voldir.mkdir();
+        File d1 = new File( voldir, "2006" );
+        File d2 = new File(  d1, "200605" );
+        d2.mkdirs();
+        File f1 = new File( "testfiles", "test1.jpg" );
+        File df1 = new File( d2, "20060516_00002.jpg");
+        FileUtils.copyFile( f1, df1);
+        File df2 = new File( d2, "20060516_00003.jpg");
+        FileUtils.copyFile( f1,df2 );
+        PVDatabase.LegacyVolume lvol = 
+                new PVDatabase.LegacyVolume( "defaultVolume", voldir.getAbsolutePath() );
+        db.addLegacyVolume( lvol );
+    }
+    
+    private void initTestExtVolume( PVDatabase db ) throws IOException {
+        File voldir = File.createTempFile( "pv_conversion_extvol", "" );
+        voldir.delete();
+        voldir.mkdir();
+        File d1 = new File( "testdir2" );
+        d1.mkdirs();
+        File f1 = new File( "testfiles", "test2.jpg" );
+        File df1 = new File( d1, "outi1.jpg");
+        FileUtils.copyFile( f1, df1);
+        File df2 = new File( d1, "outi10.jpg");
+        FileUtils.copyFile( f1,df2 );
+        PVDatabase.LegacyVolume lvol = 
+                new PVDatabase.LegacyExtVolume( "extvol_photos", voldir.getAbsolutePath(), 4 );
+        db.addLegacyVolume( lvol );
     }
     
     @Test
-    public void testTest() {
+    public void testMigrationToVersioned() {
         SchemaUpdateAction sua = new SchemaUpdateAction( PhotovaultSettings.getSettings().getCurrentDatabase() );
         sua.upgradeDatabase();
         
@@ -180,7 +219,31 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         PhotoInfoChangeSupport h1 = p1.getHistory();
         Set<Change<PhotoInfo,String>> ch1 = h1.getChanges();
         assertEquals( 2, ch1.size() );
+        assertNull( p1.getRawSettings() );
         
+        // Photo with raw image
+        PhotoInfo p2 = photoDao.findByUUID( 
+                UUID.fromString( "e3f4b466-d1a3-48c1-ac86-01d9babf373f") );
+        RawConversionSettings r2 = p2.getRawSettings();
+        assertEquals( 31347, r2.getWhite() );
+        assertEquals( 0.5, r2.getHighlightCompression() );
+        
+        OriginalImageDescriptor o2 = p2.getOriginal();
+        CopyImageDescriptor t2 = 
+                (CopyImageDescriptor) p2.getPreferredImage( 
+                EnumSet.of( ImageOperations.RAW_CONVERSION ), 
+                EnumSet.allOf( ImageOperations.class ), 
+                66, 66, 200, 200 );
+        
+        assertEquals( r2, t2.getRawSettings() );
+        boolean f = false;
+        for ( CopyImageDescriptor c : o2.getCopies() ) {
+            if ( c != t2 ) {
+                assertEquals( 17847, c.getRawSettings().getWhite() );
+                f = true;
+            }
+        }
+        assertTrue( f );
     }
 
 

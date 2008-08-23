@@ -498,6 +498,8 @@ public class Change<T, F extends Comparable> {
         try {
             uuid = data.calcUuid();
         } catch ( IOException e ) {
+            log.error( "Error calculating change UUID: " + e.getMessage() );
+            log.error( e );
         }
     }
     

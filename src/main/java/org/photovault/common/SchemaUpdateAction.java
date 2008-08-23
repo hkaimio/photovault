@@ -21,36 +21,27 @@
 package org.photovault.common;
 
 import java.awt.geom.Rectangle2D;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.Integer;
-import java.lang.Integer;
-import java.lang.reflect.Proxy;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
-import java.util.UUID;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ddlutils.DatabaseOperationException;
-import org.apache.ddlutils.Platform;
-import org.apache.ddlutils.PlatformFactory;
-import org.apache.ddlutils.io.DatabaseIO;
-import org.apache.ddlutils.model.Database;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
@@ -58,20 +49,27 @@ import org.odmg.Implementation;
 import org.odmg.OQLQuery;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
+import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.imginfo.CopyImageDescriptor;
+import org.photovault.imginfo.ExternalVolume;
+import org.photovault.imginfo.FileLocation;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.ImageDescriptorDAO;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.ImageFileDAO;
 import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoEditor;
-import org.photovault.imginfo.PhotoEditorInvocationHandler;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.imginfo.Volume;
+import org.photovault.imginfo.VolumeBase;
+import org.photovault.imginfo.VolumeDAO;
+import org.photovault.imginfo.VolumeManager;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
@@ -111,20 +109,7 @@ public class SchemaUpdateAction {
         
         int oldVersion = db.getSchemaVersion();
         
-//        // Find needed information fr DdlUtils
-//        Platform platform = null;
-//        if ( db.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
-//            platform = PlatformFactory.createNewPlatformInstance( "derby" );            
-//        } else if ( db.getInstanceType() == PVDatabase.TYPE_SERVER ) {
-//            platform = PlatformFactory.createNewPlatformInstance( "mysql" );
-//        }
-//        platform.getPlatformInfo().setDelimiterToken( "" );
-//        
-//        // Get the database schema XML file
-//        InputStream schemaIS = getClass().getClassLoader().getResourceAsStream( "photovault_schema.xml" );
-//        DatabaseIO dbio = new DatabaseIO();
-//        dbio.setValidateXml( false );
-//        Database dbModel = dbio.read( new InputStreamReader( schemaIS ) );
+
         
         
         SchemaExport schexport = new SchemaExport( HibernateUtil.getConfiguration() );
@@ -260,6 +245,7 @@ public class SchemaUpdateAction {
      */
     private void migrateToVersionedSchema() {
         try {
+            convertVolumes();
             convertFolders();
             convertPhotos();
             
@@ -268,10 +254,60 @@ public class SchemaUpdateAction {
         }
     }
     
+    Map<String, UUID> volIds = new HashMap<String,UUID>();
+    
      /**
      Convert volumes to new schema
      */
     private void convertVolumes() {
+        Session s = HibernateUtil.getSessionFactory().openSession();
+
+        HibernateDAOFactory df =
+                (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        df.setSession( s );
+        VolumeManager vm = VolumeManager.instance();
+        VolumeDAO volDao = df.getVolumeDAO();
+                List < PVDatabase.LegacyVolume > vols = db.getLegacyVolumes();
+        for ( PVDatabase.LegacyVolume lvol : vols ) {
+            log.debug(  "Converting" + lvol.getClass().getName() + " " + 
+                    lvol.getName() + " at " + lvol.getBaseDir() );
+            File basedir = new File( lvol.getBaseDir() );
+            if ( !basedir.exists() ) {
+                // The volume was not found
+                log.error( "Volume " + lvol.getName() + 
+                        " was not found at " + basedir.getAbsolutePath() );
+            }
+            VolumeBase vol = null;
+            
+            // Check if the volume is initialized
+            try {
+                vol = vm.getVolumeAt( basedir, volDao );
+            } catch ( FileNotFoundException ex ) {
+                log.error( "Could not open volume config file", ex );
+            } catch ( IOException ex ) {
+                log.error(  "Error reading volume config file", ex );
+            }
+            if ( vol != null ) {
+                // The volume is already converted, no need for actions
+                log.info( "Volume " + vol.getId() + " found at " + basedir.getAbsolutePath() );
+                continue;
+            }
+            if ( lvol instanceof PVDatabase.LegacyExtVolume ) {
+                vol = new ExternalVolume();                
+            } else {
+                vol = new Volume();
+            }
+            vol.setName( lvol.getName() );
+            volDao.makePersistent( vol );
+            volIds.put( vol.getName(), vol.getId() );
+            try {
+                vm.initVolume( vol, basedir );
+            } catch ( PhotovaultException ex ) {
+                log.error( "Could not initialize volume:", ex );
+            }
+        }
+        s.flush();
+        s.close();
     }   
     
     /**
@@ -433,6 +469,7 @@ public class SchemaUpdateAction {
         PhotoInfoDAO photoDao = daoFactory.getPhotoInfoDAO();
         ImageDescriptorDAO imgDao = daoFactory.getImageDescriptorDAO();
         ImageFileDAO ifDao = daoFactory.getImageFileDAO();
+        VolumeDAO volDao = daoFactory.getVolumeDAO();
         
         /*
          We need a second session for reading old data so that Hibernate can 
@@ -464,8 +501,22 @@ public class SchemaUpdateAction {
             ImageFile imgf = new ImageFile();
             imgf.setFileSize( rs.getInt( "i_file_size" ) );
             imgf.setHash( rs.getBytes( "i_hash" ) );
-            imgf.setId( UUID.fromString( rs.getString( "i_instance_uuid"  ) ) );
+            String instUuid = rs.getString( "i_instance_uuid" );
+            if ( instUuid != null ) {
+                imgf.setId( UUID.fromString( instUuid ) );
+            } else {
+                imgf.setId( UUID.randomUUID() );
+            }
             ifDao.makePersistent( imgf );
+            String volName = rs.getString( "i_volume_id" );
+            UUID volUuid = volIds.get( volName );
+            if ( volUuid != null ) {
+                FileLocation fl = 
+                        new FileLocation( volDao.findById( volUuid, false ), 
+                        rs.getString( "i_fname" ) );
+                imgf.addLocation( fl );
+            }
+            
             
             if ( photoId != currentPhotoId ) {
                 currentPhotoId = photoId;
@@ -491,6 +542,12 @@ public class SchemaUpdateAction {
                 cimg.setHeight( rs.getInt(  "i_height" ));
                 cimg.setWidth( rs.getInt(  "i_width" ));
                 cimg.setRotation( rs.getDouble( "i_rotated" ) ); 
+                // Does this instance have raw conversion applied?
+                rs.getDouble( "i_whitepoint" );
+                if ( !rs.wasNull() ) {
+                    RawConversionSettings r = readRawSettings( rs, "i_" );
+                    cimg.setRawSettings( r );
+                }
                 imgDao.makePersistent( cimg );
             }
         }
@@ -569,6 +626,11 @@ public class SchemaUpdateAction {
         e.setPrefRotation( rs.getDouble( "p_pref_rotation" ) );
         e.setQuality( rs.getInt( "p_photo_quality" ) );
         e.setShootingPlace( rs.getString( "p_shooting_place" ) );
+        rs.getDouble( "p_whitepoint" );
+        if ( !rs.wasNull() ) {
+            RawConversionSettings r = readRawSettings( rs, "p_" );
+            e.setRawSettings( r );
+        }
         pe.apply();
     }    
  
@@ -593,6 +655,38 @@ public class SchemaUpdateAction {
         return crop;
     }   
     
+    /**
+     Reads raw conversions ettings from result set queried by 
+     {@link oldPhotoQuerySql}
+     @param rs Result set containing the settings
+     @param prefix Prefix that will be added in front of the column names
+     @return Raw conversion settings or <code>null</code> if the settings cannot
+     be read (e.g. if some required field is null or some other error occurs)
+     */
+    private RawConversionSettings readRawSettings( ResultSet rs, String prefix ) {
+        
+        RawConversionSettings r = null;
+        try {
+            RawSettingsFactory rsf = new RawSettingsFactory();
+            rsf.setBlack( rs.getInt( prefix + "blackpoint" ) );
+            rsf.setWhite( rs.getInt( prefix + "whitepoint" ) );
+            rsf.setBlueGreenRatio( rs.getDouble( prefix + "b_g_ratio" ) );
+            rsf.setRedGreenRation( rs.getDouble( prefix + "r_g_ratio" ) );
+            double[] dlm = {rs.getDouble( prefix + "dl_r_g_ratio" ),
+                1.0,
+                rs.getDouble( prefix + "dl_b_g_ratio" )
+            };
+            rsf.setDaylightMultipliers( dlm );
+            rsf.setHlightComp( rs.getDouble( prefix + "hlight_corr" ) );
+            rsf.setEvCorr( rs.getDouble( prefix + "ev_corr" ) );
+            r = rsf.create();
+        } catch ( PhotovaultException ex ) {
+            log.warn( ex );
+        } catch ( SQLException ex ) {
+            log.warn( ex );
+        }
+        return r;
+    }
     /**
      List of object implementing SchemaUpdateListener that need to be notified 
      about status changes.
