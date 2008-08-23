@@ -63,6 +63,67 @@ public class PVDatabase {
     public static final String TYPE_SERVER = "TYPE_SERVER";
     
     
+    /**
+     Class for describing the pre-0.6.0 volumes still present in configuration 
+     file.
+     */
+    
+    static class LegacyVolume {
+        
+        public LegacyVolume() {};
+        
+        public LegacyVolume( String name, String bd ) {
+            this.name = name;
+            this.baseDir = bd;
+
+        }
+        private String name;
+        private String baseDir;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName( String name ) {
+            this.name = name;
+        }
+
+        public String getBaseDir() {
+            return baseDir;
+        }
+
+        public void setBaseDir( String baseDir ) {
+            this.baseDir = baseDir;
+        }
+        
+    }
+    
+    /**
+     Class for describing the pre-0.6.0 external volume still present in 
+     configuration file.
+     */
+    static class LegacyExtVolume extends LegacyVolume {
+        
+        public LegacyExtVolume() {
+            super();
+        }
+        
+        public LegacyExtVolume( String name, String bd, int folderId ) {
+            super( name, bd );
+            this.folderId = folderId;
+        }
+        
+        private int folderId;
+
+        public int getFolderId() {
+            return folderId;
+        }
+
+        public void setFolderId( int folderId ) {
+            this.folderId = folderId;
+        }
+    }
+    
     /** Creates a new instance of PVDatabase */
     public PVDatabase() {
         volumes = new ArrayList<VolumeBase>();
@@ -133,6 +194,16 @@ public class PVDatabase {
      */
     public void removeVolume(Volume volume) {
         volumes.remove( volume );
+    }
+    
+    List<LegacyVolume> legacyVolumes = new ArrayList<LegacyVolume>();
+    
+    void addLegacyVolume( LegacyVolume v ) {
+        legacyVolumes.add( v );
+    }
+    
+    List<LegacyVolume> getLegacyVolumes() {
+        return legacyVolumes;
     }
     
     /**
@@ -360,11 +431,18 @@ public class PVDatabase {
         }
         outputWriter.write( String.format( "%s  </volume-mounts>\n", s ) );
         
-        Iterator iter = volumes.iterator();
         outputWriter.write( s + "  " + "<volumes>\n" );
-        while( iter.hasNext() ) {
-            VolumeBase v = (VolumeBase) iter.next();
-            v.writeXml( outputWriter, indent+4 );            
+        for( LegacyVolume v : legacyVolumes ) {
+            if ( v instanceof LegacyExtVolume ) {
+                LegacyExtVolume ev = (LegacyExtVolume )  v;
+                outputWriter.write( String.format( 
+                        "%s    <external-volume name=\"%s\" basedir=\"%s\" folder=\"%d\"/>", 
+                        s, ev.getName(), ev.getBaseDir(), ev.getFolderId() ) );
+            } else {
+                outputWriter.write( String.format( 
+                        "%s    <volume name=\"%s\" basedir=\"%s\"/>", 
+                        s, v.getName(), v.getBaseDir() ) );
+            }
         }
         outputWriter.write( s + "  " + "</volumes>\n" );
         outputWriter.write( s + "</database>\n" );

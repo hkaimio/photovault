@@ -188,7 +188,7 @@ public class PhotovaultSettings {
         digester.addCallParam( "*/database/volume-mounts/mountpoint", 0, "dir" );
         
         // Volume creation
-        digester.addObjectCreate( "*/database/volumes/volume", Volume.class );
+        digester.addObjectCreate( "*/database/volumes/volume", PVDatabase.LegacyVolume.class );
         String [] volumeAttrNames = {
             "basedir", "name"
         };
@@ -197,8 +197,8 @@ public class PhotovaultSettings {
         };
         digester.addSetProperties( "*/database/volumes/volume",
                 volumeAttrNames, volumePropNames );
-        digester.addSetNext( "*/database/volumes/volume", "addVolume" );
-        digester.addObjectCreate( "*/database/volumes/external-volume", ExternalVolume.class );
+        digester.addSetNext( "*/database/volumes/volume", "addLegacyVolume" );
+        digester.addObjectCreate( "*/database/volumes/external-volume", PVDatabase.LegacyExtVolume.class );
         String [] extVolAttrNames = {
             "folder", "basedir", "name"
         };
@@ -208,7 +208,7 @@ public class PhotovaultSettings {
         
         digester.addSetProperties( "*/database/volumes/external-volume", 
                 extVolAttrNames, extVolPropNames );
-        digester.addSetNext( "*/database/volumes/external-volume", "addVolume" );
+        digester.addSetNext( "*/database/volumes/external-volume", "addLegacyVolume" );
         try {
             
             digester.parse( f );

@@ -27,13 +27,18 @@ import org.photovault.imginfo.Thumbnail;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import org.hibernate.Session;
+import org.photovault.imginfo.ImageFile;
+import org.photovault.imginfo.OriginalImageDescriptor;
+import org.photovault.imginfo.PhotoEditor;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.VersionedObjectEditor;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -145,6 +150,9 @@ public class Test_PhotovaultSettings {
         db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
         db.setDataDirectory( dbDir );
         db.addMountPoint( "/tmp/testing" );
+        db.addLegacyVolume( new PVDatabase.LegacyVolume( "legacyTest1", "testdir/legacyvolume1" ) );
+        db.addLegacyVolume( 
+                new PVDatabase.LegacyExtVolume( "legacyTest2", "testdir/legacyvolume2", 4 ) );
         try {
             settings.addDatabase( db );
         } catch (PhotovaultException ex) {
@@ -158,6 +166,18 @@ public class Test_PhotovaultSettings {
         Set<File> mounts = db.getMountPoints();
         assertEquals( 1, mounts.size() );
         assertTrue( mounts.contains( new File( "/tmp/testing" ) ) );
+        List<PVDatabase.LegacyVolume> lvs = db.getLegacyVolumes();
+        assertEquals( 2, lvs.size() );
+        for ( PVDatabase.LegacyVolume lv : lvs ) {
+            if ( lv instanceof PVDatabase.LegacyExtVolume ) {
+                assertEquals( "legacyTest2", lv.getName() );
+                assertEquals( "testdir/legacyvolume2", lv.getBaseDir() );
+                assertEquals( 4, ((PVDatabase.LegacyExtVolume)lv).getFolderId() );
+            } else {
+                assertEquals( "legacyTest1", lv.getName() );
+                assertEquals( "testdir/legacyvolume1", lv.getBaseDir() );
+            }
+        }
         
         // try creating another database with the same name
         PVDatabase db2 = new PVDatabase();
@@ -186,36 +206,27 @@ public class Test_PhotovaultSettings {
         File photoFile = new File( "testfiles/test1.jpg" );
         PhotoInfo photo = null;
         try {
-            photo = PhotoInfo.addToDB(photoFile);
+            ImageFile ifile = new ImageFile( photoFile );
+            OriginalImageDescriptor orig = new OriginalImageDescriptor( ifile, "image#0" );
+            photo = PhotoInfo.create();
             photo = photoDAO.makePersistent( photo );
-        } catch (PhotoNotFoundException ex) {
+            VersionedObjectEditor<PhotoInfo> ve = 
+                    new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), 
+                    daoFactory.getDTOResolverFactory() );
+            ve.setField( "original", orig );
+            ve.apply();
+            session.flush();
+        } catch (PhotovaultException ex) {
             ex.printStackTrace();
             fail( ex.getMessage() );
+        } catch( IOException e ) {
+            e.printStackTrace();
+            fail( e.getMessage() );
         }
-        photo.setPhotographer( "test" );
         PhotoInfo photo2 = photoDAO.findByUUID( photo.getUuid() );
-        Thumbnail thumb = photo2.getThumbnail();
-        assertFalse( "Default thumbnail returned", thumb == Thumbnail.getDefaultThumbnail() );
-    }
-    
-    @Test
-    public void testProperties() {
-        PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        settings.setProperty( "test", "testing" );
-        settings.setProperty( "test2", "testing2" );
-        assertEquals( "testing", settings.getProperty( "test" ) );
-        assertEquals( "testing2", settings.getProperty( "test2" ) );
-        assertNull( settings.getProperty( "test3" ) );
-        assertEquals( "testing3", settings.getProperty( "test3", "testing3" ) );
-        settings.saveConfig();
-        PhotovaultSettings.settings = null;
-        settings = PhotovaultSettings.getSettings();
-        assertEquals( "testing", settings.getProperty( "test" ) );
-        assertEquals( "testing2", settings.getProperty( "test2" ) );
-        assertNull( settings.getProperty( "test3" ) );
-        assertEquals( "testing3", settings.getProperty( "test3", "testing3" ) );        
-    }
-        
+
+        assertNotNull( photo2.getOriginal() );
+    }     
 }
 
     
