@@ -397,6 +397,7 @@ public class SchemaUpdateAction {
         Connection conn = sqlSess.connection();
         Statement stmt = null;
         ResultSet rs = null;
+        int assocCount = 0;
         try {
             stmt = conn.createStatement();
             rs = stmt.executeQuery( sql );
@@ -407,11 +408,14 @@ public class SchemaUpdateAction {
                 UUID photoUuid = photoUuids.get( photoId );
                 if ( folderUuid != null && photoUuid != null ) {
                     PhotoFolder f = folderDAO.findById( folderUuid, false );
-                    PhotoInfo p = photoDao.findByUUID( photoUuid );
+                    PhotoInfo p = photoDao.findById( photoUuid, false );
 
                     f.addPhoto( p );
                     s.flush();
-                    s.clear();
+                    assocCount++;
+                    if ( assocCount % 50 == 0 ) {
+                        s.clear();                        
+                    }
                 }
             }
         } catch ( SQLException ex ) {

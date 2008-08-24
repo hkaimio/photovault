@@ -23,6 +23,8 @@ package org.photovault.persistence;
 import org.hibernate.Session;
 import org.photovault.change.ChangeDescDAO;
 import org.photovault.change.ChangeDescDAOHibernate;
+import org.photovault.folder.FolderPhotoAssocDAO;
+import org.photovault.folder.FolderPhotoAssocDAOHibernate;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.folder.PhotoFolderDAOHibernate;
 import org.photovault.imginfo.ImageDescriptorDAO;
@@ -80,6 +82,9 @@ public class HibernateDAOFactory extends DAOFactory {
         return (PhotoFolderDAO) instantiateDAO( PhotoFolderDAOHibernate.class );
     }
 
+    public FolderPhotoAssocDAO getFolderPhotoAssocDAO() {
+        return (FolderPhotoAssocDAO) instantiateDAO( FolderPhotoAssocDAOHibernate.class );
+    }    
 
     public ImageFileDAO getImageFileDAO() {
         return (ImageFileDAO) instantiateDAO( ImageFileDAOHibernate.class );        

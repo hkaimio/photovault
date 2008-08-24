@@ -28,7 +28,7 @@ import org.photovault.persistence.GenericDAO;
  *
  * @author harri
  */
-public interface PhotoInfoDAO extends GenericDAO<PhotoInfo, Integer> {
+public interface PhotoInfoDAO extends GenericDAO<PhotoInfo, UUID> {
     
     /**
      Find photo with given UUID

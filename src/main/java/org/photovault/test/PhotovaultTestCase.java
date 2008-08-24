@@ -124,14 +124,14 @@ public class PhotovaultTestCase extends TestCase {
     
     public static void assertMatchesDb( PhotoFolder folder, Session session ) {
 	UUID id = folder.getUuid();
-	String sql = "select * from photo_collections where collection_uuid = '" + id + "'";
+	String sql = "select * from pv_folders where folder_uuid = '" + id + "'";
 	Statement stmt = null;
 	ResultSet rs = null;
 	try {
 	    stmt = session.connection().createStatement();
 	    rs = stmt.executeQuery( sql );
 	    if ( !rs.next() ) {
-		fail( "rrecord not found" );
+		fail( "record not found" );
 	    }
 	    assertEquals( "name doesn't match", folder.getName(), rs.getString( "collection_name" ) );
 	    assertEquals( "description doesn't match", folder.getDescription(), rs.getString( "collection_desc" ) );
@@ -145,13 +145,13 @@ public class PhotovaultTestCase extends TestCase {
             rs.close();
             
             // Check that subfolders collection matches database
-            rs = stmt.executeQuery( "select * from photo_collections where parent_uuid = '" + id + "'" );
+            rs = stmt.executeQuery( "select * from pv_folders where parent_uuid = '" + id + "'" );
             Set<UUID> folderIds = new HashSet<UUID>();
             for ( PhotoFolder f : folder.getSubfolders() ) {
                 folderIds.add( f.getUuid() );
             }
             while ( rs.next() ) {
-                UUID subId = UUID.fromString( rs.getString( "collection_uuid" ) );
+                UUID subId = UUID.fromString( rs.getString( "folder_uuid" ) );
                 assertTrue( "folder " + subId + " not in memory copy", 
                         folderIds.remove( subId ) );
                 
@@ -160,7 +160,7 @@ public class PhotovaultTestCase extends TestCase {
             rs.close();
             
             // Check that photos collection matches database
-            rs = stmt.executeQuery( "select * from collection_photos where collection_uuid = '" + id +"'" );
+            rs = stmt.executeQuery( "select * from pv_collection_photos where collection_uuid = '" + id +"'" );
             Set<UUID> photoIds = new HashSet<UUID>();
             for ( PhotoInfo p : folder.getPhotos() ) {
                 photoIds.add( p.getUuid() );

@@ -186,8 +186,8 @@ public class PhotoFolder implements PhotoCollection {
         // TODO: Make test case to verify if this works with Hibernate
         return photos;
     }
+               
     
-              
     /**
      Query for photos in this folder
      @param session The session in which the query is executed
@@ -256,8 +256,42 @@ public class PhotoFolder implements PhotoCollection {
 	photos.remove( photo );
 	modified();
     }
-    
 
+    
+    /**
+     All known associations from this folder to photos.
+     */
+    Set<FolderPhotoAssociation> photoAssociations = 
+            new HashSet<FolderPhotoAssociation>();
+
+    /**
+     Add an association to a photo
+     @param a The association
+     @throws IllegalStateException if a is really associated with another folder
+     */
+    void addPhotoAssociation( FolderPhotoAssociation a ) {
+        photoAssociations.add( a );
+        a.setFolder( this );
+    }
+
+    /**
+     Get all associations from this folder to photos
+     @return
+     */
+    @OneToMany( mappedBy="folder" )
+    Set<FolderPhotoAssociation> getPhotoAssociations() {
+        return photoAssociations;        
+    }
+    
+    /**
+     Set the photo associations from this folder. For Hibernate.
+     @param s Set of all associations
+     */
+    void setPhotoAssociations( Set<FolderPhotoAssociation> s ) {
+        photoAssociations = s;
+    }
+            
+    
     /**
        Returns the numer of subfolders this folder has.
     */

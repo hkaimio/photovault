@@ -398,6 +398,81 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         assertNull( root1.getParentFolder() );
     }
     
+    /**
+     Test that {@link FolderPhotoAssociation} objects are persisted correctly
+    */
+    @Test
+    public void testAssocPersistence() {
+        PhotoFolder top = folderDAO.findRootFolder();
+        PhotoInfo p1 = PhotoInfo.create();
+        PhotoInfo p2 = PhotoInfo.create();
+        photoDAO.makePersistent( p1 );
+        
+        FolderPhotoAssociation a1 = new FolderPhotoAssociation( top, p1 );
+        FolderPhotoAssociation a2 = new FolderPhotoAssociation( top, p2 );
+        a2.setPhoto( null );
+        top.addPhotoAssociation( a1 );
+        top.addPhotoAssociation( a2 );
+        
+        FolderPhotoAssocDAO assocDAO = daoFactory.getFolderPhotoAssocDAO();
+        assocDAO.makePersistent( a1 );
+        assocDAO.makePersistent( a2 );
+        
+        session.flush();
+        session.clear();
+        
+        top = folderDAO.findRootFolder();
+        Set<FolderPhotoAssociation> assocs = top.getPhotoAssociations();
+        assertEquals( 2, assocs.size() );
+        boolean foundP1 = false;
+        boolean foundP2 = false;
+        for ( FolderPhotoAssociation a : assocs ) {
+            if ( a.getPhoto() == null ) {
+                foundP2 = true;
+                // This throws exception if uuid validation fails
+                a.setPhoto( p2 );
+            } else {
+                assertEquals( p1.getUuid(), a.getPhoto().getUuid() );
+                foundP1 = true;
+            }
+        }
+        assertTrue( foundP1 );
+        assertTrue( foundP2 );
+        session.clear();
+    }
+    
+    /**
+     Test that {@link FolderPhotoAssociation} checks its state correctly and 
+     throws and exception if the folder and photo set do not match with its 
+     identity.
+     */
+    @Test
+    public void TestFolderAssocValidation() {
+        PhotoFolder top = folderDAO.findRootFolder();
+        PhotoFolder otherFolder = PhotoFolder.create( "test", top );
+        PhotoInfo p1 = PhotoInfo.create();
+        PhotoInfo p2 = PhotoInfo.create();
+        FolderPhotoAssociation a1 = new FolderPhotoAssociation( top, p1 );
+        a1.setFolder( null );
+        a1.setPhoto( null );
+        a1.setFolder( otherFolder );
+        boolean ok = false;
+        try {
+            a1.setPhoto( p1 );
+        } catch ( IllegalStateException e ) {
+            ok = true;
+        }
+        assertTrue( ok );
+        a1.setFolder( top );
+        ok = false;
+        try {
+            a1.setFolder( otherFolder );
+        } catch ( IllegalStateException e ) {
+            ok = true;
+        }
+        assertTrue( ok );
+    }
+            
 
 }
 

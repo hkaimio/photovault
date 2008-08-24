@@ -39,6 +39,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -2010,6 +2011,41 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         folders = newFolders;    
     }
     
+    /**
+     Folder associations this photo is part of.
+     */
+    Set<FolderPhotoAssociation> folderAssociations = 
+            new HashSet<FolderPhotoAssociation>();
+    
+    /**
+     Get all know associations from this photo to folders. Note that some of the
+     folders may not be known in this database, just the association is known. In
+     these cases the folder field in the association object in<code>null</code>
+     @return
+     */
+    @OneToMany( mappedBy = "photo" )
+    public Set<FolderPhotoAssociation> getFolderAssociations() {
+        return folderAssociations;
+    }
+    
+    /**
+     Set the folder associations for this object. For Hibernate use
+     @param s Set of all known associations
+     */
+    public void setFolderAssociations( Set<FolderPhotoAssociation> s ) {
+        folderAssociations = s;
+    }
+    
+    /**
+     Add an association to a folder
+     @param a The associaton object
+     @throws IllegalStateException if the association is really created to other 
+     photo.
+     */
+    public void addFolderAssociation( FolderPhotoAssociation a ) {
+        folderAssociations.add( a );
+        a.setPhoto( this );
+    }
     /**
      Helper method for comparing testing equality of 2 objects that can 
      potentially be null

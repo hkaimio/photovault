@@ -23,6 +23,7 @@ package org.photovault.swingui;
 import abbot.tester.ComponentTester;
 import java.awt.FlowLayout;
 import java.util.List;
+import java.util.UUID;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -115,7 +116,8 @@ public class Test_PhotoViewController extends PhotovaultTestCase {
                 new CreatePhotoFolderCommand(root, "Test_PhotoViewController", "" );
         commandHandler.executeCommand( cmd );
         folder = cmd.getCreatedFolder();
-        photo = photoDAO.findById( 1, false );
+        photo = photoDAO.findById( 
+                UUID.fromString( "f5d73748-0fb4-40ab-bd05-d3740fb30783" ), false );
         ChangePhotoInfoCommand pcmd = new ChangePhotoInfoCommand( photo.getUuid() );
         pcmd.addToFolder( folder );
         commandHandler.executeCommand( pcmd );

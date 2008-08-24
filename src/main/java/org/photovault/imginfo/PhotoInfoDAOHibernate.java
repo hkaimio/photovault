@@ -30,7 +30,7 @@ import org.photovault.persistence.GenericHibernateDAO;
  * @author harri
  */
 public class PhotoInfoDAOHibernate 
-        extends GenericHibernateDAO<PhotoInfo, Integer> 
+        extends GenericHibernateDAO<PhotoInfo, UUID> 
         implements PhotoInfoDAO {
     
     /** Creates a new instance of PhotoInfoDAOHibernate */
