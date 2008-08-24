@@ -35,7 +35,7 @@ import javax.persistence.Transient;
 @Embeddable
 public class RawConversionSettings implements Cloneable, Externalizable {
     
-    static final long serialVersionUUI = 1131589578728161524L;
+    static final long serialVersionUID = 1131589578728161524L;
     /**
     Version of the serialized for of this object
      */

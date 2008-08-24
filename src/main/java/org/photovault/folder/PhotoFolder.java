@@ -179,7 +179,7 @@ public class PhotoFolder implements PhotoCollection {
     @ManyToMany( cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )
     @org.hibernate.annotations.Cascade({
                org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
-    @JoinTable( name = "collection_photos",
+    @JoinTable( name = "pv_collection_photos",
                 joinColumns = {@JoinColumn( name = "collection_uuid" ) },
                 inverseJoinColumns = {@JoinColumn( name = "photo_uuid" ) } )
     public Set<PhotoInfo> getPhotos() {

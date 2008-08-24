@@ -248,6 +248,7 @@ public class SchemaUpdateAction {
             convertVolumes();
             convertFolders();
             convertPhotos();
+            convertFolderAssociations();
             
         } catch ( SQLException e ) {
             log.error( "Error while migrating to new schema: " + e.getMessage(), e );
@@ -255,6 +256,9 @@ public class SchemaUpdateAction {
     }
     
     Map<String, UUID> volIds = new HashMap<String,UUID>();
+
+    Map<Integer, UUID> folderUuids = new HashMap<Integer, UUID>();
+    Map<Integer, UUID> photoUuids = new HashMap<Integer, UUID>();
     
      /**
      Convert volumes to new schema
@@ -353,7 +357,7 @@ public class SchemaUpdateAction {
                 int id = rs.getInt( "collection_id" );
                 log.debug( "Creating folder with old id " + id + ", uuid " + uuidStr );
                 UUID uuid = (uuidStr != null) ?
-                    UUID.fromString( rs.getString( "collection_uuid" ) ) :
+                    UUID.fromString( uuidStr ) :
                     UUID.randomUUID();
                 if ( id == 1 ) {
                     uuid = PhotoFolder.ROOT_UUID;
@@ -368,6 +372,7 @@ public class SchemaUpdateAction {
                 folderDao.makePersistent( f );
                 log.debug(  "folder saved" );
                 foldersById.put( id, f );
+                folderUuids.put(  id, uuid );
                 waiting.add( id );
             }
             try {
@@ -377,6 +382,58 @@ public class SchemaUpdateAction {
             }
         }
         s.flush();
+    }
+    
+    private void convertFolderAssociations() {
+        Session s = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory daoFactory = 
+                (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        daoFactory.setSession( s );
+        PhotoInfoDAO photoDao = daoFactory.getPhotoInfoDAO();
+        PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
+        final String sql =
+                "select * from collection_photos";
+        Session sqlSess = HibernateUtil.getSessionFactory().openSession();
+        Connection conn = sqlSess.connection();
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery( sql );
+            while ( rs.next() ) {
+                int folderId = rs.getInt( "collection_id" );
+                int photoId = rs.getInt( "photo_id" );
+                UUID folderUuid = folderUuids.get( folderId );
+                UUID photoUuid = photoUuids.get( photoId );
+                if ( folderUuid != null && photoUuid != null ) {
+                    PhotoFolder f = folderDAO.findById( folderUuid, false );
+                    PhotoInfo p = photoDao.findByUUID( photoUuid );
+
+                    f.addPhoto( p );
+                    s.flush();
+                    s.clear();
+                }
+            }
+        } catch ( SQLException ex ) {
+            log.error( ex );
+        } finally {
+            if ( rs != null ) {
+                try {
+                    rs.close();
+                } catch ( SQLException e ) {
+                    log.error( e );
+                }  
+            }
+            if ( stmt != null ) {
+                try {
+                    stmt.close();
+                } catch ( SQLException e ) {
+                    log.error( e );
+                }  
+            }
+            s.close();
+            sqlSess.close();
+        }
     }
     
     /**
@@ -573,6 +630,9 @@ public class SchemaUpdateAction {
      The conversion maintains old uuid, and creates 2 change records 
      - one that sets just original and UUID and another that sets the other fields
      to values they have in the old database.
+    <p>
+    Mapping from old integer photo_id to UUID of the new photo is stored 
+    in {@link photoUuids}
      
      @param rs ResultSet from which the field values are read.
      @param rf Resolver factory used when constructing change objects
@@ -596,6 +656,8 @@ public class SchemaUpdateAction {
             photo = PhotoInfo.create();
         }
         photoDao.makePersistent( photo );
+        int photoId = rs.getInt( "p_photo_id");
+        photoUuids.put(  photoId, photo.getUuid() );
 
         // First change should contain just information about the original
         VersionedObjectEditor<PhotoInfo> pe = 
@@ -656,7 +718,7 @@ public class SchemaUpdateAction {
     }   
     
     /**
-     Reads raw conversions ettings from result set queried by 
+     Reads raw conversions settings from result set queried by 
      {@link oldPhotoQuerySql}
      @param rs Result set containing the settings
      @param prefix Prefix that will be added in front of the column names

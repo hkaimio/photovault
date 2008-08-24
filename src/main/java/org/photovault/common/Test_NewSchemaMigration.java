@@ -43,6 +43,8 @@ import org.apache.ddlutils.model.Database;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.FileUtils;
 import org.photovault.imginfo.FuzzyDate;
@@ -221,9 +223,21 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         assertEquals( 2, ch1.size() );
         assertNull( p1.getRawSettings() );
         
+        Set<PhotoFolder> p1folders = p1.getFolders();
+        assertEquals( 2, p1folders.size() );
+        PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
+        PhotoFolder f1 = folderDao.findById( 
+                UUID.fromString( "15283a2c-1000-4b51-ac45-ba250cca551b"), false );
+        PhotoFolder f2 = folderDao.findById( 
+                UUID.fromString( "0e09a6a8-f34b-4a28-9430-ae722e7f2767"), false );
+        assertTrue( p1folders.contains( f1 ) );
+        assertTrue( p1folders.contains( f2 ) );
+
         // Photo with raw image
         PhotoInfo p2 = photoDao.findByUUID( 
                 UUID.fromString( "e3f4b466-d1a3-48c1-ac86-01d9babf373f") );
+        assertEquals( 1, p2.getFolders().size() );
+        assertTrue( p2.getFolders().contains( f2 ) );
         RawConversionSettings r2 = p2.getRawSettings();
         assertEquals( 31347, r2.getWhite() );
         assertEquals( 0.5, r2.getHighlightCompression() );
