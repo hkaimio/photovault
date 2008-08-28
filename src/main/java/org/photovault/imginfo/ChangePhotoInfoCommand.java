@@ -29,8 +29,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
@@ -39,16 +37,14 @@ import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
+import org.photovault.folder.FolderPhotoAssocDAO;
+import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.xml.ChangeDesc;
-import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
-import org.photovault.persistence.HibernateDAOFactory;
-import org.photovault.replication.Change;
 import org.photovault.replication.DTOResolverFactory;
-import org.photovault.replication.HibernateDtoResolverFactory;
 import org.photovault.replication.VersionedObjectEditor;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -469,16 +465,24 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
 //            }
             
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
+            FolderPhotoAssocDAO assocDAO = daoFactory.getFolderPhotoAssocDAO();
             Set<PhotoFolder> af = new HashSet<PhotoFolder>();
             for ( UUID folderId : addedToFolders ) {
+                log.debug( "Adding photo " + photo.getUuid() + " to folder " + folderId );
                 PhotoFolder folder = folderDAO.findById( folderId, false );
-                folder.addPhoto ( photo );
+                FolderPhotoAssociation a = assocDAO.getAssociation( folder, photo );
+                photo.addFolderAssociation( a );
+                folder.addPhotoAssociation( a );
                 af.add(folder);
             }
             Set<PhotoFolder> rf = new HashSet<PhotoFolder>();
             for ( UUID folderId : removedFromFolders ) {
+                log.debug( "Removing photo " + photo.getUuid() + " from folder " + folderId );
                 PhotoFolder folder = folderDAO.findById( folderId, false );
-                folder.removePhoto( photo );
+                FolderPhotoAssociation a = assocDAO.getAssociation( folder, photo );
+                folder.removePhotoAssociation( a );
+                photo.removeFolderAssociation( a );
+                assocDAO.makeTransient( a );
             }
             
 //            PhotoInfoChangeDesc change = new PhotoInfoChangeDesc( 

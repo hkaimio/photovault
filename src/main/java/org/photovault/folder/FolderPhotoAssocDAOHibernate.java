@@ -20,6 +20,7 @@
 package org.photovault.folder;
 
 import java.util.UUID;
+import org.photovault.imginfo.PhotoInfo;
 import org.photovault.persistence.GenericHibernateDAO;
 
 /**
@@ -32,5 +33,10 @@ public class FolderPhotoAssocDAOHibernate
         implements FolderPhotoAssocDAO {
     public FolderPhotoAssocDAOHibernate() {
         super();
+    }
+
+    public FolderPhotoAssociation getAssociation( PhotoFolder f, PhotoInfo p ) {
+        FolderPhotoAssociation a = new FolderPhotoAssociation( f, p );
+        return (FolderPhotoAssociation) getSession().merge( a );
     }
 }

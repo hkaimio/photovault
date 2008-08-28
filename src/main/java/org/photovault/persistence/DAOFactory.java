@@ -21,6 +21,7 @@
 package org.photovault.persistence;
 
 import org.photovault.change.ChangeDescDAO;
+import org.photovault.folder.FolderPhotoAssocDAO;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.ImageDescriptorDAO;
 import org.photovault.imginfo.ImageFileDAO;
@@ -71,4 +72,6 @@ public abstract class DAOFactory {
     public abstract ChangeDescDAO getChangeDescDAO();
     
     public abstract DTOResolverFactory getDTOResolverFactory();
+    
+    public abstract FolderPhotoAssocDAO getFolderPhotoAssocDAO();
 }

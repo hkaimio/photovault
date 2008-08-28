@@ -125,6 +125,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         PhotoInfo photo = PhotoInfo.create();
         photo.getHistory().createChange().freeze();
         photoDAO.makePersistent( photo );
+        FolderPhotoAssocDAO assocDAO = daoFactory.getFolderPhotoAssocDAO();
         
 	PhotoFolder folder = null;
         // Create a folder for the photo
@@ -132,7 +133,9 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         folder = PhotoFolder.create( "PhotoAdditionTest", null );
         folder = folderDAO.makePersistent( folder );
         folder.reparentFolder( root );
-        folder.addPhoto( photo );
+        FolderPhotoAssociation a = assocDAO.getAssociation( folder, photo );
+        photo.addFolderAssociation( a );
+        folder.addPhotoAssociation( a );
         folderDAO.flush();
         assertMatchesDb( folder, session );
         
@@ -141,6 +144,9 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         // Clean up the test folder
         PhotoFolder parent = folder.getParentFolder();
         parent.removeSubfolder( folder );
+        photo.removeFolderAssociation( a );
+        folder.removePhotoAssociation( a );
+        assocDAO.makeTransient( a );
         folderDAO.makeTransient( folder );
     }
 
@@ -345,11 +351,12 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         photoDAO.makePersistent( photo );
 
 	l1.modified = false;
-	folder.addPhoto( photo );
+        FolderPhotoAssociation a  = new FolderPhotoAssociation( folder, photo );
+	folder.addPhotoAssociation( a );
 	assertTrue( "l1 not called when adding photo", l1.modified );
 
 	l1.modified = false;
-	folder.removePhoto( photo );
+	folder.removePhotoAssociation( a );
 	assertTrue( "l1 not called when removing photo", l1.modified );
 	photo.delete();
 	
@@ -363,6 +370,11 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     /**
        test that when a photo is deleted from database the folder is also modified
     */
+    
+    /*
+     This is not relevant with the new schema, as photos cannot really be 
+     deleted!!!
+     
     @Test
     public void testPhotoDelete() {
 	PhotoFolder folder = PhotoFolder.create( "testListener", null );
@@ -384,6 +396,8 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	
     }
 
+     */
+    
     /**
        Tests that getRoot() method returns the root folder and that it returns the same
        instance all the time.

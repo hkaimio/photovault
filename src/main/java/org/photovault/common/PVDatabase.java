@@ -393,6 +393,7 @@ public class PVDatabase {
         dbInfo.setCreateTime( new Date() );
         dbInfo.setId( idStr );
         dbInfo.setVersion( CURRENT_SCHEMA_VERSION );
+        dbInfo.setDefaultVolumeId( defVol.getId() );
         s.save( dbInfo );
         
         s.flush();

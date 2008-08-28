@@ -426,15 +426,16 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      {@link #delete( boolean deleteExternalInstances )} instead.
      */
     public void delete() {
+        log.warn( "Calling PhotoInfo.delete()" );
         // First delete all instances
         
         // Then delete the photo from all folders it belongs to
-        if ( folders != null ) {
-            Object[] foldersArray = folders.toArray();
-            for ( int n = 0; n < foldersArray.length; n++ ) {
-                ((PhotoFolder)foldersArray[n]).removePhoto( this );
-            }
-        }
+//        if ( folders != null ) {
+//            Object[] foldersArray = folders.toArray();
+//            for ( int n = 0; n < foldersArray.length; n++ ) {
+//                ((PhotoFolder)foldersArray[n]).removePhoto( this );
+//            }
+//        }
     }
     
     /**
@@ -480,12 +481,12 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
          All instances were succesfully deleted, so we can delete metadata as well.
          First, delete the photo from all folders it belongs to
          */
-        if ( folders != null ) {
-            Object[] foldersArray = folders.toArray();
-            for ( int n = 0; n < foldersArray.length; n++ ) {
-                ((PhotoFolder)foldersArray[n]).removePhoto( this );
-            }
-        }
+//        if ( folders != null ) {
+//            Object[] foldersArray = folders.toArray();
+//            for ( int n = 0; n < foldersArray.length; n++ ) {
+//                ((PhotoFolder)foldersArray[n]).removePhoto( this );
+//            }
+//        }
         
         // Then delete the PhotoInfo object itself
         db.deletePersistent( this );
@@ -1974,42 +1975,23 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         return rawSettings != null ? rawSettings.getColorTemp(): null;
     }
     
-/**
-     List of folders this photo belongs to
-     */
-    Set<PhotoFolder> folders = new HashSet<PhotoFolder>();
-    
-    /**
-     This is called by PhotoFolder when the photo is added to a folder
-     */
-    public void addedToFolder( PhotoFolder folder ) {
-        folders.add( folder );
-    }
-    
-    /**
-     This is called by PhotoFolder when the photo is removed from a folder
-     */
-    public void removedFromFolder( PhotoFolder folder ) {
-        if ( folders == null ) {
-            folders = new HashSet<PhotoFolder>();
-        }
-        
-        folders.remove( folder );
-    }
-    
     
     /**
      Returns a collection that contains all folders the photo belongs to
      */
     // TODO: implement mapping of folders
-    @ManyToMany( mappedBy = "photos" )
+    @Transient
     public Set<PhotoFolder> getFolders() {
+        Set<PhotoFolder> folders = new HashSet<PhotoFolder>();
+        for ( FolderPhotoAssociation a : folderAssociations ) {
+            PhotoFolder f = a.getFolder();
+            if ( f != null ) {
+                folders.add( f );
+            }
+        }
         return folders;
     }
     
-    protected void setFolders( Set<PhotoFolder> newFolders ) {
-        folders = newFolders;    
-    }
     
     /**
      Folder associations this photo is part of.
@@ -2046,6 +2028,12 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         folderAssociations.add( a );
         a.setPhoto( this );
     }
+    
+    public void removeFolderAssociation( FolderPhotoAssociation a ) {
+        folderAssociations.remove( a );
+        a.setPhoto( null );
+    }
+    
     /**
      Helper method for comparing testing equality of 2 objects that can 
      potentially be null

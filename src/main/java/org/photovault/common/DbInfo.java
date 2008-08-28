@@ -22,6 +22,7 @@ package org.photovault.common;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import org.hibernate.Session;
 import javax.persistence.*;
 import org.hibernate.Transaction;
@@ -111,6 +112,18 @@ public class DbInfo {
     
     protected void setId( String id ) {
         this.id = id;
+    }
+    
+    UUID defVolId;
+            
+    @Column( name="default_volume_id" )
+    @org.hibernate.annotations.Type(type = "org.photovault.persistence.UUIDUserType")
+    public UUID getDefaultVolumeId() {
+        return defVolId;
+    }
+    
+    public void setDefaultVolumeId( UUID id ) {
+        defVolId = id;
     }
     
     private String id;

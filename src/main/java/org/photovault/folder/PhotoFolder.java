@@ -176,15 +176,21 @@ public class PhotoFolder implements PhotoCollection {
 
     Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
     
-    @ManyToMany( cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )
-    @org.hibernate.annotations.Cascade({
-               org.hibernate.annotations.CascadeType.SAVE_UPDATE })    
-    @JoinTable( name = "pv_collection_photos",
-                joinColumns = {@JoinColumn( name = "collection_uuid" ) },
-                inverseJoinColumns = {@JoinColumn( name = "photo_uuid" ) } )
+    /**
+     Get the photos in this folder
+     @return
+     */
+    @Transient
     public Set<PhotoInfo> getPhotos() {
-        // TODO: Make test case to verify if this works with Hibernate
+        Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
+        for ( FolderPhotoAssociation a : photoAssociations ) {
+            PhotoInfo p = a.getPhoto();
+            if ( p != null ) {
+                photos.add( p );
+            }
+        }
         return photos;
+        
     }
                
     
@@ -196,36 +202,32 @@ public class PhotoFolder implements PhotoCollection {
     public List<PhotoInfo> queryPhotos( Session session ) {
         @SuppressWarnings( "unchecked" )
         List<PhotoInfo> res = 
-                session.createQuery( "from PhotoInfo p where :f member of p.folders" ).
+                session.createQuery( 
+                "select p from PhotoInfo p join p.folderAssociations a where a.folder = :f" ).
                 setEntity( "f", this ).list(  );
         return res;
-    }
-
-    protected void setPhotos( Set<PhotoInfo> newPhotos ) {
-        this.photos = newPhotos;
-        modified();
     }
     
     /**
      * Returns the number of photos in the folder
+     @deprecated 
      */
     @Transient
     public int getPhotoCount()
     {
-	if ( photos == null ) {
-	    return 0;
-	}
-	return photos.size();
+	return getPhotos().size();
     }
 
     /**
      * Returns a photo from the folder with given order number. Valid values [0..getPhotoCount[
      * @param num order number of the photo
      * @return The photo with the given number
+     @deprecated This is horribly inefficient after introducing FolderPhotoAssociation
      */
     public PhotoInfo getPhoto(int num)
     {
-	if ( photos == null || num >= photos.size() ) {
+        Set<PhotoInfo> photos = getPhotos();
+        if ( num >= photos.size() ) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
         return photos.toArray( new PhotoInfo[photos.size()] )[num];
@@ -233,28 +235,20 @@ public class PhotoFolder implements PhotoCollection {
 
     /**
        Add a new photo to the folder
+     @deprecated Photos must be added using addPhotoAssociation. This remains 
+     only to compile with legacy code until it is fixed
     */
     public void addPhoto( PhotoInfo photo ) {
-	if ( photos == null ) {
-	    photos = new HashSet<PhotoInfo>();
-	}
-	if ( !photos.contains( photo ) ) {
-	    photo.addedToFolder( this );
-	    photos.add( photo );
-	    modified();
-	}
+	log.warn( "called PhotoFolder.addPhoto()" );
     }
 
     /**
        remove a photo from the collection. If the photo does not exist in collection, does nothing
+     @deprecated Photos must be removed using removePhotoAssociation. This remains 
+     only to compile with legacy code until it is fixed
     */
     public void removePhoto( PhotoInfo photo ) {
-	if ( photos == null ) {
-	    return;
-	}
-	photo.removedFromFolder( this );
-	photos.remove( photo );
-	modified();
+	log.warn( "called PhotoFolder.removePhoto()" );
     }
 
     
@@ -269,11 +263,17 @@ public class PhotoFolder implements PhotoCollection {
      @param a The association
      @throws IllegalStateException if a is really associated with another folder
      */
-    void addPhotoAssociation( FolderPhotoAssociation a ) {
+    public void addPhotoAssociation( FolderPhotoAssociation a ) {
         photoAssociations.add( a );
         a.setFolder( this );
+        modified();
     }
 
+    public void removePhotoAssociation( FolderPhotoAssociation a ) {
+        photoAssociations.remove( a );
+        a.setFolder( null );
+        modified();
+    }
     /**
      Get all associations from this folder to photos
      @return
@@ -596,14 +596,13 @@ public class PhotoFolder implements PhotoCollection {
 	// First make sure that this object is deleted from its parent's subfolders list (if it has a parent)
 	reparentFolder( null );
 
-	// Then notify all photos belonging to this folder
-	if ( photos != null ) {
-	    Iterator photoIter = photos.iterator();
-	    while ( photoIter.hasNext() ) {
-		PhotoInfo photo = (PhotoInfo) photoIter.next();
-		photo.removedFromFolder( this );
-	    }
-	}
+        for ( FolderPhotoAssociation a : photoAssociations ) {
+            PhotoInfo p = a.getPhoto();
+            if ( p != null ) {
+                p.removeFolderAssociation( a );
+                a.setFolder( this );
+            }
+        }
     }
 
     /**

@@ -217,11 +217,6 @@ public interface PhotoEditor {
     UUID getUuid();
 
     /**
-     * This is called by PhotoFolder when the photo is removed from a folder
-     */
-    void removedFromFolder( PhotoFolder folder );
-
-    /**
      * Set the value of camera.
      * @param v  Value to assign to camera.
      */

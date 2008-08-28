@@ -51,6 +51,8 @@ import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
+import org.photovault.folder.FolderPhotoAssocDAO;
+import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.image.ChannelMapOperation;
@@ -391,6 +393,7 @@ public class SchemaUpdateAction {
         daoFactory.setSession( s );
         PhotoInfoDAO photoDao = daoFactory.getPhotoInfoDAO();
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
+        FolderPhotoAssocDAO assocDAO = daoFactory.getFolderPhotoAssocDAO();
         final String sql =
                 "select * from collection_photos";
         Session sqlSess = HibernateUtil.getSessionFactory().openSession();
@@ -409,8 +412,11 @@ public class SchemaUpdateAction {
                 if ( folderUuid != null && photoUuid != null ) {
                     PhotoFolder f = folderDAO.findById( folderUuid, false );
                     PhotoInfo p = photoDao.findById( photoUuid, false );
+                    FolderPhotoAssociation a = new FolderPhotoAssociation( f, p );
+                    assocDAO.makePersistent( a );
+                    f.addPhotoAssociation( a );
+                    p.addFolderAssociation( a );
 
-                    f.addPhoto( p );
                     s.flush();
                     assocCount++;
                     if ( assocCount % 50 == 0 ) {

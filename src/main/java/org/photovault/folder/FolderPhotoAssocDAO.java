@@ -20,6 +20,7 @@
 package org.photovault.folder;
 
 import java.util.UUID;
+import org.photovault.imginfo.PhotoInfo;
 import org.photovault.persistence.GenericDAO;
 
 /**
@@ -27,5 +28,17 @@ import org.photovault.persistence.GenericDAO;
  */
 public interface FolderPhotoAssocDAO 
         extends GenericDAO<FolderPhotoAssociation, UUID> {
-
+    /**
+     Get the association object that connects given photo and folder together.
+     If there is an persistent instance, it is updated with information about 
+     the possibly missing part of the association. If there is no persistent 
+     instance, one is created. However, the updates are not stored in the 
+     associated photo and folder.
+     
+     @param f The folder
+     @param p The photo
+     @return The persistent association object between the photo and folder.
+     */
+    FolderPhotoAssociation getAssociation( PhotoFolder f, PhotoInfo p );
+        
 }

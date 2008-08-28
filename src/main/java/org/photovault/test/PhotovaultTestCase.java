@@ -59,7 +59,7 @@ public class PhotovaultTestCase extends TestCase {
      @param session Hibernate persistence context used to query the database
      */
     public static void assertMatchesDb( PhotoInfo p, Session session ) {
-        String sql = "select * from photos where photo_uuid = '" + p.getUuid() + "'";
+        String sql = "select * from pv_photos where photo_uuid = '" + p.getUuid() + "'";
         Statement stmt = null;
         ResultSet rs = null;
         try {
@@ -160,7 +160,7 @@ public class PhotovaultTestCase extends TestCase {
             rs.close();
             
             // Check that photos collection matches database
-            rs = stmt.executeQuery( "select * from pv_collection_photos where collection_uuid = '" + id +"'" );
+            rs = stmt.executeQuery( "select * from pv_folder_photos where folder_uuid = '" + id +"'" );
             Set<UUID> photoIds = new HashSet<UUID>();
             for ( PhotoInfo p : folder.getPhotos() ) {
                 photoIds.add( p.getUuid() );
