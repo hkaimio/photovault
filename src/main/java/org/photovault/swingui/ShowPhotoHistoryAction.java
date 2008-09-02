@@ -83,7 +83,7 @@ public class ShowPhotoHistoryAction extends AbstractAction
             buf.append(  "History of photo " );
             buf.append( p.getUuid() );
             buf.append( "\n" );
-            for ( Change<PhotoInfo, String> head : history.getHeads() ) {
+            for ( Change<PhotoInfo> head : history.getHeads() ) {
                 printChange( buf, head, processedChanges );
             }
             log.debug( buf.toString() );
@@ -97,14 +97,14 @@ public class ShowPhotoHistoryAction extends AbstractAction
      @param processed Set of UUIDs of changes that are already printed. The 
      changes printed by this method are added to this set.
      */
-    private void printChange( StringBuffer buf, Change<PhotoInfo,String> ch, 
+    private void printChange( StringBuffer buf, Change<PhotoInfo> ch, 
             Set<UUID> processed ) {
         if ( processed.contains( ch.getUuid() ) ) {
             return;
         }
         buf.append(  ch );
         processed.add(  ch.getUuid() );
-        for ( Change<PhotoInfo,String> prev : ch.getParentChanges() ) {
+        for ( Change<PhotoInfo> prev : ch.getParentChanges() ) {
             printChange( buf, prev, processed );
         }
     } 

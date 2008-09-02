@@ -5,7 +5,6 @@
 
 package org.photovault.replication;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +20,7 @@ import org.apache.commons.logging.LogFactory;
  */
 @Entity
 @DiscriminatorValue( "annotated" )
-public abstract class AnnotatedClassHistory<T> extends ChangeSupport<T,String> {
+public abstract class AnnotatedClassHistory<T> extends ChangeSupport<T> {
 
     Log log = LogFactory.getLog( AnnotatedClassHistory.class.getName() );
     
@@ -71,17 +70,6 @@ public abstract class AnnotatedClassHistory<T> extends ChangeSupport<T,String> {
     @Override
     protected void setField( String field, Object val ) {
             classDesc.setFieldValue( target, field, val );
-    }
-
-    @Override
-    protected FieldDescriptor<T> getFieldDescriptor( String field ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
-
-    @Override
-    @Transient
-    protected Map<String, FieldDescriptor<T>> getFieldDescriptors() {
-        throw new UnsupportedOperationException( "Not supported yet." );
     }
 
     @Override

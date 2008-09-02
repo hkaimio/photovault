@@ -26,13 +26,13 @@ import org.photovault.persistence.GenericDAO;
 /**
  Data access object interface for managing persistenc {@link Change} instances
  */
-public interface ChangeDAO<T,F extends Comparable> 
-        extends GenericDAO<Change<T,F>,UUID> {
+public interface ChangeDAO<T> 
+        extends GenericDAO<Change<T>,UUID> {
     
     /**
      Find the change history of the given object
      */
-    ChangeSupport<T,F> findObjectHistory( UUID id );
+    ChangeSupport<T> findObjectHistory( UUID id );
     
     /**
      Find change with given ID. Unlike the standard findById method this method 
@@ -42,7 +42,7 @@ public interface ChangeDAO<T,F extends Comparable>
      @return Change if it is found from local context, <code>null</code> 
      otherwise.
      */
-    Change<T,F> findChange( UUID id );
+    Change<T> findChange( UUID id );
     
-    void makePersistent( ChangeSupport<T,F> objectHistory );
+    void makePersistent( ChangeSupport<T> objectHistory );
 }

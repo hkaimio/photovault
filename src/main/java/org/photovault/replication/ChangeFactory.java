@@ -31,18 +31,18 @@ import java.util.UUID;
  persistence management layer. It can be used to create local persistent 
  instances from a serialized change.
  */
-public class ChangeFactory<T,F extends Comparable> {
+public class ChangeFactory<T> {
     
     /**
      DAO used for accessing local persistent data.
      */
-    ChangeDAO<T,F> dao;
+    ChangeDAO<T> dao;
     
     /**
      Construct a new ChangeFactory
      @param dao The DAO that is used to access local persistent data
      */
-    public ChangeFactory( ChangeDAO<T,F> dao ) {
+    public ChangeFactory( ChangeDAO<T> dao ) {
         this.dao = dao;
     }
     
@@ -58,11 +58,11 @@ public class ChangeFactory<T,F extends Comparable> {
      @throws IllegalStateException if the serialized change is somehow corrupted
      (i.e. its content does not match its UUID)
      */
-    public Change<T,F> readChange( ObjectInputStream is ) 
+    public Change<T> readChange( ObjectInputStream is ) 
             throws IOException, ClassNotFoundException {
-        ChangeDTO<T,F> data = (ChangeDTO<T, F>) is.readObject();
+        ChangeDTO<T> data = (ChangeDTO<T>) is.readObject();
         UUID changeUuid = data.changeUuid;
-        Change<T,F> existingChange = dao.findChange( changeUuid );
+        Change<T> existingChange = dao.findChange( changeUuid );
         if ( existingChange != null ) {
             return existingChange;
         }
@@ -70,14 +70,14 @@ public class ChangeFactory<T,F extends Comparable> {
          The change is not yet known in this context. Add it to the history of 
          the target object.
          */
-        ChangeSupport<T,F> targetHistory = dao.findObjectHistory( data.targetUuid );
+        ChangeSupport<T> targetHistory = dao.findObjectHistory( data.targetUuid );
         if ( targetHistory == null ) {
             /*
              The target object was not known to local database.
              Create local copy
              */
             try {
-               targetHistory = (ChangeSupport<T, F>) data.historyClass.newInstance();
+               targetHistory = (ChangeSupport<T>) data.historyClass.newInstance();
                targetHistory.initLocalReplica( data.targetUuid );
                dao.makePersistent( targetHistory );
             } catch ( InstantiationException ex ) {
@@ -89,13 +89,13 @@ public class ChangeFactory<T,F extends Comparable> {
             }
             
         }
-        Change<T,F> change = new Change<T, F>();
+        Change<T> change = new Change<T>();
         change.setTargetHistory( targetHistory );
         change.setUuid( data.changeUuid );
         // Try to find parents of this change
-        Set<Change<T,F>> parents = new HashSet<Change<T,F>>();
+        Set<Change<T>> parents = new HashSet<Change<T>>();
         for ( UUID parentId : data.parentIds ) {
-           Change<T,F> parent = dao.findById( parentId, false );
+           Change<T> parent = dao.findById( parentId, false );
            parents.add(  parent );
            parent.addChildChange( change );
         }

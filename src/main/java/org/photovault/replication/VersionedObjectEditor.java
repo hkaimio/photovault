@@ -59,7 +59,7 @@ public class VersionedObjectEditor<T> {
     /**
      Change that is currently being constructed
      */
-    Change<T, String> change;
+    Change<T> change;
 
     /**
     Create a new editor
@@ -72,7 +72,7 @@ public class VersionedObjectEditor<T> {
         this.fieldResolver = fieldResolver;
         this.classDesc = history.getClassDesc();
         change = history.createChange();
-        Change<T, String> prevChange = history.getVersion();
+        Change<T> prevChange = history.getVersion();
         if ( prevChange != null ) {
             change.setPrevChange( history.getVersion() );
         }
@@ -102,7 +102,7 @@ public class VersionedObjectEditor<T> {
      */
     public Object getField( String field ) {
         // Has this field been set?
-        Map<String,Object> changes = change.getChangedFields();
+        Map<String,FieldChange> changes = change.getChangedFields();
         if ( changes.containsKey( field ) ) {
             Object val = change.getField( field );
 
@@ -127,25 +127,52 @@ public class VersionedObjectEditor<T> {
         change.setField( field, resolver.getDtoFromObject( value ) );
     }
     
+    public void addToSet( String setFieldName, Object value ) {
+        SetChange sc = (SetChange) change.getFieldChange( setFieldName );
+        if ( sc == null ) {
+            sc = new SetChange( setFieldName );
+            change.setFieldChange( setFieldName, sc );
+        }
+        DTOResolver resolver = 
+                    fieldResolver.getResolver( classDesc.getFieldResolverClass( setFieldName ) );
+        sc.addItem( resolver.getDtoFromObject( value ) );
+    }
+    
+    public void removeFromSet( String setFieldName, Object value ) {
+        SetChange sc = (SetChange) change.getFieldChange( setFieldName );
+        if ( sc == null ) {
+            sc = new SetChange( setFieldName );
+            change.setFieldChange( setFieldName, sc );
+        }
+        DTOResolver resolver = 
+                    fieldResolver.getResolver( classDesc.getFieldResolverClass( setFieldName ) );
+        sc.removeItem( resolver.getDtoFromObject( value ) );        
+    }
+    
     /**
      Apply the changes made in this editor to the working copy and add the change
      to object history.
      */
     public void apply() {
         change.freeze();
-        for ( Change<T,String> parent : change.getParentChanges() ) {
+        for ( Change<T> parent : change.getParentChanges() ) {
             parent.addChildChange( change );
         }
-        Change<T,String> currentVersion = history.getVersion();
+        Change<T> currentVersion = history.getVersion();
         if ( currentVersion == null ? !change.getParentChanges().isEmpty() :
                 !change.getParentChanges().contains( currentVersion ) ) {
             throw new IllegalStateException( "Cannot apply change on top of unrelated change" );
         }
-        for ( Map.Entry<String,Object> fc : change.getChangedFields().entrySet() ) {       
+        for ( Map.Entry<String,FieldChange> fc : change.getChangedFields().entrySet() ) {       
             DTOResolver resolver = 
                     fieldResolver.getResolver( classDesc.getFieldResolverClass( fc.getKey() ) );
-            Object fieldVal = resolver.getObjectFromDto( fc.getValue() );
+            FieldChange ch = fc.getValue();
+            if ( ch instanceof ValueChange ) {
+            Object fieldVal = resolver.getObjectFromDto( ((ValueChange)ch).getValue() );
             classDesc.setFieldValue( history.getOwner(), fc.getKey(), fieldVal );
+            } else {
+                log.error( "apply cannot handle " + ch.getClass().getName() );
+            }
         }
         history.setVersion( change );                
     }
@@ -154,21 +181,21 @@ public class VersionedObjectEditor<T> {
      Change the state of target object to match given version
      @param version
      */
-    public void changeToVersion( Change<T,String> newVersion ) {
-        Change<T,String> oldVersion = history.getVersion();
+    public void changeToVersion( Change<T> newVersion ) {
+        Change<T> oldVersion = history.getVersion();
         
         if ( newVersion == oldVersion ) {
             return;
         }
         
         // Find the common ancestor between these versions
-        Set<Change<T,String>> oldAncestors = new HashSet<Change<T,String>>();
-        for ( Change<T,String> c = oldVersion ; c != null ; c = c.getPrevChange() ) {
+        Set<Change<T>> oldAncestors = new HashSet<Change<T>>();
+        for ( Change<T> c = oldVersion ; c != null ; c = c.getPrevChange() ) {
             oldAncestors.add( c );
         }
         
-        Change<T,String> commonBase = null;
-        for ( Change<T,String> c = newVersion ; c != null ; c = c.getPrevChange() ) {
+        Change<T> commonBase = null;
+        for ( Change<T> c = newVersion ; c != null ; c = c.getPrevChange() ) {
             if ( oldAncestors.contains( c ) ) {
                 commonBase = c;
                 break;
@@ -180,7 +207,7 @@ public class VersionedObjectEditor<T> {
          base
          */
         Set<String> oldFieldChanges = new HashSet<String>();
-        for ( Change<T,String> c = oldVersion ; c != commonBase ; c = c.getPrevChange() ) {
+        for ( Change<T> c = oldVersion ; c != commonBase ; c = c.getPrevChange() ) {
             oldFieldChanges.addAll( c.getChangedFields().keySet() );
         }
         
@@ -190,21 +217,26 @@ public class VersionedObjectEditor<T> {
          */
         Set<String> changedFields = new HashSet<String>();
         boolean commonBasePassed = false;
-        for ( Change<T,String> c = newVersion ; c != null ; c = c.getPrevChange() ) {
+        for ( Change<T> c = newVersion ; c != null ; c = c.getPrevChange() ) {
             if ( c == commonBase ) {
                 commonBasePassed = true;
             }
-            for ( Map.Entry<String, Object> e : c.getChangedFields().entrySet() ) {
+            for ( Map.Entry<String, FieldChange> e : c.getChangedFields().entrySet() ) {
                 String f = e.getKey();
                 if ( !changedFields.contains( f ) ) {
                     if ( !commonBasePassed || oldFieldChanges.contains( f ) ) {
                         DTOResolver resolver =
                                 fieldResolver.getResolver( 
                                 classDesc.getFieldResolverClass( f ) );
+                        FieldChange ch = e.getValue();
+                        if ( ch instanceof ValueChange ) {
                         Object fieldVal = resolver.getObjectFromDto( 
-                                e.getValue() );
+                                ((ValueChange)ch).getValue() );
                         classDesc.setFieldValue( history.getOwner(), f, fieldVal );
                         changedFields.add( f );
+                        } else {
+                            log.error( "changeTOVersion cannot handle " + ch.getClass().getName() );
+                        }
                     }
                 }
             }
@@ -212,7 +244,7 @@ public class VersionedObjectEditor<T> {
         history.setVersion( newVersion );
     }
     
-    public Change<T,String> getChange() {
+    public Change<T> getChange() {
         return change;
     }
 }

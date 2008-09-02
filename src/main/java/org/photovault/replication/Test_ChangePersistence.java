@@ -20,23 +20,18 @@
 
 package org.photovault.replication;
 
-import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Proxy;
-import java.util.Date;
-import java.util.Map;
 import java.util.UUID;
 import org.hibernate.Transaction;
 import org.hibernate.classic.Session;
-import org.photovault.imginfo.FuzzyDate;
+import org.photovault.folder.FolderPhotoAssociation;
+import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.OriginalImageDescriptor;
-import org.photovault.imginfo.PhotoEditor;
-import org.photovault.imginfo.PhotoEditorInvocationHandler;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeSupport;
 import org.photovault.imginfo.PhotoInfoDAO;
@@ -83,17 +78,17 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         PhotoInfo p = PhotoInfo.create();
         VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor( p.getHistory(), rf );
         e1.apply();
-        Change<PhotoInfo,String> c1 = e1.change;
+        Change<PhotoInfo> c1 = e1.change;
         VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor( p.getHistory(), rf );
         e2.setField( "camera", "Canon 30D" );
         e2.apply();
-        Change<PhotoInfo,String> c2 = e2.change;
+        Change<PhotoInfo> c2 = e2.change;
         p.getHistory().changeToVersion( c1 );
         VersionedObjectEditor<PhotoInfo> e3 = new VersionedObjectEditor( p.getHistory(), rf );
         e3.setField( "photographer", "Harri" );
         e3.apply();
-        Change<PhotoInfo,String> c3 = e3.change;
-        Change<PhotoInfo,String> c4 = c2.merge(  c3 );
+        Change<PhotoInfo> c3 = e3.change;
+        Change<PhotoInfo> c4 = c2.merge(  c3 );
         c4.freeze();
         Transaction tx = session.beginTransaction();
         session.saveOrUpdate( p );
@@ -104,12 +99,12 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
                 (PhotoInfoChangeSupport) sess2.get( 
                 PhotoInfoChangeSupport.class, p.getUuid() );
         assertEquals( 1, s2cs.getHeads().size() );
-        Change<PhotoInfo,String> s2c4 = s2cs.getHeads().iterator().next();
+        Change<PhotoInfo> s2c4 = s2cs.getHeads().iterator().next();
         assertEquals( c4.getUuid(), s2c4.getUuid() );
         assertEquals( 2, s2c4.getParentChanges().size() );
-        Change<PhotoInfo,String> s2c2 = null;
-        Change<PhotoInfo,String> s2c3 = null;
-        for ( Change<PhotoInfo,String> c : s2c4.getParentChanges() ) {
+        Change<PhotoInfo> s2c2 = null;
+        Change<PhotoInfo> s2c3 = null;
+        for ( Change<PhotoInfo> c : s2c4.getParentChanges() ) {
             if ( c.getUuid().equals( c2.getUuid() )) {
                 s2c2 = c;
             }
@@ -120,7 +115,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         assertNotNull( s2c2 );
         assertNotNull( s2c3 );
         assertTrue( s2c2.getChangedFields().containsKey( "camera" ) );
-        assertEquals( "Canon 30D", s2c2.getChangedFields().get(  "camera" ) );
+        assertEquals( "Canon 30D", ((ValueChange)s2c2.getChangedFields().get(  "camera" )).getValue() );
         sess2.close();
     }
     
@@ -138,7 +133,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         PhotoInfo p = PhotoInfo.create();
         VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor( p.getHistory(), rf );
         e1.apply();               
-        Change<PhotoInfo,String> c1 = e1.change;
+        Change<PhotoInfo> c1 = e1.change;
         Transaction tx = session.beginTransaction();
         session.saveOrUpdate( p );
         tx.commit();
@@ -150,26 +145,26 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         tx = session.beginTransaction();
         HibernateDAOFactory daoFactory = new HibernateDAOFactory();
         daoFactory.setSession( session );
-        ChangeDAO<PhotoInfo, String> chDao = daoFactory.getChangeDAO( );
+        ChangeDAO<PhotoInfo> chDao = daoFactory.getChangeDAO( );
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         p = photoDAO.findByUUID( p.getUuid() );
         
         VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor( p.getHistory(), rf );
         e2.setField( "camera", "Canon 30D" );
         e2.apply();       
-        Change<PhotoInfo,String> c2 = e2.change;
+        Change<PhotoInfo> c2 = e2.change;
 
         p.getHistory().changeToVersion( c1 );
         VersionedObjectEditor<PhotoInfo> e3 = new VersionedObjectEditor( p.getHistory(), rf );
         e3.setField( "photographer", "Harri" );
         e3.apply();
-        Change<PhotoInfo,String> c3 = e3.change;
+        Change<PhotoInfo> c3 = e3.change;
         
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream( os );
-        oos.writeObject( new ChangeDTO<PhotoInfo, String>( c1 ) );
-        oos.writeObject( new ChangeDTO<PhotoInfo, String>( c2 ) );
-        oos.writeObject( new ChangeDTO<PhotoInfo, String>( c3 ) );
+        oos.writeObject( new ChangeDTO<PhotoInfo>( c1 ) );
+        oos.writeObject( new ChangeDTO<PhotoInfo>( c2 ) );
+        oos.writeObject( new ChangeDTO<PhotoInfo>( c3 ) );
         byte[] serialized = os.toByteArray();
         tx.rollback();
         
@@ -179,18 +174,18 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         
         daoFactory.setSession( session );
         chDao = daoFactory.getChangeDAO( );
-        ChangeFactory<PhotoInfo, String> cf = new ChangeFactory( chDao );
-        Change<PhotoInfo, String> s2c1 = chDao.findById( c1.getUuid(), false );
+        ChangeFactory<PhotoInfo> cf = new ChangeFactory( chDao );
+        Change<PhotoInfo> s2c1 = chDao.findById( c1.getUuid(), false );
         assertEquals( 0, s2c1.getChildChanges().size() );
         assertEquals( c1.getUuid(), s2c1.getUuid() );
         
         ByteArrayInputStream is = new ByteArrayInputStream(  serialized );
         ObjectInputStream ios = new ObjectInputStream( is );
-        Change<PhotoInfo, String> serc1 = cf.readChange( ios );
+        Change<PhotoInfo> serc1 = cf.readChange( ios );
         assertTrue( serc1 == s2c1 );
         tx = session.beginTransaction();
-        Change<PhotoInfo, String> serc2 = cf.readChange( ios );
-        Change<PhotoInfo, String> serc3 = cf.readChange( ios );
+        Change<PhotoInfo> serc2 = cf.readChange( ios );
+        Change<PhotoInfo> serc3 = cf.readChange( ios );
         assertEquals( c2.getUuid(), serc2.getUuid() );
         assertEquals( c3.getUuid(), serc3.getUuid() );
         assertEquals( 2, s2c1.getChildChanges().size() );
@@ -217,8 +212,11 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         OriginalImageDescriptor orig = new OriginalImageDescriptor( ifile, "image#0" );
         Transaction tx = session.beginTransaction();
         session.saveOrUpdate( ifile );
+        PhotoFolder f = PhotoFolder.create( "Koe", null );
+        session.saveOrUpdate( f );
         tx.commit();
                 
+        
         tx = session.beginTransaction();
         PhotoInfo p = PhotoInfo.create();
         VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor<PhotoInfo>(  p.getHistory(), fieldResolver );
@@ -229,11 +227,15 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         e2.setField(PhotoInfoFields.PHOTOGRAPHER.getName(), "Harri" );
         e2.setField(PhotoInfoFields.FSTOP.getName(), 5.6 );
         e2.setField( "film", "Tri-X" );
+        
+        FolderPhotoAssociation a = new FolderPhotoAssociation( f, p );
+        e2.addToSet( "folderAssociations", a );
+        
         e2.apply();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream( os );
-        oos.writeObject( new ChangeDTO<PhotoInfo, String>( e1.getChange() ) );
-        oos.writeObject( new ChangeDTO<PhotoInfo, String>( e2.getChange() ) );
+        oos.writeObject( new ChangeDTO<PhotoInfo>( e1.getChange() ) );
+        oos.writeObject( new ChangeDTO<PhotoInfo>( e2.getChange() ) );
         byte[] serialized = os.toByteArray();
         tx.rollback();
 
@@ -247,64 +249,22 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         
         // Try to deserialize the changes and verify that the photo references
         // the exising image
-        ChangeDAO<PhotoInfo,String> chDao = daoFactory.getChangeDAO( );
-        ChangeFactory<PhotoInfo, String> cf = new ChangeFactory( chDao );
+        ChangeDAO<PhotoInfo> chDao = daoFactory.getChangeDAO( );
+        ChangeFactory<PhotoInfo> cf = new ChangeFactory( chDao );
         
         ByteArrayInputStream is = new ByteArrayInputStream(  serialized );
         ObjectInputStream ios = new ObjectInputStream( is );
         tx = session.beginTransaction();
-        Change<PhotoInfo, String> serc1 = cf.readChange( ios );
-        Change<PhotoInfo, String> serc2 = cf.readChange( ios );
-        VersionedObjectEditor<PhotoInfo> e3 = new VersionedObjectEditor<PhotoInfo>(  (AnnotatedClassHistory<PhotoInfo>) serc1.getTargetHistory(), fieldResolver  );
+        Change<PhotoInfo> serc1 = cf.readChange( ios );
+        Change<PhotoInfo> serc2 = cf.readChange( ios );
+        VersionedObjectEditor<PhotoInfo> e3 = 
+                new VersionedObjectEditor<PhotoInfo>(  
+                (AnnotatedClassHistory<PhotoInfo>) serc1.getTargetHistory(), 
+                fieldResolver  );
         e3.changeToVersion( serc2 );
         p = serc1.getTargetHistory().getOwner();
         assert( p.getOriginal().getFile() == ifile );
+        assertEquals( 1, p.getFolderAssociations().size() );
     }    
-    
-    @Test
-    public void testEditor() {
-        PhotoInfo p = PhotoInfo.create();
-        Change<PhotoInfo,String> c1 = p.getHistory().createChange();
-        c1.freeze();
-        Transaction tx = session.beginTransaction();
-        session.saveOrUpdate( p );
-        tx.commit();
-        
-        PhotoEditorInvocationHandler ih = 
-                new PhotoEditorInvocationHandler( p.getHistory() );
-        PhotoEditor e = 
-                (PhotoEditor) Proxy.newProxyInstance( 
-                PhotoEditor.class.getClassLoader(), new Class[]{PhotoEditor.class}, ih );
-        e.setCamera( "Canon FTb" );
-        e.setPhotographer( "Harri" );
-        e.setCropBounds( new Rectangle2D.Double( 0.1, 0.2, 0.7, 0.8 ) );
-        e.setDescription( "Desc" );
-        e.setFStop( 5.6 );
-        e.setFilm( "Tri-X" );
-        e.setFilmSpeed( 400 );
-        e.setFocalLength( 50 );
-        e.setFuzzyShootTime( new FuzzyDate( new Date(), 10 ) );
-        e.setLens( "FD 50mm/2.0" );
-        e.setOrigFname( "test.jpg" );
-        e.setPrefRotation( 45.0 );
-        e.setQuality( 2 );
-        e.setShootingPlace( "Rantasalmi" );
-        e.setShutterSpeed( 0.008 );
-        e.setTechNotes( "Test photo" );
-        ih.getChange().freeze();
-        Map<String, Object> changes = ih.getChange().getChangedFields();
-        assertEquals( "Canon FTb", p.getCamera() );
-        assertEquals( "Harri", p.getPhotographer() );
-        assertEquals( 5.6, p.getFStop() );
-        assertEquals( "Desc", p.getDescription() );
-        assertEquals( "Tri-X", p.getFilm() );
-        assertEquals( 400, p.getFilmSpeed() );
-        assertEquals( 50.0, p.getFocalLength() );
-        assertEquals( "FD 50mm/2.0", p.getLens() );
-        assertEquals( "test.jpg", p.getOrigFname() );
-        assertEquals( 45.0, p.getPrefRotation() );
-        assertEquals( 2, p.getQuality() );
-        assertEquals( "Rantasalmi", p.getShootingPlace() );
-        assertEquals( 0.008, p.getShutterSpeed() );
-    }
+  
 }

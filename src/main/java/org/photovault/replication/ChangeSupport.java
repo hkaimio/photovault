@@ -21,7 +21,6 @@
 
 package org.photovault.replication;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +39,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  Manages version history and version changes for a single object.
@@ -53,14 +54,14 @@ import javax.persistence.Transient;
  @since 0.6
  
  @param <T> Class of the target obejct
- @param <F> Class used to describe the fields in the class. Typically an enum.
  */
 @Entity
 @Table(name = "version_histories")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "class_discriminator", discriminatorType = DiscriminatorType.STRING)
-public abstract class ChangeSupport<T, F extends Comparable> {
+public abstract class ChangeSupport<T> {
 
+    static private Log log = LogFactory.getLog( ChangeSupport.class.getName() );
     /**
      Target obejct
      */ 
@@ -75,12 +76,12 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     /**
      Head changes (i.e. changes that do not have children)
      */
-    Set<Change<T, F>> heads = new HashSet<Change<T, F>>();
+    Set<Change<T>> heads = new HashSet<Change<T>>();
     
     /**
      All changes to target obejct that are known 
      */
-    Set<Change<T, F>> allChanges = new HashSet<Change<T, F>>();
+    Set<Change<T>> allChanges = new HashSet<Change<T>>();
 
 
     /**
@@ -129,8 +130,8 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      freezed
      @param c The new change
      */
-    void addChange( Change<T, F> c ) {
-        for ( Change<T,F> parent : c.getParentChanges() ) {
+    void addChange( Change<T> c ) {
+        for ( Change<T> parent : c.getParentChanges() ) {
             heads.remove( parent );
         }
         heads.add( c );
@@ -144,9 +145,9 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @deprecated Since initFirstChange does not have resolver context, it cannot 
      initialize fields with special resolver properly. So this should be removed.
      */
-    void initFirstChange( Change<T,F> c ) {
-        Map<F,Object> changedFields = c.getChangedFields();
-        for ( F f : allFields() ) {
+    void initFirstChange( Change<T> c ) {
+        Map<String,FieldChange> changedFields = c.getChangedFields();
+        for ( String f : allFields() ) {
             if ( !changedFields.containsKey( f ) ) {
                 c.setField(f, getField(f) );
             }
@@ -159,14 +160,19 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @throws IllegalStateException if the change is not a child of current 
      version of target obejct
      */
-    void applyChange( Change<T,F> c ) {
-        Change<T,F> currentVersion = getVersion();
+    void applyChange( Change<T> c ) {
+        Change<T> currentVersion = getVersion();
         if ( currentVersion == null ? !c.getParentChanges().isEmpty() :
                 !c.getParentChanges().contains( currentVersion ) ) {
             throw new IllegalStateException( "Cannot apply change on top of unrelated change" );
         }
-        for ( Map.Entry<F,Object> fc : c.getChangedFields().entrySet() ) {
-            setField(fc.getKey(), fc.getValue() );
+        for ( Map.Entry<String,FieldChange> fc : c.getChangedFields().entrySet() ) {
+            FieldChange ch = fc.getValue();
+            if ( ch instanceof ValueChange ) {
+                setField(fc.getKey(), ((ValueChange)ch).getValue() );
+            } else {
+                log.error( "applyChange cannot handle " + ch.getClass().getName() );
+            }
         }
         setVersion( c );        
     }
@@ -175,8 +181,8 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      Create a new empty change object for target object
      @return A new, unfrozen Change object
      */
-    public Change<T, F> createChange() {
-        return new Change<T, F>( this );
+    public Change<T> createChange() {
+        return new Change<T>( this );
     }
 
     /**
@@ -200,21 +206,21 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @param newVersion The new version for the target object
      @deprecated Use VersionedObjectEditor#changeToVersion instead.s
      */
-    public void changeToVersion( Change<T,F> newVersion ) {
-        Change<T,F> oldVersion = getVersion();
+    public void changeToVersion( Change<T> newVersion ) {
+        Change<T> oldVersion = getVersion();
         
         if ( newVersion == oldVersion ) {
             return;
         }
         
         // Find the common ancestor between these versions
-        Set<Change<T,F>> oldAncestors = new HashSet<Change<T,F>>();
-        for ( Change<T,F> c = oldVersion ; c != null ; c = c.getPrevChange() ) {
+        Set<Change<T>> oldAncestors = new HashSet<Change<T>>();
+        for ( Change<T> c = oldVersion ; c != null ; c = c.getPrevChange() ) {
             oldAncestors.add( c );
         }
         
-        Change<T,F> commonBase = null;
-        for ( Change<T,F> c = newVersion ; c != null ; c = c.getPrevChange() ) {
+        Change<T> commonBase = null;
+        for ( Change<T> c = newVersion ; c != null ; c = c.getPrevChange() ) {
             if ( oldAncestors.contains( c ) ) {
                 commonBase = c;
                 break;
@@ -225,8 +231,8 @@ public abstract class ChangeSupport<T, F extends Comparable> {
          Find out the fields that were changed between old version and common 
          base
          */
-        Set<F> oldFieldChanges = new HashSet<F>();
-        for ( Change<T,F> c = oldVersion ; c != commonBase ; c = c.getPrevChange() ) {
+        Set<String> oldFieldChanges = new HashSet<String>();
+        for ( Change<T> c = oldVersion ; c != commonBase ; c = c.getPrevChange() ) {
             oldFieldChanges.addAll( c.getChangedFields().keySet() );
         }
         
@@ -234,17 +240,22 @@ public abstract class ChangeSupport<T, F extends Comparable> {
          Finally, set fields in target object to the newest value in path to new
          version if the field was set in either path after common base
          */
-        Set<F> changedFields = new HashSet<F>();
+        Set<String> changedFields = new HashSet<String>();
         boolean commonBasePassed = false;
-        for ( Change<T,F> c = newVersion ; c != null ; c = c.getPrevChange() ) {
+        for ( Change<T> c = newVersion ; c != null ; c = c.getPrevChange() ) {
             if ( c == commonBase ) {
                 commonBasePassed = true;
             }
-            for ( Map.Entry<F,Object> e : c.getChangedFields().entrySet() ) {
-                F f = e.getKey();
+            for ( Map.Entry<String,FieldChange> e : c.getChangedFields().entrySet() ) {
+                String f = e.getKey();
                 if ( !changedFields.contains( f ) ) {
                     if ( !commonBasePassed || oldFieldChanges.contains( f ) ) {
-                        setField(f, e.getValue() );
+                        FieldChange ch = e.getValue();
+                        if ( ch instanceof ValueChange ) {
+                            setField(f, ((ValueChange)ch).getValue() );
+                        } else {
+                            log.error( "changeToVersion cannot handle " + ch.getClass().getName() );
+                        }
                         changedFields.add( f );
                     }
                 }
@@ -257,7 +268,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      Returns all known changes in target objects's history. 
      */
     @OneToMany( mappedBy="targetHistory", cascade=CascadeType.ALL )
-    public Set<Change<T,F>> getChanges() {
+    public Set<Change<T>> getChanges() {
         return this.allChanges;
     }
 
@@ -273,7 +284,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
     @JoinTable( name="change_unmerged_branches", 
                 joinColumns=@JoinColumn( name="target_uuid" ), 
                 inverseJoinColumns=@JoinColumn( name = "change_uuid" ) )
-    public Set<Change<T,F>> getHeads() {
+    public Set<Change<T>> getHeads() {
         return heads;
     }
     
@@ -299,12 +310,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @return Current value of given field in target
      */
     @Transient
-    protected abstract Object getField( F field );
-    
-    protected abstract FieldDescriptor<T> getFieldDescriptor( String field );
-    
-    @Transient
-    protected abstract Map<String, FieldDescriptor<T>> getFieldDescriptors();
+    protected abstract Object getField( String field );
     
     /**
      Set value of a field in target object
@@ -312,7 +318,7 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      @param val New value for the field
      */
     @Transient
-    protected abstract void setField( F field, Object val );
+    protected abstract void setField( String field, Object val );
     
     /**
      Get identifiers of all fields.
@@ -320,18 +326,18 @@ public abstract class ChangeSupport<T, F extends Comparable> {
      enumeration, return EnumSet.allOf( F.class )
      */
     @Transient
-    protected abstract Set<F> allFields();
+    protected abstract Set<String> allFields();
     
     /**
      Set the version of target obejct
      @param version The currently applied change
      */
-    protected abstract void setVersion( Change<T,F> version );
+    protected abstract void setVersion( Change<T> version );
     
     /**
      Returns the current version of target obejct
      */
     @OneToOne
     @JoinColumn( name = "version_uuid" )
-    protected abstract Change<T,F> getVersion( );
+    protected abstract Change<T> getVersion( );
 }

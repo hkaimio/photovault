@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.testng.annotations.Test;
@@ -37,62 +36,61 @@ import static org.testng.AssertJUnit.*;
 /**
  Test cases for {@link Change} class
  */
-public class TestChange {
+public class Test_Change {
     
-    static private class TestObjectChangeSupport extends ChangeSupport<TestObject, FieldDescriptor> {
+    static private class TestObjectChangeSupport extends ChangeSupport<TestObject> {
 
-        private Change<TestObject, FieldDescriptor> version;
+        private Change<TestObject> version;
         
         private TestObjectChangeSupport( TestObject obj ) {
             super( obj );
         }
 
         @Override
-        protected void setField( FieldDescriptor f, Object val  ) {
-            f.setValue(target, val);
+        protected void setField( String f, Object val  ) {
+            if ( f.equals("f1" ) ) {
+                target.f1 = (Integer)val;
+            } else if ( f.equals("f2" ) ) {
+                target.f2 = (Integer)val;
+            }
         }
 
         @Override
-        protected Object getField( FieldDescriptor field ) {
-            return field.getValue(target);
+        protected Object getField( String field ) {
+            if ( field.equals( "f1")) {
+                return target.f1;
+            } else if ( field.equals( "f2")) {
+                return target.f2;
+            } 
+            return null;
         }
 
-        static Set<FieldDescriptor> allFields = null;
+        static Set<String> allFields = null;
         
         @Override
-        protected Set<FieldDescriptor> allFields() {
+        protected Set<String> allFields() {
             if ( allFields == null ) {
-                allFields = new HashSet<FieldDescriptor>();
-                allFields.add( f1Desc );
-                allFields.add( f2Desc );
+                allFields = new HashSet<String>();
+                allFields.add( "f1" );
+                allFields.add( "f2" );
                 allFields = Collections.unmodifiableSet(allFields);
             }
             return allFields;
         }
 
         @Override
-        protected void setVersion( Change<TestObject, FieldDescriptor> version ) {
+        protected void setVersion( Change<TestObject> version ) {
             target.version = version;
         }
 
         @Override
-        protected Change<TestObject, FieldDescriptor> getVersion() {
+        protected Change<TestObject> getVersion() {
             return target.version;
         }
 
         @Override
         public UUID getGlobalId() {
             return target.uuid;
-        }
-
-        @Override
-        protected FieldDescriptor<TestObject> getFieldDescriptor( String field ) {
-            throw new UnsupportedOperationException( "Not supported yet." );
-        }
-
-        @Override
-        protected Map<String, FieldDescriptor<TestObject>> getFieldDescriptors() {
-            throw new UnsupportedOperationException( "Not supported yet." );
         }
 
         @Override
@@ -129,12 +127,12 @@ public class TestChange {
             cs.changeToVersion(newVersion);
         }
 
-        public List<Change<TestObject, FieldDescriptor>> getChanges() {
-            return (List<Change<TestObject, FieldDescriptor>>) cs.getChanges();
+        public List<Change<TestObject>> getChanges() {
+            return (List<Change<TestObject>>) cs.getChanges();
         }
 
-        public List<Change<TestObject, FieldDescriptor>> getHeads() {
-            return (List<Change<TestObject, FieldDescriptor>>) cs.getHeads();
+        public List<Change<TestObject>> getHeads() {
+            return (List<Change<TestObject>>) cs.getHeads();
         }
 
         public Change mergeHeads() {
@@ -146,62 +144,22 @@ public class TestChange {
         }
         
     }
-    
-    static private class F1Desc extends FieldDescriptor<TestObject> {
-        
-        public F1Desc() {
-            super( "f1" );
-        }
-
-        @Override
-        public Object getValue( TestObject target ) {
-            return ((TestObject)target).f1;
-        }
-
-        @Override
-        public void setValue( TestObject target, Object newValue ) {
-            TestObject t = (TestObject)target;
-            t.f1 = (Integer)newValue;
-        }
-        
-    }
-
-    static private class F2Desc extends FieldDescriptor<TestObject> {
-
-        public F2Desc() {
-            super( "f2" );
-        }
-
-        @Override
-        public Object getValue(  TestObject target ) {
-            return target.f2;
-        }
-
-        @Override
-        public void setValue(  TestObject target,  Object newValue ) {
-            target.f2 = (Integer) newValue;
-        }
-    }
-
-    static private FieldDescriptor f1Desc = new F1Desc();
-    static private FieldDescriptor f2Desc = new F2Desc();
-    
     @Test
     public void testApplyChange() {
         TestObject t = new TestObject();
         t.f1 = 1;
         t.f2 = 2;
         
-        Change<TestObject, FieldDescriptor<TestObject>> c = t.createChange();
-        c.setField( f2Desc, 3 );
+        Change<TestObject> c = t.createChange();
+        c.setField( "f2", 3 );
         c.freeze();
         assertEquals( 3, t.f2 );
         assertEquals( 1, t.f1 );
         assertEquals( c, t.getVersion() );
         
-        Change<TestObject, FieldDescriptor<TestObject>> c2 = t.createChange();
+        Change<TestObject> c2 = t.createChange();
         c2.setPrevChange( c );
-        c2.setField(f2Desc, 5 );
+        c2.setField("f2", 5 );
         c2.freeze();
         assertEquals( 5, t.f2 );
         assertEquals( c2, t.getVersion() );
@@ -215,12 +173,12 @@ public class TestChange {
         t.f1 = 1;
         t.f2 = 2;        
         
-        Change<TestObject, FieldDescriptor> initialState = t.createChange();
+        Change<TestObject> initialState = t.createChange();
         initialState.freeze();
         
-        Change c = t.createChange();
+        Change<TestObject> c = t.createChange();
         c.setPrevChange( t.createChange() );
-        c.setField(new F2Desc(), 3 );
+        c.setField("f2", 3 );
         c.freeze();
     }
     
@@ -230,17 +188,17 @@ public class TestChange {
         t.f1 = 1;
         t.f2 = 2;
         
-        Change<TestObject, FieldDescriptor> initialState = t.createChange();
+        Change<TestObject> initialState = t.createChange();
         initialState.freeze();
         
         Change c = t.createChange();
-        c.setField( f1Desc, 2 );
-        c.setField( f2Desc, 3 );
+        c.setField( "f1", 2 );
+        c.setField( "f2", 3 );
         c.freeze();
         
         Change c2 = t.createChange();
-        c2.setField(f1Desc, 3);
-        c2.setField(f2Desc, 5);
+        c2.setField("f1", 3);
+        c2.setField("f2", 5);
         c2.freeze();
 
         t.changeToVersion( c );
@@ -251,8 +209,8 @@ public class TestChange {
         
         Change c3 = t.createChange();
         c3.setPrevChange( c );
-        c3.setField(f1Desc, 4);
-        c3.setField(f2Desc, 5);
+        c3.setField("f1", 4);
+        c3.setField("f2", 5);
         c3.freeze();
         
         
@@ -267,12 +225,12 @@ public class TestChange {
         boolean f1Conflict = false;
         boolean f2Conflict = false;
         for ( FieldConflict cf : conflicts ) {
-            if ( cf.getField() == f1Desc ) {
+            if ( cf.getField().equals( "f1" ) ) {
                 f1Conflict = true;
                 f1c = cf;
                 assertTrue( cf.getChanges().contains( c2 ) );
                 assertTrue( cf.getChanges().contains( c3 ) );
-            } else if ( cf.getField() == f2Desc ) {
+            } else if ( cf.getField().equals( "f2" ) ) {
                 f2Conflict = true;
             }
         }
@@ -281,7 +239,7 @@ public class TestChange {
         
         f1c.resolve( c2 );
         assertFalse( merged.hasConflicts() );
-        assertEquals( 3, merged.getField(f1Desc) );
+        assertEquals( 3, merged.getField("f1") );
     }
     
     @Test
@@ -291,13 +249,13 @@ public class TestChange {
         t.f2 = 2;   
         
         Change c = t.createChange();
-        c.setField( f1Desc, 2 );
-        c.setField( f2Desc, 3 );
+        c.setField( "f1", 2 );
+        c.setField( "f2", 3 );
         c.freeze();
         
         Change c2 = t.createChange();
-        c2.setField(f1Desc, 3);
-        c2.setField(f2Desc, 5);
+        c2.setField("f1", 3);
+        c2.setField("f2", 5);
         c2.freeze();
         
         ByteArrayOutputStream s = new ByteArrayOutputStream();

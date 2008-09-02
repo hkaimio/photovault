@@ -30,28 +30,28 @@ import org.photovault.persistence.GenericHibernateDAO;
  @since 0.6
  @author Harri Kaimio
  */
-public class ChangeDAOHibernate<T,F extends Comparable> 
-        extends GenericHibernateDAO<Change<T,F>,UUID>
-        implements ChangeDAO<T,F>
+public class ChangeDAOHibernate<T> 
+        extends GenericHibernateDAO<Change<T>,UUID>
+        implements ChangeDAO<T>
 {
 
     public ChangeDAOHibernate() {
         super();
     }
     
-    public ChangeSupport<T, F> findObjectHistory( UUID id ) {
+    public ChangeSupport<T> findObjectHistory( UUID id ) {
         Query q = getSession().createQuery( "from ChangeSupport where targetUuid = :uuid" );
         q.setParameter( "uuid", id );
-        return (ChangeSupport<T, F>) q.uniqueResult();
+        return (ChangeSupport<T>) q.uniqueResult();
     }
 
-    public Change<T, F> findChange( UUID id ) {
+    public Change<T> findChange( UUID id ) {
         Query q = getSession().createQuery( "from Change where uuid = :uuid" );
         q.setParameter( "uuid", id );
-        return (Change<T, F>) q.uniqueResult();
+        return (Change<T>) q.uniqueResult();
     }
 
-    public void makePersistent( ChangeSupport<T, F> objectHistory ) {
+    public void makePersistent( ChangeSupport<T> objectHistory ) {
         getSession().saveOrUpdate( objectHistory );
         getSession().saveOrUpdate( objectHistory.getOwner() );
     }

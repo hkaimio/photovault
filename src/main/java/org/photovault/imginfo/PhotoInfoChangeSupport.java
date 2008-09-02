@@ -35,7 +35,6 @@ import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.replication.AnnotatedClassHistory;
 import org.photovault.replication.Change;
 import org.photovault.replication.DTOResolver;
-import org.photovault.replication.FieldDescriptor;
 
 /**
  *
@@ -47,7 +46,7 @@ public class PhotoInfoChangeSupport extends AnnotatedClassHistory<PhotoInfo> {
     
     private static Log log = LogFactory.getLog( ChangePhotoInfoCommand.class );
     
-    Change<PhotoInfo, String> currentVersion;
+    Change<PhotoInfo> currentVersion;
     
     public PhotoInfoChangeSupport( PhotoInfo p ) {
         super( p );
@@ -61,7 +60,7 @@ public class PhotoInfoChangeSupport extends AnnotatedClassHistory<PhotoInfo> {
     
     PhotoInfoChangeSupport( PhotoInfo p, OriginalImageDescriptor img ) {
         this( p );
-        Change <PhotoInfo, String> initialChange = createChange();
+        Change <PhotoInfo> initialChange = createChange();
         // initialChange.setField( PhotoInfoFields, log);
         initialChange.freeze();
     }
@@ -85,13 +84,13 @@ public class PhotoInfoChangeSupport extends AnnotatedClassHistory<PhotoInfo> {
     }
 
     @Override
-    protected void setVersion( Change<PhotoInfo, String> version ) {
+    protected void setVersion( Change<PhotoInfo> version ) {
         currentVersion = version;
     }
 
     @Override
     @Transient
-    protected Change<PhotoInfo, String> getVersion() {
+    protected Change<PhotoInfo> getVersion() {
         return currentVersion;
     }
     
@@ -119,57 +118,6 @@ public class PhotoInfoChangeSupport extends AnnotatedClassHistory<PhotoInfo> {
                 settings.setColorProfile( (ColorProfileDesc) newValue);
                 break;
         }
-    }
-  
-    static private Map<String,FieldDescriptor<PhotoInfo>> fieldDescriptors;
-
-    static class PhotoFieldDesc extends FieldDescriptor<PhotoInfo> {
-        
-        Class<? extends DTOResolver> resolverClass = null;
-        PhotoInfoFields field = null;
-        
-        PhotoFieldDesc( String name, PhotoInfoFields field, Class<? extends DTOResolver> resolverClass ) {
-            super( name );
-            this.resolverClass = resolverClass;
-            this.field = field;
-        }
-        
-        @Override
-        public Class<? extends DTOResolver> getDtoResolverClass() {
-            return resolverClass;
-        }
-
-        @Override
-        public Object getValue( PhotoInfo target ) {
-            return field.getFieldValue( target, field );
-        }
-
-        @Override
-        public void setValue( PhotoInfo target, Object newValue ) {
-            
-        }
-        
-        
-    }
-    
-    /*
-     Initialize field descriptors
-     */
-//    static {
-//        for ( PhotoInfoFields f : EnumSet.allOf( PhotoInfoFields.class ) ) {
-//            f.ge
-//        }
-//    }
-//    
-    @Override
-    protected FieldDescriptor<PhotoInfo> getFieldDescriptor( String field ) {
-        return fieldDescriptors.get( field );
-    }
-
-    @Override
-    @Transient
-    protected Map<String, FieldDescriptor<PhotoInfo>> getFieldDescriptors() {
-        return null;
     }
 
     @Override

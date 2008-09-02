@@ -38,7 +38,7 @@ public class Test_PhotoInfoChange {
     public void testPhotoChangeRecord() {
         PhotoInfo photo = PhotoInfo.create();
         PhotoInfoChangeSupport history = photo.getHistory();
-        Change<PhotoInfo,String> change = history.createChange();
+        Change<PhotoInfo> change = history.createChange();
         change.setField(PhotoInfoFields.PHOTOGRAPHER.getName(), "Harri" );
         change.setField(PhotoInfoFields.FSTOP.getName(), 5.6 );
         change.setField( "film", "Tri-X" );

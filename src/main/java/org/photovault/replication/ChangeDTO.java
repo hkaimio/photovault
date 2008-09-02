@@ -40,7 +40,7 @@ import java.util.UUID;
  object contains all state information about the change but replaces references 
  to other objects with theur global UUIDs.
  */
-public class ChangeDTO<T,F extends Comparable> implements Serializable {
+public class ChangeDTO<T> implements Serializable {
     /**
      UUID of the change this DTO describes
      */
@@ -64,22 +64,22 @@ public class ChangeDTO<T,F extends Comparable> implements Serializable {
     /**
      Fields changed by this change and their new values.
      */
-    transient SortedMap<F, Object> changedFields;
+    transient SortedMap<String, FieldChange> changedFields;
     
     /**
      Construct a DTO from a change.
      @param change
      */
-    public ChangeDTO( Change<T,F> change ) {
+    public ChangeDTO( Change<T> change ) {
         changeUuid = change.getUuid();
         targetUuid = change.getTargetHistory().getTargetUuid();
         historyClass = change.getTargetHistory().getClass();
         parentIds = new ArrayList<UUID>();
-        for ( Change<T,F> parent : change.getParentChanges() ) {
+        for ( Change<T> parent : change.getParentChanges() ) {
             parentIds.add(  parent.getUuid() );
         }
         Collections.sort( parentIds );
-        changedFields = new TreeMap<F, Object>( change.getChangedFields() );
+        changedFields = new TreeMap<String, FieldChange>( change.getChangedFields() );
     }
     
     
@@ -94,7 +94,7 @@ public class ChangeDTO<T,F extends Comparable> implements Serializable {
      <li>Number of parent changes as integer</li>
      <li>UUIDs of every parent change</li>
      <li>Number of changed fields</li>
-     <li>For each changed field, the field identifier and new value</li>
+     <li>The field change objects, sorted by field name in ascending order</li>
      </ul>
      @param os The stream into which the change is written
      @throws java.io.IOException If writing the change fails.
@@ -128,8 +128,7 @@ public class ChangeDTO<T,F extends Comparable> implements Serializable {
      */
     private void writeChange( ObjectOutputStream os ) throws IOException {
         os.writeInt( changedFields.size() );
-        for ( Map.Entry<F,Object> e : changedFields.entrySet() ) {
-            os.writeObject( e.getKey() );
+        for ( Map.Entry<String,FieldChange> e : changedFields.entrySet() ) {
             os.writeObject( e.getValue() );
         }
     }
@@ -182,9 +181,8 @@ public class ChangeDTO<T,F extends Comparable> implements Serializable {
         int changedFieldCount = is.readInt();
         changedFields = new TreeMap();
         for ( int n = 0 ; n < changedFieldCount ; n++ ) {
-            F field = (F) is.readObject();
-            Object val = is.readObject();
-            changedFields.put(  field, val);
+            FieldChange val = (FieldChange) is.readObject();
+            changedFields.put(  (String) val.getName(), val);
         }
         verify();
     }

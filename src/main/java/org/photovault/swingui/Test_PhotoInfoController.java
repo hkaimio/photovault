@@ -63,7 +63,7 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
         
 	photo = PhotoInfo.create();
         
-        Change<PhotoInfo,String> ch = photo.getHistory().createChange();
+        Change<PhotoInfo> ch = photo.getHistory().createChange();
         ch.freeze();
         ch = photo.getHistory().createChange();
         ch.setField( PhotoInfoFields.PHOTOGRAPHER.getName(), "TESTIKUVAAJA" );   

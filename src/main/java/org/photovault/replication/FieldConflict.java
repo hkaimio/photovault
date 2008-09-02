@@ -23,11 +23,11 @@ package org.photovault.replication;
 /**
  Description of a merge conflict that occurs due to conflicting values in a field
  */
-public class FieldConflict<F extends Comparable> extends ConflictBase {
+public class FieldConflict extends ConflictBase {
     /**
      The conflicting field
      */
-    private F field;
+    private String field;
     
     /**
      Constructor.
@@ -35,7 +35,7 @@ public class FieldConflict<F extends Comparable> extends ConflictBase {
      @param mergeChange Change that merges the conflicting branches
      @param conflicts Conflicting changes
      */
-    public FieldConflict( F field, Change mergeChange, Change[] conflicts ) {
+    public FieldConflict( String field, Change mergeChange, Change[] conflicts ) {
         super( mergeChange, conflicts );
         this.field = field;
     }
@@ -43,7 +43,7 @@ public class FieldConflict<F extends Comparable> extends ConflictBase {
     /**
      Returns the conflicting field 
      */
-    public F getField() {
+    public String getField() {
         return field;
     }
     
