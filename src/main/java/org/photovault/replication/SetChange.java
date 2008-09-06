@@ -136,10 +136,20 @@ class SetChange extends FieldChange implements Externalizable {
             addedItems.add( o );
         }        
     }
+    
+
+    @Override
+    public void addEarlier( FieldChange arg0 ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
+    }    
 
     @Override
     public void merge( FieldChange ch ) {
         throw new UnsupportedOperationException( "Not supported yet." );
+    }
+    
+    public FieldChange getReverse( Change baseline ) {
+        throw new UnsupportedOperationException( "Not supported yet." );        
     }
     
     @Override
@@ -170,6 +180,7 @@ class SetChange extends FieldChange implements Externalizable {
             b.append(  "]" );
         }
         return b.toString();
-    } 
+    }
+
 
 }
