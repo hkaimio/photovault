@@ -26,7 +26,10 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- CHange to a value field, i.e. field whose value does not contain any substate
+ Change to a value field, i.e. field whose value does not contain any substate.
+ 
+ @author Harri Kaimio
+ @since 0.6.0
  */
 final class ValueChange extends FieldChange implements Externalizable {
     /**
@@ -74,10 +77,30 @@ final class ValueChange extends FieldChange implements Externalizable {
         }
     }
 
+
+    @Override
+    public void addEarlier( FieldChange ch ) {
+        // No-op, as this change will replace state set by ch
+    }
+
+    
     @Override
     public void merge( FieldChange ch ) {
         throw new UnsupportedOperationException( "Not supported yet." );
     }
+    
+    @Override
+    public FieldChange getReverse( Change baseline ) {
+        Object prevValue  = null;
+        for ( Change c = baseline ; c != null ; c = c.getPrevChange() ) {
+            ValueChange fc = (ValueChange) c.getFieldChange( name );
+            if ( fc != null ) {
+                prevValue = fc.getValue();
+                break;
+            }
+        }
+        return new ValueChange( name, prevValue );
+    }    
 
     @Override
     public String toString() {

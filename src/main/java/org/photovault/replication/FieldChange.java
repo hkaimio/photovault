@@ -24,12 +24,17 @@ package org.photovault.replication;
  FieldChange is the base class for all classes that describe a change made to a 
  field of an object. A field is defined as an orthogonal subpart of the object, 
  i.e. change to a field may not change value of any other field of any object.
+ <p>
+ FieldChange is cloneable as copies of the objetc may be needed in processing 
+ changes. FieldChange itself implementa clone() by just calling Object.clone(); 
+ derived concrete classes must override this if the state change description is 
+ not immutable.
  
  @author Harri Kaimio
  @since 0.6.0
 
  */
-abstract class FieldChange {
+abstract class FieldChange implements Cloneable {
     
     /**
      Name of the field
@@ -74,11 +79,31 @@ abstract class FieldChange {
     public abstract void addChange( FieldChange ch );
     
     /**
+     Add the state of another change to this object so as the other change would
+     have been applied before this one.
+     @param ch
+     */
+    
+    public abstract void addEarlier( FieldChange ch );
+    
+    /**
      Merge this change with another change, by incorporating those parts of the 
      state change to this object that do not conflict. Conflict descriptions must
      be created for those parts that are not applied.
      @param ch
      */
     public abstract void merge( FieldChange ch );
+    
+    /**
+     Creates a FieldChange object that reverses the impact of this change when 
+     both field changes are applied to baseline.
+     @param baseline
+     @return
+     */
+    public abstract FieldChange getReverse( Change baseline );
+    
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 
 }

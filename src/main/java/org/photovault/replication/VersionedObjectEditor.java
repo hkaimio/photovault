@@ -21,6 +21,7 @@
 package org.photovault.replication;
 
 import java.lang.reflect.Proxy;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -206,42 +207,76 @@ public class VersionedObjectEditor<T> {
          Find out the fields that were changed between old version and common 
          base
          */
-        Set<String> oldFieldChanges = new HashSet<String>();
+        Map<String, FieldChange> baseToOldVersion = 
+                new HashMap<String, FieldChange>();
         for ( Change<T> c = oldVersion ; c != commonBase ; c = c.getPrevChange() ) {
-            oldFieldChanges.addAll( c.getChangedFields().keySet() );
-        }
-        
-        /*
-         Finally, set fields in target object to the newest value in path to new
-         version if the field was set in either path after common base
-         */
-        Set<String> changedFields = new HashSet<String>();
-        boolean commonBasePassed = false;
-        for ( Change<T> c = newVersion ; c != null ; c = c.getPrevChange() ) {
-            if ( c == commonBase ) {
-                commonBasePassed = true;
-            }
-            for ( Map.Entry<String, FieldChange> e : c.getChangedFields().entrySet() ) {
-                String f = e.getKey();
-                if ( !changedFields.contains( f ) ) {
-                    if ( !commonBasePassed || oldFieldChanges.contains( f ) ) {
-                        DTOResolver resolver =
-                                fieldResolver.getResolver( 
-                                classDesc.getFieldResolverClass( f ) );
-                        FieldChange ch = e.getValue();
-                        if ( ch instanceof ValueChange ) {
-                        Object fieldVal = resolver.getObjectFromDto( 
-                                ((ValueChange)ch).getValue() );
-                        classDesc.setFieldValue( history.getOwner(), f, fieldVal );
-                        changedFields.add( f );
-                        } else {
-                            log.error( "changeTOVersion cannot handle " + ch.getClass().getName() );
-                        }
+            for ( FieldChange fc : c.getChangedFields().values() ) {
+                FieldChange ofc = baseToOldVersion.get( fc.getName() );
+                if ( ofc != null ) {
+                    ofc.addEarlier( fc );
+                } else {
+                    try {
+                        baseToOldVersion.put( fc.getName(), (FieldChange) fc.clone() );
+                    } catch ( CloneNotSupportedException ex ) {
+                        log.error( ex );
                     }
                 }
             }
         }
+
+        /*
+         Find out the changes between common base and new version
+         */
+        Map<String, FieldChange> baseToNewVersion = 
+                new HashMap<String, FieldChange>();
+        for ( Change<T> c = newVersion ; c != commonBase ; c = c.getPrevChange() ) {
+            for ( FieldChange fc : c.getChangedFields().values() ) {
+                FieldChange ofc = baseToNewVersion.get( fc.getName() );
+                if ( ofc != null ) {
+                    ofc.addEarlier( fc );
+                } else {
+                    try {
+                        baseToNewVersion.put( fc.getName(), (FieldChange) fc.clone() );
+                    } catch ( CloneNotSupportedException ex ) {
+                        log.error( ex );
+                    }
+                }
+            }
+        }
+        
+        /*
+         Create the list of changes that must be applied to convert from old to 
+         new version. If field was changed between common base and old version,
+         apply the reverse change before change from base to new version
+         */
+        for ( FieldChange fc : baseToOldVersion.values() ) {
+            FieldChange reverse = fc.getReverse( commonBase );
+            FieldChange nfc = baseToNewVersion.get( reverse.getName() );
+            if ( nfc != null ) {
+                nfc.addEarlier( reverse );
+            } else {
+                baseToNewVersion.put( reverse.getName(), reverse );
+            }            
+        }
+        
+        /*
+        Finally, apply all field changes
+         */
+        for ( FieldChange fc : baseToNewVersion.values() ) {
+            if ( fc instanceof ValueChange ) {
+                DTOResolver resolver =
+                        fieldResolver.getResolver(
+                        classDesc.getFieldResolverClass( fc.getName() ) );
+                Object fieldVal = resolver.getObjectFromDto(
+                        ((ValueChange) fc).getValue() );
+                classDesc.setFieldValue( history.getOwner(), fc.getName(), fieldVal );
+            } else {
+                log.error( "changeToVersion cannot handle " + fc.getClass().getName() );
+            }
+        }
+
         history.setVersion( newVersion );
+        change.setPrevChange( newVersion );
     }
     
     public Change<T> getChange() {

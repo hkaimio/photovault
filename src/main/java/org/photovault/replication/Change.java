@@ -316,7 +316,6 @@ public class Change<T> {
         }
         if ( prevChange != null ) {
             parentChanges.remove( prevChange );
-            prevChange.removeChildChange( this );
         }
         parentChanges.add(  c );
         prevChange = c;        
