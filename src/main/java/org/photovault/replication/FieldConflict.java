@@ -20,55 +20,57 @@
 
 package org.photovault.replication;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
- Description of a merge conflict that occurs due to conflicting values in a field
+ Description of a merge conflict that occurs due to conflicting values in a 
+ field
  */
-public class FieldConflict extends ConflictBase {
-    /**
-     The conflicting field
-     */
-    private String field;
+public class FieldConflict {
     
     /**
-     Constructor.
-     @param field The conflicting field
-     @param mergeChange Change that merges the conflicting branches
-     @param conflicts Conflicting changes
+     The change that contains this conflicts
      */
-    public FieldConflict( String field, Change mergeChange, Change[] conflicts ) {
-        super( mergeChange, conflicts );
-        this.field = field;
+    FieldChange change;
+    
+    List values;
+        
+    /**
+     Constructor.
+     @param fc Field change that contains this conflicts
+     @param values List of all conflicting values
+     */
+    FieldConflict( FieldChange fc, List values ) {
+        change = fc;
+        this.values = values;
     }
     
     /**
      Returns the conflicting field 
      */
-    public String getField() {
-        return field;
+    public String getFieldName() {
+        return change.getName();
     }
     
     /**
-     Get calue of the field in one of the conflicting changes
-     @param change The changes
-     @return Value of field in the change
+     Returns list of the conflicting values. 
      */
-    public Object getFieldValue( Change change ) {
-        if ( !changes.contains(change) ) {
-            throw new IllegalArgumentException( "Change not conflicting" );
-        }
-        return change.getField( field );
+    public List getConflictingValues() {
+        return Collections.unmodifiableList( values );
     }
+    
 
     /**
-     Resulve the conflict by setting field value to the same as it is in one
+     Resolve the conflict by setting field value to the same as it is in one
      of the conflicting changes
-     @param winningChange 
+     @param winningValue order number of the winning change in the list returned 
+     by getConflictingValues
      */
-    @Override
-    public void resolve( Change winningChange ) {
-        Object value = getFieldValue(winningChange);
-        mergeChange.setField(field, value);
-        mergeChange.resolvedConflict( this );
+    public void resolve( int winningValue ) {
+        Object value = values.get(  winningValue );
+        ((ValueChange)change).setValue( value );
+        change.conflictResolved( this );
                 
     }
 

@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -373,7 +375,12 @@ public class Change<T> {
      Returns <code>true</code> if this change has unresolved conflicts
      */
     public boolean hasConflicts() {
-        return pendingConflictCount > 0;
+        for ( FieldChange fc : changedFields.values() ) {
+            if ( fc.getConflicts().size() > 0 ) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
@@ -382,7 +389,11 @@ public class Change<T> {
      */
     @Transient
     public Collection<FieldConflict> getFieldConficts() {
-        return Collections.unmodifiableCollection( fieldConflicts.values() );
+        List<FieldConflict> conflicts = new ArrayList<FieldConflict>();
+        for ( FieldChange fc : changedFields.values() ) {
+            conflicts.addAll(  fc.getConflicts() );
+        }
+        return conflicts;
     }
     
     /**
@@ -406,7 +417,7 @@ public class Change<T> {
             ancestors.add( c );
         }
         Change<T> commonBase = null;
-        Map<String, Object> changedFieldsOther = new HashMap();
+        Map<String, FieldChange> changedFieldsOther = new HashMap();
         for ( Change<T> c = other ; c != null ; c = c.getPrevChange() ) {
             if ( ancestors.contains( c ) ) {
                 commonBase = c;
@@ -416,7 +427,15 @@ public class Change<T> {
             // record all field changes that are still valid currently
             for ( Map.Entry<String,FieldChange> e : c.changedFields.entrySet() ) {
                 if ( !changedFieldsOther.containsKey( e.getKey() ) ) {
-                    changedFieldsOther.put( e.getKey(), e.getValue() );
+                    try {
+                        changedFieldsOther.put( e.getKey(), (FieldChange) e.getValue().clone() );
+                    } catch ( CloneNotSupportedException ex ) {
+                        log.error( ex );
+                        throw new IllegalStateException( "All FieldValue objects must be cloneable" );
+                    }
+                } else {
+                    FieldChange fc = changedFieldsOther.get( e.getKey() );
+                    fc.addEarlier( e.getValue() );
                 }
             }
         }
@@ -425,11 +444,21 @@ public class Change<T> {
          Common ancestor is now found, collect changes done between it and 
          this change
          */
-        Map<String, Object> changedFieldsThis = new HashMap();
+        Map<String, FieldChange> changedFieldsThis = new HashMap();
         for ( Change<T> c = this ; c != commonBase ; c = c.getPrevChange() ) {
             for ( Map.Entry<String,FieldChange> e : c.changedFields.entrySet() ) {
-                if ( !changedFieldsThis.containsKey( e.getKey() ) ) {
-                    changedFieldsThis.put( e.getKey(), e.getValue() );
+                FieldChange fc = (FieldChange) changedFieldsThis.get( e.getKey() );
+                if ( fc == null ) {
+                    try {
+                        changedFieldsThis.put( e.getKey(),
+                                (FieldChange) e.getValue().clone() );
+                    } catch ( CloneNotSupportedException ex ) {
+                        log.error( ex );
+                        throw new IllegalStateException( 
+                                "All FieldValue objects must be cloneable" );
+                    }
+                } else {
+                    fc.addEarlier( e.getValue() );
                 }
             }            
         }
@@ -448,25 +477,22 @@ public class Change<T> {
         for ( String f : allChangedFields ) {
             boolean changedInThis = changedFieldsThis.containsKey( f );
             boolean changedInOther = changedFieldsOther.containsKey( f );
+            try {
             if ( changedInThis && !changedInOther ) {
-                merged.setField(f, changedFieldsThis.get( f ) );
+                merged.setField(f, changedFieldsThis.get( f ).clone() );
             } else if ( !changedInThis && changedInOther ) {                
-                merged.setField(f, changedFieldsOther.get( f ) );
+                merged.setField(f, changedFieldsOther.get( f ).clone() );
             } else {
                 // The field has been changed in both paths
-                Object valThis = changedFieldsThis.get( f );
-                Object valOther = changedFieldsOther.get( f );
-                if ( (valThis == valOther) || ( valThis != null && valThis.equals(valOther ) ) ) {
-                    merged.setField(f, valThis );                            
-                } else {
-                    // Create conflict
-                    System.out.println( "Conflict in field " + f + ": " + valThis + " <-> " + valOther );
-                    FieldConflict conflict = 
-                            new FieldConflict( f, merged, 
-                            new Change[]{ findLastFieldChange( f, this ), findLastFieldChange( f, other )} );
-                    merged.addFieldConflict( conflict );
-                }
-                        
+                FieldChange chThis = changedFieldsThis.get( f );
+                FieldChange chOther = changedFieldsOther.get( f );
+                FieldChange chMerged = chThis.merge(  chOther );
+                merged.setFieldChange( f, chMerged );                        
+            }
+            } catch ( CloneNotSupportedException ex ) {
+                log.error( ex );
+                throw new IllegalStateException( 
+                        "FieldChanges must support cloning", ex );
             }
                     
         }
@@ -490,25 +516,11 @@ public class Change<T> {
     }
     
     /**
-     Count of unresolved conflicts
-     */
-    int pendingConflictCount = 0;
-    
-    /**
      Add a new conflict
      @param c The new conflict
      */
     private void addFieldConflict( FieldConflict c ) {
-        fieldConflicts.put( c.getField(), c );
-        pendingConflictCount++;
-    }
-
-    /**
-     A conflict was resolved
-     @param c
-     */
-    void resolvedConflict( FieldConflict c ) {
-        pendingConflictCount--;
+        fieldConflicts.put( c.getFieldName(), c );
     }
         
     

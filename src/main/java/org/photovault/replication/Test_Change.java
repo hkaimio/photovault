@@ -100,27 +100,83 @@ public class Test_Change {
 
     }
     
+    static private class TestDtoResolvFactory implements DTOResolverFactory {
+
+        static DTOResolver resolver = new DefaultDtoResolver();
+        public DTOResolver getResolver( Class<? extends DTOResolver> clazz ) {
+            return resolver;
+        }
+        
+    }
+    
+    DTOResolverFactory resolvFactory = new TestDtoResolvFactory();
+    
+    static interface TestObjectEditor {
+        public void setF1( int i );
+        public void setF2( int i );
+    }
+    
+    @Versioned(editor=TestObjectEditor.class )
     static private class TestObject {
 
         Change version;
         
-        TestObjectChangeSupport cs = new TestObjectChangeSupport( this );
+        AnnotatedClassHistory<TestObject> cs = new AnnotatedClassHistory<TestObject>( this ) {
+
+            @Override
+            protected TestObject createTarget() {
+                TestObject o = new TestObject();
+                o.cs = this;
+                return o;
+            }
+
+            @Override
+            public UUID getGlobalId() {
+                return getTargetUuid();
+            }
+            
+            Change<TestObject> currentVersion = null;
+
+            @Override
+            protected void setVersion( Change<TestObject> v ) {
+                currentVersion = v;
+            }
+
+            @Override
+            protected Change<TestObject> getVersion() {
+                return currentVersion;
+            }
+        };
         
         UUID uuid = UUID.randomUUID();
         
         public Change getVersion() {
-            return version;
-        }
-
-        public void setVersion( Change newVersion ) {
-            version = newVersion;
+            return cs.getVersion();
         }
         
         int f1;
         int f2;
+        
+        @Setter(field="f2")
+        public void setF2( int i ) {
+            f2 = i;
+        }
+        
+        public int getF2() {
+            return f2;
+        }
+        
+        @Setter( field="f1")
+        public void setF1( int i ) {
+            f1 = i;
+        }
+        
+        public int getF1() {
+            return f1;
+        }
 
         public UUID getGlobalId() {
-            return UUID.randomUUID();
+            return uuid;
         }
 
         public void changeToVersion( Change newVersion ) {
@@ -150,18 +206,21 @@ public class Test_Change {
         t.f1 = 1;
         t.f2 = 2;
         
-        Change<TestObject> c = t.createChange();
-        c.setField( "f2", 3 );
-        c.freeze();
+        
+        VersionedObjectEditor<TestObject> e1 = new VersionedObjectEditor<TestObject>(  t.cs, resolvFactory );
+           
+        e1.setField( "f2", 3 );
+        e1.apply();
+        Change<TestObject> c = e1.getChange();
         assertEquals( 3, t.f2 );
         assertEquals( 1, t.f1 );
         assertEquals( c, t.getVersion() );
         
-        Change<TestObject> c2 = t.createChange();
-        c2.setPrevChange( c );
-        c2.setField("f2", 5 );
-        c2.freeze();
+        VersionedObjectEditor<TestObject> e2 = new VersionedObjectEditor<TestObject>(  t.cs, resolvFactory );
+        e2.setField("f2", 5 );
+        e2.apply();
         assertEquals( 5, t.f2 );
+        Change<TestObject> c2 = e2.getChange();
         assertEquals( c2, t.getVersion() );
         assertEquals( c, c2.getPrevChange() );
         assertTrue( c.getChildChanges().contains( c2 ) );
@@ -170,14 +229,19 @@ public class Test_Change {
     @Test( expectedExceptions={IllegalStateException.class} )
     public void testApplyWrongChange() {
         TestObject t = new TestObject();
-        t.f1 = 1;
-        t.f2 = 2;        
+        VersionedObjectEditor<TestObject> e1 = new VersionedObjectEditor<TestObject>(  t.cs, resolvFactory );
+        TestObjectEditor te = (TestObjectEditor) e1.getProxy();
+                
+        te.setF1( 1 );
+        te.setF2( 2 );
+        e1.apply();
         
-        Change<TestObject> initialState = t.createChange();
-        initialState.freeze();
+        Change<TestObject> initialState = e1.getChange();
         
-        Change<TestObject> c = t.createChange();
-        c.setPrevChange( t.createChange() );
+        Change<TestObject> c = new Change<TestObject>( t.cs );
+        c.freeze();
+        Change<TestObject> c2 = new Change<TestObject>( t.cs );        
+        c2.setPrevChange( c );
         c.setField("f2", 3 );
         c.freeze();
     }
@@ -185,33 +249,38 @@ public class Test_Change {
     @Test
     public void testMerge() {
         TestObject t = new TestObject();
-        t.f1 = 1;
-        t.f2 = 2;
+        VersionedObjectEditor<TestObject> e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        TestObjectEditor te = (TestObjectEditor) e.getProxy();
+                
+        te.setF1( 1 );
+        te.setF2( 2 );
+        e.apply();
         
-        Change<TestObject> initialState = t.createChange();
-        initialState.freeze();
+        Change<TestObject> initialState = e.getChange();
         
-        Change c = t.createChange();
-        c.setField( "f1", 2 );
-        c.setField( "f2", 3 );
-        c.freeze();
+        e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        e.setField( "f1", 2 );
+        e.setField( "f2", 3 );
+        e.apply();
+        Change<TestObject> c = e.getChange();
         
-        Change c2 = t.createChange();
-        c2.setField("f1", 3);
-        c2.setField("f2", 5);
-        c2.freeze();
+        e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        e.setField("f1", 3);
+        e.setField("f2", 5);
+        e.apply();
+        Change<TestObject> c2 = e.getChange();
 
-        t.changeToVersion( c );
-        assertEquals( c, t.version );
+        e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        e.changeToVersion( c );
+        assertEquals( c, t.getVersion() );
         assertEquals( 2, t.f1 );
         assertEquals( 3, t.f2 );
         
         
-        Change c3 = t.createChange();
-        c3.setPrevChange( c );
-        c3.setField("f1", 4);
-        c3.setField("f2", 5);
-        c3.freeze();
+        e.setField("f1", 4);
+        e.setField("f2", 5);
+        e.apply();
+        Change<TestObject> c3 = e.getChange();
         
         
         Change merged = c2.merge( c3 );
@@ -225,19 +294,19 @@ public class Test_Change {
         boolean f1Conflict = false;
         boolean f2Conflict = false;
         for ( FieldConflict cf : conflicts ) {
-            if ( cf.getField().equals( "f1" ) ) {
+            if ( cf.getFieldName().equals( "f1" ) ) {
                 f1Conflict = true;
                 f1c = cf;
-                assertTrue( cf.getChanges().contains( c2 ) );
-                assertTrue( cf.getChanges().contains( c3 ) );
-            } else if ( cf.getField().equals( "f2" ) ) {
+                assertTrue( cf.getConflictingValues().contains( 4 ) );
+                assertTrue( cf.getConflictingValues().contains( 3 ) );
+            } else if ( cf.getFieldName().equals( "f2" ) ) {
                 f2Conflict = true;
             }
         }
         assertTrue( f1Conflict );
         assertFalse( f2Conflict );
         
-        f1c.resolve( c2 );
+        f1c.resolve( 0 );
         assertFalse( merged.hasConflicts() );
         assertEquals( 3, merged.getField("f1") );
     }

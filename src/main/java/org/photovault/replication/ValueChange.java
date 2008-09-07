@@ -24,6 +24,9 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  Change to a value field, i.e. field whose value does not contain any substate.
@@ -60,6 +63,10 @@ final class ValueChange extends FieldChange implements Externalizable {
     public Object getValue() {
         return value;
     }
+    
+    void setValue( Object value ) {
+        this.value = value;
+    }
 
     @Override
     public boolean conflictsWith( FieldChange ch ) {
@@ -85,8 +92,21 @@ final class ValueChange extends FieldChange implements Externalizable {
 
     
     @Override
-    public void merge( FieldChange ch ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    public FieldChange merge( FieldChange ch ) {
+        if ( ! ( ch instanceof ValueChange ) ) {
+            throw new IllegalArgumentException( 
+                    "Cannot merge " + ch.getClass().getName() + " to ValueChange" );
+        }
+        ValueChange vc = (ValueChange) ch;
+        Object vcVal = vc.getValue();
+        ValueChange ret = new ValueChange( name, value );
+        if ( value != vcVal && ( value == null || !value.equals( vcVal ) ) ) {
+            List values = new ArrayList( 2 );
+            values.add( value );
+            values.add( vcVal );
+            ret.addConflict( new FieldConflict( ret, values ) );
+        }
+        return ret;
     }
     
     @Override

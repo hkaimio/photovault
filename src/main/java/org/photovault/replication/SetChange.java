@@ -143,10 +143,6 @@ class SetChange extends FieldChange implements Externalizable {
         throw new UnsupportedOperationException( "Not supported yet." );
     }    
 
-    @Override
-    public void merge( FieldChange ch ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
     
     public FieldChange getReverse( Change baseline ) {
         throw new UnsupportedOperationException( "Not supported yet." );        
@@ -180,6 +176,11 @@ class SetChange extends FieldChange implements Externalizable {
             b.append(  "]" );
         }
         return b.toString();
+    }
+
+    @Override
+    public FieldChange merge( FieldChange ch ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
 
 
