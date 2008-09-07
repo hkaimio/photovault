@@ -46,7 +46,7 @@ abstract class FieldChange implements Cloneable {
      */
     protected String name;
     
-    List<FieldConflict> conflicts;
+    List<FieldConflictBase> conflicts;
     
     /**
      Default constructor. Package protected as it should be used only by 
@@ -74,9 +74,9 @@ abstract class FieldChange implements Cloneable {
      If there are no conflicts, returns an empty collection.
      @return
      */
-    public final Collection<FieldConflict> getConflicts() {
+    public final Collection<FieldConflictBase> getConflicts() {
         if ( conflicts == null ) {
-            conflicts = new ArrayList<FieldConflict>();
+            conflicts = new ArrayList<FieldConflictBase>();
         }
         return Collections.unmodifiableCollection( conflicts );
     }
@@ -85,9 +85,9 @@ abstract class FieldChange implements Cloneable {
      Add conflict to this change. Called by change during meerge operation
      @param conflict
      */
-    protected final void addConflict( FieldConflict conflict ) {
+    protected final void addConflict( FieldConflictBase conflict ) {
         if ( conflicts == null ) {
-            conflicts = new ArrayList<FieldConflict>();
+            conflicts = new ArrayList<FieldConflictBase>();
         }
         conflicts.add( conflict );
     }
@@ -97,7 +97,7 @@ abstract class FieldChange implements Cloneable {
      resolved.
      @param conflict The resolved conflict.
      */
-    void conflictResolved( FieldConflict conflict ) {
+    void conflictResolved( FieldConflictBase conflict ) {
         conflicts.remove( conflict );
     }
             

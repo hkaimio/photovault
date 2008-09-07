@@ -27,12 +27,7 @@ import java.util.List;
  Description of a merge conflict that occurs due to conflicting values in a 
  field
  */
-public class FieldConflict {
-    
-    /**
-     The change that contains this conflicts
-     */
-    FieldChange change;
+public final class ValueFieldConflict extends FieldConflictBase {
     
     List values;
         
@@ -41,16 +36,9 @@ public class FieldConflict {
      @param fc Field change that contains this conflicts
      @param values List of all conflicting values
      */
-    FieldConflict( FieldChange fc, List values ) {
-        change = fc;
+    ValueFieldConflict( FieldChange fc, List values ) {
+        super( fc );
         this.values = values;
-    }
-    
-    /**
-     Returns the conflicting field 
-     */
-    public String getFieldName() {
-        return change.getName();
     }
     
     /**

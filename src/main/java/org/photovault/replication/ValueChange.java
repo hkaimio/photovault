@@ -104,7 +104,7 @@ final class ValueChange extends FieldChange implements Externalizable {
             List values = new ArrayList( 2 );
             values.add( value );
             values.add( vcVal );
-            ret.addConflict( new FieldConflict( ret, values ) );
+            ret.addConflict( new ValueFieldConflict( ret, values ) );
         }
         return ret;
     }

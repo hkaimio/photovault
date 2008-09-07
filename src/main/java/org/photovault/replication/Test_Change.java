@@ -287,13 +287,13 @@ public class Test_Change {
         
         assertTrue( merged.hasConflicts() );
         
-        Collection<FieldConflict> conflicts = merged.getFieldConficts();
+        Collection<ValueFieldConflict> conflicts = merged.getFieldConficts();
         assertEquals( 1, merged.getFieldConficts().size() );
-        FieldConflict f1c = null;
+        ValueFieldConflict f1c = null;
         // Check the conflicts
         boolean f1Conflict = false;
         boolean f2Conflict = false;
-        for ( FieldConflict cf : conflicts ) {
+        for ( ValueFieldConflict cf : conflicts ) {
             if ( cf.getFieldName().equals( "f1" ) ) {
                 f1Conflict = true;
                 f1c = cf;

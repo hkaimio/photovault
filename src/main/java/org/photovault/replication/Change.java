@@ -130,8 +130,8 @@ public class Change<T> {
     /**
      If this is a merge change, conflicting fields
      */
-    private Map<String, FieldConflict> fieldConflicts = 
-            new HashMap<String, FieldConflict>();
+    private Map<String, ValueFieldConflict> fieldConflicts = 
+            new HashMap<String, ValueFieldConflict>();
     
     
     /**
@@ -388,8 +388,8 @@ public class Change<T> {
      @return
      */
     @Transient
-    public Collection<FieldConflict> getFieldConficts() {
-        List<FieldConflict> conflicts = new ArrayList<FieldConflict>();
+    public Collection<FieldConflictBase> getFieldConficts() {
+        List<FieldConflictBase> conflicts = new ArrayList<FieldConflictBase>();
         for ( FieldChange fc : changedFields.values() ) {
             conflicts.addAll(  fc.getConflicts() );
         }
@@ -519,7 +519,7 @@ public class Change<T> {
      Add a new conflict
      @param c The new conflict
      */
-    private void addFieldConflict( FieldConflict c ) {
+    private void addFieldConflict( ValueFieldConflict c ) {
         fieldConflicts.put( c.getFieldName(), c );
     }
         
