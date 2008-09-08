@@ -1,23 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' ?>
 <!--
-  Copyright (c) 2006 Harri Kaimio
-  
-  This file is part of Photovault.
-
-  Photovault is free software; you can redistribute it and/or modify it
-  under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  Photovault is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with Foobar; if not, write to the Free Software Foundation,
-  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+This is configuration file for Photovault image organizing application
 -->
-
-<databases>
-</databases>
+<photovault-config version="0.6.0">
+  <!-- Installation specific properties -->
+  <databases>
+    <database name="pv_junit" instanceType="TYPE_EMBEDDED" instanceDir="/tmp/pv_junit_derby_instance27098">
+      <volume-mounts>
+      </volume-mounts>
+      <volumes>
+        <volume name="defaultVolume" basedir="/tmp/pv_conversion_testvol27109"/>        <external-volume name="extvol_photos" basedir="/tmp/pv_conversion_extvol27110" folder="4"/>      </volumes>
+    </database>
+    <database name="testing" instanceType="TYPE_EMBEDDED" instanceDir="/tmp/photovault_test_volume27117">
+      <volume-mounts>
+        <mountpoint dir="/tmp/testing"/>
+      </volume-mounts>
+      <volumes>
+        <volume name="legacyTest1" basedir="testdir/legacyvolume1"/>        <external-volume name="legacyTest2" basedir="testdir/legacyvolume2" folder="4"/>      </volumes>
+    </database>
+  </databases>
+</photovault-config>

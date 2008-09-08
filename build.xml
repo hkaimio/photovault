@@ -24,7 +24,6 @@
     <!-- set global properties for this build -->
     <property name="src" location="src/main/java"/>
     <property name="nsis-src" value="src/main/win32/installer"/>
-    <property name="build" location="build"/>
     <property name="dist"  location="dist"/>
     <property name="lib"  location="lib"/>
     <property name="basedir" location="."/>
@@ -43,6 +42,16 @@
   <!-- Clover task definition -->
     <property name="clover.jar" location="/home/harri/tmp/clover-ant-2.0b1/lib/clover.jar"/>
     <taskdef resource="cloverlib.xml" classpath="${clover.jar}"/>
+  
+  <!-- Coberture class definition -->
+    <path id="cobertura-path">
+        <path location="${lib}/cobertura/cobertura.jar" />
+        <path location="${lib}/log4j-1.2.12.jar"/>
+        <path location="${lib}/cobertura/asm-2.2.1.jar"/>
+        <path location="${lib}/cobertura/asm-tree-2.2.1.jar"/>
+        <path location="${lib}/cobertura/jakarta-oro-2.0.8.jar"/>
+    </path>
+    <taskdef classpathref="cobertura-path" resource="tasks.properties"/>
   
   <!-- Hibernate tools task definition -->
     <path id="hib-toolslib">
@@ -100,7 +109,8 @@
             <exclude name="**/checkstyle*.jar"/>
         </fileset>
         <pathelement path="${java.class.path}/"/>
-        <pathelement path="build"/>
+        <pathelement path="${build.classes.dir}"/>
+        <pathelement path="${build.resource.dir}"/>
         <pathelement path="conf"/>
         <pathelement path="src/main/resources"/>
     </path>
@@ -141,7 +151,9 @@
     <!-- Create the time stamp -->
         <tstamp/>
     <!-- Create the build directory structure used by compile -->
-        <mkdir dir="${build}"/>
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.classes.dir}"/>
+        <mkdir dir="${build.resource.dir}"/>
         <copy file="conf/buildinfo.template.properties" 
 	    tofile="conf/buildinfo.properties"
 	    overwrite="true">
@@ -159,8 +171,8 @@
 
 
     <!-- Compile the java code from ${src} into ${build} -->
-        <javac srcdir="${src}" destdir="${build}" debug="on" classpathref="project.class.path"/>
-        <copy todir="${build}">
+        <javac srcdir="${src}" destdir="${build.classes.dir}" debug="on" classpathref="project.class.path"/>
+        <copy todir="${build.resource.dir}">
             <fileset dir="${src}">
                 <include name="**/*.betwixt"/>
             </fileset>
@@ -194,8 +206,10 @@
                 <attribute name="SVN-revision" value="${svnrevision}"/>
                 <attribute name="Build-time" value="${DSTAMP}_${TSTAMP}"/>
             </manifest>
-            <fileset dir="${build}">
+            <fileset dir="${build.classes.dir}">
                 <exclude name="**/Test*.class"/>
+            </fileset>
+            <fileset dir="${build.resource.dir}">
             </fileset>
       
       <!-- Include resources into the JAR -->
@@ -264,10 +278,10 @@
             <!--jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/-->
             <classpath>
                 <path refid="project.class.path"/>
-                <pathelement location="${build.dir}"/>
+                <pathelement location="${build.classes.dir}"/>
                 <pathelement location="${conf.dir}"/>
             </classpath>
-            <classfileset dir="build">
+            <classfileset dir="${build.classes.dir}">
                 <include name="**/Test**.class"/>
             </classfileset>
         </testng>
@@ -291,10 +305,10 @@
             <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
             <classpath>
                 <path refid="project.class.path"/>
-                <pathelement location="${build.dir}"/>
+                <pathelement location="${build.classes.dir}"/>
                 <pathelement location="${conf.dir}"/>
             </classpath>
-            <classfileset dir="build">
+            <classfileset dir="${build.classes.dir}">
                 <include name="${selected_file}.class"/>
             </classfileset>
         </testng>
@@ -318,10 +332,10 @@
             <jvmarg value="${profiler.info.jvmargs.agent}"/>
             <classpath>
                 <path refid="project.class.path"/>
-                <pathelement location="${build.dir}"/>
+                <pathelement location="${build.classes.dir}"/>
                 <pathelement location="${conf.dir}"/>
             </classpath>
-            <classfileset dir="build">
+            <classfileset dir="${build.classes.dir}">
                 <include name="${selected_file}.class"/>
             </classfileset>
         </testng>
@@ -359,7 +373,44 @@
             <report format="frames" todir="./${reports.test}/html"/>
         </junitreport>
     </target>
-    <target name="test-coverage" depends="with.clover,clean,dist,testng">
+    
+    <!-- Instrument all with Cobertura -->
+    <target name="cobertura-prepare" depends="dist">
+        <cobertura-instrument todir="${build.cobertura.dir}">
+            <fileset dir="${build.classes.dir}/">
+                <include name="**/*.class"/>
+            </fileset>
+        </cobertura-instrument>
+    </target>
+    <target name="test-coverage" depends="clean,dist,cobertura-prepare">
+        <taskdef  resource="testngtasks" classpath="lib/testng.jar"/>
+        <testng outputDir="${reports.test}/testresults"
+                workingdir="${basedir}"
+                haltOnFailure="false" verbose="2"
+                reporter="org.testng.reporters.JUnitXMLReporter">
+            <jvmarg value="${run.jvmargs}"/>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xnoagent"/>
+            <jvmarg value="-Djava.compiler=none"/>
+            <jvmarg value="-Dbasedir=${basedir}"/>
+            
+            <!--jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/-->
+            <classpath>
+                <pathelement location="${build.cobertura.dir}"/>
+                <path refid="project.class.path"/>
+                <!--path refid="cobertura-path"/-->
+                <pathelement location="${build.classes.dir}"/>
+                <pathelement location="${conf.dir}"/>
+            </classpath>
+            <classfileset dir="build">
+                <include name="**/Test**.class"/>
+            </classfileset>
+        </testng>
+        
+        <cobertura-report srcdir="${src}" destdir="reports/cobertura"/>
+        <cobertura-report format="xml" srcdir="${src}" destdir="reports/cobertura"/>
+
+
     </target>
     <!-- Checkstyle target -->
     <target name="checkstyle">
@@ -453,7 +504,7 @@
     </target>
     <target name="run-coverage" depends="dist">
         <path id="instrpath">
-            <pathelement path="build"/>
+            <pathelement path="${build.classes.dir}"/>
         </path>
         <delete dir="${build.instr.dir}"/>
         <mkdir dir="${build.instr.dir}"/>
@@ -476,7 +527,7 @@
             <classpath>
                 <pathelement location="${build.instr.dir}"/>
                 <path refid="project.class.path"/>
-                <pathelement location="${build.dir}"/>
+                <pathelement location="${build.classes.dir}"/>
                 <pathelement location="${conf.dir}"/>
             </classpath>
         </java>
@@ -571,7 +622,7 @@
     <target name="clean"
         description="clean up" >    
     <!-- Delete the ${build} and ${dist} directory trees -->
-        <delete dir="${build}"/>
+        <delete dir="${build.dir}"/>
         <delete dir="${dist}"/>
     </target>
     <target name="dist-bin-tgz" depends="dist"
@@ -708,9 +759,7 @@
         <hibernatetool destdir="${build.dir}/generated">
             <annotationconfiguration 
                 configurationfile="conf/hibernate.cfg.xml"/>
-
-             <hbm2ddl export="false" outputfilename="sql.ddl"/>
-
+            <hbm2ddl export="false" outputfilename="sql.ddl"/>
         </hibernatetool>
     </target>
 </project>
