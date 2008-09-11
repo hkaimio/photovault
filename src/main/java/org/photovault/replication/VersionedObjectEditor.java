@@ -165,15 +165,8 @@ public class VersionedObjectEditor<T> {
             throw new IllegalStateException( "Cannot apply change on top of unrelated change" );
         }
         for ( Map.Entry<String,FieldChange> fc : change.getChangedFields().entrySet() ) {       
-            DTOResolver resolver = 
-                    fieldResolver.getResolver( classDesc.getFieldResolverClass( fc.getKey() ) );
             FieldChange ch = fc.getValue();
-            if ( ch instanceof ValueChange ) {
-            Object fieldVal = resolver.getObjectFromDto( ((ValueChange)ch).getValue() );
-            classDesc.setFieldValue( history.getOwner(), fc.getKey(), fieldVal );
-            } else {
-                log.error( "apply cannot handle " + ch.getClass().getName() );
-            }
+            classDesc.applyChange( history.getOwner(), ch, fieldResolver );
         }
         history.setVersion( change );                
     }
@@ -263,16 +256,7 @@ public class VersionedObjectEditor<T> {
         Finally, apply all field changes
          */
         for ( FieldChange fc : baseToNewVersion.values() ) {
-            if ( fc instanceof ValueChange ) {
-                DTOResolver resolver =
-                        fieldResolver.getResolver(
-                        classDesc.getFieldResolverClass( fc.getName() ) );
-                Object fieldVal = resolver.getObjectFromDto(
-                        ((ValueChange) fc).getValue() );
-                classDesc.setFieldValue( history.getOwner(), fc.getName(), fieldVal );
-            } else {
-                log.error( "changeToVersion cannot handle " + fc.getClass().getName() );
-            }
+            classDesc.applyChange( history.getOwner(), fc, fieldResolver );
         }
 
         history.setVersion( newVersion );

@@ -61,16 +61,9 @@ public class EditorProxyInvocationHandler implements InvocationHandler {
      @throws java.lang.Throwable
      */
     public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
-        VersionedClassDesc.MethodRole role = classDesc.getEditorMethodRole( method );
-        if ( role != null ) {
-            String fieldName = role.field.name;
-            switch ( role.operation ) {
-                case GET:
-                    return editor.getField( fieldName );
-                case SET:
-                    editor.setField( fieldName, args[0] );
-                    return null;
-            }
+        ProxyMethodHandler h = classDesc.getEditorMethodHandler( method );
+        if ( h != null ) {
+            return h.methodInvoked( editor, args);
         }
         return null;
     }

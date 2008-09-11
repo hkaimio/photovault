@@ -67,6 +67,10 @@ public class VersionedClassDesc {
         return Collections.unmodifiableSet( fields.keySet() );
     }
     
+    public Class getDescribedClass() {
+        return clazz;
+    }
+    
     /**
      Get the class that is used for converting given field between DTO format 
      and working copy representation.
@@ -81,7 +85,7 @@ public class VersionedClassDesc {
         } 
         return fd.dtoResolverClass;
     }
-    
+
     /**
      Analyze the annotations in described class and populate this object
      based on results
@@ -100,65 +104,16 @@ public class VersionedClassDesc {
             Setter s = m.getAnnotation( Setter.class );
             if ( s != null ) {
                 String fieldName = s.field();
-                FieldDesc fd = fields.get( fieldName );
+                Class types[] = m.getParameterTypes();
+                Class fieldType = null;
+                if ( types.length == 1 ) {
+                    fieldType = types[0];
+                }
+                ValueFieldDesc fd = (ValueFieldDesc) fields.get( fieldName );
                 if ( fd == null ) {
-                    fd = new FieldDesc();
+                    fd = new ValueFieldDesc( this, fieldType, fieldName, s.dtoResolver(), editorIntf );
                     fd.name = fieldName;
                     fields.put( fieldName, fd );
-                }
-                fd.setter = m;
-                fd.dtoResolverClass = s.dtoResolver();
-                Class types[] = m.getParameterTypes();
-                if ( types.length == 1 ) {
-                    fd.clazz = types[0];
-                }
-                String getterName = 
-                        "get" + fieldName.substring( 0, 1 ).toUpperCase() + 
-                        fieldName.substring( 1 );
-                try {
-                    fd.getter = clazz.getMethod( getterName );
-                } catch ( NoSuchMethodException ex ) {
-                    /*
-                     TODO: This is actually an error, so maybe we should throw
-                     an exception here instead of checking it in getFieldValue()?
-                     */
-                    log.warn( ex );
-                } catch ( SecurityException ex ) {
-                    log.warn( ex );
-                }
-                if ( fd.setter != null ) {
-                    methodRoles.put(  fd.setter, new MethodRole( fd, FieldOper.SET ) );
-                }
-                if ( fd.getter != null ) {
-                    methodRoles.put(  fd.getter, new MethodRole( fd, FieldOper.GET ) );
-                }
-                if ( editorIntf != null ) {
-                    /*
-                     Find the methods with the same names from editor interface
-                     */
-                    if ( fd.setter != null ) {
-                        try {
-                            Method es = editorIntf.getMethod( fd.setter.getName(),
-                                    fd.clazz );
-                            editorMethodRoles.put( es,
-                                    new MethodRole( fd, FieldOper.SET ) );
-                        } catch ( NoSuchMethodException ex ) {
-                            log.warn( ex );
-                        } catch ( SecurityException ex ) {
-                            log.warn( ex );
-                        }
-                    }
-                    if ( fd.getter != null ) {
-                        try {
-                            Method es = editorIntf.getMethod( fd.getter.getName() );
-                            editorMethodRoles.put( es,
-                                    new MethodRole( fd, FieldOper.GET ) );
-                        } catch ( NoSuchMethodException ex ) {
-                            log.warn( ex );
-                        } catch ( SecurityException ex ) {
-                            log.warn( ex );
-                        }
-                    }
                 }
             }
         }
@@ -181,7 +136,7 @@ public class VersionedClassDesc {
                     "Field " + fieldName + " not found" );
         }
         try {
-            fd.setter.invoke( target, value );
+            ((ValueFieldDesc)fd).setter.invoke( target, value );
         } catch ( IllegalAccessException ex ) {
             throw new IllegalStateException( "Cannot access setter", ex );
         }  catch ( InvocationTargetException ex ) {
@@ -219,66 +174,45 @@ public class VersionedClassDesc {
     }
     
     /**
-     Description of a single field
+     Apply a field change to given oject
+     @param target The object that is going to be change
+     @param change The field change
+     @param resolverFactory resolver factory used to resolve data transfer 
+     objects to correct context
      */
-    static class FieldDesc {
-        public String name;
-        /**
-         Setter for this field
-         */
-        public Method setter;
-        /**
-         Getter of this field
-         */
-        public Method getter;
-        /**
-         Class of the field
-         */
-        public Class clazz;
-        /**
-         Resolver used to convert the field between DTO and working copy 
-         presentation
-         */
-        public Class dtoResolverClass;
-        
-        private FieldDesc() {}
-
-        private FieldDesc( String name, Class fieldClass, Class<DTOResolver> dtoResolverClass, Method setter, Method getter ) {
-            this.name = name;
-            clazz = fieldClass;
-            this.dtoResolverClass = dtoResolverClass;
-            this.setter = setter;
-            this.getter = getter;
-        }
+    void applyChange( Object target, FieldChange change,
+            DTOResolverFactory resolverFactory ) {
+        FieldDesc fd = fields.get( change.getName() );
+        fd.applyChange( target, change, resolverFactory );
     }
     
     /**
-     Operations for the field
+     Descriptors of all versioned fields of this class
      */
-    static enum FieldOper {
-        SET,
-        GET
-    }
-    
-    static class MethodRole {
-        FieldDesc field;
-        FieldOper operation;
-        
-        public MethodRole( FieldDesc f, FieldOper o ) {
-            field = f;
-            operation = o;
-        }
-    }
-    
     private Map<String,FieldDesc> fields = new HashMap<String, FieldDesc>();
     
-    private Map<Method, MethodRole> methodRoles = new HashMap<Method,MethodRole>();
+    /**
+     Handlers for editor interface methods
+     */
+    private Map<Method, ProxyMethodHandler> editorMethodHandlers = 
+            new HashMap<Method, ProxyMethodHandler>();
     
-    private Map<Method, MethodRole> editorMethodRoles = 
-            new HashMap<Method,MethodRole>();
+    /**
+     Register handler for a method in the editor interface
+     @param m The method
+     @param h Handler for m
+     */
+    void setEditorMethodHandler( Method m, ProxyMethodHandler h ) {
+        editorMethodHandlers.put( m, h );
+    }
     
-    MethodRole getEditorMethodRole( Method m ) {
-        return editorMethodRoles.get( m );
+    /**
+     Get the handler for certain method of editor interface
+     @param m The editor method
+     @return Handler for the method or <code>null</code> if none is defined
+     */
+    ProxyMethodHandler getEditorMethodHandler( Method m ) {
+        return editorMethodHandlers.get( m );
     }
     
     Class getEditorClass() {
