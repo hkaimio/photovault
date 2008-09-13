@@ -38,18 +38,21 @@ public @interface SetField {
     /**
      Returns the name of the field
      */
-    String field();
+    String field() default "";
     
     /**
      Class for elements of this type
      @return
      */
-    Class elemClass() default Object.class;
+    Class elemClass();
     
     /**
      Resolver for converting items of the set to DTO and vice versa
      @return
      */
     Class dtoResolver() default DefaultDtoResolver.class;    
-
+    
+    String addMethod() default "";
+    
+    String removeMethod() default "";
 }

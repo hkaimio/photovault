@@ -45,33 +45,48 @@ class ValueFieldDesc extends FieldDesc {
 
     /**
      Constructor
-     @param clDesc Class descriptor that owns this field
-     @param cl Type of this field
-     @param fieldName Name of the field
-     @param dtoResolverClass DTO resolver used to convert this field to DTO and 
-     back
-     @param editorIntf Interface used to construct the editor proxy for the owner 
-     class
+     @param clDesc Descriptor for the class that contains this field
+     @param getMethod Method used to get value of the field in described class
+     @param editorIntf Editor proxy interface for the class
+     @throws java.lang.NoSuchMethodException If no suitable method for setting
+     field value is found.
      */
-    ValueFieldDesc( VersionedClassDesc clDesc, Class cl, String fieldName, Class dtoResolverClass,
-            Class editorIntf ) {
-        super( clDesc, fieldName, cl, dtoResolverClass );
-        String getterName =
-                "get" + fieldName.substring( 0, 1 ).toUpperCase() +
-                fieldName.substring( 1 );
-        String setterName =
-                "set" + fieldName.substring( 0, 1 ).toUpperCase() +
-                fieldName.substring( 1 );
-        try {
-            getter = clDesc.getDescribedClass().getMethod( getterName );
-        } catch ( NoSuchMethodException ex ) {}
-        try {
-            setter = clDesc.getDescribedClass().getMethod(  setterName, cl );
-        } catch ( NoSuchMethodException ex ) {
+    ValueFieldDesc( VersionedClassDesc clDesc, 
+            Method getMethod, Class editorIntf ) throws NoSuchMethodException {
+        this.clDesc = clDesc;
+        ValueField ann = getMethod.getAnnotation( ValueField.class );
+        name = ann.field();
+        String methodNameBase = null;
+        if ( name.equals( "" ) ) {
+            String getMethodName = getMethod.getName();
+            int nameStart = 0;
+            if ( getMethodName.startsWith( "get" ) ) {
+                nameStart = 3;
+            }
+            name = getMethodName.substring( nameStart, nameStart+1 ).toLowerCase() + 
+                    getMethodName.substring( nameStart+1 );
+            methodNameBase = getMethodName.substring( nameStart );
+        } else {
+            methodNameBase = name.substring( 0,1 ).toUpperCase() + name.substring( 1 );
         }
+        
+        clazz = getMethod.getReturnType();
+        
+        dtoResolverClass = ann.dtoResolver();
+        
+        getter = getMethod;
+        
+        String setMethodName = ann.setMethod();
+        if ( setMethodName.equals( "" ) ) {
+            setMethodName = "set" + methodNameBase;
+        }
+        
+        setter = clDesc.getDescribedClass().getMethod( setMethodName, clazz );
+        
+        // Add handlers for proxy methods
         if ( editorIntf != null ) {
             try {
-                Method editorSetter = editorIntf.getMethod( setterName, clazz );
+                Method editorSetter = editorIntf.getMethod( setMethodName, clazz );
                 clDesc.setEditorMethodHandler( 
                         editorSetter, new ProxyMethodHandler( this ) {
 
@@ -86,8 +101,9 @@ class ValueFieldDesc extends FieldDesc {
             }
 
         }
+        
     }
-
+    
     /**
      Applies a change of this field change to an object
      @param target The object that is modified

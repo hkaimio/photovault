@@ -26,20 +26,28 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- Annotation that is used to devine the setter method for replicatble fields
+ Annotation used to indicate a field with single value
+ @author Harri Kaimio
+ @since 0.6.0
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target(ElementType.METHOD)
-public @interface Setter {
+public @interface ValueField {
     
     /**
-     Returns the name of the field
+     Name of the field. If not defined, deduce field name from getter method
      */
-    String field();
+    String field() default "";
     
     /**
-     Resolver for convertion this field to DTO and vice versa
-     @return
+     Name of method used to set value of field. If undefined, deduce method name 
+     from field name using Java Beans semantics.
+     */
+    String setMethod() default "";
+    
+    /**
+     {@link DTOResolver} used with this field
      */
     Class dtoResolver() default DefaultDtoResolver.class;
+
 }

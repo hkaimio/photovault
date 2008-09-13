@@ -28,7 +28,6 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
-import org.photovault.replication.Setter;
 
 /**
  Interface that provides methods for editing {@link PhotoInfo} objects.
@@ -220,7 +219,6 @@ public interface PhotoEditor {
      * Set the value of camera.
      * @param v  Value to assign to camera.
      */
-    @Setter( field="camera" )
     void setCamera( String v );
 
     /**
@@ -233,49 +231,42 @@ public interface PhotoEditor {
      * Set the preferred cropping operation
      * @param cropBounds New crop bounds
      */
-    @Setter( field="cropBounds" )
     void setCropBounds( Rectangle2D cropBounds );
 
     /**
      * Set the value of description.
      * @param v  Value to assign to description.
      */
-    @Setter( field="description" )
     void setDescription( String v );
 
     /**
      * Set the value of FStop.
      * @param v  Value to assign to FStop.
      */
-    @Setter( field="FStop" )
     void setFStop( double v );
 
     /**
      * Set the value of film.
      * @param v  Value to assign to film.
      */
-    @Setter( field="film" )
     void setFilm( String v );
 
     /**
      * Set the value of filmSpeed.
      * @param v  Value to assign to filmSpeed.
      */
-    @Setter( field="filmSpeed" )
     void setFilmSpeed( int v );
 
     /**
      * Set the value of focalLength.
      * @param v  Value to assign to focalLength.
      */
-    @Setter( field="focalLength" )
     void setFocalLength( double v );
 
     /**
      * Set both shooting time & accuracy directly using a FuzzyTime object
      * @param v FuzzyTime containing new values.
      */
-    @Setter( field="fuzzyShootTime" )
     void setFuzzyShootTime( FuzzyDate v );
 
 
@@ -283,7 +274,6 @@ public interface PhotoEditor {
      * Set the value of lens.
      * @param v  Value to assign to lens.
      */
-    @Setter( field="lens" )
     void setLens( String v );
 
     /**
@@ -293,14 +283,12 @@ public interface PhotoEditor {
      * @throws IllegalArgumentException if the given file name is longer than
      * {@link #ORIG_FNAME_LENGTH}
      */
-    @Setter( field="origFname" )
     void setOrigFname( final String newFname );
 
     /**
      * Set the value of photographer.
      * @param v  Value to assign to photographer.
      */
-    @Setter( field="photographer" )
     void setPhotographer( String v );
 
     /**
@@ -308,7 +296,6 @@ public interface PhotoEditor {
      * @param v  New preferred rotation in degrees. The value should be in range
      * 0.0 <= v < 360, otherwise v is normalized to be between these values.
      */
-    @Setter( field="prefRotation" )
     void setPrefRotation( double v );
 
     /**
@@ -326,7 +313,6 @@ public interface PhotoEditor {
      *
      * @param newQuality The new Quality value.
      */
-    @Setter( field="quality" )
     void setQuality( final int newQuality );
 
     /**
@@ -334,28 +320,24 @@ public interface PhotoEditor {
      * @param s The new raw conversion settings to use. The method makes a clone of
      * the object.
      */
-    @Setter( field="rawSettings" )
     void setRawSettings( RawConversionSettings s );
 
     /**
      * Set the value of shootTime.
      * @param v  Value to assign to shootTime.
      */
-    @Setter( field="shootTime" )
     void setShootTime( Date v );
 
     /**
      * Set the value of shootingPlace.
      * @param v  Value to assign to shootingPlace.
      */
-    @Setter( field="shootingPlace" )
     void setShootingPlace( String v );
 
     /**
      * Set the value of shutterSpeed.
      * @param v  Value to assign to shutterSpeed.
      */
-    @Setter( field="shutterSpeed" )
     void setShutterSpeed( double v );
 
     /**
@@ -363,7 +345,6 @@ public interface PhotoEditor {
      *
      * @param newTechNotes The new TechNotes value.
      */
-    @Setter( field="techNotes" )
     void setTechNotes( String newTechNotes );
 
     /**
@@ -374,6 +355,5 @@ public interface PhotoEditor {
      *
      * @param newTimeAccuracy The new TimeAccuracy value.
      */
-    @Setter( field="timeAccuracy" )
     void setTimeAccuracy( final double newTimeAccuracy );
 }

@@ -64,7 +64,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
-import org.photovault.replication.Setter;
+import org.photovault.replication.ValueField;
 import org.photovault.replication.Versioned;
 
 /**
@@ -579,6 +579,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Get image descriptor for original of this photo
      @return original's image descriptor.
      */
+    @ValueField( dtoResolver=OrigImageRefResolver.class )
     @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
     @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
     @JoinColumn( name = "original_id", nullable = true )    
@@ -592,7 +593,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      by persistence layer. Otherwise the original must be set in constructor.
      @param original image descriptor for the original
      */
-    @Setter( field="original", dtoResolver=OrigImageRefResolver.class )
     public void setOriginal( OriginalImageDescriptor original ) {
         this.original = original;
         if ( original != null ) {
@@ -1345,7 +1345,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Set both shooting time & accuracy directly using a FuzzyTime object
      @param v FuzzyTime containing new values.
      */
-    @Setter( field = "fuzzyShootTime" )
     public void setFuzzyShootTime( FuzzyDate v ) {
         if ( v != null ) {
             java.util.Date d = v.getDate();
@@ -1358,6 +1357,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         modified();
     }
     
+    @ValueField
     @Transient
     public FuzzyDate getFuzzyShootTime() {
         return new FuzzyDate( shootTime, timeAccuracy );
@@ -1392,6 +1392,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of FStop.
      * @return value of FStop.
      */
+    @ValueField( field="FStop" )
     @Column( name = "f_stop" )
     public double getFStop() {
         return FStop;
@@ -1401,7 +1402,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of FStop.
      * @param v  Value to assign to FStop.
      */
-    @Setter( field="FStop" )
     public void setFStop(double  v) {
         this.FStop = v;
         modified();
@@ -1412,7 +1412,8 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of focalLength.
      * @return value of focalLength.
      */
-    @Column( name = "focal_length" )
+    @ValueField
+    @Column(name = "focal_length")
     public double getFocalLength() {
         return focalLength;
     }
@@ -1421,7 +1422,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of focalLength.
      * @param v  Value to assign to focalLength.
      */
-    @Setter( field="focalLength" )
     public void setFocalLength(double  v) {
         this.focalLength = v;
         modified();
@@ -1432,6 +1432,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of shootingPlace.
      * @return value of shootingPlace.
      */
+    @ValueField
     @Column( name = "shooting_place" )
     public String getShootingPlace() {
         return shootingPlace;
@@ -1441,7 +1442,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of shootingPlace.
      * @param v  Value to assign to shootingPlace.
      */
-    @Setter( field="shootingPlace" )
     public void setShootingPlace(String  v) {
         checkStringProperty( "Shooting place", v, SHOOTING_PLACE_LENGTH );
         this.shootingPlace = v;
@@ -1453,6 +1453,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of photographer.
      * @return value of photographer.
      */
+    @ValueField
     @Column( name = "photographer" )
     public String getPhotographer() {
         return photographer;
@@ -1463,7 +1464,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * @param v  Value to assign to photographer.
      */
     @SuppressWarnings("static-access")
-    @Setter( field="photographer" )
     public void setPhotographer(String  v) {
         checkStringProperty( "Photographer", v, this.PHOTOGRAPHER_LENGTH );
         this.photographer = v;
@@ -1475,6 +1475,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of shutterSpeed.
      * @return value of shutterSpeed.
      */
+    @ValueField
     @Column( name = "shutter_speed" )
     public double getShutterSpeed() {
         return shutterSpeed;
@@ -1484,7 +1485,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of shutterSpeed.
      * @param v  Value to assign to shutterSpeed.
      */
-    @Setter( field="shutterSpeed" )
     public void setShutterSpeed(double  v) {
         this.shutterSpeed = v;
         modified();
@@ -1495,6 +1495,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of camera.
      * @return value of camera.
      */
+    @ValueField
     @Column( name = "camera" )
     public String getCamera() {
         return camera;
@@ -1504,7 +1505,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of camera.
      * @param v  Value to assign to camera.
      */
-    @Setter( field="camera" )
     public void setCamera(String  v) {
         checkStringProperty( "Camera", v, CAMERA_LENGTH );
         this.camera = v;
@@ -1516,6 +1516,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of lens.
      * @return value of lens.
      */
+    @ValueField
     @Column( name = "lens" )
     public String getLens() {
         return lens;
@@ -1525,7 +1526,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of lens.
      * @param v  Value to assign to lens.
      */
-    @Setter( field="lens" )
     public void setLens(String  v) {
         checkStringProperty( "Lens", v, LENS_LENGTH );
         this.lens = v;
@@ -1537,6 +1537,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of film.
      * @return value of film.
      */
+    @ValueField
     @Column( name = "film" )
     public String getFilm() {
         return film;
@@ -1546,7 +1547,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of film.
      * @param v  Value to assign to film.
      */
-    @Setter( field="film" )
     public void setFilm(String  v) {
         checkStringProperty( "Film", v, FILM_LENGTH );
         this.film = v;
@@ -1558,6 +1558,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of filmSpeed.
      * @return value of filmSpeed.
      */
+    @ValueField
     @Column( name = "film_speed" )
     public int getFilmSpeed() {
         return filmSpeed;
@@ -1567,7 +1568,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of filmSpeed.
      * @param v  Value to assign to filmSpeed.
      */
-    @Setter( field="filmSpeed" )
     public void setFilmSpeed(int  v) {
         this.filmSpeed = v;
         modified();
@@ -1580,6 +1580,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      indicate that the image should be rotated clockwise.
      @return value of prefRotation.
      */
+    @ValueField
     @Column( name = "pref_rotation" )
     public double getPrefRotation() {
         return prefRotation;
@@ -1590,7 +1591,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      @param v  New preferred rotation in degrees. The value should be in range 
      0.0 <= v < 360, otherwise v is normalized to be between these values.
      */
-    @Setter( field="prefRotation" )
     public void setPrefRotation(double  v) {
         // Normalize rotation
         while ( v < 0.0 ) {
@@ -1631,6 +1631,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     /**
      Get the preferred crop bounds of the original image
      */
+    @ValueField
     @org.hibernate.annotations.Type( type = "org.photovault.persistence.CropRectUserType" )
     @org.hibernate.annotations.Columns( 
         columns = {
@@ -1651,7 +1652,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Set the preferred cropping operation
      @param cropBounds New crop bounds
      */
-    @Setter( field="cropBounds" )
     public void setCropBounds( Rectangle2D cropBounds ) {
         if ( cropBounds == null ) {
             cropBounds = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
@@ -1692,7 +1692,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Set the preferred color channel mapping
      @param cm the new color channel mapping
      */
-    @Setter( field="colorChannelMapping" )
     public void setColorChannelMapping( ChannelMapOperation cm ) {
         if ( cm != null ) {
             if ( !cm.equals( channelMap ) ) {
@@ -1710,6 +1709,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      @return The current color channel mapping
      */
     // TODO: Do mapping for these
+    @ValueField
     @Transient
     public ChannelMapOperation getColorChannelMapping() {
         return channelMap;
@@ -1753,6 +1753,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Get the current raw conversion settings.
      @return Current settings or <code>null</code> if this is not a raw image.     
      */
+    @ValueField
     public RawConversionSettings getRawSettings() {
         return (rawSettings != null ) ? rawSettings.clone() : null;
     }
@@ -1763,7 +1764,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      the object.     
      */
     @Embedded
-    @Setter( field="rawSettings" )
     public void setRawSettings( RawConversionSettings s ) {
         log.debug( "entry: setRawSettings()" );
         if ( s != null ) {
@@ -1791,6 +1791,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Get the value of description.
      * @return value of description.
      */
+    @ValueField
     @Column( name = "description" )
     public String getDescription() {
         return description;
@@ -1800,7 +1801,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      * Set the value of description.
      * @param v  Value to assign to description.
      */
-    @Setter( field="description" )
     public void setDescription(String  v) {
         this.description = v;
         modified();
@@ -1818,6 +1818,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      *
      * @return an <code>int</code> value
      */
+    @ValueField
     @Column( name = "photo_quality" )
     public int getQuality() {
         return quality;
@@ -1838,7 +1839,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      *
      * @param newQuality The new Quality value.
      */
-    @Setter( field="quality" )
     public void setQuality(final int newQuality) {
         this.quality = newQuality;
         modified();
@@ -1848,13 +1848,13 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Returns the time when this photo (=metadata of it) was last modified
      * @return a <code>Date</code> value
      */
+    @ValueField
     @Column( name = "last_modified" )
     @Temporal(value = TemporalType.TIMESTAMP )
     public java.util.Date getLastModified() {
         return lastModified != null ? (java.util.Date) lastModified.clone() : null;
     }
     
-    @Setter( field="lastModified" )
     public  void setLastModified(final java.util.Date newDate) {
         this.lastModified = (newDate != null) ? (java.util.Date) newDate.clone()  : null;
         modified();
@@ -1865,6 +1865,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      *
      * @return a <code>String</code> value
      */
+    @ValueField
     @Column( name = "tech_notes" )
     public String getTechNotes() {
         return techNotes;
@@ -1875,7 +1876,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      *
      * @param newTechNotes The new TechNotes value.
      */
-    @Setter( field="techNotes" )
     public void setTechNotes( String newTechNotes ) {
         this.techNotes = newTechNotes;
         modified();
@@ -1886,6 +1886,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      
      * @return a <code>String</code> value
      */
+    @ValueField
     @Column( name = "orig_fname" )
     public String getOrigFname() {
         return origFname;
@@ -1898,7 +1899,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      @throws IllegalArgumentException if the given file name is longer than
      {@link #ORIG_FNAME_LENGTH}
      */
-    @Setter( field="origFname" )
     public void setOrigFname(final String newFname) {
         checkStringProperty( "OrigFname", newFname, ORIG_FNAME_LENGTH );
         this.origFname = newFname;

@@ -157,27 +157,27 @@ public class Test_Change {
         int f1;
         int f2;
         
-        @Setter(field="f2")
         public void setF2( int i ) {
             f2 = i;
         }
-        
+
+        @ValueField
         public int getF2() {
             return f2;
         }
         
-        @Setter( field="f1")
         public void setF1( int i ) {
             f1 = i;
         }
         
+        @ValueField
         public int getF1() {
             return f1;
         }
         
         Set<Integer> numbers = new HashSet<Integer>();
         
-        @SetField( field="numbers", elemClass=int.class )
+        @SetField( elemClass=int.class )
         public Set<Integer> getNumbers() { return numbers; }
         
         public void addNumber( int n ) { numbers.add( n ); }
@@ -272,6 +272,8 @@ public class Test_Change {
         te.setF1( 1 );
         te.setF2( 2 );
         e.apply();
+        assertEquals( 1, t.f1 );
+        assertEquals( 2, t.f2 );
         
         Change<TestObject> initialState = e.getChange();
         

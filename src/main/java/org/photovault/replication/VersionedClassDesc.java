@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -106,39 +108,31 @@ public class VersionedClassDesc {
             editorIntf = info.editor();
         }
         for ( Method m : cl.getDeclaredMethods() ) {
-            Setter s = m.getAnnotation( Setter.class );
-            if ( s != null ) {
-                String fieldName = s.field();
-                Class types[] = m.getParameterTypes();
-                Class fieldType = null;
-                if ( types.length == 1 ) {
-                    fieldType = types[0];
+            if ( m.isAnnotationPresent( ValueField.class ) )  {
+                try {
+                    ValueFieldDesc f = new ValueFieldDesc( this, m, editorIntf );
+                    fields.put( f.name, f );
+                } catch ( NoSuchMethodException ex ) {
+                    log.error( "Error analyzing method " + cl.getName() + "." + m.getName(), ex );
+                    throw new IllegalArgumentException( 
+                            "Error analyzing method " + cl.getName() + 
+                            "." + m.getName(), ex );
+                }                
+            } else if ( m.isAnnotationPresent( SetField.class ) ) {
+                try {
+                    SetFieldDesc f = new SetFieldDesc( this, m, editorIntf );
+                    fields.put( f.name, f );
+                } catch ( NoSuchMethodException ex ) {
+                    log.error( "Error analyzing method " + cl.getName() + "." + m.getName(), ex );
+                    throw new IllegalArgumentException( 
+                            "Error analyzing method " + cl.getName() + 
+                            "." + m.getName(), ex );
                 }
-                ValueFieldDesc fd = (ValueFieldDesc) fields.get( fieldName );
-                if ( fd == null ) {
-                    fd = new ValueFieldDesc( this, fieldType, fieldName, s.dtoResolver(), editorIntf );
-                    fd.name = fieldName;
-                    fields.put( fieldName, fd );
-                }
-            }
-            SetField sfAnn = m.getAnnotation( SetField.class );
-            if ( sfAnn != null ) {
-                String fieldName = sfAnn.field();
-                Class types[] = m.getParameterTypes();
-                Class fieldType = null;
-                if ( types.length == 1 ) {
-                    fieldType = types[0];
-                }
-                SetFieldDesc fd = (SetFieldDesc) fields.get( fieldName );
-                if ( fd == null ) {
-                    fd = new SetFieldDesc( this, fieldName, fieldType, sfAnn.dtoResolver(), editorIntf );
-                    fd.name = fieldName;
-                    fields.put( fieldName, fd );
-                }
-                
             }
         }
     }
+    
+
     
     /**
      Set field value in an object of the class described by this instance

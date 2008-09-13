@@ -44,20 +44,97 @@ class SetFieldDesc extends FieldDesc {
      Method in target class that is used to remove an element to the set
      */
     private Method removeMethod;
-    
-    /**
-     Constructor
+        
+    /**     
      @param clDesc Class descriptor for the class that owns this field
-     @param fieldName Name of this field
-     @param elementType Thpe of elements in the set
-     @param elementResolverClass DTO esolver for elements
-     @param editorIntf Editor interface
+     @param getMethod Method used to get value of the field (the whole set) in 
+     owner class
+     @param editorIntf Proxy editor interface for owner class
+     @throws java.lang.NoSuchMethodException If no suitable method for adding or
+     deleting set items is found.
      */
-    SetFieldDesc( VersionedClassDesc clDesc, String fieldName,
-            Class elementType, Class elementResolverClass,
-            Class editorIntf ) {
-        super( clDesc, fieldName, elementType, elementResolverClass );
-        analyzeField( editorIntf );
+    SetFieldDesc( VersionedClassDesc clDesc, Method getMethod, Class editorIntf ) 
+            throws NoSuchMethodException {
+        SetField ann = getMethod.getAnnotation( SetField.class );
+        
+        name = ann.field();
+        String methodNameBase = null;
+        if ( name.equals( "" ) ) {
+            String getMethodName = getMethod.getName();
+            int nameStart = 0;
+            int nameEnd = getMethodName.length();
+            if ( getMethodName.startsWith( "get" ) ) {
+                nameStart = 3;
+            }
+            if ( getMethodName.endsWith( "s" ) ) {
+                nameEnd--;
+            }
+            name = getMethodName.substring( nameStart, nameStart+1 ).toLowerCase() + 
+                    getMethodName.substring( nameStart+1 );
+            methodNameBase = getMethodName.substring( nameStart, nameEnd );
+        }
+        
+        Class elementType = ann.elemClass();
+        clazz = elementType;
+        
+        dtoResolverClass = ann.dtoResolver();
+        
+        // Adder method
+        String addMethodName = ann.addMethod();
+        if ( addMethodName.equals( "" ) ) {
+            addMethodName = "add"+ methodNameBase;            
+        }
+        addMethod = clDesc.getDescribedClass().
+                getMethod( addMethodName, elementType );
+        
+        // Remover method
+        String removeMethodName = ann.removeMethod();
+        if ( removeMethodName.equals( "" ) ) {
+            removeMethodName = "remove"+ methodNameBase;           
+        }
+        removeMethod = clDesc.getDescribedClass().
+                getMethod( removeMethodName, elementType );
+        
+        // Add handlers for proxy methods
+               // Add handlers for proxy methods
+        if ( editorIntf != null ) {
+            try {
+                Method editorAddMethod = 
+                        editorIntf.getMethod( addMethodName, clazz );
+                clDesc.setEditorMethodHandler( 
+                        editorAddMethod, new ProxyMethodHandler( this ) {
+
+                    @Override
+                    Object methodInvoked(  VersionedObjectEditor e,
+                            Object[] args ) {
+                        e.addToSet( fd.name, args[0] );
+                        return null;
+                    }
+                } );
+            } catch ( NoSuchMethodException ex ) {
+                log.warn( "No method " + addMethodName + 
+                        " found in editory interface" );
+            }
+            try {
+                Method editorRemoveMethod = 
+                        editorIntf.getMethod( removeMethodName, clazz );
+                clDesc.setEditorMethodHandler(
+                        editorRemoveMethod, new ProxyMethodHandler( this ) {
+
+                    @Override
+                    Object methodInvoked(  VersionedObjectEditor e,
+                            Object[] args ) {
+                        e.addToSet( fd.name, args[0] );
+                        return null;
+                    }
+                } );
+            } catch ( NoSuchMethodException ex ) {
+                log.warn( "No method " + removeMethodName + 
+                        " found in editory interface" );
+            }
+        }
+
+        
     }
 
     /**
@@ -116,12 +193,14 @@ class SetFieldDesc extends FieldDesc {
             // No action for now
         } 
         try {
-            addMethod = clDesc.getDescribedClass().getMethod( addMethodName, clazz );
+            addMethod = 
+                    clDesc.getDescribedClass().getMethod( addMethodName, clazz );
         } catch ( NoSuchMethodException ex ) {
             // No action for now
         } 
         try {
-            removeMethod = clDesc.getDescribedClass().getMethod( removeMethodName, clazz );
+            removeMethod = 
+                    clDesc.getDescribedClass().getMethod( removeMethodName, clazz );
         } catch ( NoSuchMethodException ex ) {
             // No action for now
         } 
