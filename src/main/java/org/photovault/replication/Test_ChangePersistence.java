@@ -28,7 +28,6 @@ import java.io.ObjectOutputStream;
 import java.util.UUID;
 import org.hibernate.Transaction;
 import org.hibernate.classic.Session;
-import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.OriginalImageDescriptor;

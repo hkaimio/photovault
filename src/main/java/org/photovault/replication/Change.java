@@ -592,7 +592,7 @@ public class Change<T> {
             /* This is an initial change so we must populate all fields with 
             their default values
              */
-            targetHistory.initFirstChange( this );
+            // targetHistory.initFirstChange( this );
         }
 
         calcUuid();

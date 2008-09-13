@@ -20,11 +20,14 @@
 
 package org.photovault.replication;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -155,6 +158,26 @@ public class VersionedObjectEditor<T> {
      to object history.
      */
     public void apply() {
+        if ( change.getParentChanges().isEmpty() ) {
+            /*
+             This is an initial change. Set the default values for all value 
+             fields
+             */
+            for ( FieldDesc f : history.getClassDesc().getFields() ) {
+                if ( !change.getChangedFields().containsKey( f.name ) && f instanceof ValueFieldDesc ) {
+                    try {
+                        Object v = f.getter.invoke( history.getOwner() );
+                        DTOResolver resolver =
+                                fieldResolver.getResolver( f.dtoResolverClass );
+                        Object dto = resolver.getDtoFromObject( v );
+                        change.setField( f.name, dto );
+                    } catch ( Exception ex ) {
+                        throw new IllegalStateException(
+                                "Cannot access getter for field " + f.name, ex );
+                    }
+                }
+            }
+        }
         change.freeze();
         for ( Change<T> parent : change.getParentChanges() ) {
             parent.addChildChange( change );

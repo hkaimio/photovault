@@ -20,24 +20,36 @@
 
 package org.photovault.replication;
 
-import java.lang.reflect.InvocationTargetException;
-import org.photovault.imginfo.PhotoInfo;
-import org.testng.annotations.Test;
-import static org.testng.AssertJUnit.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- Test cases for class descriptor
+ Annotation used to indicate a field with set semantics should be version 
+ controlled
+ @author Harri Kaimio
+ @since 0.6.0
  */
-public class Test_ClassDescriptor {
+@Retention( RetentionPolicy.RUNTIME )
+@Target(ElementType.METHOD)
+public @interface SetField {
+    
+    /**
+     Returns the name of the field
+     */
+    String field();
+    
+    /**
+     Class for elements of this type
+     @return
+     */
+    Class elemClass() default Object.class;
+    
+    /**
+     Resolver for converting items of the set to DTO and vice versa
+     @return
+     */
+    Class dtoResolver() default DefaultDtoResolver.class;    
 
-    // @Test
-    public void testClassAnalysis() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        VersionedClassDesc photoClassDesc = new VersionedClassDesc( PhotoInfo.class );
-        PhotoInfo p = PhotoInfo.create();
-        
-        assertEquals( "Harri", p.getPhotographer() );
-        assertEquals( "Harri", photoClassDesc.getFieldValue( p, "photographer" ) );
-        
-        System.out.println( photoClassDesc );
-    }
 }

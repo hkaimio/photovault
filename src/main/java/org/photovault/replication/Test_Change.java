@@ -174,7 +174,17 @@ public class Test_Change {
         public int getF1() {
             return f1;
         }
+        
+        Set<Integer> numbers = new HashSet<Integer>();
+        
+        @SetField( field="numbers", elemClass=int.class )
+        public Set<Integer> getNumbers() { return numbers; }
+        
+        public void addNumber( int n ) { numbers.add( n ); }
 
+        public void removeNumber( int n ) { numbers.remove( n ); }
+
+        
         public UUID getGlobalId() {
             return uuid;
         }
@@ -210,6 +220,8 @@ public class Test_Change {
         VersionedObjectEditor<TestObject> e1 = new VersionedObjectEditor<TestObject>(  t.cs, resolvFactory );
            
         e1.setField( "f2", 3 );
+        e1.addToSet(  "numbers", 2 );
+        e1.addToSet(  "numbers", 3 );
         e1.apply();
         Change<TestObject> c = e1.getChange();
         assertEquals( 3, t.f2 );
@@ -218,8 +230,13 @@ public class Test_Change {
         
         VersionedObjectEditor<TestObject> e2 = new VersionedObjectEditor<TestObject>(  t.cs, resolvFactory );
         e2.setField("f2", 5 );
+        e2.removeFromSet(  "numbers", 2 );
+        e2.addToSet(  "numbers", 4 );
         e2.apply();
         assertEquals( 5, t.f2 );
+        assertFalse( t.getNumbers().contains( 2 ) );
+        assertTrue( t.getNumbers().contains( 3 ) );
+        assertTrue( t.getNumbers().contains( 4 ) );
         Change<TestObject> c2 = e2.getChange();
         assertEquals( c2, t.getVersion() );
         assertEquals( c, c2.getPrevChange() );
@@ -261,12 +278,16 @@ public class Test_Change {
         e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
         e.setField( "f1", 2 );
         e.setField( "f2", 3 );
+        e.addToSet( "numbers", 1 );
+        e.addToSet( "numbers", 2 );        
         e.apply();
         Change<TestObject> c = e.getChange();
         
         e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
         e.setField("f1", 3);
         e.setField("f2", 5);
+        e.addToSet( "numbers", 3 );
+        e.removeFromSet( "numbers", 1 );
         e.apply();
         Change<TestObject> c2 = e.getChange();
 
@@ -275,10 +296,14 @@ public class Test_Change {
         assertEquals( c, t.getVersion() );
         assertEquals( 2, t.f1 );
         assertEquals( 3, t.f2 );
-        
+        assertTrue( t.numbers.contains( 1 ) );
+        assertFalse( t.numbers.contains( 3 ) );
         
         e.setField("f1", 4);
         e.setField("f2", 5);
+        e.addToSet( "numbers", 1 );
+        e.addToSet( "numbers", 4 );
+        e.removeFromSet(  "numbers", 2 );        
         e.apply();
         Change<TestObject> c3 = e.getChange();
         
@@ -287,28 +312,47 @@ public class Test_Change {
         
         assertTrue( merged.hasConflicts() );
         
-        Collection<ValueFieldConflict> conflicts = merged.getFieldConficts();
-        assertEquals( 1, merged.getFieldConficts().size() );
+        Collection<FieldConflictBase> conflicts = merged.getFieldConficts();
+        assertEquals( 2, merged.getFieldConficts().size() );
         ValueFieldConflict f1c = null;
+        SetFieldConflict sfc = null;
         // Check the conflicts
         boolean f1Conflict = false;
         boolean f2Conflict = false;
-        for ( ValueFieldConflict cf : conflicts ) {
+        boolean numbersConflict = false;
+        for ( FieldConflictBase cf : conflicts ) {
             if ( cf.getFieldName().equals( "f1" ) ) {
                 f1Conflict = true;
-                f1c = cf;
-                assertTrue( cf.getConflictingValues().contains( 4 ) );
-                assertTrue( cf.getConflictingValues().contains( 3 ) );
+                f1c = (ValueFieldConflict) cf;
+                assertTrue( f1c.getConflictingValues().contains( 4 ) );
+                assertTrue( f1c.getConflictingValues().contains( 3 ) );
             } else if ( cf.getFieldName().equals( "f2" ) ) {
                 f2Conflict = true;
+            } else if ( cf.getFieldName().equals( "numbers" ) ) {
+                sfc = (SetFieldConflict)cf;
+                assertEquals( SetOperation.REMOVE, sfc.getOperations().get(0) );
+                assertEquals( SetOperation.ADD, sfc.getOperations().get(1) );
+                numbersConflict = true;
             }
         }
         assertTrue( f1Conflict );
         assertFalse( f2Conflict );
+        assertTrue( numbersConflict );
         
         f1c.resolve( 0 );
+        sfc.resolve( 1 );
         assertFalse( merged.hasConflicts() );
+        /*
+         TODO: current API is broken as we must manually freeze the change after 
+         resolving conflicts
+         */
+        merged.freeze();
         assertEquals( 3, merged.getField("f1") );
+        e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        e.changeToVersion( merged );
+        assertTrue( t.numbers.contains( 1 ) );
+        assertTrue( t.numbers.contains( 4 ) );
+        assertFalse( t.numbers.contains( 2 ) );
     }
     
     @Test

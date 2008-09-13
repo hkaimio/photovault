@@ -24,8 +24,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -179,39 +181,43 @@ class SetChange extends FieldChange implements Externalizable {
                 ch != null && (!toBeAdded.isEmpty() &&  !toBeRemoved.isEmpty() ); 
                 ch = ch.getPrevChange() ) {
             SetChange sch = (SetChange) ch.getFieldChange( name );
+            List processedItems = new ArrayList();
             for ( Object o : toBeAdded ) {
                 if ( sch.addedItems.contains( o ) ) {
                     // Item was really part of the set befor this change
-                    reverse.addItem( o );                    
-                    toBeAdded.remove( o );
+                    reverse.addItem( o );         
+                    processedItems.add( o );
                 }
                 if ( sch.removedItems.contains( o ) ) {
                     // This item was not really part of the set
-                    toBeAdded.remove( o );
+                    processedItems.add( o );
                 }
             }
+            toBeAdded.removeAll( processedItems );
+            
             for ( Object o : toBeRemoved ) {
                 if ( sch.removedItems.contains( o ) ) {
                     // Item was really not present before this change
                     reverse.removeItem( o );                    
-                    toBeRemoved.remove( o );
+                    processedItems.add( o );
                 }
                 if ( sch.addedItems.contains( o ) ) {
                     // This item was present in the set already before addition
-                    toBeRemoved.remove( o );
+                    processedItems.add( o );
                 }
             }
+            toBeRemoved.removeAll( processedItems );
         }
         /**
-         The intems remaining are ones that were added for the first time in 
+         The items remaining are ones that were added for the first time in 
          this change.
          */
         for ( Object o : toBeRemoved ) {
             reverse.removeItem( o );
         }
         /*
-         If some item was removed in thsi cahnge but not enountered during 
-         history walk, it was not really present. So no operation should be done.
+         If some item was removed in this change but not encountered during 
+         history walk, it was not really present. So nothing should be done.
          */
         
         return reverse;

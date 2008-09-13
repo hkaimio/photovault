@@ -22,6 +22,7 @@ package org.photovault.replication;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +66,10 @@ public class VersionedClassDesc {
      */
     public Set<String> getFieldNames() {
         return Collections.unmodifiableSet( fields.keySet() );
+    }
+    
+    Collection<FieldDesc> getFields() {
+        return Collections.unmodifiableCollection( fields.values() );
     }
     
     public Class getDescribedClass() {
@@ -115,6 +120,22 @@ public class VersionedClassDesc {
                     fd.name = fieldName;
                     fields.put( fieldName, fd );
                 }
+            }
+            SetField sfAnn = m.getAnnotation( SetField.class );
+            if ( sfAnn != null ) {
+                String fieldName = sfAnn.field();
+                Class types[] = m.getParameterTypes();
+                Class fieldType = null;
+                if ( types.length == 1 ) {
+                    fieldType = types[0];
+                }
+                SetFieldDesc fd = (SetFieldDesc) fields.get( fieldName );
+                if ( fd == null ) {
+                    fd = new SetFieldDesc( this, fieldName, fieldType, sfAnn.dtoResolver(), editorIntf );
+                    fd.name = fieldName;
+                    fields.put( fieldName, fd );
+                }
+                
             }
         }
     }
