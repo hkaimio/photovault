@@ -406,12 +406,27 @@
                 <include name="**/Test**.class"/>
             </classfileset>
         </testng>
-        
         <cobertura-report srcdir="${src}" destdir="reports/cobertura"/>
         <cobertura-report format="xml" srcdir="${src}" destdir="reports/cobertura"/>
-
-
     </target>
+    
+    <!-- Run Findbugs on Photovault .jar -->
+    <target name="findbugs" depends="dist">
+        <taskdef name="findbugs" 
+                 classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
+                 classpath="${findbugs.home}/lib/findbugs-ant.jar"/>
+        <findbugs home="${findbugs.home}"
+              output="xml"
+              outputFile="reports/photovault-fb.xml" >
+            <auxClasspath>
+                <path refid="project.class.path"/>
+            </auxClasspath>
+            <sourcePath path="${src}" />
+            <class location="${dist}/photovault-latest/photovault.jar" />
+        </findbugs>
+    </target>
+
+    
     <!-- Checkstyle target -->
     <target name="checkstyle">
         <checkstyle config="conf/sun_checks.xml">
