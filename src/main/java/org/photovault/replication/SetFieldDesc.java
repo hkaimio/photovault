@@ -147,11 +147,14 @@ class SetFieldDesc extends FieldDesc {
     void applyChange(  Object target, FieldChange ch,
             DTOResolverFactory resolverFactory ) {
         SetChange sc = (SetChange) ch;
+        DTOResolver resolver = resolverFactory.getResolver( dtoResolverClass );
         try {
-            for ( Object item : sc.getAddedItems() ) {
+            for ( Object itemDto : sc.getAddedItems() ) {
+                Object item = resolver.getObjectFromDto( itemDto );
                 addMethod.invoke( target, item );
             }
-            for ( Object item : sc.getRemovedItems() ) {
+            for ( Object itemDto : sc.getRemovedItems() ) {
+                Object item = resolver.getObjectFromDto( itemDto );
                 removeMethod.invoke( target, item );
             }
         } catch ( IllegalAccessException ex ) {

@@ -28,6 +28,7 @@ import java.io.ObjectOutputStream;
 import java.util.UUID;
 import org.hibernate.Transaction;
 import org.hibernate.classic.Session;
+import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.OriginalImageDescriptor;
@@ -227,8 +228,8 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         e2.setField(PhotoInfoFields.FSTOP.getName(), 5.6 );
         e2.setField( "film", "Tri-X" );
         
-//        FolderPhotoAssociation a = new FolderPhotoAssociation( f, p );
-//        e2.addToSet( "folderAssociations", a );
+        FolderPhotoAssociation a = new FolderPhotoAssociation( f, p );
+        e2.addToSet( "folderAssociations", a );
         
         e2.apply();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -263,7 +264,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         e3.changeToVersion( serc2 );
         p = serc1.getTargetHistory().getOwner();
         assert( p.getOriginal().getFile() == ifile );
-//         assertEquals( 1, p.getFolderAssociations().size() );
+        assertEquals( 1, p.getFolderAssociations().size() );
     }    
   
 }

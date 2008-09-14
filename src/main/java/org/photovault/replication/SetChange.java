@@ -57,6 +57,11 @@ class SetChange extends FieldChange implements Externalizable {
     }
     
     /**
+     Constructor for serialization
+     */
+    public SetChange() { super(); }
+    
+    /**
      Add item to the set
      @param itemDto Data transfer obejct of the object added
      */

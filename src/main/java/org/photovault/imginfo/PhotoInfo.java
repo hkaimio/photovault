@@ -62,8 +62,10 @@ import org.photovault.image.PhotovaultImageFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
+import org.photovault.replication.SetField;
 import org.photovault.replication.ValueField;
 import org.photovault.replication.Versioned;
 
@@ -2005,6 +2007,8 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      these cases the folder field in the association object in<code>null</code>
      @return
      */
+    @SetField( elemClass=FolderPhotoAssociation.class, 
+               dtoResolver=FolderRefResolver.class )
     @OneToMany( mappedBy = "photo" )
     public Set<FolderPhotoAssociation> getFolderAssociations() {
         return folderAssociations;

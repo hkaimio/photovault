@@ -1,24 +1,22 @@
 /*
-  Copyright (c) 2008 Harri Kaimio
-  
-  This file is part of Photovault.
+ Copyright (c) 2008 Harri Kaimio
 
-  Photovault is free software; you can redistribute it and/or modify it
-  under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+ This file is part of Photovault.
 
-  Photovault is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  General Public License for more details.
+ Photovault is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-  You should have received a copy of the GNU General Public License
-  along with Photovault; if not, write to the Free Software Foundation,
-  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
-*/
+ Photovault is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ General Public License for more details.
 
-
+ You should have received a copy of the GNU General Public License
+ along with Photovault; if not, write to the Free Software Foundation,
+ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+ */
 package org.photovault.folder;
 
 import java.io.UnsupportedEncodingException;
@@ -32,44 +30,41 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.PhotoInfo;
 
-/**
+/** 
  This class describes the association of a photo to certain folder. Due to 
  the fact that Photovault 0.6.0 database can be distributed it is normal that
  the database does not contain infomration about both of them. Therefore the
  association has been modeled as an entity object with its own ID which is 
  derived from the uuids of both the photo  and folder.
- 
+
  @author Harri Kaimio
  @since 0.6.0
  @see PhotoFolder
  @see PhotoInfo
  */
-@Entity( name="pv_folder_photos" )
+@Entity(name = "pv_folder_photos")
 public class FolderPhotoAssociation {
-    
+
     static private Log log = LogFactory.getLog( FolderPhotoAssociation.class.getName() );
-    
     /**
      UUID of this association
      */
     private UUID uuid;
-    
     /**
      The photo
      */
     private PhotoInfo photo;
-    
     /**
      The folder assocaited with the photo
      */
     private PhotoFolder folder;
-    
+
     /**
      Default constructor
      */
     public FolderPhotoAssociation() {
     }
-    
+
     /**
      Construct a new association between f & p
      @param f The folder
@@ -88,8 +83,8 @@ public class FolderPhotoAssociation {
     private UUID calcUuid() {
         if ( photo == null || folder == null ) {
             return null;
-        } 
-        
+        }
+
         String uuidStr = folder.getUuid().toString() + photo.getUuid().toString();
         byte[] b = null;
         try {
@@ -97,9 +92,9 @@ public class FolderPhotoAssociation {
         } catch ( UnsupportedEncodingException ex ) {
             log.error( "UTF-8 not supported!!!", ex );
         }
-        return UUID.nameUUIDFromBytes( b );           
+        return UUID.nameUUIDFromBytes( b );
     }
-    
+
     /**
      Check that the state of the object is not inconsistent with UUID. This can 
      be done only if both photo and folder are known
@@ -139,7 +134,7 @@ public class FolderPhotoAssociation {
      @return
      */
     @ManyToOne
-    @JoinColumn( name="photo_uuid", nullable=true )
+    @JoinColumn(name = "photo_uuid", nullable = true)
     public PhotoInfo getPhoto() {
         return photo;
     }
@@ -160,7 +155,7 @@ public class FolderPhotoAssociation {
      @return
      */
     @ManyToOne
-    @JoinColumn( name = "folder_uuid", nullable=true )
+    @JoinColumn(name = "folder_uuid", nullable = true)
     public PhotoFolder getFolder() {
         return folder;
     }
@@ -175,10 +170,10 @@ public class FolderPhotoAssociation {
         this.folder = folder;
         checkState();
     }
-    
+
     @Override
     public boolean equals( Object o ) {
-        if ( o == null || !(o instanceof FolderPhotoAssociation ) ) {
+        if ( o == null || !(o instanceof FolderPhotoAssociation) ) {
             return false;
         }
         FolderPhotoAssociation other = (FolderPhotoAssociation) o;
@@ -189,6 +184,4 @@ public class FolderPhotoAssociation {
     public int hashCode() {
         return uuid.hashCode();
     }
-    
-    
 }
