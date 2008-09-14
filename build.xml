@@ -267,7 +267,7 @@
         <taskdef  resource="testngtasks" classpath="lib/testng.jar"/>
         <testng outputDir="${reports.test}/testresults"
                 workingdir="${basedir}"
-                haltOnFailure="false" verbose="2"
+                haltOnFailure="false" verbose="5"
                 reporter="org.testng.reporters.JUnitXMLReporter">
             <jvmarg value="${run.jvmargs}"/>
             <jvmarg value="-Xdebug"/>

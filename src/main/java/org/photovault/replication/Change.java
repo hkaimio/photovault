@@ -103,12 +103,6 @@ public class Change<T> {
     private Change prevChange;
     
     /**
-     If this is a merge change, the change that is merged with {@link prevChange}.
-     Otherwise <code>null</code>
-     */
-    private Change mergeChange;
-    
-    /**
      True if this change is a head of a branch (i.e. it does not have any child 
      changes
      */
@@ -182,9 +176,9 @@ public class Change<T> {
      @param newValue New value for the field
      @throws IllegalStateException if the change has laready been frozen.
      */
-    public void setField( String field, Object newValue ) {
+    public void setField( String fieldName, Object newValue ) {
         assertNotFrozen();
-        changedFields.put( field, new ValueChange( field.toString(), newValue ) );
+        changedFields.put( fieldName, new ValueChange( fieldName, newValue ) );
     }
 
     /**
@@ -321,24 +315,6 @@ public class Change<T> {
         }
         parentChanges.add(  c );
         prevChange = c;        
-    }
-    
-    /**
-     Get the change that this change merges with previous change
-     @return The merged change or <code>null</code> if this is not a merge 
-     operation
-     */
-    @Transient
-    public Change getMergedChange() {
-        if ( mergeChange == null && parentChanges.size() > 1 ) {
-            for ( Change<T> c : parentChanges ) {
-                if ( c != getParentChanges() ) {
-                    mergeChange = c;
-                    break;
-                }
-            }
-        }
-        return mergeChange;
     }
     
     /**

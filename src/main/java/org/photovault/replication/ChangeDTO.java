@@ -41,6 +41,9 @@ import java.util.UUID;
  to other objects with theur global UUIDs.
  */
 public class ChangeDTO<T> implements Serializable {
+    
+    static final long serialVersionUID = 3937344080753904527l;
+    
     /**
      UUID of the change this DTO describes
      */
@@ -144,10 +147,6 @@ public class ChangeDTO<T> implements Serializable {
         os.reset();
         writeChange( os );
         byte[] serialized = s.toByteArray();
-        File f = File.createTempFile( "calcUuid", "ser" );
-        FileOutputStream fos = new FileOutputStream( f );
-        fos.write( serialized );
-        fos.close();
         return UUID.nameUUIDFromBytes( serialized );
     }
     
