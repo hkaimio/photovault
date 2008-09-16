@@ -207,23 +207,6 @@ public class Change<T> {
     void setFieldChange( String field, FieldChange c ) {
         changedFields.put(  field, c);
     }
-           
-    
-    Map<String, SetChange> collectionChanges = new HashMap<String, SetChange>();
-    
-    /**
-     Get the description how this change will change a given collection that is 
-     member of target object
-     @param setFieldName
-     @return
-     */
-    @Transient
-    SetChange getCollectionChange( String setFieldName ) {
-        if ( !collectionChanges.containsKey( setFieldName ) ) {
-            collectionChanges.put( setFieldName, new SetChange( setFieldName ) );
-        }
-        return collectionChanges.get(  setFieldName );
-    }
     
     
     @Column( name = "serialized", length = 1048576  )

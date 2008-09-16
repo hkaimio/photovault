@@ -61,19 +61,4 @@ public abstract class AnnotatedClassHistory<T> extends ChangeSupport<T> {
             analyzedClasses.put(  owner.getClass(), classDesc );
         }                
     }
-    
-    @Override
-    protected Object getField( String field ) {
-        return classDesc.getFieldValue( target, field );
-    }
-
-    @Override
-    protected void setField( String field, Object val ) {
-            classDesc.setFieldValue( target, field, val );
-    }
-
-    @Override
-    protected Set<String> allFields() {
-        return classDesc.getFieldNames();
-    }
 }

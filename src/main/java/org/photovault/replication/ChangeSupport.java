@@ -22,7 +22,6 @@
 package org.photovault.replication;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.persistence.CascadeType;
@@ -137,45 +136,6 @@ public abstract class ChangeSupport<T> {
         heads.add( c );
         allChanges.add( c );
     }
-    
-    /**
-     Initialize the first change by setting all fields in it to current values 
-     of target object fields
-     @param c
-     @deprecated Since initFirstChange does not have resolver context, it cannot 
-     initialize fields with special resolver properly. So this should be removed.
-     */
-    void initFirstChange( Change<T> c ) {
-        Map<String,FieldChange> changedFields = c.getChangedFields();
-        for ( String f : allFields() ) {
-            if ( !changedFields.containsKey( f ) ) {
-                c.setField(f, getField(f) );
-            }
-        }
-    }
-    
-    /**
-     Apply a change to target object
-     @param c The change that will be applied.
-     @throws IllegalStateException if the change is not a child of current 
-     version of target obejct
-     */
-    void applyChange( Change<T> c ) {
-        Change<T> currentVersion = getVersion();
-        if ( currentVersion == null ? !c.getParentChanges().isEmpty() :
-                !c.getParentChanges().contains( currentVersion ) ) {
-            throw new IllegalStateException( "Cannot apply change on top of unrelated change" );
-        }
-        for ( Map.Entry<String,FieldChange> fc : c.getChangedFields().entrySet() ) {
-            FieldChange ch = fc.getValue();
-            if ( ch instanceof ValueChange ) {
-                setField(fc.getKey(), ((ValueChange)ch).getValue() );
-            } else {
-                log.error( "applyChange cannot handle " + ch.getClass().getName() );
-            }
-        }
-        setVersion( c );        
-    }
 
     /**
      Create a new empty change object for target object
@@ -198,70 +158,6 @@ public abstract class ChangeSupport<T> {
      */
     protected void setOwner( T owner ) {
         this.target = owner;
-    }
-
-
-    /**
-     Modify the target object so that its state matches given version
-     @param newVersion The new version for the target object
-     @deprecated Use VersionedObjectEditor#changeToVersion instead.s
-     */
-    public void changeToVersion( Change<T> newVersion ) {
-        Change<T> oldVersion = getVersion();
-        
-        if ( newVersion == oldVersion ) {
-            return;
-        }
-        
-        // Find the common ancestor between these versions
-        Set<Change<T>> oldAncestors = new HashSet<Change<T>>();
-        for ( Change<T> c = oldVersion ; c != null ; c = c.getPrevChange() ) {
-            oldAncestors.add( c );
-        }
-        
-        Change<T> commonBase = null;
-        for ( Change<T> c = newVersion ; c != null ; c = c.getPrevChange() ) {
-            if ( oldAncestors.contains( c ) ) {
-                commonBase = c;
-                break;
-            }
-        }
-        
-        /*
-         Find out the fields that were changed between old version and common 
-         base
-         */
-        Set<String> oldFieldChanges = new HashSet<String>();
-        for ( Change<T> c = oldVersion ; c != commonBase ; c = c.getPrevChange() ) {
-            oldFieldChanges.addAll( c.getChangedFields().keySet() );
-        }
-        
-        /*
-         Finally, set fields in target object to the newest value in path to new
-         version if the field was set in either path after common base
-         */
-        Set<String> changedFields = new HashSet<String>();
-        boolean commonBasePassed = false;
-        for ( Change<T> c = newVersion ; c != null ; c = c.getPrevChange() ) {
-            if ( c == commonBase ) {
-                commonBasePassed = true;
-            }
-            for ( Map.Entry<String,FieldChange> e : c.getChangedFields().entrySet() ) {
-                String f = e.getKey();
-                if ( !changedFields.contains( f ) ) {
-                    if ( !commonBasePassed || oldFieldChanges.contains( f ) ) {
-                        FieldChange ch = e.getValue();
-                        if ( ch instanceof ValueChange ) {
-                            setField(f, ((ValueChange)ch).getValue() );
-                        } else {
-                            log.error( "changeToVersion cannot handle " + ch.getClass().getName() );
-                        }
-                        changedFields.add( f );
-                    }
-                }
-            }
-        }   
-        setVersion( newVersion );
     }
 
     /**
@@ -292,10 +188,6 @@ public abstract class ChangeSupport<T> {
         this.heads = heads;
     }
 
-    public Change mergeHeads() {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
-
     protected abstract T createTarget();
     
     /**
@@ -303,30 +195,6 @@ public abstract class ChangeSupport<T> {
      */
     @Transient
     public abstract UUID getGlobalId();
-
-    /**
-     Returns current value of given field in the target obejct
-     @param field Field identifier
-     @return Current value of given field in target
-     */
-    @Transient
-    protected abstract Object getField( String field );
-    
-    /**
-     Set value of a field in target object
-     @param field Identifier of the field
-     @param val New value for the field
-     */
-    @Transient
-    protected abstract void setField( String field, Object val );
-    
-    /**
-     Get identifiers of all fields.
-     @return Set of all field ids, for example, if the fields are described by 
-     enumeration, return EnumSet.allOf( F.class )
-     */
-    @Transient
-    protected abstract Set<String> allFields();
     
     /**
      Set the version of target obejct

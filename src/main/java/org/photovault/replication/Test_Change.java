@@ -46,37 +46,12 @@ public class Test_Change {
             super( obj );
         }
 
-        @Override
-        protected void setField( String f, Object val  ) {
-            if ( f.equals("f1" ) ) {
-                target.f1 = (Integer)val;
-            } else if ( f.equals("f2" ) ) {
-                target.f2 = (Integer)val;
-            }
-        }
 
-        @Override
-        protected Object getField( String field ) {
-            if ( field.equals( "f1")) {
-                return target.f1;
-            } else if ( field.equals( "f2")) {
-                return target.f2;
-            } 
-            return null;
-        }
+
+
 
         static Set<String> allFields = null;
         
-        @Override
-        protected Set<String> allFields() {
-            if ( allFields == null ) {
-                allFields = new HashSet<String>();
-                allFields.add( "f1" );
-                allFields.add( "f2" );
-                allFields = Collections.unmodifiableSet(allFields);
-            }
-            return allFields;
-        }
 
         @Override
         protected void setVersion( Change<TestObject> version ) {
@@ -187,22 +162,6 @@ public class Test_Change {
         
         public UUID getGlobalId() {
             return uuid;
-        }
-
-        public void changeToVersion( Change newVersion ) {
-            cs.changeToVersion(newVersion);
-        }
-
-        public List<Change<TestObject>> getChanges() {
-            return (List<Change<TestObject>>) cs.getChanges();
-        }
-
-        public List<Change<TestObject>> getHeads() {
-            return (List<Change<TestObject>>) cs.getHeads();
-        }
-
-        public Change mergeHeads() {
-            return cs.mergeHeads();
         }
 
         public Change createChange() {
