@@ -32,12 +32,19 @@ import org.photovault.command.CommandException;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.imginfo.PhotoCollectionChangeEvent;
 import org.photovault.imginfo.PhotoCollectionChangeListener;
+import org.photovault.imginfo.PhotoEditor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.Change;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.FieldConflictBase;
+import org.photovault.replication.HibernateDtoResolverFactory;
+import org.photovault.replication.SetFieldConflict;
+import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -52,6 +59,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     HibernateDAOFactory daoFactory;
     Session session = null;
     Transaction tx = null;
+    DTOResolverFactory rf = null;
     
     /**
        Sets up the test environment. retrieves from database the hierarchy with 
@@ -61,6 +69,8 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     @Override
     public void setUp() {
         session = HibernateUtil.getSessionFactory().openSession();
+        rf = new HibernateDtoResolverFactory( session );
+
         ManagedSessionContext.bind( (org.hibernate.classic.Session) session);
         daoFactory = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
         daoFactory.setSession( session );
@@ -79,8 +89,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     @Test
     public void testCreate() {
 	
-	PhotoFolder folder = PhotoFolder.create( "Top", null );
-        folder = folderDAO.makePersistent( folder );
+	PhotoFolder folder = folderDAO.create( "Top", null );
         folderDAO.flush();
         assertMatchesDb( folder, session );
         
@@ -130,12 +139,20 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	PhotoFolder folder = null;
         // Create a folder for the photo
         PhotoFolder root = folderDAO.findRootFolder();
-        folder = PhotoFolder.create( "PhotoAdditionTest", null );
-        folder = folderDAO.makePersistent( folder );
+        folder = folderDAO.create( "PhotoAdditionTest", null );
         folder.reparentFolder( root );
+        
+        VersionedObjectEditor<PhotoFolder> e =folder.editor( rf );
+        VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), rf );
+        FolderEditor fe = (FolderEditor) e.getProxy();        
+        PhotoEditor pee = (PhotoEditor) pe.getProxy();
+        
         FolderPhotoAssociation a = assocDAO.getAssociation( folder, photo );
-        photo.addFolderAssociation( a );
-        folder.addPhotoAssociation( a );
+        
+        pee.addFolderAssociation( a );
+        fe.addPhotoAssociation( a );
+        e.apply();
+        pe.apply();
         folderDAO.flush();
         assertMatchesDb( folder, session );
         
@@ -181,8 +198,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     @Test
     public void testPersistence() {
 	// Test creation of a new folder
-	PhotoFolder f = PhotoFolder.create( "persistenceTest", null );
-        f = folderDAO.makePersistent( f );
+	PhotoFolder f = folderDAO.create( "persistenceTest", null );
         folderDAO.flush();
 	assertMatchesDb( f );
 
@@ -250,7 +266,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	String[] subfolderNames = {"Subfolder1", "Subfolder2", "Subfolder3", "Subfolder4"};
 
 	// Check subfolder addition
-	PhotoFolder newFolder = PhotoFolder.create( "Subfolder5", topFolder );
+	PhotoFolder newFolder = folderDAO.create( "Subfolder5", topFolder );
         folderDAO.flush();
 	assertEquals( "New subfolder added", 5, topFolder.getSubfolderCount() );
         assertMatchesDb( topFolder, session );
@@ -308,7 +324,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 
     @Test
     public void testListener() {
-	PhotoFolder folder = PhotoFolder.create( "testListener", null );
+	PhotoFolder folder = folderDAO.create( "testListener", null );
 	TestListener l1 = new TestListener();
 	TestListener l2 = new TestListener();
 	TestCollectionListener l3 = new TestCollectionListener();
@@ -331,7 +347,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 	assertFalse( "l2 should not have been called", l2.modified );
 
 	// Test creation of a new subfolder
-	PhotoFolder subfolder = PhotoFolder.create( "New subfolder", folder );
+	PhotoFolder subfolder = folderDAO.create( "New subfolder", folder );
 	assertTrue( "Not notified of subfolder structure change", l1.structureModified );
 	assertEquals( "subfolder info not correct", folder, l1.structChangeFolder );
 	l1.structureModified = false;
@@ -425,6 +441,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         FolderPhotoAssociation a1 = new FolderPhotoAssociation( top, p1 );
         FolderPhotoAssociation a2 = new FolderPhotoAssociation( top, p2 );
         a2.setPhoto( null );
+        VersionedObjectEditor<PhotoFolder> fe = top.editor( rf );
         top.addPhotoAssociation( a1 );
         top.addPhotoAssociation( a2 );
         
@@ -433,6 +450,8 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         assocDAO.makePersistent( a2 );
         
         session.flush();
+        tx.commit();
+        tx = session.beginTransaction();
         session.clear();
         
         top = folderDAO.findRootFolder();
@@ -461,9 +480,9 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
      identity.
      */
     @Test
-    public void TestFolderAssocValidation() {
+    public void testFolderAssocValidation() {
         PhotoFolder top = folderDAO.findRootFolder();
-        PhotoFolder otherFolder = PhotoFolder.create( "test", top );
+        PhotoFolder otherFolder = folderDAO.create( "test", top );
         PhotoInfo p1 = PhotoInfo.create();
         PhotoInfo p2 = PhotoInfo.create();
         FolderPhotoAssociation a1 = new FolderPhotoAssociation( top, p1 );
@@ -485,8 +504,67 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
             ok = true;
         }
         assertTrue( ok );
+    }  
+    
+    @Test
+    public void testFolderHistory() {
+        PhotoFolder top = folderDAO.findRootFolder();
+        PhotoFolder otherFolder = folderDAO.create( "test", top );
+        VersionedObjectEditor<PhotoFolder> fe = otherFolder.editor( rf );
+        FolderEditor fep = (FolderEditor) fe.getProxy();
+        
+        Change<PhotoFolder> fv1 = otherFolder.getHistory().getVersion();
+        
+        PhotoInfoDAO photoDao = daoFactory.getPhotoInfoDAO();
+        PhotoInfo p1 = PhotoInfo.create();
+        PhotoInfo p2 = PhotoInfo.create();
+        photoDao.makePersistent( p1 );
+        photoDao.makePersistent( p2 );
+        VersionedObjectEditor<PhotoInfo> p2e = new VersionedObjectEditor<PhotoInfo>(  p2.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> p1e = new VersionedObjectEditor<PhotoInfo>(  p1.getHistory(), rf );
+
+        
+        FolderPhotoAssocDAO assocDao = daoFactory.getFolderPhotoAssocDAO();
+        FolderPhotoAssociation a1 = new FolderPhotoAssociation( otherFolder, p1 );
+        assocDao.makePersistent( a1 );
+        p1e.addToSet( "folderAssociations", a1 );
+        fep.addPhotoAssociation( a1 );
+        p1e.apply();
+        Change<PhotoFolder> fv2 = fe.apply();
+        session.flush();
+        assertTrue( otherFolder.getHistory().getVersion() == fv2 );
+        
+        assertTrue( p1.getFolderAssociations().contains( a1 ) );
+        assertTrue( otherFolder.getPhotoAssociations().contains( a1 ) );
+
+        // Ensure thatchangeng to earlier version removes the association
+        fe = otherFolder.editor( rf );
+        fe.changeToVersion( fv1 );
+        session.flush();
+        assertFalse( otherFolder.getPhotoAssociations().contains( a1 ) );
+        assertNull( a1.getFolder() );
+        
+        fep = (FolderEditor) fe.getProxy();
+        fep.removePhotoAssociation(  a1 );
+        fep.setName( "Moikka" );
+        Change<PhotoFolder> fv3 = fe.apply();
+        session.flush();
+        
+        fe = otherFolder.editor( rf );
+        Change<PhotoFolder> fv4 = fv3.merge( fv2 );
+        Collection<FieldConflictBase> conflicts = fv4.getFieldConficts();
+        assertEquals( 1, conflicts.size() );
+        for ( FieldConflictBase c : conflicts ) {
+            SetFieldConflict sc = (SetFieldConflict) c;
+            sc.resolve( 1 );
+        }
+        fv4.freeze();
+        fe.changeToVersion( fv4 );
+        session.flush();
+        assertTrue( otherFolder.getPhotoAssociations().contains( a1 ) );
+        assertTrue( a1.getFolder() == otherFolder );
+        assertEquals( "Moikka", otherFolder.getName() );
     }
-            
 
 }
 

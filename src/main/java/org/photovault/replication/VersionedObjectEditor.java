@@ -157,7 +157,7 @@ public class VersionedObjectEditor<T> {
      Apply the changes made in this editor to the working copy and add the change
      to object history.
      */
-    public void apply() {
+    public Change<T> apply() {
         if ( change.getParentChanges().isEmpty() ) {
             /*
              This is an initial change. Set the default values for all value 
@@ -192,6 +192,7 @@ public class VersionedObjectEditor<T> {
             classDesc.applyChange( history.getOwner(), ch, fieldResolver );
         }
         history.setVersion( change );                
+        return change;
     }
     
     /**

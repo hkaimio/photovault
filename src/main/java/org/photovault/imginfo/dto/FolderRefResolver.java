@@ -46,14 +46,18 @@ public class FolderRefResolver extends
             getSession().saveOrUpdate( a );
         }
         UUID photoUuid = dto.getPhotoId();
-        PhotoInfo p = (PhotoInfo) getSession().get( PhotoInfo.class, photoUuid );
-        if ( p != null ) {
-            a.setPhoto( p );
+        if ( photoUuid != null ) {
+            PhotoInfo p = (PhotoInfo) getSession().get( PhotoInfo.class, photoUuid );
+            if ( p != null ) {
+                a.setPhoto( p );
+            }
         }
         UUID folderUuid = dto.getFolderId();
-        PhotoFolder f = (PhotoFolder) getSession().get( PhotoFolder.class, folderUuid );
-        if ( f != null ) {
-            a.setFolder( f );
+        if ( folderUuid != null ) {
+            PhotoFolder f = (PhotoFolder) getSession().get( PhotoFolder.class, folderUuid );
+            if ( f != null ) {
+                a.setFolder( f );
+            }
         }
         return a;
     }

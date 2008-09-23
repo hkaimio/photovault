@@ -333,9 +333,8 @@ public class SchemaUpdateAction {
         PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
         PhotoFolder topFolder = folderDao.findByUUID( PhotoFolder.ROOT_UUID );
         if ( topFolder == null ) {
-            topFolder = PhotoFolder.create( PhotoFolder.ROOT_UUID, null );
+            topFolder = folderDao.create( PhotoFolder.ROOT_UUID, null );
             topFolder.setName( "Top" );
-            s.save( topFolder );
         }
         foldersById.put(  1, topFolder );
         PreparedStatement stmt = conn.prepareStatement( 
@@ -364,14 +363,13 @@ public class SchemaUpdateAction {
                 if ( id == 1 ) {
                     uuid = PhotoFolder.ROOT_UUID;
                 }
-                PhotoFolder f = PhotoFolder.create( uuid, parent );
+                PhotoFolder f = folderDao.create( uuid, parent );
                 f.setName( rs.getString( "collection_name" ) );
                 f.setDescription( rs.getString( "collection_desc" ) );
                 /*
                  TODO: how to set the create time & last modified time without 
                  exposing them to others?
                  */
-                folderDao.makePersistent( f );
                 log.debug(  "folder saved" );
                 foldersById.put( id, f );
                 folderUuids.put(  id, uuid );

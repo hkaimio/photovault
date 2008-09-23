@@ -78,5 +78,20 @@ public class FolderRefDTO implements Serializable {
         return folderId;
     }
     
+    @Override
+    public boolean equals( Object o ) {
+        if ( ! (o instanceof FolderRefDTO ) ) {
+            return false;
+        }
+        FolderRefDTO that = (FolderRefDTO) o;
+        return that.assocId.equals( assocId );
+    }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 11 * hash + (this.assocId != null ? this.assocId.hashCode() : 0);
+        return hash;
+    }
+    
 }

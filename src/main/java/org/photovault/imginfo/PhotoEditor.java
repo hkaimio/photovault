@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
@@ -33,6 +34,18 @@ import org.photovault.image.ColorCurve;
  Interface that provides methods for editing {@link PhotoInfo} objects.
  */
 public interface PhotoEditor {
+
+    /**
+     Associate the photo with a new folder
+     @param a Association object representing link to a folder
+     */
+    public void addFolderAssociation( FolderPhotoAssociation a );
+
+    /**
+     Remove association between the photo and folder
+     @param a
+     */
+    public void removeFolderAssociation( FolderPhotoAssociation a );
 
     /**
      * Utility method to get the color curve assigned to blue channel

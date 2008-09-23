@@ -438,9 +438,11 @@ public class Change<T> {
             boolean changedInOther = changedFieldsOther.containsKey( f );
             try {
             if ( changedInThis && !changedInOther ) {
-                merged.setField(f, changedFieldsThis.get( f ).clone() );
+                merged.setFieldChange(f,
+                        (FieldChange) changedFieldsThis.get( f ).clone() );
             } else if ( !changedInThis && changedInOther ) {                
-                merged.setField(f, changedFieldsOther.get( f ).clone() );
+                merged.setFieldChange(f,
+                        (FieldChange) changedFieldsOther.get( f ).clone() );
             } else {
                 // The field has been changed in both paths
                 FieldChange chThis = changedFieldsThis.get( f );

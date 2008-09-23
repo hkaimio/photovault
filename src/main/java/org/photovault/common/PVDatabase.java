@@ -39,6 +39,9 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 
 /**
@@ -369,7 +372,11 @@ public class PVDatabase {
         Session s = HibernateUtil.getSessionFactory().openSession();
         Transaction tr = s.beginTransaction();
         
-        PhotoFolder topFolder = PhotoFolder.create( PhotoFolder.ROOT_UUID, null );
+        HibernateDAOFactory df = 
+                (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        df.setSession( s );
+        PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
+        PhotoFolder topFolder = folderDao.create( PhotoFolder.ROOT_UUID, null );
         topFolder.setName( "Top" );
         s.save( topFolder );
         

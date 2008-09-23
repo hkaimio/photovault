@@ -35,6 +35,7 @@
         <mapping class="org.photovault.imginfo.Volume"/>
         <mapping class="org.photovault.imginfo.ExternalVolume"/>
         <mapping class="org.photovault.folder.PhotoFolder"/>
+        <mapping class="org.photovault.folder.FolderHistory"/>
         <mapping class="org.photovault.folder.FolderPhotoAssociation"/>
         <mapping class="org.photovault.common.DbInfo"/>
         <mapping class="org.photovault.dcraw.RawConversionSettings"/>

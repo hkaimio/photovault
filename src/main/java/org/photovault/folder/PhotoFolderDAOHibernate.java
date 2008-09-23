@@ -22,6 +22,9 @@ package org.photovault.folder;
 import java.util.UUID;
 import org.hibernate.Query;
 import org.photovault.persistence.GenericHibernateDAO;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.HibernateDtoResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 
 /**
  *
@@ -48,6 +51,42 @@ public class PhotoFolderDAOHibernate
         Query q = getSession().createQuery( "from PhotoFolder where uuid = :uuid" );
         q.setParameter("uuid", uuid );
         return (PhotoFolder) q.uniqueResult();
+    }
+
+    public PhotoFolder create( UUID uuid, PhotoFolder parent ) {
+        DTOResolverFactory rf = new HibernateDtoResolverFactory( getSession() );
+        PhotoFolder folder = new PhotoFolder();
+        folder.uuid = uuid;
+        folder.history = new FolderHistory( folder );
+        VersionedObjectEditor<PhotoFolder> ed = folder.editor( rf );
+        ed.apply();
+        try {
+            folder.setParentFolder( parent );
+        } catch (IllegalArgumentException e ) {
+            throw e;
+        }
+        makePersistent( folder );
+        return folder;
+    }
+
+    public PhotoFolder create( String name, PhotoFolder parent ) {
+        DTOResolverFactory rf = new HibernateDtoResolverFactory( getSession() );
+        PhotoFolder folder = new PhotoFolder();
+        folder.uuid = UUID.randomUUID();
+        folder.history = new FolderHistory( folder );
+        VersionedObjectEditor<PhotoFolder> ed = folder.editor( rf );
+        ed.apply();
+        ed = folder.editor( rf );
+        FolderEditor fe = (FolderEditor) ed.getProxy();
+        fe.setName( name );
+        ed.apply();
+        try {
+            folder.reparentFolder( parent );
+        } catch (IllegalArgumentException e ) {
+            throw e;
+        } 
+        makePersistent( folder );
+        return folder;
     }
 
 

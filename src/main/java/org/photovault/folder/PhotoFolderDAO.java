@@ -41,4 +41,24 @@ public interface PhotoFolderDAO extends GenericDAO<PhotoFolder, UUID> {
      */
     public PhotoFolder findByUUID( UUID uuid );
     
+    /**
+     Creates a new folder that belongs to the current data access context
+     @param uuid UUID of the created object
+     @param parent Parent folder
+     @return Folder with given uuid and parent that is associated with the 
+     context of this DAO.
+     */
+    public PhotoFolder create( UUID uuid, PhotoFolder parent );
+    
+    /**
+     Creates a new folder that belongs to the current data access context
+     
+     @param name Name of the folder
+     @param parent Parent folder
+     @return
+     */
+    public PhotoFolder create( String name, PhotoFolder parent );
+    
+    
+    
 }

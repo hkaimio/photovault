@@ -124,7 +124,7 @@ class SetFieldDesc extends FieldDesc {
                     @Override
                     Object methodInvoked(  VersionedObjectEditor e,
                             Object[] args ) {
-                        e.addToSet( fd.name, args[0] );
+                        e.removeFromSet( fd.name, args[0] );
                         return null;
                     }
                 } );

@@ -55,6 +55,9 @@ public abstract class AnnotatedClassHistory<T> extends ChangeSupport<T> {
     @Override
     public void setOwner( T owner ) {
         super.setOwner( owner );
+        if ( owner == null ) {
+            return;
+        }
         classDesc = analyzedClasses.get( owner.getClass() );
         if ( classDesc == null ) {
             classDesc = new VersionedClassDesc( owner.getClass() );

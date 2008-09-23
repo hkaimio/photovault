@@ -39,11 +39,18 @@ import org.photovault.imginfo.PhotoInfo;
 import javax.persistence.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.dto.FolderRefResolver;
+import org.photovault.replication.Change;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.SetField;
+import org.photovault.replication.ValueField;
+import org.photovault.replication.Versioned;
+import org.photovault.replication.VersionedObjectEditor;
 
 /**
    Implements a folder that can contain both PhotoInfos and other folders
 */
-
+@Versioned( editor=FolderEditor.class )
 @Entity
 @Table( name = "pv_folders" )
 public class PhotoFolder implements PhotoCollection {
@@ -63,6 +70,8 @@ public class PhotoFolder implements PhotoCollection {
      */
     static public final int NAME_LENGTH = 30;
     
+    FolderHistory history;
+    
     public static class PhotoFolderComparator implements Comparator<PhotoFolder> {
         public int compare(PhotoFolder o1, PhotoFolder o2) {
             String name1 = o1.getName();
@@ -75,7 +84,6 @@ public class PhotoFolder implements PhotoCollection {
     }
     
     public PhotoFolder()  {
-	//	subfolders = new Vector();
 	changeListeners = new Vector();
     }
 
@@ -95,6 +103,17 @@ public class PhotoFolder implements PhotoCollection {
 	this.uuid = uuid;
 	modified();
     }
+   
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "folder_uuid", insertable = false, updatable = false)
+    public FolderHistory getHistory() {
+        return history;
+    }
+ 
+    public void setHistory( FolderHistory h ) {
+        history = h;
+    }
+    
     /**
        Name of this folder
     */
@@ -104,6 +123,7 @@ public class PhotoFolder implements PhotoCollection {
      * Get the value of name.
      * @return value of name.
      */
+    @ValueField
     @Column( name = "collection_name" )
     public String getName() {
 	return name;
@@ -124,6 +144,7 @@ public class PhotoFolder implements PhotoCollection {
      * Get the value of description.
      * @return value of description.
      */
+    @ValueField
     @Column( name = "collection_desc" )
     public String getDescription() {
 	return description;
@@ -278,6 +299,8 @@ public class PhotoFolder implements PhotoCollection {
      Get all associations from this folder to photos
      @return
      */
+    @SetField( elemClass = FolderPhotoAssociation.class, 
+               dtoResolver = FolderRefResolver.class )
     @OneToMany( mappedBy="folder" )
     Set<FolderPhotoAssociation> getPhotoAssociations() {
         return photoAssociations;        
@@ -354,8 +377,8 @@ public class PhotoFolder implements PhotoCollection {
     }    
     protected void setSubfolders( SortedSet<PhotoFolder> newSubfolders ) {
         subfolders = newSubfolders;
-        modified();
-	subfolderStructureChanged( this );        
+//        modified();
+//	subfolderStructureChanged( this );        
     }
     
     /**
@@ -401,11 +424,6 @@ public class PhotoFolder implements PhotoCollection {
        Parent of this folder or <code>null</code> if this is a top-level folder
     */
     PhotoFolder parent;
-
-    /**
-       Id of the parend folder (needed for persistence to work correctly)
-    */
-    int parentId = -1;
     
     /**
      Checks that a string is no longer tha tmaximum length allowed for it
@@ -416,7 +434,7 @@ public class PhotoFolder implements PhotoCollection {
      */
     void checkStringProperty( String propertyName, String value, int maxLength ) 
     throws IllegalArgumentException {
-        if ( value.length() > maxLength ) {
+        if ( value != null && value.length() > maxLength ) {
             throw new IllegalArgumentException( propertyName 
                     + " cannot be longer than " + maxLength + " characters" );
         }
@@ -539,9 +557,14 @@ public class PhotoFolder implements PhotoCollection {
     public static PhotoFolder create( String name, PhotoFolder parent ) {
         
         PhotoFolder folder = new PhotoFolder();
+        folder.uuid = UUID.randomUUID();
+        VersionedObjectEditor<PhotoFolder> ed = folder.editor( null );
+        ed.apply();
+        ed = folder.editor( null );
+        FolderEditor fe = (FolderEditor) ed.getProxy();
+        fe.setName( name );
+        ed.apply();
         try {
-            folder.setName( name );
-            folder.uuid = UUID.randomUUID();
             folder.reparentFolder( parent );
         } catch (IllegalArgumentException e ) {
             throw e;
@@ -557,15 +580,20 @@ public class PhotoFolder implements PhotoCollection {
     */
     public static PhotoFolder create(UUID uuid, PhotoFolder parent) {
         PhotoFolder folder = new PhotoFolder();
+        folder.uuid = uuid;
+        VersionedObjectEditor<PhotoFolder> ed = folder.editor( null );
+        ed.apply();
         try {
-            folder.uuid = uuid;
-            folder.name = "";
             folder.setParentFolder( parent );
         } catch (IllegalArgumentException e ) {
             throw e;
         }
         return folder;
     }    
+    
+    public VersionedObjectEditor<PhotoFolder> editor( DTOResolverFactory rf ) {
+        return new VersionedObjectEditor<PhotoFolder>(  getHistory(), rf );
+    }
 
     /**
        Returns the root folder for the PhotoFolder hierarchy, i.e. the folder with id 1.
