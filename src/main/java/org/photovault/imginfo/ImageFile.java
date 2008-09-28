@@ -266,7 +266,8 @@ public class ImageFile implements java.io.Serializable {
     @OneToMany(cascade  = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE },
                mappedBy = "file")
     @org.hibernate.annotations.Cascade({
-               org.hibernate.annotations.CascadeType.SAVE_UPDATE })
+               org.hibernate.annotations.CascadeType.SAVE_UPDATE, 
+                       org.hibernate.annotations.CascadeType.DELETE })
     public Map<String,ImageDescriptorBase> getImages() {
         return images;
     }

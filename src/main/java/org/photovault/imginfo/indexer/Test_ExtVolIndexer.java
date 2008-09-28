@@ -180,6 +180,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
                 photoDAO.makeTransient( (PhotoInfo) o );
             }
         }
+        session.close();
         log.debug( "exit: tearDown" );
     }
     

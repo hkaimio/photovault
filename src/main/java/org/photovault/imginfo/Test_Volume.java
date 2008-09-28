@@ -90,6 +90,7 @@ public class Test_Volume extends PhotovaultTestCase {
         db.removeVolume( volume );
 	deleteTree( volume.getBaseDir() );
         volDAO.makeTransient( volume );
+        session.close();
     }
 
     protected boolean deleteTree( File root ) {

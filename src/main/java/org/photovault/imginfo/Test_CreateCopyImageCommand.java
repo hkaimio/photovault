@@ -24,6 +24,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -114,27 +115,34 @@ public class Test_CreateCopyImageCommand extends PhotovaultTestCase {
         
     }
     
+    /**
+     Cleans the tets photo from database before executing next tests
+     @throws java.io.FileNotFoundException
+     */
     @AfterMethod
     public void cleanPhoto() throws FileNotFoundException {
-        photo = (PhotoInfo) session.get( PhotoInfo.class, photo.getId() );
-        session.delete( photo );
+        photo = (PhotoInfo) session.get( PhotoInfo.class, photo.getUuid() );
         OriginalImageDescriptor orig = photo.getOriginal();
-        for ( ImageDescriptorBase copy : orig.getCopies() ) {
+        session.delete( photo );
+        session.flush();
+        for ( ImageDescriptorBase copy : new ArrayList<ImageDescriptorBase>( orig.getCopies() ) ) {
             for ( FileLocation l : copy.getFile().getLocations() ) {
                 l.getVolume().mapFileName( l.getFname() ).delete();
             }
-            session.delete( copy.getFile() );
-            session.delete( copy );
+            orig.removeCopy( (CopyImageDescriptor) copy );
+            ImageFile f = copy.getFile();
+            session.delete( f );
+            session.flush();
         }
         for ( FileLocation l : orig.getFile().getLocations() ) {
             l.getVolume().mapFileName( l.getFname() ).delete();
         }
-        session.delete( orig.getFile() );
         session.delete( orig );
+        session.flush();
+        session.delete( orig.getFile() );
         session.flush();
         session.clear();
     }
-    
     
     @Test
     public void testCreateCopyFromOriginal() throws CommandException {

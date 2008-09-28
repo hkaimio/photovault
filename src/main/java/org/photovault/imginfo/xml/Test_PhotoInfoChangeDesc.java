@@ -122,6 +122,7 @@ public class Test_PhotoInfoChangeDesc extends PhotovaultTestCase {
         assert v2.verify();
         assert v2.getTargetUuid().equals( p.getUuid() );
         assert v2.getPrevChanges().size() == 0;
+        session.close();
     }
     
     static final String xmlProlog = "<?xml version='1.0' ?>";
@@ -147,5 +148,6 @@ public class Test_PhotoInfoChangeDesc extends PhotovaultTestCase {
         dg.push( "daofactorystack", hdf );
         PhotoInfoChangeDesc cd = (PhotoInfoChangeDesc) dg.parse(in);
         assert cd.verify();
+        session.close();
     }
 }

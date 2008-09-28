@@ -58,6 +58,15 @@ public class OriginalImageDescriptor extends ImageDescriptorBase {
         this.copies = copies;
     }
     
+    /**
+     Remove copy from the list of know copies. Called when deleting copy image 
+     descriptor
+     @param copy
+     */
+    void removeCopy( CopyImageDescriptor copy ) {
+        copies.remove( copy );
+    }
+    
     Set<PhotoInfo> photos = new HashSet<PhotoInfo>();
     
     @OneToMany( mappedBy="original", cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )

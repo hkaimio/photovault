@@ -128,8 +128,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     public void testNullShootDateUpdate() {
 	UUID photoId = UUID.fromString( "f5d73748-0fb4-40ab-bd05-d3740fb30783");
 	PhotoInfo photo = null;	
-	Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction tx = session.beginTransaction();
         photo = photoDAO.findByUUID( photoId );
         assertTrue( photo != null );
 
@@ -137,19 +135,16 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	// Update the photo
 	photo.setShootTime( null );
         tx.commit();
-        session.close();
+        session.clear();
         
 	// retrieve the updated photo from DB and chech that the
 	// modification has been done
-        session = HibernateUtil.getSessionFactory().openSession();
         tx = session.beginTransaction();
         photo = photoDAO.findByUUID( photoId );
         assertNull( "Shooting time was supposedly set to null", photo.getShootTime() );
 
 	// restore the shooting place
 	photo.setShootTime( origTime );
-        tx.commit();
-        session.close();
     }
 
     /**
@@ -159,8 +154,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     public void testPhotoCreation() {
         
 	PhotoInfo photo = PhotoInfo.create();
-	Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction tx = session.beginTransaction();
         try {
             session.save( photo );
         } catch ( Throwable t ) {
@@ -181,7 +174,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	photo.setDescription( "This is a long test description that tries to verify that the description mechanism really works" );
 	//	photo.updateDB();
         tx.commit();
-        // session.close();
+        session.clear();
         
         tx = session.beginTransaction();
 
@@ -204,9 +197,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 
         //	    assertTrue( photo.equals( photo2 ));
 
-        // session.delete( photo2 );
-        // tx.commit();
-        // session2.close();
     }
 
     /**
@@ -226,8 +216,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         assertEquals( 1, photos.size() );
         PhotoInfo photo = photos.toArray( new PhotoInfo[1] )[0];
         
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        // Transaction tx = session.beginTransaction();
         photo = (PhotoInfo) session.merge( photo );
         
 	assertNotNull( photo );
@@ -260,11 +248,8 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         photo = (PhotoInfo) session.merge( photo );
         
         
-        // tx.commit();
-        // session.close();
+        session.clear();
         
-        Session session2 = HibernateUtil.getSessionFactory().openSession();
-        Transaction tx2 = session2.beginTransaction();
         
         PhotoInfo photo2 = null;
         photo2 = photoDAO.findByUUID( photo.getUuid() );
@@ -285,18 +270,13 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         assertTrue( photo.getCropBounds().equals( photo2.getCropBounds() ) );
 
         //	    assertTrue( photo.equals( photo2 ));
-
-        tx2.commit();
-        session2.close();
     }
     
     @Test
     public void testPhotoDeletion() {
 	PhotoInfo photo = new PhotoInfo();
-	Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction tx = session.beginTransaction();
         session.save( photo );
-        tx.commit();
+        session.flush();
         
 	// Check that the photo can be retrieved from DB
 
@@ -325,9 +305,8 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	    }
 	}
 
-        tx = session.beginTransaction();
         session.delete( photo );
-        tx.commit();
+        session.flush();
         // Check that the photo is deleted from the database
 	try {
 	    stmt = conn.createStatement();
@@ -349,7 +328,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 		} catch ( Exception e ) {}
 	    }
 	}
-        session.close();
     }
     
 

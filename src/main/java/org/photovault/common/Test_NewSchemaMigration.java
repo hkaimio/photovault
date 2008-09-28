@@ -161,6 +161,7 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         }        
         initTestVolume( db );
         initTestExtVolume( db );
+        session.close();
     }
     
     private void initTestVolume( PVDatabase db ) throws IOException {
@@ -179,6 +180,8 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
                 new PVDatabase.LegacyVolume( "defaultVolume", voldir.getAbsolutePath() );
         db.addLegacyVolume( lvol );
     }
+    
+    
     
     private void initTestExtVolume( PVDatabase db ) throws IOException {
         File voldir = File.createTempFile( "pv_conversion_extvol", "" );
@@ -258,6 +261,7 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
             }
         }
         assertTrue( f );
+        s.close();
     }
 
 

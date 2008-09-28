@@ -226,6 +226,7 @@ public class Test_PhotovaultSettings {
         PhotoInfo photo2 = photoDAO.findByUUID( photo.getUuid() );
 
         assertNotNull( photo2.getOriginal() );
+        session.close();
     }     
 }
 
