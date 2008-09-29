@@ -341,6 +341,9 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         OriginalImageDescriptor orig = photo.getOriginal();
         assertNotNull( orig );
         assertNull( orig.getFile().findAvailableCopy() );
+        ImageFile ifile  = orig.getFile();
+        orig.photos.remove( photo );
+        photo.setOriginal( null );
         session.delete( photo );
     }
 
