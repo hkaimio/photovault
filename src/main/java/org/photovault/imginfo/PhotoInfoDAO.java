@@ -52,4 +52,10 @@ public interface PhotoInfoDAO extends GenericDAO<PhotoInfo, UUID> {
      */
     List findPhotosWithHash( byte[] hash );
     
+    /**
+     Creates a new persistent photo with random UUID
+     @return
+     */
+    PhotoInfo create();
+    
 }

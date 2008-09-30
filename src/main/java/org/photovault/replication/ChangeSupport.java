@@ -48,6 +48,12 @@ import org.apache.commons.logging.LogFactory;
  version history and state changes of instances of target class. To use it with
  a class, you need to extend it and implement the needed abstract methods for 
  accessing the target object.
+ <p>
+ In additio, you currently need to create association between the derived
+ and target object. The target object must be assigned to owner field of the base 
+ class. This is an ugly hack since Hibernate seems not to handle properly
+ cases in which derived class redefines mapping of base class field. TODO: Better 
+ solution is needed...
  
  @author Harri Kaimio
  @since 0.6
@@ -55,7 +61,7 @@ import org.apache.commons.logging.LogFactory;
  @param <T> Class of the target obejct
  */
 @Entity
-@Table(name = "version_histories")
+@Table(name = "pv_version_histories")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "class_discriminator", discriminatorType = DiscriminatorType.STRING)
 public abstract class ChangeSupport<T> {
@@ -146,7 +152,7 @@ public abstract class ChangeSupport<T> {
     }
 
     /**
-     Returns the target object.
+     Returns the target object. 
      */
     @Transient
     public T getOwner() {
@@ -154,7 +160,7 @@ public abstract class ChangeSupport<T> {
     }
     
     /**
-     Set the owner of this change history
+     Set the owner of this change history. 
      */
     protected void setOwner( T owner ) {
         this.target = owner;

@@ -290,7 +290,7 @@ public class Change<T> {
      */
     public void setPrevChange( Change<T> c ) {
         assertNotFrozen();
-        if ( c.targetHistory != targetHistory ) {
+        if ( c.getTargetHistory() != targetHistory ) {
             throw new IllegalArgumentException( "Cannot be based on change to different object" );
         }
         if ( prevChange != null ) {

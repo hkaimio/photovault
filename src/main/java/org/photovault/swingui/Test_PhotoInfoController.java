@@ -33,6 +33,8 @@ import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.replication.Change;
+import org.photovault.replication.VersionedClassDesc;
+import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
@@ -62,18 +64,22 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
         tx = session.beginTransaction();
         
 	photo = PhotoInfo.create();
-        
-        Change<PhotoInfo> ch = photo.getHistory().createChange();
-        ch.freeze();
-        ch = photo.getHistory().createChange();
-        ch.setField( PhotoInfoFields.PHOTOGRAPHER.getName(), "TESTIKUVAAJA" );   
-        ch.setField( PhotoInfoFields.FSTOP.getName(), 5.6 );   
-        ch.freeze();
         photoDAO.makePersistent( photo );
+        
+        VersionedObjectEditor<PhotoInfo> e = 
+                new VersionedObjectEditor<PhotoInfo>(  
+                photo.getHistory(), daoFactory.getDTOResolverFactory() );
+           
+        Change<PhotoInfo> ch = e.apply();
+        e = new VersionedObjectEditor<PhotoInfo>(
+                photo.getHistory(), daoFactory.getDTOResolverFactory() );
+        PhotoEditor pe = (PhotoEditor) e.getProxy();
+        pe.setPhotographer( "TESTIKUVAAJA" );
+        pe.setFStop( 5.6 );
+        e.apply();
+        
         tx.commit();
         tx = session.beginTransaction();
-//	photo.setPhotographer( "TESTIKUVAAJA" );
-//	photo.setFStop( 5.6 );
 
 	ctrl = new PhotoSelectionController( null );
     }

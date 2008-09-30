@@ -67,13 +67,11 @@ public class PhotoInfoChangeSupport extends AnnotatedClassHistory<PhotoInfo> {
     
     @OneToOne( mappedBy="history" )
     @Cascade( CascadeType.ALL )
-    @Override
-    public PhotoInfo getOwner() {
+    public PhotoInfo getPhoto() {
         return super.getOwner();
     }
     
-    @Override
-    public void setOwner( PhotoInfo p ) {
+    public void setPhoto( PhotoInfo p ) {
         super.setOwner( p );
     }
     
@@ -92,32 +90,6 @@ public class PhotoInfoChangeSupport extends AnnotatedClassHistory<PhotoInfo> {
     @Transient
     protected Change<PhotoInfo> getVersion() {
         return currentVersion;
-    }
-    
-  private void setRawField( RawSettingsFactory settings, PhotoInfoFields field, Object newValue ) {
-        switch ( field ) {
-            case RAW_BLACK_LEVEL:
-                settings.setBlack( (Integer)newValue );
-                break;
-            case RAW_WHITE_LEVEL:
-                settings.setWhite( (Integer) newValue );
-                break;
-            case RAW_CTEMP:
-                settings.setColorTemp( (Double) newValue );
-                break;
-            case RAW_EV_CORR:
-                settings.setEvCorr( (Double) newValue );
-                break;
-            case RAW_GREEN:
-                settings.setGreenGain( (Double) newValue );
-                break;
-            case RAW_HLIGHT_COMP:
-                settings.setHlightComp( (Double) newValue );
-                break;
-            case RAW_COLOR_PROFILE:
-                settings.setColorProfile( (ColorProfileDesc) newValue);
-                break;
-        }
     }
 
     @Override

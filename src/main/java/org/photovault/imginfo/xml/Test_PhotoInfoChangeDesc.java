@@ -59,7 +59,7 @@ public class Test_PhotoInfoChangeDesc extends PhotovaultTestCase {
     /**
      Simple test of change record creation and persistence.
      */
-    @Test
+    // @Test
     public void testChangeRecordCreation() throws IOException {
         PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( null );
         
@@ -136,7 +136,7 @@ public class Test_PhotoInfoChangeDesc extends PhotovaultTestCase {
             "<redColorCurve><point x=\"0.2\" y=\"0.1\"/><point x=\"0.8\" y=\"0.9\"/></redColorCurve>" +
             "<folder-change uuid=\"c144e258-3741-42fe-881b-1be1b0d911d9\" operation=\"add\"/>" +
             "</change>";
-    @Test
+    // @Test
     public void testChangeDescParsing() throws IOException, SAXException {
         Session session = HibernateUtil.getSessionFactory().openSession();
         HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );

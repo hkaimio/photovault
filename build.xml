@@ -295,7 +295,7 @@
         <echo message="selected_file: ${selected_file}"/>
         <testng outputDir="${reports.test}/testresults"
                 workingdir="${basedir}"
-                haltOnFailure="true" verbose="2">
+                haltOnFailure="true" verbose="5">
             <jvmarg value="${run.jvmargs}"/>
             <jvmarg value="-Xdebug"/>
             <jvmarg value="-Xnoagent"/>

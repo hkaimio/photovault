@@ -169,8 +169,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         tx.rollback();
         
         // Create a new session so that it is not aware of c2 or c3
-        session.close();
-        session = HibernateUtil.getSessionFactory().openSession();
+        session.clear();
         
         daoFactory.setSession( session );
         chDao = daoFactory.getChangeDAO( );
@@ -191,6 +190,10 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         assertEquals( 2, s2c1.getChildChanges().size() );
         assertEquals( 3, s2c1.getTargetHistory().getChanges().size() );
         assertEquals( 2, s2c1.getTargetHistory().getHeads().size() );
+        p = s2c1.getTargetHistory().getOwner();
+        VersionedObjectEditor<PhotoInfo> pe = p.editor( rf );
+        pe.changeToVersion( serc3 );
+                
         tx.commit();
     }
     

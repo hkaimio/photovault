@@ -89,13 +89,11 @@ public class FolderHistory extends AnnotatedClassHistory<PhotoFolder> {
     
     @OneToOne( mappedBy="history" )
     @Cascade( CascadeType.ALL )
-    @Override 
-    public PhotoFolder getOwner() {
+    public PhotoFolder getFolder() {
         return super.getOwner();
     }
     
-    @Override
-    public void setOwner( PhotoFolder owner ) {
+    public void setFolder( PhotoFolder owner ) {
         super.setOwner( owner );
     }
 

@@ -41,6 +41,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -65,9 +66,11 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
+import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.SetField;
 import org.photovault.replication.ValueField;
 import org.photovault.replication.Versioned;
+import org.photovault.replication.VersionedObjectEditor;
 
 /**
  PhotoInfo represents information about a single photograph
@@ -111,10 +114,12 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         changeHistory = new PhotoInfoChangeSupport( this, original );
     }
     
+    
     PhotoInfoChangeSupport changeHistory = null;
     
     @OneToOne( cascade=CascadeType.ALL )
-    @JoinColumn( name="photo_uuid", insertable=false, updatable=false )
+    @org.hibernate.annotations.Cascade( org.hibernate.annotations.CascadeType.SAVE_UPDATE )
+    @PrimaryKeyJoinColumn
     public PhotoInfoChangeSupport getHistory() {
         return changeHistory;
     }
@@ -122,6 +127,17 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     public void setHistory( PhotoInfoChangeSupport h ) {
         changeHistory = h;
     }
+     
+
+    /**
+     Creates an editor for this photo
+     @param rf DTO resolver factory usedby the editor
+     @return
+     */
+    public VersionedObjectEditor<PhotoInfo> editor( DTOResolverFactory rf ) {
+        return new VersionedObjectEditor<PhotoInfo>(  changeHistory , rf );
+    }
+        
     
     /**
      Get a PhotoInfo object with given ID
@@ -197,6 +213,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      Creates a new persistent PhotoInfo object and stores it in database
      (just a dummy one with no meaningful field values)
      @return A new PhotoInfo object
+     @deprecated Use the {@link PhotoInfoDAO#create()} instead
      */
     public static PhotoInfo create() {
         PhotoInfo photo = new PhotoInfo();
@@ -356,7 +373,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         }
         return false;
     }
-    
+
     /**
      This method reads the metadata from image file and updates the PhotoInfo record from it
      @param f The file to read
