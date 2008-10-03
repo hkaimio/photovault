@@ -669,12 +669,12 @@ public class SchemaUpdateAction {
 
         // First change should contain just information about the original
         VersionedObjectEditor<PhotoInfo> pe = 
-                new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), rf );
+                new VersionedObjectEditor<PhotoInfo>( photo, rf );
         pe.setField( "original", original );
         pe.apply();
 
         // Second change sets all other fields
-        pe = new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), rf );
+        pe = new VersionedObjectEditor<PhotoInfo>( photo, rf );
         PhotoEditor e = (PhotoEditor) pe.getProxy();
         e.setCamera( rs.getString( "p_camera" ) );
         ChannelMapOperation cm = 

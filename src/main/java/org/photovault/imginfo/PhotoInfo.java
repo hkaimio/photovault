@@ -67,6 +67,7 @@ import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
 import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.History;
 import org.photovault.replication.SetField;
 import org.photovault.replication.ValueField;
 import org.photovault.replication.Versioned;
@@ -117,6 +118,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     
     PhotoInfoChangeSupport changeHistory = null;
     
+    @History
     @OneToOne( cascade=CascadeType.ALL )
     @org.hibernate.annotations.Cascade( org.hibernate.annotations.CascadeType.SAVE_UPDATE )
     @PrimaryKeyJoinColumn
@@ -135,7 +137,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      @return
      */
     public VersionedObjectEditor<PhotoInfo> editor( DTOResolverFactory rf ) {
-        return new VersionedObjectEditor<PhotoInfo>(  changeHistory , rf );
+        return new VersionedObjectEditor<PhotoInfo>(  this , rf );
     }
         
     

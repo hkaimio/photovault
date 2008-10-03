@@ -22,6 +22,7 @@ package org.photovault.replication;
 
 import java.lang.reflect.InvocationTargetException;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoChangeSupport;
 import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.*;
 
@@ -30,14 +31,17 @@ import static org.testng.AssertJUnit.*;
  */
 public class Test_ClassDescriptor {
 
-    // @Test
+    @Test
     public void testClassAnalysis() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         VersionedClassDesc photoClassDesc = new VersionedClassDesc( PhotoInfo.class );
         PhotoInfo p = PhotoInfo.create();
         
-        assertEquals( "Harri", p.getPhotographer() );
-        assertEquals( "Harri", photoClassDesc.getFieldValue( p, "photographer" ) );
+//        assertEquals( "Harri", p.getPhotographer() );
+//        assertEquals( "Harri", photoClassDesc.getFieldValue( p, "photographer" ) );
         
+        PhotoInfoChangeSupport h = p.getHistory();
+        ChangeSupport h2 = photoClassDesc.getObjectHistory( p );
+        assert( h == h2 );
         System.out.println( photoClassDesc );
     }
 }

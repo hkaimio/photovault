@@ -96,7 +96,7 @@ public class Test_Change {
 
         Change version;
         
-        AnnotatedClassHistory<TestObject> cs = new AnnotatedClassHistory<TestObject>( this ) {
+        ChangeSupport<TestObject> cs = new ChangeSupport<TestObject>( this ) {
 
             @Override
             protected TestObject createTarget() {
@@ -122,6 +122,9 @@ public class Test_Change {
                 return currentVersion;
             }
         };
+        
+        @History
+        public ChangeSupport<TestObject> getHistory() { return cs; };
         
         UUID uuid = UUID.randomUUID();
         
@@ -176,7 +179,7 @@ public class Test_Change {
         t.f2 = 2;
         
         
-        VersionedObjectEditor<TestObject> e1 = new VersionedObjectEditor<TestObject>(  t.cs, resolvFactory );
+        VersionedObjectEditor<TestObject> e1 = new VersionedObjectEditor<TestObject>(  t, resolvFactory );
            
         e1.setField( "f2", 3 );
         e1.addToSet(  "numbers", 2 );
@@ -187,7 +190,7 @@ public class Test_Change {
         assertEquals( 1, t.f1 );
         assertEquals( c, t.getVersion() );
         
-        VersionedObjectEditor<TestObject> e2 = new VersionedObjectEditor<TestObject>(  t.cs, resolvFactory );
+        VersionedObjectEditor<TestObject> e2 = new VersionedObjectEditor<TestObject>(  t, resolvFactory );
         e2.setField("f2", 5 );
         e2.removeFromSet(  "numbers", 2 );
         e2.addToSet(  "numbers", 4 );
@@ -205,7 +208,7 @@ public class Test_Change {
     @Test( expectedExceptions={IllegalStateException.class} )
     public void testApplyWrongChange() {
         TestObject t = new TestObject();
-        VersionedObjectEditor<TestObject> e1 = new VersionedObjectEditor<TestObject>(  t.cs, resolvFactory );
+        VersionedObjectEditor<TestObject> e1 = new VersionedObjectEditor<TestObject>(  t, resolvFactory );
         TestObjectEditor te = (TestObjectEditor) e1.getProxy();
                 
         te.setF1( 1 );
@@ -225,7 +228,7 @@ public class Test_Change {
     @Test
     public void testMerge() {
         TestObject t = new TestObject();
-        VersionedObjectEditor<TestObject> e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        VersionedObjectEditor<TestObject> e = new VersionedObjectEditor<TestObject>( t, resolvFactory );
         TestObjectEditor te = (TestObjectEditor) e.getProxy();
                 
         te.setF1( 1 );
@@ -236,7 +239,7 @@ public class Test_Change {
         
         Change<TestObject> initialState = e.getChange();
         
-        e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        e = new VersionedObjectEditor<TestObject>( t, resolvFactory );
         e.setField( "f1", 2 );
         e.setField( "f2", 3 );
         e.addToSet( "numbers", 1 );
@@ -244,7 +247,7 @@ public class Test_Change {
         e.apply();
         Change<TestObject> c = e.getChange();
         
-        e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        e = new VersionedObjectEditor<TestObject>( t, resolvFactory );
         e.setField("f1", 3);
         e.setField("f2", 5);
         e.addToSet( "numbers", 3 );
@@ -252,7 +255,7 @@ public class Test_Change {
         e.apply();
         Change<TestObject> c2 = e.getChange();
 
-        e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        e = new VersionedObjectEditor<TestObject>( t, resolvFactory );
         e.changeToVersion( c );
         assertEquals( c, t.getVersion() );
         assertEquals( 2, t.f1 );
@@ -309,7 +312,7 @@ public class Test_Change {
          */
         merged.freeze();
         assertEquals( 3, merged.getField("f1") );
-        e = new VersionedObjectEditor<TestObject>( t.cs, resolvFactory );
+        e = new VersionedObjectEditor<TestObject>( t, resolvFactory );
         e.changeToVersion( merged );
         assertTrue( t.numbers.contains( 1 ) );
         assertTrue( t.numbers.contains( 4 ) );

@@ -68,11 +68,11 @@ public class Test_PhotoInfoController extends PhotovaultTestCase {
         
         VersionedObjectEditor<PhotoInfo> e = 
                 new VersionedObjectEditor<PhotoInfo>(  
-                photo.getHistory(), daoFactory.getDTOResolverFactory() );
+                photo, daoFactory.getDTOResolverFactory() );
            
         Change<PhotoInfo> ch = e.apply();
         e = new VersionedObjectEditor<PhotoInfo>(
-                photo.getHistory(), daoFactory.getDTOResolverFactory() );
+                photo, daoFactory.getDTOResolverFactory() );
         PhotoEditor pe = (PhotoEditor) e.getProxy();
         pe.setPhotographer( "TESTIKUVAAJA" );
         pe.setFStop( 5.6 );

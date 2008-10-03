@@ -42,6 +42,7 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.replication.Change;
 import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.History;
 import org.photovault.replication.SetField;
 import org.photovault.replication.ValueField;
 import org.photovault.replication.Versioned;
@@ -85,6 +86,7 @@ public class PhotoFolder implements PhotoCollection {
     
     public PhotoFolder()  {
 	changeListeners = new Vector();
+        history = new FolderHistory( this );
     }
 
     UUID uuid = null;
@@ -104,6 +106,7 @@ public class PhotoFolder implements PhotoCollection {
 	modified();
     }
    
+    @History
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "folder_uuid", insertable = false, updatable = false)
     public FolderHistory getHistory() {
@@ -592,7 +595,7 @@ public class PhotoFolder implements PhotoCollection {
     }    
     
     public VersionedObjectEditor<PhotoFolder> editor( DTOResolverFactory rf ) {
-        return new VersionedObjectEditor<PhotoFolder>(  getHistory(), rf );
+        return new VersionedObjectEditor<PhotoFolder>(  this, rf );
     }
 
     /**

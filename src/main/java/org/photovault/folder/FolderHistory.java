@@ -43,7 +43,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @DiscriminatorValue( "folder" )
-public class FolderHistory extends AnnotatedClassHistory<PhotoFolder> {
+public class FolderHistory extends ChangeSupport<PhotoFolder> {
 
     /**
      Current version of the folder

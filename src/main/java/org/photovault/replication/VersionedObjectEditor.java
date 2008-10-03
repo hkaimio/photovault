@@ -48,7 +48,12 @@ public class VersionedObjectEditor<T> {
     /**
      History of the target object
      */
-    AnnotatedClassHistory<T> history;
+    ChangeSupport history;
+    
+    /**
+     The object being edited
+     */
+    T target;
     
     /**
      Description of the class of target object
@@ -65,21 +70,33 @@ public class VersionedObjectEditor<T> {
      */
     Change<T> change;
 
+    static Map<Class, VersionedClassDesc> analyzedClasses = 
+            new HashMap<Class, VersionedClassDesc>();
+    
+    public VersionedObjectEditor( T target, DTOResolverFactory fieldResolver ) {
+        this.target =target;
+        classDesc = analyzedClasses.get( target.getClass() );
+        if ( classDesc == null ) {
+            classDesc = new VersionedClassDesc( target.getClass() );
+            analyzedClasses.put( target.getClass(), classDesc );
+        }
+        this.history = classDesc.getObjectHistory( target );
+        this.fieldResolver = fieldResolver;
+        change = history.createChange();
+        Change<T> prevChange = history.getVersion();
+        if ( prevChange != null ) {
+            change.setPrevChange( history.getVersion() );
+        }        
+    }
+    
     /**
     Create a new editor
     @param history history of the target object
     @param fieldResolver factory for creating field resolvers.
      */
-    public VersionedObjectEditor( AnnotatedClassHistory<T> history,
+    public VersionedObjectEditor( ChangeSupport<T> history,
             DTOResolverFactory fieldResolver ) {
-        this.history = history;
-        this.fieldResolver = fieldResolver;
-        this.classDesc = history.getClassDesc();
-        change = history.createChange();
-        Change<T> prevChange = history.getVersion();
-        if ( prevChange != null ) {
-            change.setPrevChange( history.getVersion() );
-        }
+        this( history.getOwner(), fieldResolver );
     }
     
     public Object getProxy() {
@@ -89,7 +106,7 @@ public class VersionedObjectEditor<T> {
         if ( editorClass == null ) {
             throw new IllegalStateException( 
                     "Cannot create editor proxy for class " + 
-                    history.getOwner().getClass().getName() + 
+                    target.getClass().getName() + 
                     "as it has not been defined" );
         }
         return Proxy.newProxyInstance( 
@@ -116,7 +133,7 @@ public class VersionedObjectEditor<T> {
         }
         // The field has not been changed, return value in target object
 
-        return classDesc.getFieldValue( history.getOwner(), field );
+        return classDesc.getFieldValue( target, field );
 
     }
 
@@ -163,10 +180,10 @@ public class VersionedObjectEditor<T> {
              This is an initial change. Set the default values for all value 
              fields
              */
-            for ( FieldDesc f : history.getClassDesc().getFields() ) {
+            for ( FieldDesc f : classDesc.getFields() ) {
                 if ( !change.getChangedFields().containsKey( f.name ) && f instanceof ValueFieldDesc ) {
                     try {
-                        Object v = f.getter.invoke( history.getOwner() );
+                        Object v = f.getter.invoke( target );
                         DTOResolver resolver =
                                 fieldResolver.getResolver( f.dtoResolverClass );
                         Object dto = resolver.getDtoFromObject( v );
@@ -189,7 +206,7 @@ public class VersionedObjectEditor<T> {
         }
         for ( Map.Entry<String,FieldChange> fc : change.getChangedFields().entrySet() ) {       
             FieldChange ch = fc.getValue();
-            classDesc.applyChange( history.getOwner(), ch, fieldResolver );
+            classDesc.applyChange( target, ch, fieldResolver );
         }
         history.setVersion( change );                
         return change;
@@ -280,7 +297,7 @@ public class VersionedObjectEditor<T> {
         Finally, apply all field changes
          */
         for ( FieldChange fc : baseToNewVersion.values() ) {
-            classDesc.applyChange( history.getOwner(), fc, fieldResolver );
+            classDesc.applyChange( target, fc, fieldResolver );
         }
 
         history.setVersion( newVersion );

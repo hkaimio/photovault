@@ -352,7 +352,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
              */
             changedPhotos.add( photo );
             VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor(
-                    photo.getHistory(), resolverFactory );
+                    photo, resolverFactory );
             RawSettingsFactory rawSettingsFactory = null;
             ChannelMapOperationFactory channelMapFactory = null;
             for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {

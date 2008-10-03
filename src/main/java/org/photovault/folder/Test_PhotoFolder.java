@@ -143,7 +143,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         folder.reparentFolder( root );
         
         VersionedObjectEditor<PhotoFolder> e =folder.editor( rf );
-        VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor<PhotoInfo>( photo, rf );
         FolderEditor fe = (FolderEditor) e.getProxy();        
         PhotoEditor pee = (PhotoEditor) pe.getProxy();
         
@@ -520,8 +520,8 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         PhotoInfo p2 = PhotoInfo.create();
         photoDao.makePersistent( p1 );
         photoDao.makePersistent( p2 );
-        VersionedObjectEditor<PhotoInfo> p2e = new VersionedObjectEditor<PhotoInfo>(  p2.getHistory(), rf );
-        VersionedObjectEditor<PhotoInfo> p1e = new VersionedObjectEditor<PhotoInfo>(  p1.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> p2e = new VersionedObjectEditor<PhotoInfo>(  p2, rf );
+        VersionedObjectEditor<PhotoInfo> p1e = new VersionedObjectEditor<PhotoInfo>(  p1, rf );
 
         
         FolderPhotoAssocDAO assocDao = daoFactory.getFolderPhotoAssocDAO();

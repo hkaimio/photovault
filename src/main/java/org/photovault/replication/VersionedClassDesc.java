@@ -54,6 +54,11 @@ public class VersionedClassDesc {
     private Class editorIntf;
     
     /**
+     Method that returns history of the target obejct
+     */
+    private Method getHistoryMethod;
+    
+    /**
      Construct a new class description by analyzing given class
      @param clazz The class to analyze
      */
@@ -128,7 +133,14 @@ public class VersionedClassDesc {
                             "Error analyzing method " + cl.getName() + 
                             "." + m.getName(), ex );
                 }
+            } else if ( m.isAnnotationPresent( History.class ) ) {
+                getHistoryMethod = m;
             }
+        }
+        if ( cl.isAnnotationPresent( Versioned.class ) && getHistoryMethod == null ) {
+            throw new IllegalStateException( 
+                    "Versioned class " + cl.getName() + 
+                    " does not define method for accessing history");
         }
     }
     
@@ -185,6 +197,17 @@ public class VersionedClassDesc {
             throw new IllegalStateException( 
                     "InvocationTargetException while getting field",
                     ex );
+        }
+    }
+    
+    ChangeSupport getObjectHistory( Object target ) {
+        try {
+            return (ChangeSupport) getHistoryMethod.invoke( target );
+        } catch ( IllegalAccessException ex ) {
+            throw new IllegalStateException( "Cannot access " + getHistoryMethod, ex );
+        } catch ( InvocationTargetException ex ) {
+            throw new IllegalStateException( 
+                    "InvocationTargetException while getting history", ex );
         }
     }
     

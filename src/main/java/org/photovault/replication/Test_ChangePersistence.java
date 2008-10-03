@@ -76,14 +76,14 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
     public void testChangePersistence() {
         DTOResolverFactory rf = new HibernateDtoResolverFactory( session );
         PhotoInfo p = PhotoInfo.create();
-        VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor( p.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor( p, rf );
         e1.apply();
         Change<PhotoInfo> c1 = e1.change;
-        VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor( p.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor( p, rf );
         e2.setField( "camera", "Canon 30D" );
         e2.apply();
         Change<PhotoInfo> c2 = e2.change;
-        VersionedObjectEditor<PhotoInfo> e3 = new VersionedObjectEditor( p.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> e3 = new VersionedObjectEditor( p, rf );
         e3.changeToVersion( c1 );
         e3.setField( "photographer", "Harri" );
         e3.apply();
@@ -131,7 +131,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         DTOResolverFactory rf = new HibernateDtoResolverFactory( session );
         // Create a new photo with associated history
         PhotoInfo p = PhotoInfo.create();
-        VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor( p.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor( p, rf );
         e1.apply();               
         Change<PhotoInfo> c1 = e1.change;
         Transaction tx = session.beginTransaction();
@@ -149,12 +149,12 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         p = photoDAO.findByUUID( p.getUuid() );
         
-        VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor( p.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor( p, rf );
         e2.setField( "camera", "Canon 30D" );
         e2.apply();       
         Change<PhotoInfo> c2 = e2.change;
 
-        VersionedObjectEditor<PhotoInfo> e3 = new VersionedObjectEditor( p.getHistory(), rf );
+        VersionedObjectEditor<PhotoInfo> e3 = new VersionedObjectEditor( p, rf );
         e3.changeToVersion( c1 );
         e3.setField( "photographer", "Harri" );
         e3.apply();
@@ -222,11 +222,11 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         
         tx = session.beginTransaction();
         PhotoInfo p = PhotoInfo.create();
-        VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor<PhotoInfo>(  p.getHistory(), fieldResolver );
+        VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor<PhotoInfo>( p, fieldResolver );
         e1.setField( "original", orig );
         e1.apply();
         
-        VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor<PhotoInfo>(  p.getHistory(), fieldResolver );
+        VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor<PhotoInfo>( p, fieldResolver );
         e2.setField(PhotoInfoFields.PHOTOGRAPHER.getName(), "Harri" );
         e2.setField(PhotoInfoFields.FSTOP.getName(), 5.6 );
         e2.setField( "film", "Tri-X" );
@@ -261,8 +261,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         Change<PhotoInfo> serc1 = cf.readChange( ios );
         Change<PhotoInfo> serc2 = cf.readChange( ios );
         VersionedObjectEditor<PhotoInfo> e3 = 
-                new VersionedObjectEditor<PhotoInfo>(  
-                (AnnotatedClassHistory<PhotoInfo>) serc1.getTargetHistory(), 
+                new VersionedObjectEditor<PhotoInfo>( serc1.getTargetHistory(), 
                 fieldResolver  );
         e3.changeToVersion( serc2 );
         p = serc1.getTargetHistory().getOwner();

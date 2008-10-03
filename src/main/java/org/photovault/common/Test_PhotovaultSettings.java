@@ -211,7 +211,7 @@ public class Test_PhotovaultSettings {
             photo = PhotoInfo.create();
             photo = photoDAO.makePersistent( photo );
             VersionedObjectEditor<PhotoInfo> ve = 
-                    new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), 
+                    new VersionedObjectEditor<PhotoInfo>( photo, 
                     daoFactory.getDTOResolverFactory() );
             ve.setField( "original", orig );
             ve.apply();

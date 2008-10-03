@@ -20,7 +20,6 @@
 
 package org.photovault.imginfo;
 
-import java.util.Map;
 import java.util.UUID;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -30,11 +29,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
-import org.photovault.dcraw.ColorProfileDesc;
-import org.photovault.dcraw.RawSettingsFactory;
-import org.photovault.replication.AnnotatedClassHistory;
 import org.photovault.replication.Change;
-import org.photovault.replication.DTOResolver;
+import org.photovault.replication.ChangeSupport;
 
 /**
  *
@@ -42,7 +38,7 @@ import org.photovault.replication.DTOResolver;
  */
 @Entity
 @DiscriminatorValue( "photo" )
-public class PhotoInfoChangeSupport extends AnnotatedClassHistory<PhotoInfo> {
+public class PhotoInfoChangeSupport extends ChangeSupport<PhotoInfo> {
     
     private static Log log = LogFactory.getLog( ChangePhotoInfoCommand.class );
     

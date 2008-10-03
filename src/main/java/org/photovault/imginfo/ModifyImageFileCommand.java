@@ -148,7 +148,7 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                 PhotoInfo photo = PhotoInfo.create();
                 photoDAO.makePersistent( photo );
                 VersionedObjectEditor<PhotoInfo> e = 
-                        new VersionedObjectEditor<PhotoInfo>( photo.getHistory(), 
+                        new VersionedObjectEditor<PhotoInfo>( photo, 
                         daoFactory.getDTOResolverFactory() );
                 PhotoEditor photoEditor = (PhotoEditor) e.getProxy();
                 e.setField( "original", imgDesc );
