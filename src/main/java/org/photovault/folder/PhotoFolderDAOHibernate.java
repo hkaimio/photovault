@@ -79,19 +79,21 @@ public class PhotoFolderDAOHibernate
     public PhotoFolder create( String name, PhotoFolder parent ) {
         DTOResolverFactory rf = new HibernateDtoResolverFactory( getSession() );
         PhotoFolder folder = new PhotoFolder();
-        folder.uuid = UUID.randomUUID();
-        folder.history = new FolderHistory( folder );
-        VersionedObjectEditor<PhotoFolder> ed = folder.editor( rf );
-        ed.apply();
-        ed = folder.editor( rf );
-        FolderEditor fe = (FolderEditor) ed.getProxy();
-        fe.setName( name );
-        ed.apply();
         try {
-            folder.reparentFolder( parent );
+            VersionedObjectEditor<PhotoFolder> ed =
+                    new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, UUID.randomUUID(), null );
+            folder = ed.getTarget();
+            FolderEditor fe = (FolderEditor) ed.getProxy();
+            fe.setName( name );
+            ed.apply();
+        } catch ( Exception ex ) {
+           log.error( "Cannot create folder", ex );
+        }
+        try {
+            folder.setParentFolder( parent );
         } catch (IllegalArgumentException e ) {
             throw e;
-        } 
+        }
         makePersistent( folder );
         return folder;
     }

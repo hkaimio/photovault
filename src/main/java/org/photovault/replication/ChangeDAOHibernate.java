@@ -51,11 +51,6 @@ public class ChangeDAOHibernate<T>
         return (Change<T>) q.uniqueResult();
     }
 
-    public void makePersistent( ChangeSupport<T> objectHistory ) {
-        getSession().saveOrUpdate( objectHistory );
-        getSession().saveOrUpdate( objectHistory.getOwner() );
-    }
-
     public void makePersistent( T targetObject ) {
         getSession().saveOrUpdate( targetObject );
     }

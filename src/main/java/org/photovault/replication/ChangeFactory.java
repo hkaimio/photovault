@@ -84,9 +84,6 @@ public class ChangeFactory<T> {
                 T target = e.getTarget();
                 dao.makePersistent( target );
                 targetHistory = e.history;
-//               targetHistory = (ChangeSupport<T>) data.historyClass.newInstance();
-//               targetHistory.initLocalReplica( data.targetUuid );
-//               dao.makePersistent( targetHistory );
             } catch ( InstantiationException ex ) {
                 throw new IOException( "Cannot instantiate history of class " + 
                         data.historyClass + " for object " + data.targetUuid, ex );

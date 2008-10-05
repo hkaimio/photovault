@@ -38,6 +38,8 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.HibernateDtoResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -88,18 +90,25 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     
     //    File testRefImageDir = new File( "c:\\java\\photovault\\tests\\images\\photovault\\imginfo" );
     File testRefImageDir = new File( "tests/images/photovault/imginfo" );
+    
     /**
        Test case that verifies that an existing photo infor record 
        can be loaded successfully
     */
     @Test
-    public void testRetrievalSuccess() {
+    public void testRetrievalSuccess() throws InstantiationException, IllegalAccessException {
 	UUID photoId = UUID.fromString( "f5d73748-0fb4-40ab-bd05-d3740fb30783");
+        HibernateDtoResolverFactory rf = new HibernateDtoResolverFactory( session );
+        VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor(  PhotoInfo.class, photoId, rf );        
+        photoDAO.makePersistent( pe.getTarget() );
+        session.flush();
+        session.clear();
+        
         PhotoInfo photo = null;
         photo = photoDAO.findByUUID( photoId );
         assertNotNull( photo );
-	// TODO: check some other properties of the object
-
+        PhotoInfo photo2 = photoDAO.findByUUID( UUID.randomUUID() );
+        assertNull( photo2 );
     }
 
 

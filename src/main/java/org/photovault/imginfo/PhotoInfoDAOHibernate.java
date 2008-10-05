@@ -23,7 +23,6 @@ package org.photovault.imginfo;
 import java.util.List;
 import java.util.UUID;
 import org.hibernate.Query;
-import org.photovault.folder.PhotoFolder;
 import org.photovault.persistence.GenericHibernateDAO;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.HibernateDtoResolverFactory;
@@ -60,11 +59,13 @@ public class PhotoInfoDAOHibernate
 
     public PhotoInfo create() {
         DTOResolverFactory rf = new HibernateDtoResolverFactory( getSession() );
-        PhotoInfo photo = new PhotoInfo();
-        photo.setUuid( UUID.randomUUID() );
-        photo.setHistory( new PhotoInfoChangeSupport( photo ) );
-        VersionedObjectEditor<PhotoInfo>pe = photo.editor( rf );
-        pe.apply();
+        VersionedObjectEditor<PhotoInfo>pe;
+        try {
+            pe = new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, UUID.randomUUID(), rf );
+        } catch ( Exception ex ) {
+            throw new Error( "Could not create PhotoInfo object", ex );
+        }
+        PhotoInfo photo = pe.getTarget();
         makePersistent( photo );
         return photo;
     }
