@@ -29,8 +29,13 @@ import org.photovault.folder.*;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.HibernateDtoResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.test.PhotovaultTestCase;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -38,7 +43,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 
     static Log log = LogFactory.getLog( Test_PhotoQuery.class.getName() );
 
-    Vector photos = null;
+    Vector<PhotoInfo> photos = null;
     Vector uids = null;
     PhotoFolder folder = null;
     PhotoFolder subfolder = null;
@@ -48,7 +53,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     Session session = null;
     Transaction tx = null;
     
-    @BeforeMethod
+    @BeforeClass
     @Override
     public void setUp() {
         session = HibernateUtil.getSessionFactory().openSession();
@@ -73,17 +78,26 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	cal.set( 2002, 11, 25 );
 	makePhoto( cal, 1, "" );
 
-        folder = PhotoFolder.create( "QueryTest", null );
-	folder = folderDAO.makePersistent( folder );
+        PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
+        folder = folderDAO.create( "QueryTest", null );
         folder.reparentFolder( folderDAO.findRootFolder() );
-        subfolder = PhotoFolder.create( "QueryTest subfolder", folder );
-	folder.addPhoto( (PhotoInfo)photos.get(0) );
-	subfolder.addPhoto( (PhotoInfo)photos.get(3) );
-	folder.addPhoto( (PhotoInfo)photos.get(2) );
+        subfolder = folderDAO.create( "QueryTest subfolder", folder );
+        FolderPhotoAssocDAO assocDao = daoFactory.getFolderPhotoAssocDAO();
+        FolderPhotoAssociation assoc1 = assocDao.getAssociation( folder, photos.get(0) );
+        folder.addPhotoAssociation( assoc1 );
+        photos.get(0).addFolderAssociation( assoc1 );
+
+        FolderPhotoAssociation assoc2 = assocDao.getAssociation( subfolder, photos.get(3) );
+        subfolder.addPhotoAssociation( assoc2 );
+        photos.get(3).addFolderAssociation( assoc2 );
+        
+        FolderPhotoAssociation assoc3 = assocDao.getAssociation( folder, photos.get(2) );
+        folder.addPhotoAssociation( assoc3 );
+        photos.get(2).addFolderAssociation( assoc3 );
         session.flush();
     }
 
-    @AfterMethod
+    @AfterClass
     @Override
     public void tearDown() {
 	for ( Object o : photos ) {
@@ -100,10 +114,14 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     
     
     PhotoInfo makePhoto( Calendar cal, double accuracy, String desc ) {
-	PhotoInfo photo = photoDAO.makePersistent( PhotoInfo.create() );
-	photo.setShootTime( cal.getTime() );
-	photo.setTimeAccuracy( accuracy );
-	photo.setDescription( desc );
+	PhotoInfo photo = photoDAO.create();
+        DTOResolverFactory rf = new HibernateDtoResolverFactory( session );
+        VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor<PhotoInfo>( photo, rf );
+        PhotoEditor pep = (PhotoEditor) pe.getProxy();
+	pep.setShootTime( cal.getTime() );
+	pep.setTimeAccuracy( accuracy );
+	pep.setDescription( desc );
+        pe.apply();
 	photos.add( photo );
 	uids.add( photo.getUuid() );
 	return photo;

@@ -65,7 +65,7 @@ public class CreatePhotoFolderCommand extends DataAccessCommand {
         if ( parentId != null ) {
             parent = folderDAO.findById( parentId, false );
         }
-        PhotoFolder newFolder = PhotoFolder.create( name, null );
+        PhotoFolder newFolder = folderDAO.create( name, null );
         newFolder.setDescription( description );
         if ( extDir != null ) {
             newFolder.setExternalDir( extDir );

@@ -86,7 +86,7 @@ public class Test_PhotoViewController extends PhotovaultTestCase {
         hdf.setSession( session );
         daoFactory = hdf;
         photoDAO = daoFactory.getPhotoInfoDAO();
-        tx = session.beginTransaction();
+        // tx = session.beginTransaction();
         commandHandler = new PhotovaultCommandHandler( null );
         commandHandler.addCommandListener( new CommandListener() {
 
@@ -116,8 +116,8 @@ public class Test_PhotoViewController extends PhotovaultTestCase {
                 new CreatePhotoFolderCommand(root, "Test_PhotoViewController", "" );
         commandHandler.executeCommand( cmd );
         folder = cmd.getCreatedFolder();
-        photo = photoDAO.findById( 
-                UUID.fromString( "f5d73748-0fb4-40ab-bd05-d3740fb30783" ), false );
+        photo = photoDAO.create();
+        session.flush();
         ChangePhotoInfoCommand pcmd = new ChangePhotoInfoCommand( photo.getUuid() );
         pcmd.addToFolder( folder );
         commandHandler.executeCommand( pcmd );

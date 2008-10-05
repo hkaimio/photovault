@@ -60,7 +60,7 @@ public class Test_SortedCollection extends PhotovaultTestCase {
         photoDAO = daoFactory.getPhotoInfoDAO();
         folderDAO = daoFactory.getPhotoFolderDAO();
 
-        folder = folderDAO.makePersistent( PhotoFolder.create( "SortedCollectionTest", null ) );
+        folder = folderDAO.create( "SortedCollectionTest", null );
         photo1 = photoDAO.makePersistent( PhotoInfo.create() );
         photo2 = photoDAO.makePersistent( PhotoInfo.create() );
         photo3 = photoDAO.makePersistent( PhotoInfo.create() );

@@ -629,9 +629,10 @@ public class PhotoFolder implements PhotoCollection {
             PhotoInfo p = a.getPhoto();
             if ( p != null ) {
                 p.removeFolderAssociation( a );
-                a.setFolder( this );
+                a.setFolder( null );
             }
         }
+        photoAssociations.clear();
     }
 
     /**

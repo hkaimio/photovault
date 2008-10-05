@@ -117,7 +117,7 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         // Create top folder for indexed files
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
-        topFolder = PhotoFolder.create( "ExtVolTest", null );
+        topFolder = folderDAO.create( "ExtVolTest", null );
         folderDAO.makePersistent( topFolder );
         topFolder.reparentFolder( folderDAO.findRootFolder() );
         

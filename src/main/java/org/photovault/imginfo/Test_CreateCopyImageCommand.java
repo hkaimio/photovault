@@ -28,15 +28,20 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import org.hibernate.classic.Session;
 import org.photovault.command.CommandException;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.JUnitHibernateManager;
 import org.photovault.common.PhotovaultException;
+import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.HibernateDtoResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.test.ImgTestUtils;
 import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterClass;
@@ -90,27 +95,43 @@ public class Test_CreateCopyImageCommand extends PhotovaultTestCase {
     }
     
     @BeforeMethod
-    public void setupPhoto() throws IOException, PhotovaultException {
+    public void setupPhoto() 
+            throws IOException, PhotovaultException, 
+            InstantiationException, IllegalAccessException {
         // Create the photo
         File testDir = new File( System.getProperty( "basedir" ), "testfiles" );
         File testFile = new File( testDir, "test1.jpg" );
         File dstFile = vol.getFilingFname( testFile );
         FileUtils.copyFile( testFile, dstFile );
         ImageFile imgFile = new ImageFile( dstFile );
-        session.save( imgFile );
-        imgFile.addLocation( new FileLocation( vol, vol.mapFileToVolumeRelativeName( dstFile ) ) );
-        OriginalImageDescriptor orig = new OriginalImageDescriptor( imgFile, "image#0" );
-        session.save( orig );
-        photo = new PhotoInfo( orig );
+        ImageFile oldFile = (ImageFile) session.get( ImageFile.class, imgFile.getId() );
+        OriginalImageDescriptor orig = null;
+        if ( oldFile != null ) {
+            imgFile = oldFile;
+            orig = (OriginalImageDescriptor) imgFile.getImage( "image#0" );
+        } else {
+            session.save( imgFile );
+            imgFile.addLocation( new FileLocation( vol, vol.mapFileToVolumeRelativeName( dstFile ) ) );
+            orig = new OriginalImageDescriptor( imgFile, "image#0" );
+            session.save( orig );
+        }
+        DTOResolverFactory rf = new HibernateDtoResolverFactory( session );
+        VersionedObjectEditor<PhotoInfo> pe = 
+                new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, UUID.randomUUID(), rf );
+        photo = pe.getTarget();
         session.save( photo );
-        photo.setCropBounds( new Rectangle2D.Double( 0.2, 0.2, 0.8, 0.8 ) );
-        photo.setPrefRotation( 20.0 );
+        pe.setField( "original", orig );
+        PhotoEditor pep = (PhotoEditor) pe.getProxy();
+        
+        pep.setCropBounds( new Rectangle2D.Double( 0.2, 0.2, 0.8, 0.8 ) );
+        pep.setPrefRotation( 20.0 );
         ChannelMapOperationFactory f = new ChannelMapOperationFactory( null );
         ColorCurve c = new ColorCurve();
         c.addPoint( 0.0, 0.1 );
         c.addPoint( 1.0, 0.9 );
         f.setChannelCurve( "value", c );
-        photo.setColorChannelMapping( f.create() );
+        pep.setColorChannelMapping( f.create() );
+        pe.apply();
         session.flush();
         
     }
@@ -123,7 +144,14 @@ public class Test_CreateCopyImageCommand extends PhotovaultTestCase {
     public void cleanPhoto() throws FileNotFoundException {
         photo = (PhotoInfo) session.get( PhotoInfo.class, photo.getUuid() );
         OriginalImageDescriptor orig = photo.getOriginal();
-        session.delete( photo );
+        for ( PhotoInfo p : orig.getPhotos().toArray( new PhotoInfo[0] ) ) {
+            for ( FolderPhotoAssociation a : p.getFolderAssociations().toArray( new FolderPhotoAssociation[0] ) ) {
+                p.removeFolderAssociation( a );
+            }
+            session.flush();
+            orig.getPhotos().remove( p );
+            session.delete( p );
+        }
         session.flush();
         for ( ImageDescriptorBase copy : new ArrayList<ImageDescriptorBase>( orig.getCopies() ) ) {
             for ( FileLocation l : copy.getFile().getLocations() ) {
