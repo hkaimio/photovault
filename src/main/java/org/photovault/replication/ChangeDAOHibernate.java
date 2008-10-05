@@ -56,4 +56,8 @@ public class ChangeDAOHibernate<T>
         getSession().saveOrUpdate( objectHistory.getOwner() );
     }
 
+    public void makePersistent( T targetObject ) {
+        getSession().saveOrUpdate( targetObject );
+    }
+
 }

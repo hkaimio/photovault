@@ -45,4 +45,10 @@ public interface ChangeDAO<T>
     Change<T> findChange( UUID id );
     
     void makePersistent( ChangeSupport<T> objectHistory );
+    
+    /**
+     Make the target object og a change persistent
+     @param targetObject
+     */
+    void makePersistent( T targetObject );
 }

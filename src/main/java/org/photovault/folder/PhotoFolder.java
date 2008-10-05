@@ -87,6 +87,7 @@ public class PhotoFolder implements PhotoCollection {
     public PhotoFolder()  {
 	changeListeners = new Vector();
         history = new FolderHistory( this );
+        history.setTargetUuid( UUID.randomUUID() );
     }
 
     UUID uuid = null;
@@ -95,14 +96,11 @@ public class PhotoFolder implements PhotoCollection {
     @Column( name = "folder_uuid" )
     @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
     public UUID getUuid() {
-        if ( uuid == null ) {
-            setUuid( UUID.randomUUID() );
-        }
-        return uuid;
+        return history.getTargetUuid();
     }    
     
     public void setUuid( UUID uuid ) {
-	this.uuid = uuid;
+	history.setTargetUuid( uuid );
 	modified();
     }
    

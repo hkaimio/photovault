@@ -73,6 +73,11 @@ public abstract class ChangeSupport<T> {
     T target;
     
     /**
+     Name of the class of target
+     */
+    String targetClassName;    
+    
+    /**
      Identifier of this change history. THis is the same as the UUID of the 
      target object
      */
@@ -100,6 +105,7 @@ public abstract class ChangeSupport<T> {
      */
     public ChangeSupport( T target ) {
         this.target = target;
+        targetClassName = target.getClass().getName();
     }
     
 
@@ -126,7 +132,7 @@ public abstract class ChangeSupport<T> {
         return uuid;
     } 
     
-    protected void setTargetUuid( UUID uuid ) {
+    public void setTargetUuid( UUID uuid ) {
         this.uuid = uuid;
     }
 
@@ -151,6 +157,22 @@ public abstract class ChangeSupport<T> {
         return new Change<T>( this );
     }
 
+    /**
+     Returns name of the target object's class
+     */
+    @Column( name = "target_class" )
+    public String getTargetClassName() {
+        return targetClassName;
+    }
+    
+    /**
+     Set the name of target object's class
+     @param cl
+     */
+    public void setTargetClassName( String cl ) {
+        targetClassName = cl;
+    }
+    
     /**
      Returns the target object. 
      */

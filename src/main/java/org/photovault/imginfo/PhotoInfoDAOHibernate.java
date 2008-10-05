@@ -61,7 +61,7 @@ public class PhotoInfoDAOHibernate
     public PhotoInfo create() {
         DTOResolverFactory rf = new HibernateDtoResolverFactory( getSession() );
         PhotoInfo photo = new PhotoInfo();
-        photo.uuid = UUID.randomUUID();
+        photo.setUuid( UUID.randomUUID() );
         photo.setHistory( new PhotoInfoChangeSupport( photo ) );
         VersionedObjectEditor<PhotoInfo>pe = photo.editor( rf );
         pe.apply();

@@ -58,7 +58,6 @@ public class FolderHistory extends ChangeSupport<PhotoFolder> {
      */
     public FolderHistory( PhotoFolder f ) {
         super( f );
-        setTargetUuid( f.getUuid() );
     }
     
     @Override

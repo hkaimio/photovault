@@ -103,12 +103,13 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      only. Otherwise, set original image in constructor.
      */
     public PhotoInfo() {
-        uuid = UUID.randomUUID();
+//         uuid = UUID.randomUUID();
+        changeHistory = new PhotoInfoChangeSupport( this );
+        changeHistory.setTargetUuid( UUID.randomUUID() );                
         changeListeners = new HashSet();
     }
     
     public PhotoInfo( OriginalImageDescriptor original ) {
-        uuid = UUID.randomUUID();
         changeListeners = new HashSet();
         this.original = original;
         original.photos.add( this );
@@ -219,8 +220,8 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      */
     public static PhotoInfo create() {
         PhotoInfo photo = new PhotoInfo();
-        photo.uuid = UUID.randomUUID();
-        photo.setHistory( new PhotoInfoChangeSupport( photo ) );
+        // photo.uuid = UUID.randomUUID();
+        // photo.setHistory( new PhotoInfoChangeSupport( photo ) );
         return photo;
     }
     
@@ -231,8 +232,8 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      */
     public static PhotoInfo create(UUID uuid) {
         PhotoInfo photo = new PhotoInfo();
-        photo.uuid = uuid;
-        photo.setHistory( new PhotoInfoChangeSupport( photo ) );
+        // photo.uuid = uuid;
+        // photo.setHistory( new PhotoInfoChangeSupport( photo ) );
         return photo;
     }
     
@@ -303,8 +304,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         return photo;
     }
     
-    UUID uuid = null;
-    
     /**
      Get the globally unique ID for this photo;
      */
@@ -312,12 +311,13 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
     @Id
     public UUID getUuid() {
-        return uuid;
+        return changeHistory.getTargetUuid();
     }    
     
     public void setUuid( UUID uuid ) {
-	this.uuid = uuid;
-	modified();
+	// this.uuid = uuid;
+        changeHistory.setTargetUuid( uuid );
+        modified();
     }
     
     /**
@@ -576,24 +576,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      */
     private String origFname;
 
-    /**
-     Set the (local) id for this photo.
-     @param uid New id.
-     */    
-    public void setId( Integer uid ) {
-        this.uid = uid;
-    }
-    
-//    @Id 
-//    @GeneratedValue( generator = "PhotoIdGen", strategy = GenerationType.TABLE )
-//    @TableGenerator( name="PhotoIdGen", table="unique_keys", pkColumnName="id_name", 
-//                     pkColumnValue="hibernate_seq", valueColumnName="next_val" )
-//    @Column( name = "photo_id" )
-    @Transient
-    public Integer getId() {
-        return -1;
-    }
-  
+
     private OriginalImageDescriptor original;
 
     /**
@@ -2108,12 +2091,11 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         && isEqual( p.techNotes, this.techNotes )
         && isEqual( p.origFname, this.origFname )
         && isEqual( p.channelMap, this.channelMap )
-        && isEqual( p.uuid, this.uuid )
+        && isEqual( p.getUuid(), this.getUuid() )
         && p.shutterSpeed == this.shutterSpeed
                 && p.filmSpeed == this.filmSpeed
                 && p.focalLength == this.focalLength
                 && p.FStop == this.FStop
-                && p.uid == this.uid
                 && p.quality == this.quality
                 && (( p.rawSettings == null && this.rawSettings == null ) || 
                     ( p.rawSettings != null && p.rawSettings.equals( this.rawSettings ) )));
@@ -2121,6 +2103,6 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
     
     @Override
     public int hashCode() {
-        return uuid.hashCode();
+        return getUuid().hashCode();
     }
 }

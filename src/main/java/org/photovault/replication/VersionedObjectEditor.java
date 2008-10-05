@@ -26,10 +26,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.persistence.DAOFactory;
 
 /**
  VersionedObjectEditor is the main interface for accessing and changing state of
@@ -75,11 +77,7 @@ public class VersionedObjectEditor<T> {
     
     public VersionedObjectEditor( T target, DTOResolverFactory fieldResolver ) {
         this.target =target;
-        classDesc = analyzedClasses.get( target.getClass() );
-        if ( classDesc == null ) {
-            classDesc = new VersionedClassDesc( target.getClass() );
-            analyzedClasses.put( target.getClass(), classDesc );
-        }
+        classDesc = getClassDescriptor( target.getClass() );
         this.history = classDesc.getObjectHistory( target );
         this.fieldResolver = fieldResolver;
         change = history.createChange();
@@ -98,6 +96,30 @@ public class VersionedObjectEditor<T> {
             DTOResolverFactory fieldResolver ) {
         this( history.getOwner(), fieldResolver );
     }
+
+    /**
+     Create a editor that creates a new object
+     @param clazz Class of the object that will be created
+     @param uuid UUID of the obejct. If uuid is <code>null</code>, assign a 
+            random uuid.
+     @param df 
+     @throws InstantiationException if clazz does not have default constructor
+     @throws IllegalAccessException if default clazz constructor cannot be 
+             accessed
+     */
+    public VersionedObjectEditor( Class<T> clazz, UUID uuid, DTOResolverFactory df ) 
+            throws InstantiationException, IllegalAccessException {
+        fieldResolver = df;
+        classDesc = getClassDescriptor( clazz );
+        target = clazz.newInstance();
+        history = classDesc.getObjectHistory( target );
+        history.setTargetUuid( uuid );
+        Change<T> initialChange = history.createChange();
+        initialChange.freeze();
+        history.setVersion( initialChange );
+        change = history.createChange();
+        change.setPrevChange( initialChange );
+    }
     
     public Object getProxy() {
         EditorProxyInvocationHandler ih = 
@@ -112,6 +134,10 @@ public class VersionedObjectEditor<T> {
         return Proxy.newProxyInstance( 
                 this.getClass().getClassLoader(), 
                 new Class[]{editorClass}, ih );
+    }
+    
+    public T getTarget() {
+        return target;
     }
 
     /**
@@ -306,5 +332,20 @@ public class VersionedObjectEditor<T> {
     
     public Change<T> getChange() {
         return change;
+    }
+
+    /**
+     Get the class descriptor for given class
+     @param clazz The class
+     @return Class descriptor of clazz. If it does not yet exist, analyzes class 
+     and creates new one.
+     */
+    VersionedClassDesc getClassDescriptor( Class clazz ) {
+        VersionedClassDesc cd = analyzedClasses.get( clazz );
+        if ( cd == null ) {
+            cd = new VersionedClassDesc( clazz );
+            analyzedClasses.put( clazz, cd );
+        }
+        return cd;
     }
 }

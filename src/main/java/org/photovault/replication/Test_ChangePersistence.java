@@ -28,10 +28,12 @@ import java.io.ObjectOutputStream;
 import java.util.UUID;
 import org.hibernate.Transaction;
 import org.hibernate.classic.Session;
+import org.photovault.folder.FolderEditor;
 import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.OriginalImageDescriptor;
+import org.photovault.imginfo.PhotoEditor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeSupport;
 import org.photovault.imginfo.PhotoInfoDAO;
@@ -205,7 +207,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
      database instance by deserializing it.
      */
     @Test
-    public void testRefSerialization() throws IOException, ClassNotFoundException {
+    public void testRefSerialization() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         DTOResolverFactory fieldResolver = new HibernateDtoResolverFactory( session );
         
         // Create image file in the database
@@ -215,7 +217,12 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         OriginalImageDescriptor orig = new OriginalImageDescriptor( ifile, "image#0" );
         Transaction tx = session.beginTransaction();
         session.saveOrUpdate( ifile );
-        PhotoFolder f = PhotoFolder.create( "Koe", null );
+        DTOResolverFactory rf = new HibernateDtoResolverFactory( session );
+        VersionedObjectEditor<PhotoFolder> fe = new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, UUID.randomUUID(), rf );
+        FolderEditor fep = (FolderEditor) fe.getProxy();
+        fep.setName( "Koe" );
+        fe.apply();
+        PhotoFolder f = fe.getTarget();
         session.saveOrUpdate( f );
         tx.commit();
                 
@@ -269,4 +276,30 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         assertEquals( 1, p.getFolderAssociations().size() );
     }    
   
+    /**
+     Test starting VersionedObjectEditor without existing target object
+     @throws java.lang.InstantiationException
+     @throws java.lang.IllegalAccessException
+     */
+    @Test
+    public void testEditorWithNewObject() 
+            throws InstantiationException, IllegalAccessException {
+        DTOResolverFactory fieldResolver = 
+                new HibernateDtoResolverFactory( session );
+        UUID uuid = UUID.randomUUID();
+        VersionedObjectEditor<PhotoInfo> e = 
+                new VersionedObjectEditor( PhotoInfo.class, uuid, fieldResolver );
+        PhotoEditor pe = (PhotoEditor) e.getProxy();
+        pe.setPhotographer( "photographer" );
+        pe.setFStop( 5.6 );
+        Change<PhotoInfo> c1 = e.apply();
+        Change<PhotoInfo> initial = c1.getParentChanges().iterator().next();
+        assertEquals( 0, initial.getParentChanges().size() );
+        PhotoInfo p = e.getTarget();
+        assertEquals( 5.6, p.getFStop() );
+        assertEquals( "photographer", p.getPhotographer() );
+        assertEquals( uuid, p.getUuid() );
+
+    }
+    
 }

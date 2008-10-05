@@ -57,6 +57,8 @@ public class ChangeDTO<T> implements Serializable {
      */
     transient Class historyClass;
     
+    transient String targetClassName;
+    
     /**
      UUIDs of the parents of this change, sorted into increasing order.
      */
@@ -75,6 +77,7 @@ public class ChangeDTO<T> implements Serializable {
         changeUuid = change.getUuid();
         targetUuid = change.getTargetHistory().getTargetUuid();
         historyClass = change.getTargetHistory().getClass();
+        targetClassName = change.getTargetHistory().getTargetClassName();
         parentIds = new ArrayList<UUID>();
         for ( Change<T> parent : change.getParentChanges() ) {
             parentIds.add(  parent.getUuid() );
@@ -115,6 +118,7 @@ public class ChangeDTO<T> implements Serializable {
      */
     private void writeChangeMetadata( ObjectOutputStream os ) throws IOException {
         os.writeObject( historyClass );
+        os.writeObject( targetClassName );
         os.writeObject( targetUuid );
         os.writeInt( parentIds.size() );
         for ( UUID parentId : parentIds ) {
@@ -169,6 +173,7 @@ public class ChangeDTO<T> implements Serializable {
         is.defaultReadObject();
         changeUuid = (UUID) is.readObject();
         historyClass = (Class) is.readObject();
+        targetClassName = (String) is.readObject();
         targetUuid = (UUID) is.readObject();
         int parentCount = is.readInt();
         parentIds = new ArrayList<UUID>( parentCount );

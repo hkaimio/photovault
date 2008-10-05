@@ -20,6 +20,8 @@
 package org.photovault.folder;
 
 import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.photovault.persistence.GenericHibernateDAO;
 import org.photovault.replication.DTOResolverFactory;
@@ -33,6 +35,8 @@ import org.photovault.replication.VersionedObjectEditor;
 public class PhotoFolderDAOHibernate 
         extends GenericHibernateDAO<PhotoFolder, UUID>
         implements PhotoFolderDAO {
+    
+    Log log = LogFactory.getLog(  PhotoFolderDAOHibernate.class.getName() );
     
     /** Creates a new instance of PhotoFolderDAOHibernate */
     public PhotoFolderDAOHibernate() {
@@ -56,10 +60,13 @@ public class PhotoFolderDAOHibernate
     public PhotoFolder create( UUID uuid, PhotoFolder parent ) {
         DTOResolverFactory rf = new HibernateDtoResolverFactory( getSession() );
         PhotoFolder folder = new PhotoFolder();
-        folder.uuid = uuid;
-        folder.history = new FolderHistory( folder );
-        VersionedObjectEditor<PhotoFolder> ed = folder.editor( rf );
-        ed.apply();
+        try {
+            VersionedObjectEditor<PhotoFolder> ed = 
+                    new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, uuid, null );
+            folder = ed.getTarget();
+        } catch ( Exception ex ) {
+           log.error( "Cannot create folder", ex );
+        }
         try {
             folder.setParentFolder( parent );
         } catch (IllegalArgumentException e ) {

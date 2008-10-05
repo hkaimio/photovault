@@ -25,6 +25,7 @@ import java.io.ObjectInputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.photovault.persistence.DAOFactory;
 
 /**
  ChangeFactory provides a link between the change replication logic and local 
@@ -77,9 +78,15 @@ public class ChangeFactory<T> {
              Create local copy
              */
             try {
-               targetHistory = (ChangeSupport<T>) data.historyClass.newInstance();
-               targetHistory.initLocalReplica( data.targetUuid );
-               dao.makePersistent( targetHistory );
+                Class targetClass = Class.forName( data.targetClassName );
+                DAOFactory df;
+                VersionedObjectEditor<T> e = new VersionedObjectEditor<T>( targetClass, data.targetUuid, null );
+                T target = e.getTarget();
+                dao.makePersistent( target );
+                targetHistory = e.history;
+//               targetHistory = (ChangeSupport<T>) data.historyClass.newInstance();
+//               targetHistory.initLocalReplica( data.targetUuid );
+//               dao.makePersistent( targetHistory );
             } catch ( InstantiationException ex ) {
                 throw new IOException( "Cannot instantiate history of class " + 
                         data.historyClass + " for object " + data.targetUuid, ex );

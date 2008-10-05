@@ -46,7 +46,7 @@ public class PhotoInfoChangeSupport extends ChangeSupport<PhotoInfo> {
     
     public PhotoInfoChangeSupport( PhotoInfo p ) {
         super( p );
-        setTargetUuid( p.getUuid() );
+        // setTargetUuid( p.getUuid() );
     }
     
     public PhotoInfoChangeSupport() {
@@ -56,6 +56,7 @@ public class PhotoInfoChangeSupport extends ChangeSupport<PhotoInfo> {
     
     PhotoInfoChangeSupport( PhotoInfo p, OriginalImageDescriptor img ) {
         this( p );
+        setTargetUuid( UUID.randomUUID() );
         Change <PhotoInfo> initialChange = createChange();
         // initialChange.setField( PhotoInfoFields, log);
         initialChange.freeze();
