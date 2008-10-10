@@ -96,9 +96,9 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         tx.commit();
         
         Session sess2 = HibernateUtil.getSessionFactory().openSession();
-        ChangeSupport<PhotoInfo> s2cs = 
-                (ChangeSupport<PhotoInfo>) sess2.get( 
-                ChangeSupport.class, p.getUuid() );
+        ObjectHistory<PhotoInfo> s2cs = 
+                (ObjectHistory<PhotoInfo>) sess2.get( 
+                ObjectHistory.class, p.getUuid() );
         assertEquals( 1, s2cs.getHeads().size() );
         Change<PhotoInfo> s2c4 = s2cs.getHeads().iterator().next();
         assertEquals( c4.getUuid(), s2c4.getUuid() );

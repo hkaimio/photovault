@@ -67,7 +67,7 @@ import org.apache.commons.logging.LogFactory;
  modified. After the object is frozed by calling the freeze() method, it cannot 
  be modified anymore.
  
- @see ChangeSupport
+ @see ObjectHistory
  
  @author Harri Kaimio
  @since 0.6
@@ -83,9 +83,9 @@ public class Change<T> {
     static private Log log = LogFactory.getLog( Change.class.getName() );
     
     /**
-     ChangeSupport object handling change history of the target object
+     ObjectHistory object handling change history of the target object
      */
-    private ChangeSupport targetHistory;
+    private ObjectHistory targetHistory;
 
     /**
      Has this change been frozen?
@@ -139,12 +139,12 @@ public class Change<T> {
     }
     
     /**
-     Constructor. This constructor is used by ChangeSupport class to create 
+     Constructor. This constructor is used by ObjectHistory class to create 
      new changes
      
-     @param t The ChangeSupport object handling change history of target
+     @param t The ObjectHistory object handling change history of target
      */
-    Change( ChangeSupport<T> t ) {
+    Change( ObjectHistory<T> t ) {
         targetHistory = t;
     }
     
@@ -160,13 +160,13 @@ public class Change<T> {
         this.uuid = uuid;
     }
     
-    @ManyToOne( targetEntity=ChangeSupport.class )
+    @ManyToOne( targetEntity=ObjectHistory.class )
     @JoinColumn( name="target_uuid" )
-    ChangeSupport<T> getTargetHistory() {
+    ObjectHistory<T> getTargetHistory() {
         return targetHistory;
     }
 
-    void setTargetHistory( ChangeSupport<T> h ) {
+    void setTargetHistory( ObjectHistory<T> h ) {
         targetHistory = h;
     }
 

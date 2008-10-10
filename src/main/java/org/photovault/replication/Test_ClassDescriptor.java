@@ -37,8 +37,8 @@ public class Test_ClassDescriptor {
 //        assertEquals( "Harri", p.getPhotographer() );
 //        assertEquals( "Harri", photoClassDesc.getFieldValue( p, "photographer" ) );
         
-        ChangeSupport<PhotoInfo> h = p.getHistory();
-        ChangeSupport h2 = photoClassDesc.getObjectHistory( p );
+        ObjectHistory<PhotoInfo> h = p.getHistory();
+        ObjectHistory h2 = photoClassDesc.getObjectHistory( p );
         assert( h == h2 );
         System.out.println( photoClassDesc );
     }

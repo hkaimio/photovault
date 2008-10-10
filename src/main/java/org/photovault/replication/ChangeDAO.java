@@ -32,7 +32,7 @@ public interface ChangeDAO<T>
     /**
      Find the change history of the given object
      */
-    ChangeSupport<T> findObjectHistory( UUID id );
+    ObjectHistory<T> findObjectHistory( UUID id );
     
     /**
      Find change with given ID. Unlike the standard findById method this method 

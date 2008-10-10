@@ -56,7 +56,7 @@ import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.replication.Change;
-import org.photovault.replication.ChangeSupport;
+import org.photovault.replication.ObjectHistory;
 import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -221,7 +221,7 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         FuzzyDate fd = p1.getFuzzyShootTime();
         assertEquals( 0.5, fd.getAccuracy(), 0.001 );
         
-        ChangeSupport<PhotoInfo> h1 = p1.getHistory();
+        ObjectHistory<PhotoInfo> h1 = p1.getHistory();
         Set<Change<PhotoInfo>> ch1 = h1.getChanges();
         assertEquals( 2, ch1.size() );
         assertNull( p1.getRawSettings() );

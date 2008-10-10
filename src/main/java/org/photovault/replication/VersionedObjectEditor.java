@@ -50,7 +50,7 @@ public class VersionedObjectEditor<T> {
     /**
      History of the target object
      */
-    ChangeSupport history;
+    ObjectHistory history;
     
     /**
      The object being edited

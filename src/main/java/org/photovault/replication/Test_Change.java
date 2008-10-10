@@ -57,10 +57,10 @@ public class Test_Change {
 
         Change version;
         
-        ChangeSupport<TestObject> cs = new ChangeSupport<TestObject>( this );
+        ObjectHistory<TestObject> cs = new ObjectHistory<TestObject>( this );
         
         @History
-        public ChangeSupport<TestObject> getHistory() { return cs; };
+        public ObjectHistory<TestObject> getHistory() { return cs; };
         
         UUID uuid = UUID.randomUUID();
         

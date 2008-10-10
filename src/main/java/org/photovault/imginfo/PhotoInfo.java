@@ -66,7 +66,7 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
-import org.photovault.replication.ChangeSupport;
+import org.photovault.replication.ObjectHistory;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.History;
 import org.photovault.replication.SetField;
@@ -105,7 +105,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      */
     public PhotoInfo() {
 //         uuid = UUID.randomUUID();
-        changeHistory = new ChangeSupport<PhotoInfo>( this );
+        changeHistory = new ObjectHistory<PhotoInfo>( this );
         changeHistory.setTargetUuid( UUID.randomUUID() );                
         changeListeners = new HashSet();
     }
@@ -114,21 +114,21 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
         changeListeners = new HashSet();
         this.original = original;
         original.photos.add( this );
-        changeHistory = new ChangeSupport<PhotoInfo>( this );
+        changeHistory = new ObjectHistory<PhotoInfo>( this );
     }
     
     
-    ChangeSupport<PhotoInfo> changeHistory = null;
+    ObjectHistory<PhotoInfo> changeHistory = null;
     
     @History
     @OneToOne( cascade=CascadeType.ALL )
     @org.hibernate.annotations.Cascade( org.hibernate.annotations.CascadeType.SAVE_UPDATE )
     @PrimaryKeyJoinColumn
-    public ChangeSupport<PhotoInfo> getHistory() {
+    public ObjectHistory<PhotoInfo> getHistory() {
         return changeHistory;
     }
     
-    public void setHistory( ChangeSupport<PhotoInfo> h ) {
+    public void setHistory( ObjectHistory<PhotoInfo> h ) {
         changeHistory = h;
     }
      

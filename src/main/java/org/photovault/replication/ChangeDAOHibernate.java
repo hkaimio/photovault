@@ -39,10 +39,10 @@ public class ChangeDAOHibernate<T>
         super();
     }
     
-    public ChangeSupport<T> findObjectHistory( UUID id ) {
+    public ObjectHistory<T> findObjectHistory( UUID id ) {
         Query q = getSession().createQuery( "from ChangeSupport where targetUuid = :uuid" );
         q.setParameter( "uuid", id );
-        return (ChangeSupport<T>) q.uniqueResult();
+        return (ObjectHistory<T>) q.uniqueResult();
     }
 
     public Change<T> findChange( UUID id ) {

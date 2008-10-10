@@ -71,7 +71,7 @@ public class ChangeFactory<T> {
          The change is not yet known in this context. Add it to the history of 
          the target object.
          */
-        ChangeSupport<T> targetHistory = dao.findObjectHistory( data.targetUuid );
+        ObjectHistory<T> targetHistory = dao.findObjectHistory( data.targetUuid );
         if ( targetHistory == null ) {
             /*
              The target object was not known to local database.

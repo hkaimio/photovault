@@ -200,9 +200,9 @@ public class VersionedClassDesc {
         }
     }
     
-    ChangeSupport getObjectHistory( Object target ) {
+    ObjectHistory getObjectHistory( Object target ) {
         try {
-            return (ChangeSupport) getHistoryMethod.invoke( target );
+            return (ObjectHistory) getHistoryMethod.invoke( target );
         } catch ( IllegalAccessException ex ) {
             throw new IllegalStateException( "Cannot access " + getHistoryMethod, ex );
         } catch ( InvocationTargetException ex ) {

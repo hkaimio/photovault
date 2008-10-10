@@ -26,18 +26,13 @@ import java.util.Set;
 import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -53,9 +48,9 @@ import org.apache.commons.logging.LogFactory;
  */
 @Entity
 @Table(name = "pv_version_histories")
-public class ChangeSupport<T> {
+public class ObjectHistory<T> {
 
-    static private Log log = LogFactory.getLog( ChangeSupport.class.getName() );
+    static private Log log = LogFactory.getLog( ObjectHistory.class.getName()  );
     
     /**
      Name of the class of target
@@ -87,13 +82,13 @@ public class ChangeSupport<T> {
     /**
      Default constructor for persistence & replication layers, do not use otherwise
      */
-    public ChangeSupport() {}
+    public ObjectHistory() {}
     
     /**
      Constructor
      @param target
      */
-    public ChangeSupport( T target ) {
+    public ObjectHistory( T target ) {
         targetClassName = target.getClass().getName();
     }
     
