@@ -161,7 +161,8 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                      */
                     photoEditor.setFStop( img.getAperture() );
                     photoEditor.setFilmSpeed( img.getFilmSpeed() );
-                    photoEditor.setShootTime( img.getTimestamp() );
+                    photoEditor.setFuzzyShootTime( 
+                            new FuzzyDate( img.getTimestamp(), 0 ) );
 
                     photoEditor.setShutterSpeed( img.getShutterSpeed() );
                     photoEditor.setFocalLength( img.getFocalLength() );

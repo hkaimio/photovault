@@ -21,13 +21,11 @@
 package org.photovault.imginfo;
 
 import java.util.*;
-import java.sql.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
-import org.odmg.*;
 import org.photovault.folder.PhotoFolder;
 
 /**
