@@ -39,7 +39,7 @@
         <mapping class="org.photovault.dcraw.RawConversionSettings"/>
         <mapping class="org.photovault.imginfo.xml.ChangeDesc"/>
         <mapping class="org.photovault.imginfo.xml.PhotoInfoChangeDesc"/>
-        <mapping class="org.photovault.replication.ChangeSupport"/>
+        <mapping class="org.photovault.replication.ObjectHistory"/>
         <mapping class="org.photovault.replication.Change"/>
     </session-factory>
 </hibernate-configuration>

@@ -40,7 +40,8 @@ public class ChangeDAOHibernate<T>
     }
     
     public ObjectHistory<T> findObjectHistory( UUID id ) {
-        Query q = getSession().createQuery( "from ChangeSupport where targetUuid = :uuid" );
+        Query q = getSession().createQuery( 
+                "from ObjectHistory where targetUuid = :uuid" );
         q.setParameter( "uuid", id );
         return (ObjectHistory<T>) q.uniqueResult();
     }
