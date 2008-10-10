@@ -22,9 +22,7 @@ package org.photovault.replication;
 
 import java.lang.reflect.InvocationTargetException;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoInfoChangeSupport;
 import org.testng.annotations.Test;
-import static org.testng.AssertJUnit.*;
 
 /**
  Test cases for class descriptor
@@ -39,7 +37,7 @@ public class Test_ClassDescriptor {
 //        assertEquals( "Harri", p.getPhotographer() );
 //        assertEquals( "Harri", photoClassDesc.getFieldValue( p, "photographer" ) );
         
-        PhotoInfoChangeSupport h = p.getHistory();
+        ChangeSupport<PhotoInfo> h = p.getHistory();
         ChangeSupport h2 = photoClassDesc.getObjectHistory( p );
         assert( h == h2 );
         System.out.println( photoClassDesc );

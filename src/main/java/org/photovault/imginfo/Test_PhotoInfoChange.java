@@ -22,6 +22,7 @@ package org.photovault.imginfo;
 
 import java.util.UUID;
 import org.photovault.replication.Change;
+import org.photovault.replication.ChangeSupport;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.HibernateDtoResolverFactory;
 import org.photovault.replication.VersionedObjectEditor;
@@ -37,7 +38,7 @@ public class Test_PhotoInfoChange {
     @Test
     public void testPhotoChangeRecord() {
         PhotoInfo photo = PhotoInfo.create();
-        PhotoInfoChangeSupport history = photo.getHistory();
+        ChangeSupport<PhotoInfo> history = photo.getHistory();
         Change<PhotoInfo> change = history.createChange();
         change.setField(PhotoInfoFields.PHOTOGRAPHER.getName(), "Harri" );
         change.setField(PhotoInfoFields.FSTOP.getName(), 5.6 );

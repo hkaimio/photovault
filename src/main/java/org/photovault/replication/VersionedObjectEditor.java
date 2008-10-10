@@ -86,16 +86,6 @@ public class VersionedObjectEditor<T> {
             change.setPrevChange( history.getVersion() );
         }        
     }
-    
-    /**
-    Create a new editor
-    @param history history of the target object
-    @param fieldResolver factory for creating field resolvers.
-     */
-    public VersionedObjectEditor( ChangeSupport<T> history,
-            DTOResolverFactory fieldResolver ) {
-        this( history.getOwner(), fieldResolver );
-    }
 
     /**
      Create a editor that creates a new object

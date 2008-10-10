@@ -31,8 +31,8 @@ import javax.swing.KeyStroke;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoInfoChangeSupport;
 import org.photovault.replication.Change;
+import org.photovault.replication.ChangeSupport;
 
 /**
  Show the history a selected photo(s). Currently this action just prints
@@ -77,7 +77,7 @@ public class ShowPhotoHistoryAction extends AbstractAction
     public void actionPerformed( ActionEvent ev ) {
         Collection<PhotoInfo> selected = view.getSelection();
         for ( PhotoInfo p : selected ) {
-            PhotoInfoChangeSupport history = p.getHistory();
+            ChangeSupport<PhotoInfo> history = p.getHistory();
             Set<UUID> processedChanges = new HashSet<UUID>();
             StringBuffer buf = new StringBuffer();
             buf.append(  "History of photo " );

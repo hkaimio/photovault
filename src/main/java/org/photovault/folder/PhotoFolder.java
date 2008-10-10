@@ -41,6 +41,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.replication.Change;
+import org.photovault.replication.ChangeSupport;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.History;
 import org.photovault.replication.SetField;
@@ -71,7 +72,7 @@ public class PhotoFolder implements PhotoCollection {
      */
     static public final int NAME_LENGTH = 30;
     
-    FolderHistory history;
+    ChangeSupport<PhotoFolder> history;
     
     public static class PhotoFolderComparator implements Comparator<PhotoFolder> {
         public int compare(PhotoFolder o1, PhotoFolder o2) {
@@ -86,7 +87,7 @@ public class PhotoFolder implements PhotoCollection {
     
     public PhotoFolder()  {
 	changeListeners = new Vector();
-        history = new FolderHistory( this );
+        history = new ChangeSupport<PhotoFolder>( this );
         history.setTargetUuid( UUID.randomUUID() );
     }
 
@@ -107,11 +108,11 @@ public class PhotoFolder implements PhotoCollection {
     @History
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "folder_uuid", insertable = false, updatable = false)
-    public FolderHistory getHistory() {
+    public ChangeSupport<PhotoFolder> getHistory() {
         return history;
     }
  
-    public void setHistory( FolderHistory h ) {
+    public void setHistory( ChangeSupport<PhotoFolder> h ) {
         history = h;
     }
     

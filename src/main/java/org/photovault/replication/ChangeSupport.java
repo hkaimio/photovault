@@ -42,18 +42,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- Manages version history and version changes for a single object.
- <p>
- ChangeSupport is an abstract class that encapsulates the logic for managing 
- version history and state changes of instances of target class. To use it with
- a class, you need to extend it and implement the needed abstract methods for 
- accessing the target object.
- <p>
- In additio, you currently need to create association between the derived
- and target object. The target object must be assigned to owner field of the base 
- class. This is an ugly hack since Hibernate seems not to handle properly
- cases in which derived class redefines mapping of base class field. TODO: Better 
- solution is needed...
+ Manages version history and version changes for a single object. Each versioned 
+ object must maintain an embedden instance of this class and provide a method
+ for accessing it (indicated by the {@link History} annotation.
  
  @author Harri Kaimio
  @since 0.6
@@ -62,15 +53,9 @@ import org.apache.commons.logging.LogFactory;
  */
 @Entity
 @Table(name = "pv_version_histories")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "class_discriminator", discriminatorType = DiscriminatorType.STRING)
-public abstract class ChangeSupport<T> {
+public class ChangeSupport<T> {
 
     static private Log log = LogFactory.getLog( ChangeSupport.class.getName() );
-    /**
-     Target obejct
-     */ 
-    T target;
     
     /**
      Name of the class of target
@@ -82,6 +67,11 @@ public abstract class ChangeSupport<T> {
      target object
      */
     private UUID uuid;
+    
+    /**
+     Current version of the target object
+     */
+    Change<T> currentVersion;
     
     /**
      Head changes (i.e. changes that do not have children)
@@ -104,23 +94,8 @@ public abstract class ChangeSupport<T> {
      @param target
      */
     public ChangeSupport( T target ) {
-        this.target = target;
         targetClassName = target.getClass().getName();
     }
-    
-
-    /**
-     Creates a new local replica of the object associated with this change 
-     history. This method is called by {@link ChangeFactory} when it encounters 
-     a change that is not known locally. The object is created by calling 
-     createTarget() method that derived classes must override.
-     
-     @param targetUuid UUID of the unknown object
-     */
-    void initLocalReplica( UUID targetUuid ) {
-        this.uuid = targetUuid; 
-        target = createTarget();
-    }    
     
     /**
      Returns the UUID of the target obejct
@@ -173,25 +148,12 @@ public abstract class ChangeSupport<T> {
         targetClassName = cl;
     }
     
-    /**
-     Returns the target object. 
-     */
-    @Transient
-    public T getOwner() {
-        return target;
-    }
-    
-    /**
-     Set the owner of this change history. 
-     */
-    protected void setOwner( T owner ) {
-        this.target = owner;
-    }
 
     /**
      Returns all known changes in target objects's history. 
      */
-    @OneToMany( mappedBy="targetHistory", cascade=CascadeType.ALL )
+    @OneToMany( mappedBy="targetHistory", cascade=CascadeType.ALL, 
+                targetEntity=Change.class )
     public Set<Change<T>> getChanges() {
         return this.allChanges;
     }
@@ -204,7 +166,7 @@ public abstract class ChangeSupport<T> {
     /**
      Returns the set of head changes, i.e. changes that do not have a child.
      */
-    @OneToMany
+    @OneToMany( targetEntity=Change.class )
     @JoinTable( name="change_unmerged_branches", 
                 joinColumns=@JoinColumn( name="target_uuid" ), 
                 inverseJoinColumns=@JoinColumn( name = "change_uuid" ) )
@@ -216,24 +178,13 @@ public abstract class ChangeSupport<T> {
         this.heads = heads;
     }
 
-    protected abstract T createTarget();
-    
-    /**
-     Returns the uuid of the target obejct
-     */
-    @Transient
-    public abstract UUID getGlobalId();
-    
-    /**
-     Set the version of target obejct
-     @param version The currently applied change
-     */
-    protected abstract void setVersion( Change<T> version );
-    
-    /**
-     Returns the current version of target obejct
-     */
-    @OneToOne
+    void setVersion( Change<T> version ) {
+        currentVersion = version;
+    }
+
+    @OneToOne( targetEntity=Change.class )
     @JoinColumn( name = "version_uuid" )
-    protected abstract Change<T> getVersion( );
+    public Change<T> getVersion() {
+        return currentVersion;
+    }
 }

@@ -29,6 +29,7 @@ import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
+import org.photovault.replication.ChangeSupport;
 
 /**
  Interface that provides methods for editing {@link PhotoInfo} objects.
@@ -116,7 +117,7 @@ public interface PhotoEditor {
      */
     ColorCurve getGreenColorCurve();
 
-    PhotoInfoChangeSupport getHistory();
+    ChangeSupport<PhotoInfo> getHistory();
 
     /**
      * Returns the time when this photo (=metadata of it) was last modified

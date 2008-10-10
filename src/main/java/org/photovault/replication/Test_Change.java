@@ -26,9 +26,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.testng.annotations.Test;
@@ -37,43 +35,6 @@ import static org.testng.AssertJUnit.*;
  Test cases for {@link Change} class
  */
 public class Test_Change {
-    
-    static private class TestObjectChangeSupport extends ChangeSupport<TestObject> {
-
-        private Change<TestObject> version;
-        
-        private TestObjectChangeSupport( TestObject obj ) {
-            super( obj );
-        }
-
-
-
-
-
-        static Set<String> allFields = null;
-        
-
-        @Override
-        protected void setVersion( Change<TestObject> version ) {
-            target.version = version;
-        }
-
-        @Override
-        protected Change<TestObject> getVersion() {
-            return target.version;
-        }
-
-        @Override
-        public UUID getGlobalId() {
-            return target.uuid;
-        }
-
-        @Override
-        protected TestObject createTarget() {
-            throw new UnsupportedOperationException( "Not supported yet." );
-        }
-
-    }
     
     static private class TestDtoResolvFactory implements DTOResolverFactory {
 
@@ -96,32 +57,7 @@ public class Test_Change {
 
         Change version;
         
-        ChangeSupport<TestObject> cs = new ChangeSupport<TestObject>( this ) {
-
-            @Override
-            protected TestObject createTarget() {
-                TestObject o = new TestObject();
-                o.cs = this;
-                return o;
-            }
-
-            @Override
-            public UUID getGlobalId() {
-                return getTargetUuid();
-            }
-            
-            Change<TestObject> currentVersion = null;
-
-            @Override
-            protected void setVersion( Change<TestObject> v ) {
-                currentVersion = v;
-            }
-
-            @Override
-            protected Change<TestObject> getVersion() {
-                return currentVersion;
-            }
-        };
+        ChangeSupport<TestObject> cs = new ChangeSupport<TestObject>( this );
         
         @History
         public ChangeSupport<TestObject> getHistory() { return cs; };

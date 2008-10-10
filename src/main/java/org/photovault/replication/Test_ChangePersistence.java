@@ -35,7 +35,6 @@ import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoEditor;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoInfoChangeSupport;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoInfoFields;
 import org.photovault.persistence.HibernateDAOFactory;
@@ -97,9 +96,9 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         tx.commit();
         
         Session sess2 = HibernateUtil.getSessionFactory().openSession();
-        PhotoInfoChangeSupport s2cs = 
-                (PhotoInfoChangeSupport) sess2.get( 
-                PhotoInfoChangeSupport.class, p.getUuid() );
+        ChangeSupport<PhotoInfo> s2cs = 
+                (ChangeSupport<PhotoInfo>) sess2.get( 
+                ChangeSupport.class, p.getUuid() );
         assertEquals( 1, s2cs.getHeads().size() );
         Change<PhotoInfo> s2c4 = s2cs.getHeads().iterator().next();
         assertEquals( c4.getUuid(), s2c4.getUuid() );
@@ -192,7 +191,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         assertEquals( 2, s2c1.getChildChanges().size() );
         assertEquals( 3, s2c1.getTargetHistory().getChanges().size() );
         assertEquals( 2, s2c1.getTargetHistory().getHeads().size() );
-        p = s2c1.getTargetHistory().getOwner();
+        p = photoDAO.findByUUID( s2c1.getTargetHistory().getTargetUuid() );
         VersionedObjectEditor<PhotoInfo> pe = p.editor( rf );
         pe.changeToVersion( serc3 );
                 
@@ -267,11 +266,13 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         tx = session.beginTransaction();
         Change<PhotoInfo> serc1 = cf.readChange( ios );
         Change<PhotoInfo> serc2 = cf.readChange( ios );
+        assertEquals( "org.photovault.imginfo.PhotoInfo", serc1.getTargetHistory().getTargetClassName() );
+        PhotoInfoDAO photoDao = daoFactory.getPhotoInfoDAO();
+        p = photoDao.findByUUID( serc1.getTargetHistory().getTargetUuid() );
         VersionedObjectEditor<PhotoInfo> e3 = 
-                new VersionedObjectEditor<PhotoInfo>( serc1.getTargetHistory(), 
-                fieldResolver  );
+                new VersionedObjectEditor<PhotoInfo>( p, fieldResolver  );
         e3.changeToVersion( serc2 );
-        p = serc1.getTargetHistory().getOwner();
+        p = photoDao.findByUUID( serc1.getTargetHistory().getTargetUuid() );
         assert( p.getOriginal().getFile() == ifile );
         assertEquals( 1, p.getFolderAssociations().size() );
     }    
