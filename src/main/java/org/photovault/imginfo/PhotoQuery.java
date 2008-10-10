@@ -305,7 +305,8 @@ public class PhotoQuery implements PhotoCollection {
 
 	    if ( limitFolder != null ) {
  		Collection folders = getSubfolderIds( limitFolder );
- 		crit.createCriteria( "folders" ).add( Restrictions.in( "uuid", folders ));
+ 		crit.createCriteria( "folderAssociations" ).add(
+                        Restrictions.in( "folder.uuid", folders ));
 	    }
 	    
 	    result = crit.list();

@@ -116,10 +116,10 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     PhotoInfo makePhoto( Calendar cal, double accuracy, String desc ) {
 	PhotoInfo photo = photoDAO.create();
         DTOResolverFactory rf = new HibernateDtoResolverFactory( session );
-        VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor<PhotoInfo>( photo, rf );
+        VersionedObjectEditor<PhotoInfo> pe = 
+                new VersionedObjectEditor<PhotoInfo>( photo, rf );
         PhotoEditor pep = (PhotoEditor) pe.getProxy();
-	pep.setShootTime( cal.getTime() );
-	pep.setTimeAccuracy( accuracy );
+        pep.setFuzzyShootTime( new FuzzyDate(  cal.getTime(), accuracy ) );
 	pep.setDescription( desc );
         pe.apply();
 	photos.add( photo );

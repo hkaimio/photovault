@@ -336,11 +336,6 @@ public interface PhotoEditor {
      */
     void setRawSettings( RawConversionSettings s );
 
-    /**
-     * Set the value of shootTime.
-     * @param v  Value to assign to shootTime.
-     */
-    void setShootTime( Date v );
 
     /**
      * Set the value of shootingPlace.
@@ -361,13 +356,4 @@ public interface PhotoEditor {
      */
     void setTechNotes( String newTechNotes );
 
-    /**
-     *
-     * Set the shooting time accuracy. The value is a +/- range from shootingTime
-     * parameter (i.e. shootingTime April 15 2000, timeAccuracy 15 means that the
-     * photo is taken in April 2000.
-     *
-     * @param newTimeAccuracy The new TimeAccuracy value.
-     */
-    void setTimeAccuracy( final double newTimeAccuracy );
 }

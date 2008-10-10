@@ -62,13 +62,13 @@ public class PhotoFolderDAOHibernate
         PhotoFolder folder = new PhotoFolder();
         try {
             VersionedObjectEditor<PhotoFolder> ed = 
-                    new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, uuid, null );
+                    new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, uuid, rf );
             folder = ed.getTarget();
         } catch ( Exception ex ) {
            log.error( "Cannot create folder", ex );
         }
         try {
-            folder.setParentFolder( parent );
+            folder.reparentFolder( parent );
         } catch (IllegalArgumentException e ) {
             throw e;
         }
@@ -81,7 +81,7 @@ public class PhotoFolderDAOHibernate
         PhotoFolder folder = new PhotoFolder();
         try {
             VersionedObjectEditor<PhotoFolder> ed =
-                    new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, UUID.randomUUID(), null );
+                    new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, UUID.randomUUID(), rf );
             folder = ed.getTarget();
             FolderEditor fe = (FolderEditor) ed.getProxy();
             fe.setName( name );
@@ -90,7 +90,7 @@ public class PhotoFolderDAOHibernate
            log.error( "Cannot create folder", ex );
         }
         try {
-            folder.setParentFolder( parent );
+            folder.reparentFolder( parent );
         } catch (IllegalArgumentException e ) {
             throw e;
         }
