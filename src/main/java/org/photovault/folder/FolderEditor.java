@@ -49,6 +49,12 @@ public interface FolderEditor {
      Remove existing association from the folder
      @param a
      */    
-    public void removePhotoAssociation( FolderPhotoAssociation a ); 
+    public void removePhotoAssociation( FolderPhotoAssociation a );
+
+    /**
+     Set new parent for the edited folder
+     @param thirdFolder
+     */
+    public void reparentFolder( PhotoFolder thirdFolder );
 
 }

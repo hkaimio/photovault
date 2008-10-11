@@ -35,7 +35,6 @@ import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoEditor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
-import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
@@ -510,6 +509,7 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
     public void testFolderHistory() {
         PhotoFolder top = folderDAO.findRootFolder();
         PhotoFolder otherFolder = folderDAO.create( "test", top );
+        PhotoFolder thirdFolder = folderDAO.create( "thirdFolder", top );
         VersionedObjectEditor<PhotoFolder> fe = otherFolder.editor( rf );
         FolderEditor fep = (FolderEditor) fe.getProxy();
         
@@ -523,7 +523,19 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         VersionedObjectEditor<PhotoInfo> p2e = new VersionedObjectEditor<PhotoInfo>(  p2, rf );
         VersionedObjectEditor<PhotoInfo> p1e = new VersionedObjectEditor<PhotoInfo>(  p1, rf );
 
-        
+        /*
+         The version tree for otherFolder
+         
+         fv1
+          | \
+         fv2 \          Add p1
+          |   \
+         fv3  |         parent = thirdFolder
+          |   |         
+          |  fv4        name = "Moikka", remove p1
+          |  /
+          fv5           merge
+         */
         FolderPhotoAssocDAO assocDao = daoFactory.getFolderPhotoAssocDAO();
         FolderPhotoAssociation a1 = new FolderPhotoAssociation( otherFolder, p1 );
         assocDao.makePersistent( a1 );
@@ -531,35 +543,46 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         fep.addPhotoAssociation( a1 );
         p1e.apply();
         Change<PhotoFolder> fv2 = fe.apply();
+        
+        // Change parent
+        fe = otherFolder.editor( rf );
+        fep = (FolderEditor) fe.getProxy();
+        fep.reparentFolder( thirdFolder );
+        Change<PhotoFolder> fv3 = fe.apply();
+        assertEquals( thirdFolder, otherFolder.getParentFolder() );
+        assertTrue( thirdFolder.getSubfolders().contains( otherFolder ) );
+        assertFalse( top.getSubfolders().contains( otherFolder ) );
+        
         session.flush();
-        assertTrue( otherFolder.getHistory().getVersion() == fv2 );
+        assertTrue( otherFolder.getHistory().getVersion() == fv3 );
         
         assertTrue( p1.getFolderAssociations().contains( a1 ) );
         assertTrue( otherFolder.getPhotoAssociations().contains( a1 ) );
 
-        // Ensure thatchangeng to earlier version removes the association
+        // Ensure that changes to earlier version removes the association
         fe = otherFolder.editor( rf );
         fe.changeToVersion( fv1 );
         session.flush();
         assertFalse( otherFolder.getPhotoAssociations().contains( a1 ) );
         assertNull( a1.getFolder() );
+        assertEquals( top, otherFolder.getParentFolder() );
         
         fep = (FolderEditor) fe.getProxy();
         fep.removePhotoAssociation(  a1 );
         fep.setName( "Moikka" );
-        Change<PhotoFolder> fv3 = fe.apply();
+        Change<PhotoFolder> fv4 = fe.apply();
         session.flush();
         
         fe = otherFolder.editor( rf );
-        Change<PhotoFolder> fv4 = fv3.merge( fv2 );
-        Collection<FieldConflictBase> conflicts = fv4.getFieldConficts();
+        Change<PhotoFolder> fv5 = fv3.merge( fv4 );
+        Collection<FieldConflictBase> conflicts = fv5.getFieldConficts();
         assertEquals( 1, conflicts.size() );
         for ( FieldConflictBase c : conflicts ) {
             SetFieldConflict sc = (SetFieldConflict) c;
-            sc.resolve( 1 );
+            sc.resolve( 0 );
         }
-        fv4.freeze();
-        fe.changeToVersion( fv4 );
+        fv5.freeze();
+        fe.changeToVersion( fv5 );
         session.flush();
         assertTrue( otherFolder.getPhotoAssociations().contains( a1 ) );
         assertTrue( a1.getFolder() == otherFolder );

@@ -63,14 +63,12 @@ public class PhotoFolderDAOHibernate
         try {
             VersionedObjectEditor<PhotoFolder> ed = 
                     new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, uuid, rf );
+            FolderEditor fe = (FolderEditor) ed.getProxy();
+            fe.reparentFolder( parent );
+            ed.apply();
             folder = ed.getTarget();
         } catch ( Exception ex ) {
            log.error( "Cannot create folder", ex );
-        }
-        try {
-            folder.reparentFolder( parent );
-        } catch (IllegalArgumentException e ) {
-            throw e;
         }
         makePersistent( folder );
         return folder;
@@ -85,14 +83,10 @@ public class PhotoFolderDAOHibernate
             folder = ed.getTarget();
             FolderEditor fe = (FolderEditor) ed.getProxy();
             fe.setName( name );
+            fe.reparentFolder( parent );
             ed.apply();
         } catch ( Exception ex ) {
            log.error( "Cannot create folder", ex );
-        }
-        try {
-            folder.reparentFolder( parent );
-        } catch (IllegalArgumentException e ) {
-            throw e;
         }
         makePersistent( folder );
         return folder;

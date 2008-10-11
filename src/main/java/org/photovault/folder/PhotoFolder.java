@@ -80,7 +80,19 @@ public class PhotoFolder implements PhotoCollection {
             String name2 = o2.getName();
             if ( name1 == null ) name1 = "";
             if ( name2 == null ) name2 = "";
-            return name1.compareTo( name2 );
+            int res = name1.compareTo( name2 );
+            if ( res != 0 ) {
+                return res;
+            }
+            UUID id1 = o1.getUuid();
+            UUID id2 = o2.getUuid();
+            if ( id1 != null ) {
+                return id1.compareTo( id2 );
+            } else if ( id1 == id2 ) {
+                return 0;
+            } else {
+                return -1;
+            }
         }
         
     }
@@ -342,16 +354,22 @@ public class PhotoFolder implements PhotoCollection {
     }
     
     /**
-     Adds a new subfolder to this folder. This method is called by setParentFolder().
+     Adds a new subfolder to this folder. As folders form a tree, the added 
+     folder is 
+     @param subfolder the folder to add.
      */
-    protected void addSubfolder( PhotoFolder subfolder ) {
+    public void addSubfolder( PhotoFolder subfolder ) {
 	if ( subfolders == null ) {
 	    subfolders = new TreeSet<PhotoFolder>();
 	}
-        subfolder.parent = this;
-	getSubfolders().add( subfolder );
+        PhotoFolder oldParent = subfolder.getParentFolder();
+        if ( oldParent != null ) {
+            oldParent.removeSubfolder( subfolder );
+        }
+
+        getSubfolders().add( subfolder );        
+        subfolder.setParentFolder( this );
 	modified();
-        subfolder.modified();
 	// Inform all parents & their that the structure has changed
 	subfolderStructureChanged( this );
     }
@@ -359,7 +377,7 @@ public class PhotoFolder implements PhotoCollection {
     /**
        Removes a subfolder
     */
-    protected void removeSubfolder( PhotoFolder subfolder ) {
+    public void removeSubfolder( PhotoFolder subfolder ) {
 	if ( subfolder == null ) {
 	    return;
 	}
@@ -391,6 +409,7 @@ public class PhotoFolder implements PhotoCollection {
     /**
        Returns the parent of this folder or null if this is a top-level folder
     */
+    @ValueField( dtoResolver=ParentRefResolver.class, setMethod="reparentFolder" )
     @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
     @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
     @JoinColumn( name = "parent_uuid", nullable = true )
@@ -400,7 +419,15 @@ public class PhotoFolder implements PhotoCollection {
 	return parent;
     }
 
-    protected void setParentFolder( PhotoFolder newParent ) {
+    /**
+     Set the parent folder reference. This method does not add this folder to 
+     parent's subfolders collection, so it should be used only by Photovault 
+     internals. Normally use either addSubfolder() or reparentFolder() to 
+     change folder hierarchy.
+     
+     @param newParent
+     */
+    void setParentFolder( PhotoFolder newParent ) {
 	this.parent = newParent;
 	modified();
     }
