@@ -21,6 +21,7 @@
 package org.photovault.folder;
 
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
@@ -74,7 +75,14 @@ public class PhotoFolder implements PhotoCollection {
     
     ObjectHistory<PhotoFolder> history;
     
-    public static class PhotoFolderComparator implements Comparator<PhotoFolder> {
+    /**
+     Comparator for odering folders. The folders are first ordered by their 
+     name; if there are several folders with the same name, they are ordered 
+     by their UUID.
+     */
+    public static class PhotoFolderComparator 
+            implements Comparator<PhotoFolder>, Serializable {
+        
         public int compare(PhotoFolder o1, PhotoFolder o2) {
             String name1 = o1.getName();
             String name2 = o2.getName();

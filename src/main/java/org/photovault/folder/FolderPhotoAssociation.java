@@ -86,13 +86,14 @@ public class FolderPhotoAssociation {
         }
 
         String uuidStr = folder.getUuid().toString() + photo.getUuid().toString();
-        byte[] b = null;
+        byte[] b;
         try {
             b = uuidStr.getBytes( "utf-8" );
+            return UUID.nameUUIDFromBytes( b );
         } catch ( UnsupportedEncodingException ex ) {
             log.error( "UTF-8 not supported!!!", ex );
         }
-        return UUID.nameUUIDFromBytes( b );
+        return null;
     }
 
     /**
