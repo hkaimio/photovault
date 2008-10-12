@@ -24,6 +24,8 @@ import java.util.UUID;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.imginfo.ExternalVolume;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 
 /**
   Command for creating a new {@link PhotoFolder}.
@@ -58,20 +60,32 @@ public class CreatePhotoFolderCommand extends DataAccessCommand {
     public void setExtDir( ExternalVolume vol, String path ) {
         this.extDir = new ExternalDir( vol, path );
     }
-    
+
     public void execute() throws CommandException {
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
         PhotoFolder parent = null;
         if ( parentId != null ) {
             parent = folderDAO.findById( parentId, false );
         }
-        PhotoFolder newFolder = folderDAO.create( name, null );
-        newFolder.setDescription( description );
-        if ( extDir != null ) {
-            newFolder.setExternalDir( extDir );
+        DTOResolverFactory rf = daoFactory.getDTOResolverFactory();
+        try {
+            VersionedObjectEditor<PhotoFolder> ed =
+                    new VersionedObjectEditor<PhotoFolder>(
+                    PhotoFolder.class, UUID.randomUUID(), rf );
+            FolderEditor fe = (FolderEditor) ed.getProxy();
+            fe.setName( name );
+            fe.setDescription( description );
+            fe.reparentFolder( parent );
+            ed.apply();
+            createdFolder = ed.getTarget();
+            folderDAO.makePersistent( createdFolder );
+        } catch ( Exception ex ) {
+            throw new CommandException( ex.getMessage(), ex );
         }
-        createdFolder = folderDAO.makePersistent( newFolder );
-        newFolder.reparentFolder( parent );
+
+        if ( extDir != null ) {
+            createdFolder.setExternalDir( extDir );
+        }
     }
     
     /**

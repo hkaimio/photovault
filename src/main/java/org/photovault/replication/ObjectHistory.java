@@ -21,7 +21,11 @@
 
 package org.photovault.replication;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.persistence.CascadeType;
@@ -181,5 +185,51 @@ public class ObjectHistory<T> {
     @JoinColumn( name = "version_uuid" )
     public Change<T> getVersion() {
         return currentVersion;
+    }
+    
+    /**
+     Write all changes of the target object to output stream. First, the total 
+     number of changes is written as integer. Then the changes are 
+     written in topologically sorted order so that all predecessors of a change 
+     are written before it.
+     
+     @param os The output stream
+     @throws java.io.IOException If an error occurs during writing.
+     */
+    public void writeChanges( ObjectOutputStream os ) throws IOException {
+        Set<UUID> writtenIds = new HashSet<UUID>();
+        List<ChangeDTO<T>> changesToWrite = new ArrayList<ChangeDTO<T>>( allChanges.size() );
+        for ( Change<T> ch : heads ) {
+            prepareDtos( ch, writtenIds, changesToWrite );
+        }
+        os.writeInt( changesToWrite.size() );
+        for ( ChangeDTO<T> dto : changesToWrite ) {
+            os.writeObject( dto );
+        }
+    }
+    
+    /**
+     Prepares {@link ChangeDTO} objects for serialization for certain change and 
+     its predecessors if they have not been prepared already. This fuction is 
+     called by writeChanges().
+     
+     @param ch The change
+     @param writtenIds Set of uuids of those changes that have been prepared 
+     already. IDs of changes prepared by this call are added to the set.
+     @param dtoList List of DTOs. DTOs prepared by this method will be appended 
+     to end of the list.
+     */
+    private void prepareDtos( 
+            Change<T> ch, Set<UUID> writtenIds, List<ChangeDTO<T>> dtoList ) 
+            throws IOException {
+        // First, ensure that all predecessors are written
+        for ( Change<T> parent : ch.getParentChanges() ) {
+            if ( !writtenIds.contains( parent.getUuid() ) ) {
+                prepareDtos( parent, writtenIds, dtoList );
+            }
+        }
+        ChangeDTO<T> dto = new ChangeDTO<T>( ch );
+        dtoList.add( dto );
+        writtenIds.add( ch.getUuid() );
     }
 }

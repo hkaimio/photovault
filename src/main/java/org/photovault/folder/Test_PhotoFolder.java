@@ -215,6 +215,10 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
 
     }
     
+    /**
+     Test the folder creation and change commands.
+     */
+    @Test
     public void testCreateCommand() {
         PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( null );
         CreatePhotoFolderCommand createCmd = new CreatePhotoFolderCommand( null, "command create", "desc" );
@@ -239,6 +243,19 @@ public class Test_PhotoFolder extends PhotovaultTestCase {
         PhotoFolder f = (PhotoFolder) session.merge( changedFolder );
         assertEquals( "Name 2", f.getName() );
 	assertMatchesDb( f );
+        
+        // Check the change history
+        Change<PhotoFolder> head = f.getHistory().getVersion();
+        assertEquals( 1, f.getHistory().getHeads().size() );
+        assertTrue( f.getHistory().getHeads().contains( head ) );
+        head.getChangedFields().containsKey( "name" );
+        head.getChangedFields().containsKey( "description" );
+        
+        Change<PhotoFolder> initChange = head.getParentChanges().iterator().next();
+        assertEquals( 1, initChange.getParentChanges().size() );
+        Change<PhotoFolder> createChange = initChange.getParentChanges().iterator().next();
+        assertEquals( 0, createChange.getParentChanges().size() );
+        assertEquals( 0, createChange.getChangedFields().size() );
     }
     
     /**

@@ -25,6 +25,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.hibernate.Transaction;
 import org.hibernate.classic.Session;
@@ -163,9 +167,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream( os );
-        oos.writeObject( new ChangeDTO<PhotoInfo>( c1 ) );
-        oos.writeObject( new ChangeDTO<PhotoInfo>( c2 ) );
-        oos.writeObject( new ChangeDTO<PhotoInfo>( c3 ) );
+        p.getHistory().writeChanges( oos );
         byte[] serialized = os.toByteArray();
         tx.rollback();
         
@@ -181,19 +183,29 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         
         ByteArrayInputStream is = new ByteArrayInputStream(  serialized );
         ObjectInputStream ios = new ObjectInputStream( is );
-        Change<PhotoInfo> serc1 = cf.readChange( ios );
-        assertTrue( serc1 == s2c1 );
+        int changeCount = ios.readInt();
+        assertEquals( 3, changeCount );
+        Map<UUID, Change<PhotoInfo>> changes = new HashMap<UUID, Change<PhotoInfo>>();
         tx = session.beginTransaction();
-        Change<PhotoInfo> serc2 = cf.readChange( ios );
-        Change<PhotoInfo> serc3 = cf.readChange( ios );
+        for( int n = 0 ; n < changeCount ; n++ ) {
+            Change<PhotoInfo> ch =  cf.readChange( ios );
+            changes.put( ch.getUuid(), ch );
+        }
+        
+        Change<PhotoInfo> serc1 = changes.get( s2c1.getUuid() );
+        assertTrue( serc1 == s2c1 );
+        Change<PhotoInfo> serc2 = changes.get( c2.getUuid() );
+        Change<PhotoInfo> serc3 = changes.get( c3.getUuid() );
         assertEquals( c2.getUuid(), serc2.getUuid() );
         assertEquals( c3.getUuid(), serc3.getUuid() );
         assertEquals( 2, s2c1.getChildChanges().size() );
         assertEquals( 3, s2c1.getTargetHistory().getChanges().size() );
         assertEquals( 2, s2c1.getTargetHistory().getHeads().size() );
         p = photoDAO.findByUUID( s2c1.getTargetHistory().getTargetUuid() );
+        
         VersionedObjectEditor<PhotoInfo> pe = p.editor( rf );
         pe.changeToVersion( serc3 );
+        assertEquals( "Harri", p.getPhotographer() );
                 
         tx.commit();
     }

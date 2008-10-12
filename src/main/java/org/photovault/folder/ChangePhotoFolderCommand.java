@@ -26,6 +26,8 @@ import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 
 /**
   Command object for changing the fields of {@link PhotoFolder}.
@@ -120,24 +122,29 @@ public class ChangePhotoFolderCommand extends DataAccessCommand {
     public void execute() throws CommandException {
         PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
         PhotoFolder f = folderDAO.findById( folder.getUuid(), false );
+        DTOResolverFactory rf = daoFactory.getDTOResolverFactory();
+        VersionedObjectEditor<PhotoFolder> ed = 
+                new VersionedObjectEditor<PhotoFolder>( f, rf );
+        FolderEditor fe = (FolderEditor) ed.getProxy();
         for ( Map.Entry<PhotoFolderFields,Object> change: changedFields.entrySet() ) {
             PhotoFolderFields field = change.getKey();
             switch ( field ) {
                 case NAME:
-                    f.setName( (String) change.getValue() );
+                    fe.setName( (String) change.getValue() );
                     break;
                 case DESCRIPTION:
-                    f.setDescription( (String) change.getValue() );
+                    fe.setDescription( (String) change.getValue() );
                     break;
                 case PARENT:
                     PhotoFolder parent = (PhotoFolder) HibernateUtil.getSessionFactory().
                             getCurrentSession().merge( (PhotoFolder) change.getValue() );
-                    f.reparentFolder( parent );
+                    fe.reparentFolder( parent );
                     break;
                 case EXTDIR:
                     f.setExternalDir( (ExternalDir)change.getValue() );
             }
         }
+        ed.apply();
         changedFolder = f;
     }   
 }
