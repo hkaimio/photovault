@@ -20,6 +20,7 @@
 
 package org.photovault.replication;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
@@ -130,6 +131,47 @@ public class VersionedObjectEditor<T> {
         return target;
     }
 
+    /**
+     Add changes described by an ObjectHistoryDTO to the history of this object.
+     If the dto contains a change that is child of current version and the 
+     current version is head, the object's state is updated to match the latest
+     change in this branch.
+     @param h The history information to add
+     @param cf ChangeFactory used to construct changes from the dto.
+     @throws java.lang.ClassNotFoundException
+     @throws java.io.IOException
+     */
+    public void addToHistory( ObjectHistoryDTO<T> h, ChangeFactory<T> cf ) 
+            throws ClassNotFoundException, IOException {
+        if ( !h.getTargetUuid().equals( history.getTargetUuid() ) ) {
+            throw new IllegalArgumentException( "trying to merge with history of another object" );
+        }
+        if ( !h.getTargetClassName().equals( history.getTargetClassName() ) ) {
+            throw new IllegalArgumentException( "trying to merge with history of another object" );
+        }
+        
+        Change<T> oldVersion = history.getVersion();
+        Set<Change<T>> oldHeads = new HashSet( history.getHeads() );
+        boolean wasAtHead = oldHeads.contains( oldVersion );
+        
+        cf.addObjectHistory( h );
+        
+        /*
+         If new changes were added to current branch, update to new head
+         */
+        if ( wasAtHead && !history.getHeads().contains( oldVersion ) ) {
+            Change<T> newVersion = oldVersion;
+            Set<Change<T>> children = newVersion.getChildChanges();
+            while ( children.size() == 1 ) {
+                newVersion = children.iterator().next();
+                children = newVersion.getChildChanges();
+            }
+            if ( oldVersion != newVersion ) {
+                changeToVersion( newVersion );
+            }
+        }        
+    }
+    
     /**
      Get value of a field in the current state of the obejct
      @param field Field name

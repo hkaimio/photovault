@@ -36,11 +36,13 @@ import org.photovault.folder.FolderEditor;
 import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ImageFile;
+import org.photovault.imginfo.ImageFileDAO;
 import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoEditor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoInfoFields;
+import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
@@ -167,7 +169,8 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream( os );
-        p.getHistory().writeChanges( oos );
+        ObjectHistoryDTO<PhotoInfo> h = new ObjectHistoryDTO( p.getHistory() );
+        oos.writeObject( h );
         byte[] serialized = os.toByteArray();
         tx.rollback();
         
@@ -183,12 +186,14 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         
         ByteArrayInputStream is = new ByteArrayInputStream(  serialized );
         ObjectInputStream ios = new ObjectInputStream( is );
-        int changeCount = ios.readInt();
-        assertEquals( 3, changeCount );
+        h = (ObjectHistoryDTO<PhotoInfo>) ios.readObject();
+        p = photoDAO.findByUUID( h.getTargetUuid() );
+        VersionedObjectEditor<PhotoInfo> ed = new VersionedObjectEditor<PhotoInfo>(  p,  rf );
+        ed.addToHistory( h, cf );
+              
         Map<UUID, Change<PhotoInfo>> changes = new HashMap<UUID, Change<PhotoInfo>>();
         tx = session.beginTransaction();
-        for( int n = 0 ; n < changeCount ; n++ ) {
-            Change<PhotoInfo> ch =  cf.readChange( ios );
+        for( Change<PhotoInfo> ch : p.getHistory().getChanges() ) {
             changes.put( ch.getUuid(), ch );
         }
         
@@ -225,6 +230,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         ImageFile ifile = new ImageFile();
         ifile.setFileSize( 100000 );
         ifile.setId( UUID.randomUUID() );
+        UUID ifileUuid = ifile.getId();
         OriginalImageDescriptor orig = new OriginalImageDescriptor( ifile, "image#0" );
         Transaction tx = session.beginTransaction();
         session.saveOrUpdate( ifile );
@@ -239,10 +245,10 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
                 
         
         tx = session.beginTransaction();
-        PhotoInfo p = PhotoInfo.create();
-        VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor<PhotoInfo>( p, fieldResolver );
+        VersionedObjectEditor<PhotoInfo> e1 = new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, UUID.randomUUID(), fieldResolver );
         e1.setField( "original", orig );
         e1.apply();
+        PhotoInfo p = e1.getTarget();
         
         VersionedObjectEditor<PhotoInfo> e2 = new VersionedObjectEditor<PhotoInfo>( p, fieldResolver );
         e2.setField(PhotoInfoFields.PHOTOGRAPHER.getName(), "Harri" );
@@ -255,8 +261,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         e2.apply();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream( os );
-        oos.writeObject( new ChangeDTO<PhotoInfo>( e1.getChange() ) );
-        oos.writeObject( new ChangeDTO<PhotoInfo>( e2.getChange() ) );
+        oos.writeObject( new ObjectHistoryDTO( p.getHistory() ) );
         byte[] serialized = os.toByteArray();
         tx.rollback();
 
@@ -271,20 +276,27 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         // Try to deserialize the changes and verify that the photo references
         // the exising image
         ChangeDAO<PhotoInfo> chDao = daoFactory.getChangeDAO( );
+        PhotoInfoDAO photoDao = daoFactory.getPhotoInfoDAO();
         ChangeFactory<PhotoInfo> cf = new ChangeFactory( chDao );
         
         ByteArrayInputStream is = new ByteArrayInputStream(  serialized );
         ObjectInputStream ios = new ObjectInputStream( is );
         tx = session.beginTransaction();
-        Change<PhotoInfo> serc1 = cf.readChange( ios );
-        Change<PhotoInfo> serc2 = cf.readChange( ios );
-        assertEquals( "org.photovault.imginfo.PhotoInfo", serc1.getTargetHistory().getTargetClassName() );
-        PhotoInfoDAO photoDao = daoFactory.getPhotoInfoDAO();
-        p = photoDao.findByUUID( serc1.getTargetHistory().getTargetUuid() );
-        VersionedObjectEditor<PhotoInfo> e3 = 
-                new VersionedObjectEditor<PhotoInfo>( p, fieldResolver  );
-        e3.changeToVersion( serc2 );
-        p = photoDao.findByUUID( serc1.getTargetHistory().getTargetUuid() );
+        ObjectHistoryDTO<PhotoInfo> h = (ObjectHistoryDTO<PhotoInfo>) ios.readObject();
+        VersionedObjectEditor<PhotoInfo> ed = new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, p.getUuid(), fieldResolver );
+        p = ed.getTarget();
+        photoDao.makePersistent( p );
+        photoDao.flush();
+        ed.addToHistory( h, cf );
+
+        Map<UUID, Change<PhotoInfo>> changes = new HashMap<UUID, Change<PhotoInfo>>();
+        tx = session.beginTransaction();
+        for( Change<PhotoInfo> ch : p.getHistory().getChanges() ) {
+            changes.put( ch.getUuid(), ch );
+        }
+        
+        ImageFileDAO ifileDao = daoFactory.getImageFileDAO();
+        ifile = ifileDao.findById( ifileUuid, false );
         assert( p.getOriginal().getFile() == ifile );
         assertEquals( 1, p.getFolderAssociations().size() );
     }    
