@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007 Harri Kaimio
+  Copyright (c) 2007-2008 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -21,6 +21,9 @@
 package org.photovault.image;
 
 import java.awt.geom.CubicCurve2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
@@ -49,19 +52,19 @@ public class ColorCurve implements Serializable {
     /**
      X coordinates for control points, in increasing order
      */
-    double[] pointX = {};
+    transient double[] pointX = {};
     
     /**
      Y coordinates for control points.
      */
-    double[] pointY = {};
+    transient double[] pointY = {};
     
     /**
      Bezier coefficiens for each segment. This array contains the Y coordinates, 
      X coordinates x1 & x2 are defined so that x1 = 2/3 * x0 + 1/3 * x3 and
      x2 = 1/3 * x0 + 2/3 * x3. 
      */
-    volatile double b[][] = null;
+    transient double b[][] = null;
     
     /**
      Add a new control point to the function
@@ -322,5 +325,35 @@ public class ColorCurve implements Serializable {
         b[pointX.length][1] = pointY[pointY.length-1];
         b[pointX.length][2] = pointY[pointY.length-1];
         b[pointX.length][3] = pointY[pointY.length-1];
+    }
+    
+    /**
+     Serialization code
+     @serialData First then number of points is written as integer. After that 
+     follows the coordinates for each point - first X coordinate and after that 
+     Y coordinate as doubles.
+     @param os
+     @throws java.io.IOException
+     */
+    private void writeObject( ObjectOutputStream os ) throws IOException {
+        os.defaultWriteObject();
+        os.writeInt( pointX.length );
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            os.writeDouble( pointX[n] );
+            os.writeDouble( pointY[n] );
+        }
+    }
+    
+    private void readObject( ObjectInputStream is ) 
+            throws IOException, ClassNotFoundException {
+        is.defaultReadObject();
+        int pointCount = is.readInt();
+        pointX = new double[pointCount];
+        pointY = new double[pointCount];
+        for  ( int n = 0  ; n < pointCount ; n++ ) {
+            pointX[n] = is.readDouble();
+            pointY[n] = is.readDouble();            
+        }
+        calcCoeffs();
     }
 }

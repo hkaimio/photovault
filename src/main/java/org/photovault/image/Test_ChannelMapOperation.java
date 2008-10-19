@@ -20,19 +20,23 @@
 
 package org.photovault.image;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.StringReader;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 import org.apache.commons.digester.Digester;
+import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 import org.xml.sax.SAXException;
 
 
 /**
  Unit tests for {@link ChannelMapOperation} and associated classes
  */
-public class Test_ChannelMapOperation extends TestCase {
+public class Test_ChannelMapOperation {
+    
     
     /** Creates a new instance of Test_ChannelMapOperation */
     public Test_ChannelMapOperation() {
@@ -41,7 +45,8 @@ public class Test_ChannelMapOperation extends TestCase {
     /**
      Test creation of ChannelMapOperations from scratch & from existing operations
      */
-    public void testMapCreation() {
+    @Test
+    public void testMapCreation() throws IOException, ClassNotFoundException {
         ChannelMapOperationFactory f = new ChannelMapOperationFactory();
         ColorCurve r = new ColorCurve();
         r.addPoint( 0.0, 0.1 );
@@ -66,16 +71,28 @@ public class Test_ChannelMapOperation extends TestCase {
         ChannelMapOperation o2 = f2.create();
         assertEquals( o, o2 );
         
+        
         ColorCurve r2 = new ColorCurve();
         f2.setChannelCurve( "red", r2 );
         ChannelMapOperation o3 = f2.create();
         assertFalse( o2.equals( o3 ) );
+
+        // Check that serializing this class works
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream( os );
+        oos.writeObject( o2 );
+        byte[] data = os.toByteArray();
+        ByteArrayInputStream is = new ByteArrayInputStream( data );
+        ObjectInputStream ois = new ObjectInputStream( is );
+        ChannelMapOperation o4 = (ChannelMapOperation) ois.readObject();
+        assertEquals( o2, o4 );        
     }
     
     /**
      Test that converting ChannelMapOperation to its XML representation and back to 
      java object creates an identical object.
      */
+    @Test
     public void testXmlConvert() {
         ChannelMapOperationFactory f = new ChannelMapOperationFactory();
         ColorCurve r = new ColorCurve();
@@ -104,16 +121,5 @@ public class Test_ChannelMapOperation extends TestCase {
             fail( ex.getMessage() );
         }
         assertEquals( o, o2 );
-    }
-    
-    public static Test suite() {
-	return new TestSuite( Test_ChannelMapOperation.class );
     }    
-    
-        
-    public static void main( String[] args ) {
-	junit.textui.TestRunner.run( suite() );
-    }        
-    
-    
 }

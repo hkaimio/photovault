@@ -40,6 +40,8 @@ import java.util.Set;
  ChannelMapOperationFactory}.
  */
 public class ChannelMapOperation implements Serializable {
+
+    static final long serialVersionUID = 5997544060700510698L;
     
     /**
      * Creates a new instance of ChannelMapOperation. Should not be used by 
@@ -216,8 +218,8 @@ public class ChannelMapOperation implements Serializable {
      Serialize the object
      @param os The object stream
      @throws java.io.IOException
-     @serialData Number of channels, followed by for each channel: the number 
-     of points, for each point x and y coordinates
+     @serialData Number of channels, followed by for each channel: name of the 
+     channel, number of points, for each point x and y coordinates
      */
     private void writeObject( ObjectOutputStream os ) throws IOException {
         os.defaultWriteObject();
