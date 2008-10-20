@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 import org.photovault.imginfo.*;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,7 +46,10 @@ import java.util.UUID;
  @author Harri Kaimio
  */
 public class ImageFileDTO implements Serializable {
-    
+
+    static final long serialVersionUID = -1744409450144341619L;
+
+    private ImageFileDTO() {}
     /**
      Constructs an ImageFileDTO based on ImageFile object
      @param f The ImageFile used.
@@ -110,7 +114,7 @@ public class ImageFileDTO implements Serializable {
      Returns hash of the described image file
      */
     public byte[] getHash() {
-        return hash;
+        return Arrays.copyOf( hash, hash.length );
     }
 
     /**
@@ -131,7 +135,7 @@ public class ImageFileDTO implements Serializable {
      Write the obejct to stream
      @param is
      */
-    void writeObject( ObjectOutputStream os ) throws IOException {
+    private void writeObject( ObjectOutputStream os ) throws IOException {
         os.defaultWriteObject();
         os.writeInt( images.size() );
         for ( Map.Entry<String,ImageDescriptorDTO> e : images.entrySet() ) {
@@ -140,10 +144,12 @@ public class ImageFileDTO implements Serializable {
         }
     }
     
-    void readObject( ObjectInputStream is ) 
+    private void readObject( ObjectInputStream is ) 
             throws IOException, ClassNotFoundException {
         is.defaultReadObject();
         int imageCount = is.readInt();
+        images = new HashMap<String, ImageDescriptorDTO>( imageCount );
+        
         for ( int n = 0 ; n < imageCount ; n++ ) {
             String locator = (String) is.readObject();
             ImageDescriptorDTO dto = (ImageDescriptorDTO) is.readObject();

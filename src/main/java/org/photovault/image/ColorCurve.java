@@ -45,6 +45,8 @@ import java.io.Serializable;
  */
 public class ColorCurve implements Serializable {
     
+    static final long serialVersionUID = -4691331290177499814L;
+    
     /** Creates a new instance of ColorCurve */
     public ColorCurve() {
     }
