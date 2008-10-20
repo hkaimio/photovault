@@ -55,7 +55,7 @@ import org.photovault.common.PhotovaultSettings;
 @Table( name = "pv_volumes" )
 @Inheritance( strategy = InheritanceType.SINGLE_TABLE )
 @DiscriminatorColumn( name = "volume_type", discriminatorType = DiscriminatorType.STRING )
-public abstract class VolumeBase implements java.io.Serializable {
+public abstract class VolumeBase {
     
     Log log = LogFactory.getLog( VolumeBase.class.getName() );
 

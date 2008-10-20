@@ -81,7 +81,7 @@ import org.photovault.replication.VersionedObjectEditor;
 @Entity
 @Table( name = "pv_photos" )
 @Versioned( editor = PhotoEditor.class )
-public class PhotoInfo implements java.io.Serializable, PhotoEditor {
+public class PhotoInfo implements PhotoEditor {
     
     static Log log = LogFactory.getLog( PhotoInfo.class.getName() );
     
@@ -548,9 +548,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      set of the listeners that should be notified of any changes to this object
      */
     HashSet changeListeners = null;
-    
-    
-    private Integer uid;
+
     
     /**
      * Describe timeAccuracy here.
@@ -704,7 +702,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      */
     @Transient
     public Thumbnail getThumbnail() {
-        log.debug( "getThumbnail: entry, Finding thumbnail for " + uid );
+        log.debug( "getThumbnail: entry, Finding thumbnail for " + getUuid() );
         if ( thumbnail == null ) {
             thumbnail = getExistingThumbnail();
             if ( thumbnail == null ) {
@@ -753,7 +751,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      false otherwise
      */
     public boolean hasThumbnail() {
-        log.debug( "hasThumbnail: entry, Finding thumbnail for " + uid );
+        log.debug( "hasThumbnail: entry, Finding thumbnail for " + getUuid() );
         if ( thumbnail == null ) {
             thumbnail = getExistingThumbnail();
         }
@@ -903,7 +901,7 @@ public class PhotoInfo implements java.io.Serializable, PhotoEditor {
      */
     protected void createThumbnail( VolumeBase volume, boolean createPreview ) {
         
-        log.debug( "Creating thumbnail for " + uid );
+        log.debug( "Creating thumbnail for " + getUuid() );
         
         // Maximum size of the thumbnail
         int maxThumbWidth = 100;
