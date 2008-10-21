@@ -223,7 +223,7 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         
         ObjectHistory<PhotoInfo> h1 = p1.getHistory();
         Set<Change<PhotoInfo>> ch1 = h1.getChanges();
-        assertEquals( 2, ch1.size() );
+        assertEquals( 3, ch1.size() );
         assertNull( p1.getRawSettings() );
         
         Set<PhotoFolder> p1folders = p1.getFolders();

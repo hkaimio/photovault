@@ -51,6 +51,7 @@ import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
+import org.photovault.folder.FolderEditor;
 import org.photovault.folder.FolderPhotoAssocDAO;
 import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
@@ -322,7 +323,8 @@ public class SchemaUpdateAction {
     private void convertFolders() throws SQLException {
         log.debug( "Starting to convert folders to new schema" );
         Session s = HibernateUtil.getSessionFactory().openSession();
-        Connection conn = s.connection();
+        Session sqlSess = HibernateUtil.getSessionFactory().openSession();
+        Connection conn = sqlSess.connection();
 
         Queue<Integer> waiting = new LinkedList<Integer>();
         Map<Integer, PhotoFolder> foldersById = new HashMap<Integer, PhotoFolder>();
@@ -331,6 +333,7 @@ public class SchemaUpdateAction {
                 (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
         df.setSession( s );
         PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
+        DTOResolverFactory rf = df.getDTOResolverFactory();
         PhotoFolder topFolder = folderDao.findByUUID( PhotoFolder.ROOT_UUID );
         if ( topFolder == null ) {
             topFolder = folderDao.create( PhotoFolder.ROOT_UUID, null );
@@ -363,9 +366,13 @@ public class SchemaUpdateAction {
                 if ( id == 1 ) {
                     uuid = PhotoFolder.ROOT_UUID;
                 }
+                
                 PhotoFolder f = folderDao.create( uuid, parent );
-                f.setName( rs.getString( "collection_name" ) );
-                f.setDescription( rs.getString( "collection_desc" ) );
+                VersionedObjectEditor<PhotoFolder> e = f.editor( rf );
+                FolderEditor fe = (FolderEditor) e.getProxy();
+                fe.setName( rs.getString( "collection_name" ) );
+                fe.setDescription( rs.getString( "collection_desc" ) );
+                e.apply();
                 /*
                  TODO: how to set the create time & last modified time without 
                  exposing them to others?
@@ -379,9 +386,11 @@ public class SchemaUpdateAction {
                 rs.close();
             } catch ( SQLException e ) {
                 log.error( "Error closing result set", e );
-            }
+            } 
         }
         s.flush();
+        sqlSess.close();
+        s.close();
     }
     
     private void convertFolderAssociations() {
@@ -655,21 +664,30 @@ public class SchemaUpdateAction {
 
         // Create photo to match this image
         PhotoInfo photo = null;
-        String photoUuid = rs.getString( "p_photo_uuid" );
-        if ( photoUuid != null ) {
-            log.debug( "Creating photo with uuid " + photoUuid );
-            photo = PhotoInfo.create( UUID.fromString( photoUuid ) );
+        String photoUuidStr = rs.getString( "p_photo_uuid" );
+        UUID photoUuid;
+        if ( photoUuidStr != null ) {
+            log.debug( "Creating photo with uuid " + photoUuidStr );
+            photoUuid = UUID.fromString( photoUuidStr );
         } else {
-            log.debug( "No UUID in database, creating photo with random uuid" );
-            photo = PhotoInfo.create();
+            photoUuid = UUID.randomUUID();
+        }        
+        VersionedObjectEditor<PhotoInfo> pe;
+        try {
+            pe = new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, photoUuid, rf );
+        } catch ( InstantiationException ex ) {
+            throw new Error( "Cannot instantiate PhotoInfo!!!", ex );
+        } catch ( IllegalAccessException ex ) {
+            throw new Error( "Cannot access PhotoInfo!!!", ex );
         }
+        photo = pe.getTarget();        
+        
         photoDao.makePersistent( photo );
         int photoId = rs.getInt( "p_photo_id");
         photoUuids.put(  photoId, photo.getUuid() );
 
         // First change should contain just information about the original
-        VersionedObjectEditor<PhotoInfo> pe = 
-                new VersionedObjectEditor<PhotoInfo>( photo, rf );
+        pe = new VersionedObjectEditor<PhotoInfo>( photo, rf );
         pe.setField( "original", original );
         pe.apply();
 
