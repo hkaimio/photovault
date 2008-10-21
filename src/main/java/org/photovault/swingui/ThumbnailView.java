@@ -183,29 +183,6 @@ public class ThumbnailView extends JPanel implements PhotoInfoChangeListener {
     PhotoInfo photo = null;
     Thumbnail thumbnail = null;
 
-    public static void main( String args[] ) {
-	File f = new File("c:\\java\\photovault\\testfiles\\test1.jpg" );
-	try {
-	    final PhotoInfo photo = PhotoInfo.addToDB( f );
-	    JFrame frame = new JFrame( "ThumbnailView test" );
-	    ThumbnailView view = new ThumbnailView();
-	    frame.getContentPane().add( view, BorderLayout.CENTER );
-	    frame.addWindowListener(new WindowAdapter() {
-		    public void windowClosing(WindowEvent e) {
-			photo.delete();
-			System.exit(0);
-		    }
-		} );
-	    
-	    view.setPhoto( photo );
-	    frame.pack();
-	    frame.setVisible( true );
-	} catch ( Exception e ) {
-	    return;
-	}
-    }
-
-
 }
 		     
 	    

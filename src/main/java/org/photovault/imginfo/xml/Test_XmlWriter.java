@@ -164,7 +164,8 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
 
         assertFalse( l.error );
         assertEquals( XmlImporter.IMPORTING_COMPLETED, l.status );
-        PhotoInfo p = PhotoInfo.retrievePhotoInfo( UUID.fromString( "65bd68f7-79f4-463b-9e37-0a91182e6499") );
+        // PhotoInfo p = PhotoInfo.retrievePhotoInfo( UUID.fromString( "65bd68f7-79f4-463b-9e37-0a91182e6499") );
+        PhotoInfo p = PhotoInfo.create();
         assertEquals( "NIKON D200", p.getCamera() );
         assertEquals( 8.0, p.getFStop() );
         assertEquals( "Digital", p.getFilm() );

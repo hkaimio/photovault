@@ -114,7 +114,7 @@ public class ImageFileDTO implements Serializable {
      Returns hash of the described image file
      */
     public byte[] getHash() {
-        return Arrays.copyOf( hash, hash.length );
+        return hash != null ? Arrays.copyOf( hash, hash.length ) : null;
     }
 
     /**

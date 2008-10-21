@@ -47,7 +47,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import org.hibernate.Session;
-import org.odmg.*;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dbhelper.ODMG;
 import org.photovault.dbhelper.ODMGXAWrapper;
@@ -159,40 +158,6 @@ public class PhotoInfo implements PhotoEditor {
         return photo;
     }
     
-    /**
-     Static method to load photo info from database by its globally unique id
-     @param uuid UUID of the photo to be retrieved 
-     @return PhotoInfo onject with the given uuid or <code>null<code> if 
-     such object is not found.
-     */
-    public static PhotoInfo retrievePhotoInfo( UUID uuid ) throws PhotoNotFoundException {
-        log.debug( "Fetching PhotoInfo with UUID " + uuid );
-        String oql = "select photos from " + PhotoInfo.class.getName() + " where uuid=\"" + uuid.toString() + "\"";
-        List photos = null;
-        
-        // Get transaction context
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( oql );
-            photos = (List) query.execute();
-            txw.commit();
-        } catch (Exception e ) {
-            log.warn( "Error fetching record: " + e.getMessage() );
-            txw.abort();
-            throw new PhotoNotFoundException();
-        }
-        PhotoInfo photo = null;
-        if ( photos.size() > 0 ) {
-            if ( photos.size() > 1 ) {
-                log.warn( "" + photos.size() + " photos with UUID " + uuid );
-            }
-            photo = (PhotoInfo) photos.get(0);
-        }
-        return photo;
-    }
     
     /**
      Retrieves the PhotoInfo objects whose original instance has a specific hash code
@@ -250,59 +215,12 @@ public class PhotoInfo implements PhotoEditor {
      @throws PhotoNotFoundException if the file given as imgFile argument does
      not exist or is unaccessible. This includes a case in which imgFile is part
      of normal Volume.
+     @deprecated Not supported anymore
      
      // TODO: Move this into a command object.
      */
     public static PhotoInfo addToDB( File imgFile )  throws PhotoNotFoundException {
-        VolumeBase vol = null;
-        try {
-            vol = VolumeManager.instance().getVolumeOfFile( imgFile, null );
-        } catch ( Exception ex ) {
-            throw new PhotoNotFoundException();
-        }
-        
-        // Determine the file that will be added as an instance
-        File instanceFile = null;
-        if ( vol == null ) {
-            /*
-             The "normal" case: we are adding a photo that is not part of any
-             volume. Copy the file to the archive.
-             */
-            vol = VolumeBase.getDefaultVolume();
-            instanceFile = vol.getFilingFname( imgFile );
-            
-            try {
-                FileUtils.copyFile( imgFile, instanceFile );
-            } catch (IOException ex) {
-                log.warn( "Error copying file: " + ex.getMessage() );
-                throw new PhotoNotFoundException();
-            }
-        } else if ( vol instanceof ExternalVolume ) {
-            // Thisfile is in an external volume so we do not need a copy
-            instanceFile = imgFile;
-        } else if ( vol instanceof Volume ) {
-            // Adding file from normal volume is not permitted
-            throw new PhotoNotFoundException();
-        } else {
-            throw new java.lang.Error( "Unknown subclass of VolumeBase: "
-                    + vol.getClass().getName() );
-        }
-        
-        // Create the image
-        PhotoInfo photo = PhotoInfo.create();
-        try {
-            ImageFile imgfile;
-            imgfile = new ImageFile( instanceFile );
-            OriginalImageDescriptor orig = new OriginalImageDescriptor( imgfile, "image#0" );
-            photo.setOriginal( orig );
-        } catch ( PhotovaultException ex ) {
-            log.fatal( ex );
-        } catch ( IOException ex ) {
-            log.fatal( ex );
-        }
-        photo.setCropBounds( new Rectangle2D.Float( 0.0F, 0.0F, 1.0F, 1.0F ) );
-        photo.updateFromOriginalFile();
-        return photo;
+        throw new UnsupportedOperationException( "addToDb is not supported anymore" );
     }
     
     /**
@@ -345,36 +263,6 @@ public class PhotoInfo implements PhotoEditor {
      */
     public void setVersion( PhotoInfoChangeDesc v ) {
         version = v;
-    }
-    
-    
-    /**
-     Reads field values from original file EXIF values
-     @return true if successfull, false otherwise
-     */
-    
-    public boolean updateFromOriginalFile() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        ImageFile origFile = null;
-        File f = origFile.findAvailableCopy();
-        boolean success = false;
-        if ( f != null ) {
-            String suffix = "";
-            int suffixStart = f.getName().lastIndexOf( "." );
-            if ( suffixStart >= 0 &&  suffixStart < f.getName().length() -1 ) {
-                suffix = f.getName().substring( suffixStart+1 );
-            }
-            Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
-            if ( readers.hasNext() ) {
-                updateFromFileMetadata( f );
-                success = true;
-            } else {
-                success = updateFromRawFileMetadata( f );
-            }
-            txw.commit();
-            return success;
-        }
-        return false;
     }
 
     /**
@@ -465,7 +353,7 @@ public class PhotoInfo implements PhotoEditor {
      instances cannot be deleted, other instances are deleted anyway but the actual
      PhotoInfo and its associations to folders are preserved.
      
-     TODO: This should be reimplemented according to new database schema
+     @deprecated TODO: This should be reimplemented according to new database schema
      
      @param deleteExternalInstances Tries to delete also instances on external 
      volumes
@@ -473,46 +361,7 @@ public class PhotoInfo implements PhotoEditor {
      @throws PhotovaultException if some instances of the photo cannot be deleted
      */
     public void delete( boolean deleteExternalInstances ) throws PhotovaultException {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();
-
-        
-        // First delete all instances
-        // TODO: How to implement correct semantics using 
-//        Vector deletedInstances = new Vector();
-//        Vector notDeletedInstances = new Vector();        
-//        for ( ImageInstance f : instances ) {
-//            if ( f.delete( deleteExternalInstances ) ) {
-//                deletedInstances.add( f );
-//            } else {
-//                notDeletedInstances.add( f );
-//            }
-//        }
-//        
-//        // Remove all instances we were able to delete
-//        for ( int i = 0 ; i < deletedInstances.size(); i++ ) {
-//            instances.remove( deletedInstances.elementAt( i ) );
-//        }
-//        
-//        if ( notDeletedInstances.size() > 0 ) {
-//            txw.commit();
-//            throw new PhotovaultException( "Unable to delete some instances of the photo" );
-//        }
-
-        /*
-         All instances were succesfully deleted, so we can delete metadata as well.
-         First, delete the photo from all folders it belongs to
-         */
-//        if ( folders != null ) {
-//            Object[] foldersArray = folders.toArray();
-//            for ( int n = 0; n < foldersArray.length; n++ ) {
-//                ((PhotoFolder)foldersArray[n]).removePhoto( this );
-//            }
-//        }
-        
-        // Then delete the PhotoInfo object itself
-        db.deletePersistent( this );
-        txw.commit();        
+        throw new UnsupportedOperationException( "delete() not implemented in Hibernate schema" );
     }
         
     
@@ -1188,15 +1037,12 @@ public class PhotoInfo implements PhotoEditor {
             }
             PhotovaultImageFactory imageFactory = new PhotovaultImageFactory();
             PhotovaultImage img = null;
-            try {
-                /*
-                 Do not read the image yet since setting raw conversion
-                 parameters later may force a re-read.
-                 */
-                img = imageFactory.create(imageFile, false, false);
-            } catch (PhotovaultException ex) {
-                log.error( ex.getMessage() );
-            }
+            /*
+            Do not read the image yet since setting raw conversion
+            parameters later may force a re-read.
+             */
+            img = imageFactory.create( imageFile, false, false );
+
             img.setCropBounds( this.getCropBounds() );
             img.setRotation( prefRotation );
             if ( channelMap != null ) {
@@ -1304,22 +1150,6 @@ public class PhotoInfo implements PhotoEditor {
         }
     }
     
-    
-    /**
-     TODO:Update documentations
-     MD5 hash code of the original instance of this PhotoInfo. It must is stored also
-     as part of PhotoInfo object since the original instance might be deleted from the
-     database (or we might synchronize just metadata without originals into other database!).
-     With the hash code we are still able to detect that an image file is actually the
-     original.
-     @deprecated Use original.getFile().getHash()
-     */
-    byte origInstanceHash[] = null;
-    
-    @Transient
-    public byte[] getOrigInstanceHash() {
-        return original.getFile().getHash();
-    }
     
     
     java.util.Date shootTime;

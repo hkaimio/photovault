@@ -42,7 +42,10 @@ import org.photovault.image.ColorCurve;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.test.PhotovaultTestCase;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -99,11 +102,18 @@ public class Test_ImageFile extends PhotovaultTestCase {
     @AfterTest
     @Override
     public void tearDown() throws Exception {
+        vol1 = (VolumeBase) session.get( VolumeBase.class, vol1.getId() );
+        vol2 = (VolumeBase) session.get( VolumeBase.class, vol2.getId() );
         session.delete( vol1 );
         session.delete( vol2 );
         FileUtils.deleteTree( vol1.getBaseDir() );
         FileUtils.deleteTree( vol2.getBaseDir() );
         session.close();
+    }
+    
+    @AfterMethod
+    public void cleanupSession() {
+        session.clear();
     }
    
     @Test
@@ -158,7 +168,8 @@ public class Test_ImageFile extends PhotovaultTestCase {
     }
     
     @Test
-    public void testImageDescriptorPersistence() {
+    public void testImageDescriptorPersistence() 
+            throws InstantiationException, InstantiationException, IllegalAccessException {
         Transaction tx = session.beginTransaction();
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
@@ -173,8 +184,14 @@ public class Test_ImageFile extends PhotovaultTestCase {
         i11.setWidth( 1200 );
         i11.setHeight( 1400 );
         idDAO.makePersistent( i11 );
-        PhotoInfo p1 = new PhotoInfo( i11 );
+        DTOResolverFactory rf = daoFactory.getDTOResolverFactory();
+        VersionedObjectEditor<PhotoInfo> pe = 
+                new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, UUID.randomUUID(), rf );
+        pe.setField( "original", i11 );
+        pe.apply();
+        PhotoInfo p1 = pe.getTarget();
         photoDAO.makePersistent( p1 );
+        photoDAO.flush();
         CopyImageDescriptor i12 = new CopyImageDescriptor( f1, "image#1", i11 );
         i12.setCropArea( new Rectangle2D.Double( 0.1, 0.2, 0.3, 0.4 ) );
         i12.setWidth( 300 );
@@ -184,10 +201,20 @@ public class Test_ImageFile extends PhotovaultTestCase {
         i21.setWidth( 2000 );
         i21.setHeight( 3000 );
         idDAO.makePersistent( i21 );
-        PhotoInfo p2 = new PhotoInfo( i21 );
-        PhotoInfo p3 = new PhotoInfo( i21 );
+        pe = 
+                new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, UUID.randomUUID(), rf );
+        pe.setField( "original", i21 );
+        pe.apply();
+        PhotoInfo p2 = pe.getTarget();
         photoDAO.makePersistent( p2 );
+        photoDAO.flush();
+        pe = 
+                new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, UUID.randomUUID(), rf );
+        pe.setField( "original", i21 );
+        pe.apply();
+        PhotoInfo p3 = pe.getTarget();
         photoDAO.makePersistent( p3 );
+        photoDAO.flush();
         CopyImageDescriptor i22 = new CopyImageDescriptor( f2, "image#1", i11 );
         i22.setWidth( 400 );
         i22.setHeight( 400 );
@@ -239,7 +266,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
     }
     
     @Test
-    public void testDto() {
+    public void testDto() throws InstantiationException, IllegalAccessException {
         Transaction tx = session.beginTransaction();
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
@@ -251,7 +278,13 @@ public class Test_ImageFile extends PhotovaultTestCase {
         i11.setWidth( 1200 );
         i11.setHeight( 1400 );
         idDAO.makePersistent( i11 );
-        PhotoInfo p1 = new PhotoInfo( i11 );
+        DTOResolverFactory rf = daoFactory.getDTOResolverFactory();
+        
+        VersionedObjectEditor<PhotoInfo> pe = 
+                new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class, UUID.randomUUID(), rf );
+        pe.setField( "original", i11 );
+        pe.apply();
+        PhotoInfo p1 = pe.getTarget();
         photoDAO.makePersistent( p1 );
         tx.commit();
         

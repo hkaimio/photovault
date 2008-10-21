@@ -39,7 +39,7 @@ import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ChannelMapRuleSet;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoNotFoundException;
+import org.photovault.imginfo.PhotoInfoDAO;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -238,14 +238,9 @@ public class XmlImporter {
             String uuidStr = attrs.getValue( "id" );
             UUID uuid = UUID.fromString( uuidStr );
             PhotoInfo p = null;
-            try {
-                p = PhotoInfo.retrievePhotoInfo(uuid);
-            } catch (PhotoNotFoundException ex) {
-                log.error( "Error while finding PhotoInfo with uuid " + uuid + 
-                        ":" + ex.getMessage() );
-                ex.printStackTrace();
-            }
-            
+            PhotoInfoDAO photoDao = null;
+            p = photoDao.findByUUID( uuid );
+
             if ( p == null ) {
                 p = PhotoInfo.create( uuid );
                 digester.push( STACK_CREATING_NEW, Boolean.TRUE );
