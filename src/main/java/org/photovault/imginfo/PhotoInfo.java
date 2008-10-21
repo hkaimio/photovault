@@ -37,7 +37,6 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -48,8 +47,6 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import org.hibernate.Session;
 import org.photovault.common.PhotovaultException;
-import org.photovault.dbhelper.ODMG;
-import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
@@ -1137,7 +1134,7 @@ public class PhotoInfo implements PhotoEditor {
                 } finally {
                     if (ios != null) ios.close();
                     writer.dispose();
-                    if ( exportImage != null & exportImage instanceof PlanarImage ) {
+                    if ( exportImage != null && exportImage instanceof PlanarImage ) {
                         ((PlanarImage)exportImage).dispose();
                         System.gc();
                     }
