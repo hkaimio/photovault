@@ -46,8 +46,7 @@ import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 
@@ -69,7 +68,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
     VolumeBase vol1;
     VolumeBase vol2;
     
-    @BeforeTest
+    @BeforeMethod
     @Override
     public void setUp() {
         JUnitHibernateManager.getHibernateManager();
@@ -99,9 +98,10 @@ public class Test_ImageFile extends PhotovaultTestCase {
         }
     }
 
-    @AfterTest
+    @AfterMethod
     @Override
     public void tearDown() throws Exception {
+        session = HibernateUtil.getSessionFactory().openSession();
         vol1 = (VolumeBase) session.get( VolumeBase.class, vol1.getId() );
         vol2 = (VolumeBase) session.get( VolumeBase.class, vol2.getId() );
         session.delete( vol1 );
@@ -111,10 +111,6 @@ public class Test_ImageFile extends PhotovaultTestCase {
         session.close();
     }
     
-    @AfterMethod
-    public void cleanupSession() {
-        session.clear();
-    }
    
     @Test
     public void testImageFileCreate() {
@@ -267,7 +263,6 @@ public class Test_ImageFile extends PhotovaultTestCase {
     
     @Test
     public void testDto() throws InstantiationException, IllegalAccessException {
-        Transaction tx = session.beginTransaction();
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
         ImageFile f1 = new ImageFile();
@@ -286,7 +281,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         pe.apply();
         PhotoInfo p1 = pe.getTarget();
         photoDAO.makePersistent( p1 );
-        tx.commit();
+        session.flush();
         
         // Create another ImageFile but don't persist it, just create mathcihng DTO
         ImageFile f2 = new ImageFile();
@@ -294,13 +289,17 @@ public class Test_ImageFile extends PhotovaultTestCase {
         CopyImageDescriptor i21 = new CopyImageDescriptor( f2, "image#0", i11 );
         i21.setWidth( 2000 );
         i21.setHeight( 3000 );
+
+        // ii1 is not corrupted as it has reference to nonpersistent i21
+        session.clear();
+        f1 = ifDAO.findById( f1.getId(), false );
+        i11 = (OriginalImageDescriptor) f1.getImage( "image#0" );
         
         ImageFileDTO fdto1 = new ImageFileDTO( f2 );
         assertEquals(  fdto1.getUuid() ,f2.getId() );
         assertEquals(  fdto1.getHash() ,f2.getHash() );        
         assertEquals(  fdto1.getSize() ,f2.getFileSize() );
 
-        tx = session.beginTransaction();
                 
         ImageFileDtoResolver resolver = new ImageFileDtoResolver();
         resolver.setSession( session );
@@ -331,7 +330,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         
         // Now, add the file to default volume
         VolumeDAO volDAO = daoFactory.getVolumeDAO();
-        VolumeBase defaultVolume = volDAO.getDefaultVolume();
+        VolumeBase defaultVolume = vol1;
         File fl = defaultVolume.getFilingFname( testFile );
         FileUtils.copyFile( testFile, fl );
         cmd = new ModifyImageFileCommand( f );
@@ -367,21 +366,22 @@ public class Test_ImageFile extends PhotovaultTestCase {
     @Test
     public void testFindByLocation() throws IOException, PhotovaultException {
         File testDir = new File( System.getProperty( "basedir" ), "testfiles" );
-        File testFile = new File( testDir, "test2.jpg" );
-        File testFile2 = new File( testDir, "test3.jpg" );
-        ExternalVolume extvol = new ExternalVolume();
-        VolumeManager.instance().initVolume(extvol, testDir);
-        VolumeDAO volDAO = daoFactory.getVolumeDAO();
+        File testFileOrig = new File( testDir, "test2.jpg" );
+        File testFile2Orig = new File( testDir, "test3.jpg" );
+        File testFile = new File( vol2.getBaseDir(), "test2.jpg" );
+        FileUtils.copyFile( testFileOrig, testFile );
+        File testFile2 = new File( vol2.getBaseDir(), "test3.jpg" );
+        FileUtils.copyFile( testFile2Orig, testFile2 );
         ImageFile imgFile = new ImageFile( testFile );
-        imgFile.addLocation( new FileLocation( extvol, "test2.jpg" ) );
+        imgFile.addLocation( new FileLocation( vol2, "test2.jpg" ) );
         ImageFile imgFile2 = new ImageFile( testFile2 );
-        imgFile2.addLocation( new FileLocation( extvol, "test3.jpg" ) );
+        imgFile2.addLocation( new FileLocation( vol2, "test3.jpg" ) );
         ifDAO.makePersistent( imgFile );
         ifDAO.makePersistent( imgFile2 );
         session.flush();
-        assertEquals( imgFile, ifDAO.findFileInLocation( extvol, "test2.jpg" ) );
-        assertEquals( imgFile2, ifDAO.findFileInLocation( extvol, "test3.jpg" ) );
-        assertNull( ifDAO.findFileInLocation( extvol, "test4.jpg" ) );
+        assertEquals( imgFile, ifDAO.findFileInLocation( (ExternalVolume) vol2, "test2.jpg"  ) );
+        assertEquals( imgFile2, ifDAO.findFileInLocation( (ExternalVolume) vol2, "test3.jpg"  ) );
+        assertNull( ifDAO.findFileInLocation( (ExternalVolume) vol2, "test4.jpg"  ) );
     }
     
     /**
