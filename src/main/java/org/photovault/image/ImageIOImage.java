@@ -20,6 +20,9 @@
 
 package org.photovault.image;
 
+import com.adobe.xmp.XMPException;
+import com.adobe.xmp.XMPMeta;
+import com.adobe.xmp.XMPMetaFactory;
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
@@ -40,6 +43,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -62,6 +66,8 @@ import javax.media.jai.RenderedImageAdapter;
 import javax.media.jai.RenderedOp;
 import javax.media.jai.TiledImage;
 import javax.media.jai.operator.RenderableDescriptor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -69,7 +75,7 @@ import org.w3c.dom.NodeList;
  * Wrapper class for imaging pipeline for images that are read using JAI ImageIO
  */
 public class ImageIOImage extends PhotovaultImage {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ImageIOImage.class.getName() );
+    static final private Log log = LogFactory.getLog( ImageIOImage.class.getName() );
 
     private int width = 0;
 
@@ -153,6 +159,8 @@ public class ImageIOImage extends PhotovaultImage {
      */
     public Date getTimestamp() {
         Date ret = null;
+
+        
         String origDateStr = getEXIFTagAsString( EXIFTIFFTagSet.TAG_DATE_TIME_ORIGINAL );
         if ( origDateStr == null ) {
             origDateStr = getEXIFTagAsString( BaselineTIFFTagSet.TAG_DATE_TIME );
@@ -238,6 +246,15 @@ public class ImageIOImage extends PhotovaultImage {
             ret = metadata.getTIFFField( tag );
         }
         return ret;        
+    }
+    
+    XMPMeta xmpMetadata = null;
+    
+    private XMPMeta getXMPMetadata() {
+        if ( xmpMetadata == null ) {
+            load( false, true, Integer.MAX_VALUE, Integer.MAX_VALUE, false );
+        }
+        return xmpMetadata;
     }
     
     /**
@@ -353,6 +370,26 @@ public class ImageIOImage extends PhotovaultImage {
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }
+                    } else if ( data[28] == 0 ) {
+                        String id = null;
+                        try {
+                            id = new String( data, 0, 28, "utf-8" );
+                        } catch ( UnsupportedEncodingException e ) {
+                            log.error( e );
+                        }
+                        if ( "http://ns.adobe.com/xap/1.0/".equals( id ) ) {
+
+                            // XMP metadata
+                            try {
+                                String xmpPacket = new String( data, 29, data.length-29, "utf-8" );
+                                XMPMeta xmp = XMPMetaFactory.parseFromString( xmpPacket );
+                                log.debug( "Found XMP metadata" );
+                            } catch ( XMPException e ) {
+                                log.warn( "caught XMP exception while parsing metadata", e );
+                            } catch( UnsupportedEncodingException e ) {
+                                log.error( e );
+                            }
+                    }
                     }
                 }
             }

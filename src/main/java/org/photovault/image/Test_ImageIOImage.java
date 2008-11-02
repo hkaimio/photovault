@@ -12,18 +12,18 @@ package org.photovault.image;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
-import javax.media.jai.RenderableOp;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
+import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 
 /**
  * Test cases for ImageIOImage
  * @author harri
  */
-public class Test_ImageIOImage extends TestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_ImageIOImage.class.getName() );    
+public class Test_ImageIOImage {
+    static private final Log log = LogFactory.getLog( Test_ImageIOImage.class.getName() );    
     /** Creates a new instance of Test_ImageIOImage */
     public Test_ImageIOImage() {
     }
@@ -31,6 +31,7 @@ public class Test_ImageIOImage extends TestCase {
     /**
      * Verify that a JPEG file and its metadata can be read correctly
      */
+    @Test
     public void testJPEGImageRead() {
         File f = new File ( "testfiles", "test1.jpg" );
         PhotovaultImageFactory fact = new PhotovaultImageFactory();
@@ -52,6 +53,7 @@ public class Test_ImageIOImage extends TestCase {
     /**
      * Test that an attempt to read nonexistent file works correctly.
      */
+    @Test
     public void testReadNonExistent() {
         File f = null;
         try {
@@ -73,6 +75,7 @@ public class Test_ImageIOImage extends TestCase {
     /**
      * Test that reading a file that is not a recognized iamge works correctly
      */
+    @Test
     public void testReadNonImage() {
         File f = new File ( "testfiles", "testconfig.xml" );
         ImageIOImage img = null;
@@ -83,16 +86,19 @@ public class Test_ImageIOImage extends TestCase {
             fail( "Could not load image: " + ex.getMessage() );
         }
         assertNull( img );        
-    }
-    
-    public static Test suite() {
-        return new TestSuite( Test_ImageIOImage.class );
-    }
-
-    public static void main( String[] args ) {
-	log.setLevel( org.apache.log4j.Level.DEBUG );
-	org.apache.log4j.Logger photoLog = org.apache.log4j.Logger.getLogger( ImageIOImage.class.getName() );
-	photoLog.setLevel( org.apache.log4j.Level.DEBUG );
-	junit.textui.TestRunner.run( suite() );
     }    
+    
+    @Test
+    public void testXmpMetadata() {
+        File f = new File ( "testfiles", "xmptest.jpg" );
+        PhotovaultImageFactory fact = new PhotovaultImageFactory();
+        ImageIOImage img = null;
+        try {
+            img = (ImageIOImage) fact.create(f, false, true);
+        } catch (PhotovaultException ex) {
+            fail( "Could not load image: " + ex.getMessage() );
+        }
+        assertNotNull( img );
+        
+    }
 }

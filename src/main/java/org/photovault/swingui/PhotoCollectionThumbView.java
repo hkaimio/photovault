@@ -1412,7 +1412,7 @@ public class PhotoCollectionThumbView
             final CreateCopyImageCommand cmd = 
                     new CreateCopyImageCommand( nextPhoto, vol, 100, 100 );
             return new BackgroundTask() {
-
+                
                 public void run( ) {
                     try {
                         cmdHandler.executeCommand( cmd );

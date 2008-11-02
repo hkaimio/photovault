@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.UUID;
 import org.hibernate.Session;
 import javax.persistence.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Transaction;
 import org.photovault.persistence.HibernateUtil;
 
@@ -35,6 +37,8 @@ import org.photovault.persistence.HibernateUtil;
 @Entity
 @Table( name = "database_info" )
 public class DbInfo {
+    
+    static private final Log log = LogFactory.getLog( DbInfo.class.getName() );
     
     /**
      Creates a new instance of DbInfo. THis should <b>not</b> be used by
@@ -54,18 +58,25 @@ public class DbInfo {
     static public DbInfo getDbInfo() {
         if ( info == null ) {
             String query = "select info from " + DbInfo.class.getName();
-            List infos = null;
             
             Session session =
                     HibernateUtil.getSessionFactory().openSession();
             Transaction tx = session.beginTransaction();
-            
+
+            try {
+            List infos = null;
             infos = session.createQuery( "from DbInfo i" ).list();
             
             if ( infos.size() > 0 ) {
                 info = (DbInfo) infos.get(0);
             }
-            
+            } catch ( Exception e ) {
+                /*
+                 Could not get the database info, most likely because the 
+                 schema is of too old version
+                 */
+                log.warn( e );
+            }
             tx.commit();
             session.close();
         }

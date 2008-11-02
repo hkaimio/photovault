@@ -33,6 +33,7 @@ import java.awt.image.renderable.ParameterBlock;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -44,6 +45,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageTypeSpecifier;
@@ -61,10 +63,14 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.common.PhotovaultException;
+import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
+import org.photovault.imginfo.xml.Base64;
+import org.photovault.replication.ObjectHistory;
+import org.photovault.replication.ObjectHistoryDTO;
 import org.w3c.dom.NodeList;
 
 /**
@@ -336,7 +342,7 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
      */
     static private final String NS_TIFF = "http://ns.adobe.com/tiff/1.0/";
     
-    static private final String NS_PV_CROP = "http://ns.photovault.org/xmp/1.0/#crop";
+    static private final String NS_PV = "http://ns.photovault.org/xmp/1.0/";
     
     /**
      Creates an XMP packet from associated data that can be added to saved copy 
@@ -345,71 +351,13 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
      files from one Photovault database to another without loss of information.
      
      @param ifile The ImageFile that is saved
-     @return Binary XMP packed
+     @return Binary XMP packet
      */
     private byte[] createXMPMetadata( ImageFile ifile ) {
-        XMPMeta meta = XMPMetaFactory.create();
-        XMPSchemaRegistry reg = XMPMetaFactory.getSchemaRegistry();
-        
-        // Check for Photovault schemas
-        if ( reg.getNamespacePrefix(NS_PV_CROP) == null ) {
-            try {
-                reg.registerNamespace(NS_PV_CROP, "pvCrop" );
-            } catch ( XMPException e ) {
-                log.error( "CMPException: " + e.getMessage() );
-            }
-        }
-        
+        XMPConverter xmpconv = new XMPConverter( null );
         byte[] data = null;
         try {
-            URI ifileURI = new URI( "uuid", ifile.getId().toString(), null );
-            meta.setProperty( NS_MM, "InstanceID", ifileURI.toString()  );
-            meta.setProperty( NS_MM, "Manager", "Photovault 0.5.0dev"  );
-            meta.setProperty( NS_MM, "ManageTo", ifileURI.toString() );
-            CopyImageDescriptor firstImage = (CopyImageDescriptor) ifile.getImage( "image#0" );
-            OriginalImageDescriptor orig = firstImage.getOriginal();
-            String rrNS = reg.getNamespaceURI( "stRef" );
-            URI origURI = 
-                    new URI( "uuid", orig.getFile().getId().toString(), orig.getLocator() );
-            meta.setStructField(NS_MM, "DerivedFrom", 
-                    rrNS, "InstanceID", origURI.toString()  );
-            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "Rotation", 
-                    Double.toString( firstImage.getRotation() ) );
-            Rectangle2D cropArea = firstImage.getCropArea();
-            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "XMin", 
-                    Double.toString( cropArea.getMinX() ) );
-            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "XMax", 
-                    Double.toString( cropArea.getMaxX() ) );
-            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "YMin", 
-                    Double.toString( cropArea.getMinY() ) );
-            meta.setStructField( NS_MM, "DerivedFrom", NS_PV_CROP, "YMax", 
-                    Double.toString( cropArea.getMaxY() ) );
-            
-            /*
-             Set the image metadata based the photo we are creating this copy.
-             There may be other photos associated with the origial image file,
-             so we should store information about these in some proprietary part 
-             of metadata.
-             */
-            meta.appendArrayItem( NS_DC, "creator", 
-                    new PropertyOptions().setArrayOrdered( true ), 
-                    photo.getPhotographer(), null );
-            meta.setProperty( NS_DC, "description", photo.getDescription() );
-            
-            
-            Date shootDate = photo.getShootTime();
-            if ( shootDate != null ) {
-                DateFormat df = new SimpleDateFormat( 
-                        "yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
-                String xmpShootDate = df.format( shootDate );
-                meta.setProperty( NS_XMP_BASIC, "CreateDate", xmpShootDate );
-            }
-
-            // Save technical data
-            meta.setProperty( NS_TIFF, "Model", photo.getCamera() );
-            meta.setProperty( NS_EXIF_AUX, "Lens", photo.getLens() );
-            // TODO: add other photo attributes as well
-            
+            XMPMeta meta = xmpconv.getXMPMetadata( ifile, photo );
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
             outStream.write( "http://ns.adobe.com/xap/1.0/".getBytes("utf-8" ) );
             outStream.write( 0 );
@@ -417,9 +365,14 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
             outStream.write( "<?xpacket end=\"w\"?>".getBytes( "utf-8" ) );
             data = outStream.toByteArray();
             log.debug( "XMP metadata:\n" + new String( data ) );
-        } catch ( Exception ex ) {
-            Logger.getLogger( CreateCopyImageCommand.class.getName() ).log( Level.SEVERE, null, ex );
+        
+        
+        } catch ( XMPException e ) {
+            log.error( e );
+        } catch ( IOException e ) {
+            log.error( e );
         }
+
         return data;
     }
 
