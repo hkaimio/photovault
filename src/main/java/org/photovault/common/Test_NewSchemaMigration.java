@@ -46,6 +46,7 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.CopyImageDescriptor;
+import org.photovault.imginfo.FileLocation;
 import org.photovault.imginfo.FileUtils;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.ImageOperations;
@@ -69,8 +70,10 @@ import org.xml.sax.SAXException;
 public class Test_NewSchemaMigration extends PhotovaultTestCase {
     
     static Log log = LogFactory.getLog( Test_NewSchemaMigration.class.getName() );
+    
     /** 
-     Add the tables from previous schema and polupate with data
+     Add the tables from previous schema and populate with data from 
+     testfiles/migration_test_data_0.5.0.xml.
      */
     @BeforeClass
     public void setUpTestCase() throws DdlUtilsException, SQLException, IOException  {
@@ -148,11 +151,9 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         DataReader reader = new DataReader();
         reader.setModel( dbModel );
         reader.setSink( sink );
-        Log digesterLog = LogFactory.getLog( org.apache.commons.digester.Digester.class.getName() );
-        InputStream seedDataStream = this.getClass().getClassLoader().getResourceAsStream( "migration_test_data_0.5.0.xml" );
         try {
             sink.start();
-            reader.parse( seedDataStream );
+            reader.parse( new File( "testfiles", "migration_test_data_0.5.0.xml" ) );
             sink.end();
         } catch (SAXException ex) {
             log.error( "SAXException: " + ex.getMessage(), ex );
@@ -164,6 +165,11 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         session.close();
     }
     
+    /**
+     Initialize the defaultVolume of database that is being converted
+     @param db
+     @throws java.io.IOException
+     */
     private void initTestVolume( PVDatabase db ) throws IOException {
         File voldir = File.createTempFile( "pv_conversion_testvol", "" );
         voldir.delete();
@@ -182,23 +188,31 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
     }
     
     
-    
+    /**
+     Initialize the external volume used by database being converted
+     @param db
+     @throws java.io.IOException
+     */
     private void initTestExtVolume( PVDatabase db ) throws IOException {
         File voldir = File.createTempFile( "pv_conversion_extvol", "" );
         voldir.delete();
         voldir.mkdir();
-        File d1 = new File( "testdir2" );
-        d1.mkdirs();
-        File f1 = new File( "testfiles", "test2.jpg" );
-        File df1 = new File( d1, "outi1.jpg");
+        File d1 = new File( voldir, "testdir2" );
+        d1.mkdirs();    
+        File f1 = new File( "testfiles", "test4.jpg" );
+        File df1 = new File( voldir, "test4.jpg");
         FileUtils.copyFile( f1, df1);
-        File df2 = new File( d1, "outi10.jpg");
+        File df2 = new File( voldir, "cropped_test4.jpg");
         FileUtils.copyFile( f1,df2 );
         PVDatabase.LegacyVolume lvol = 
-                new PVDatabase.LegacyExtVolume( "extvol_photos", voldir.getAbsolutePath(), 4 );
+                new PVDatabase.LegacyExtVolume( "extvol_pv_convert_test_volume", 
+                voldir.getAbsolutePath(), 4 );
         db.addLegacyVolume( lvol );
     }
     
+    /**
+     Test that migration works OK.
+     */
     @Test
     public void testMigrationToVersioned() {
         SchemaUpdateAction sua = new SchemaUpdateAction( PhotovaultSettings.getSettings().getCurrentDatabase() );
@@ -212,14 +226,19 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         PhotoInfoDAO photoDao = df.getPhotoInfoDAO();
         
         PhotoInfo p1 = photoDao.findByUUID( 
-                UUID.fromString( "f5aa2e8c-9290-4ce5-9598-e311ed51668d") );
+                UUID.fromString( "639f492f-99b2-4d93-b18e-597324edc482") );
         OriginalImageDescriptor o1 = p1.getOriginal();
-        assertEquals( 1850, o1.getWidth() );
-        assertEquals( 2770, o1.getHeight() );
-        assertEquals( "Place1", p1.getShootingPlace() );
-        assertEquals( "Harri Kaimio", p1.getPhotographer() );
+        assertEquals( 1536, o1.getWidth() );
+        assertEquals( 2048, o1.getHeight() );
+        assertEquals( "London", p1.getShootingPlace() );
+        assertEquals( "Harri", p1.getPhotographer() );
+        Set<FileLocation> locations = p1.getOriginal().getFile().getLocations();
+        assertEquals( 1, locations.size() );
+        FileLocation l = locations.iterator().next();
+        assertEquals( "/test4.jpg", l.getFname() );
+        
         FuzzyDate fd = p1.getFuzzyShootTime();
-        assertEquals( 0.5, fd.getAccuracy(), 0.001 );
+        assertEquals( 182.5, fd.getAccuracy(), 0.001 );
         
         ObjectHistory<PhotoInfo> h1 = p1.getHistory();
         Set<Change<PhotoInfo>> ch1 = h1.getChanges();
@@ -227,20 +246,39 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         assertNull( p1.getRawSettings() );
         
         Set<PhotoFolder> p1folders = p1.getFolders();
-        assertEquals( 2, p1folders.size() );
+        assertEquals( 1, p1folders.size() );
         PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
         PhotoFolder f1 = folderDao.findById( 
-                UUID.fromString( "15283a2c-1000-4b51-ac45-ba250cca551b"), false );
-        PhotoFolder f2 = folderDao.findById( 
-                UUID.fromString( "0e09a6a8-f34b-4a28-9430-ae722e7f2767"), false );
+                UUID.fromString( "433404fe-ed6b-43a4-872d-286b23a6dfad"), false );
         assertTrue( p1folders.contains( f1 ) );
-        assertTrue( p1folders.contains( f2 ) );
 
+        /*
+         Photo # 23 & #24 were actually the same image but with different original 
+         hash due to changed EXIF data. As copies created from #24 are identical 
+         to those created from #23, they should be associated with #23.
+         */
+        
+        PhotoInfo p23 = photoDao.findByUUID( 
+                UUID.fromString( "7115db43-12e8-43f2-a6ad-d66f8c039636" ) );
+        PhotoInfo p24 = photoDao.findByUUID( 
+                UUID.fromString( "e1a08867-1b6f-4d53-a22e-2744ab770914" ) );
+        
+        OriginalImageDescriptor p23orig = p23.getOriginal();
+        boolean foundP23Thumb = false;
+        for ( CopyImageDescriptor c : p23orig.getCopies() ) {
+            if ( c.getFile().getId().equals( 
+                    UUID.fromString( "fec3b45f-4acc-4978-9b00-8b2acb5268a1" ) ) ) {
+                foundP23Thumb = true;
+            }
+        }
+        assertTrue( foundP23Thumb );
+        OriginalImageDescriptor p24orig = p24.getOriginal();
+        assertEquals( 0, p24orig.getCopies().size() );
+        
+        
         // Photo with raw image
         PhotoInfo p2 = photoDao.findByUUID( 
                 UUID.fromString( "e3f4b466-d1a3-48c1-ac86-01d9babf373f") );
-        assertEquals( 1, p2.getFolders().size() );
-        assertTrue( p2.getFolders().contains( f2 ) );
         RawConversionSettings r2 = p2.getRawSettings();
         assertEquals( 31347, r2.getWhite() );
         assertEquals( 0.5, r2.getHighlightCompression() );

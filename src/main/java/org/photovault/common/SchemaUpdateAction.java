@@ -62,6 +62,7 @@ import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.FileLocation;
 import org.photovault.imginfo.FuzzyDate;
+import org.photovault.imginfo.ImageDescriptorBase;
 import org.photovault.imginfo.ImageDescriptorDAO;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.ImageFileDAO;
@@ -536,7 +537,7 @@ public class SchemaUpdateAction {
     private void convertPhotos() throws SQLException {
 
         Session s = HibernateUtil.getSessionFactory().openSession();
-        HibernateDAOFactory daoFactory = 
+        HibernateDAOFactory daoFactory =
                 (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
         daoFactory.setSession( s );
         DTOResolverFactory rf = daoFactory.getDTOResolverFactory();
@@ -544,91 +545,137 @@ public class SchemaUpdateAction {
         ImageDescriptorDAO imgDao = daoFactory.getImageDescriptorDAO();
         ImageFileDAO ifDao = daoFactory.getImageFileDAO();
         VolumeDAO volDao = daoFactory.getVolumeDAO();
-        
+
         /*
-         We need a second session for reading old data so that Hibernate can 
-         commit its changes
+        We need a second session for reading old data so that Hibernate can 
+        commit its changes
          */
         Session sqlSess = HibernateUtil.getSessionFactory().openSession();
         Connection conn = sqlSess.connection();
         Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery( oldPhotoQuerySql  );
+        ResultSet rs = stmt.executeQuery( oldPhotoQuerySql );
         int currentPhotoId = -1;
         OriginalImageDescriptor currentOriginal = null;
         long photoStartTime = -1;
-        
+
         while ( rs.next() ) {
             int photoId = rs.getInt( "p_photo_id" );
+            boolean isNewPhoto = false;
             if ( photoId != currentPhotoId ) {
+                isNewPhoto = true;
+                currentPhotoId = photoId;
                 s.flush();
                 /*
-                 Photos are not dependent from each other, so clear the session 
-                 cache to improve performance and memory usage.
+                Photos are not dependent from each other, so clear the session 
+                cache to improve performance and memory usage.
                  */
                 s.clear();
-                log.debug(  "finished photo " + currentPhotoId + " in " + 
+                log.debug( "finished photo " + currentPhotoId + " in " +
                         (System.currentTimeMillis() - photoStartTime) + " ms" );
                 log.debug( "Starting photo " + photoId );
                 photoStartTime = System.currentTimeMillis();
             }
             // Create the image file corresponding to this row
-            ImageFile imgf = new ImageFile();
-            imgf.setFileSize( rs.getInt( "i_file_size" ) );
-            imgf.setHash( rs.getBytes( "i_hash" ) );
-            String instUuid = rs.getString( "i_instance_uuid" );
-            if ( instUuid != null ) {
-                imgf.setId( UUID.fromString( instUuid ) );
+
+            ImageFile imgf = ifDao.findImageFileWithHash( rs.getBytes( "i_hash" ) );
+            if ( imgf == null ) {
+                // The file was not previously known, create
+                imgf = new ImageFile();
+
+                imgf.setFileSize( rs.getInt( "i_file_size" ) );
+                imgf.setHash( rs.getBytes( "i_hash" ) );
+                String instUuid = rs.getString( "i_instance_uuid" );
+                if ( instUuid != null ) {
+                    imgf.setId( UUID.fromString( instUuid ) );
+                } else {
+                    imgf.setId( UUID.randomUUID() );
+                }
+                if ( rs.getInt( "i_is_original" ) == 1 ) {
+                    currentOriginal = new OriginalImageDescriptor( imgf, "image#0" );
+                    currentOriginal.setHeight( rs.getInt( "i_height" ) );
+                    currentOriginal.setWidth( rs.getInt( "i_width" ) );
+                } else {
+                    CopyImageDescriptor cimg =
+                            new CopyImageDescriptor( imgf, "image#0", currentOriginal );
+                    ChannelMapOperation cm =
+                            ChannelMapOperationFactory.createFromXmlData(
+                            rs.getBytes( "i_channel_map" ) );
+                    cimg.setColorChannelMapping( cm );
+                    Rectangle2D crop = readCropArea( rs, "i_" );
+                    cimg.setCropArea( crop );
+                    cimg.setHeight( rs.getInt( "i_height" ) );
+                    cimg.setWidth( rs.getInt( "i_width" ) );
+                    cimg.setRotation( rs.getDouble( "i_rotated" ) );
+                    // Does this instance have raw conversion applied?
+                    rs.getDouble( "i_whitepoint" );
+                    if ( !rs.wasNull() ) {
+                        RawConversionSettings r = readRawSettings( rs, "i_" );
+                        cimg.setRawSettings( r );
+                    }
+                // imgDao.makePersistent( cimg );
+                }
+
+
+                ifDao.makePersistent( imgf );
             } else {
-                imgf.setId( UUID.randomUUID() );
+                log.debug( "Found existing file with id " + imgf.getId() );
+                // TODO: verify that the file matches
+                ImageDescriptorBase img = imgf.getImage( "image#0" );
+                if ( img instanceof OriginalImageDescriptor ) {
+                    /*
+                     The existing image is original. Use it for this photo as well
+                     */
+                    if ( isNewPhoto ) {
+                        currentOriginal = (OriginalImageDescriptor) img;
+                    } 
+                    /*
+                     TODO: If we have already different original for this photo,
+                     then the previous judgment that this file is an original
+                     is wrong. Delete it and modify connected photos to use original
+                     of this photo as theri original!!!
+                     */
+                } else {
+                    /*
+                     The existing image is a copy.
+                     */
+                    if ( rs.getInt( "i_is_original" ) == 1 ) {
+                        /*
+                         The old database image instance is marked as original 
+                         but we already know that this is a copy of another image.
+                         
+                         TODO: calculate all parameters by combining the 
+                         transformations made for these two!!!
+                         */
+                        log.warn( "Resetting original to another image" );
+                    } else if ( ((CopyImageDescriptor) img).getOriginal() != currentOriginal ) {
+                        /*
+                         Not much we can do. This is a known copy of some other image,
+                         so for now we just add information of the location to 
+                         database. We cannot associate the copy with two originals.                         
+                         */
+                        log.warn( "Existing copy has different original!!!" );
+                    }
+                }
             }
-            ifDao.makePersistent( imgf );
+
             String volName = rs.getString( "i_volume_id" );
             UUID volUuid = volIds.get( volName );
             if ( volUuid != null ) {
-                FileLocation fl = 
-                        new FileLocation( volDao.findById( volUuid, false ), 
+                FileLocation fl =
+                        new FileLocation( volDao.findById( volUuid, false ),
                         rs.getString( "i_fname" ) );
                 imgf.addLocation( fl );
             }
-            
-            
-            if ( photoId != currentPhotoId ) {
-                currentPhotoId = photoId;
-                 // instances of new photo start here
-                if ( rs.getInt( "i_is_original" ) != 1 ) {
-                    log.error( "No original instance found for photo " + photoId );                    
-                }
-                currentOriginal = new OriginalImageDescriptor( imgf, "image#0" );
-                currentOriginal.setHeight( rs.getInt( "i_height" ) );
-                currentOriginal.setWidth( rs.getInt( "i_width" ) );
-                imgDao.makePersistent( currentOriginal );
-                convertPhotoInfo(rs, rf, currentOriginal, photoDao );
-            } else {
-                // This is a copy of the previous image
-                CopyImageDescriptor cimg = 
-                        new CopyImageDescriptor( imgf, "image#0", currentOriginal );
-                ChannelMapOperation cm = 
-                        ChannelMapOperationFactory.createFromXmlData( 
-                        rs.getBytes( "i_channel_map" ) );
-                cimg.setColorChannelMapping( cm );
-                Rectangle2D crop = readCropArea( rs, "i_" );
-                cimg.setCropArea( crop );
-                cimg.setHeight( rs.getInt(  "i_height" ));
-                cimg.setWidth( rs.getInt(  "i_width" ));
-                cimg.setRotation( rs.getDouble( "i_rotated" ) ); 
-                // Does this instance have raw conversion applied?
-                rs.getDouble( "i_whitepoint" );
-                if ( !rs.wasNull() ) {
-                    RawConversionSettings r = readRawSettings( rs, "i_" );
-                    cimg.setRawSettings( r );
-                }
-                imgDao.makePersistent( cimg );
+
+
+            if ( isNewPhoto ) {
+                convertPhotoInfo( rs, rf, currentOriginal, photoDao );
             }
         }
 
         s.flush();
-        s.close();
 
+        s.close();
         try {
             rs.close();
             stmt.close();
