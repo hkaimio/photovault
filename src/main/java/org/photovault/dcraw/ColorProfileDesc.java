@@ -21,19 +21,13 @@
 package org.photovault.dcraw;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
-import org.odmg.Implementation;
-import org.odmg.OQLQuery;
-import org.odmg.Transaction;
-import org.photovault.dbhelper.ODMG;
-import org.photovault.dbhelper.ODMGXAWrapper;
-import org.photovault.imginfo.FileUtils;
-import org.photovault.imginfo.VolumeBase;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * This class describes a color profile used by Photovault raw conversion.
@@ -45,7 +39,7 @@ import org.photovault.imginfo.VolumeBase;
  * @since 0.4
  */
 public class ColorProfileDesc {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ColorProfileDesc.class.getName() );
+    static private final Log log = LogFactory.getLog( ColorProfileDesc.class.getName() );
     
     /**
      * Creates a new instance of ColorProfileDesc
@@ -155,29 +149,7 @@ public class ColorProfileDesc {
      * is found.
      */
     static public ColorProfileDesc getProfileById( int id ) {
-        log.debug( "Fetching ColorProfileDesc with ID " + id );
-        String oql = "select colorProfiles from " + ColorProfileDesc.class.getName() + " where id=" + id;
-        List profiles = null;
-        
-        // Get transaction context
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( oql );
-            profiles = (List) query.execute();
-            txw.commit();
-        } catch (Exception e ) {
-            log.warn( "Error fetching record: " + e.getMessage() );
-            txw.abort();
-            return null;
-        }
-        if ( profiles.size() == 0 ) {
-            return null;
-        }
-        ColorProfileDesc p = (ColorProfileDesc) profiles.get(0);
-        return p;
+        throw new UnsupportedOperationException( " ColorProfileDesc#getProfileById not supported in Hibernate!!" );
     }
     
     /**
@@ -264,36 +236,7 @@ public class ColorProfileDesc {
          * @return The created profile
          */
         public ColorProfileDesc execute() {
-            log.debug( "CreateProfile#execute: " + name );
-            ODMGXAWrapper txw = new ODMGXAWrapper();
-            ColorProfileDesc p = new ColorProfileDesc();
-            txw.lock( p, Transaction.WRITE );
-            p.setName( name );
-            p.setDescription( description );
-            
-            // Copy the file to the default volume
-            VolumeBase defvol = VolumeBase.getDefaultVolume();
-            File f = defvol.getFilingFname( profileFile );
-            log.debug( "Copying to default volume: " + f.getAbsolutePath() );
-            try {
-                FileUtils.copyFile( profileFile, f );
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            byte[] hash = FileUtils.calcHash( f );
-            p.setHash( hash );
-            txw.flush();
-            
-            ColorProfileInstance i = new ColorProfileInstance();
-            i.fname = defvol.mapFileToVolumeRelativeName( f );
-            i.volumeId = defvol.getName();
-            i.profileId = p.id;
-            
-            
-            p.addInstance( i );
-            txw.lock( i, Transaction.WRITE );
-            txw.commit();
-            return p;
+            throw new UnsupportedOperationException( "Color profiles not supported in Hibernate" );
         }
     }
     
@@ -333,14 +276,7 @@ public class ColorProfileDesc {
          * Do the changes to profile.
          */
         public void execute() {
-            ODMGXAWrapper txw = new ODMGXAWrapper();
-            txw.lock( p, Transaction.WRITE );
-            if ( newName != null ) {
-                p.setName( newName );
-            }
-            if ( newDesc != null ) {
-                p.setDescription( newDesc );
-            }
+            throw new UnsupportedOperationException( "Color profiles not supported in Hibernate" );
         }
     }
     

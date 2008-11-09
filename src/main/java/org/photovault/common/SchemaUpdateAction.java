@@ -30,7 +30,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,17 +37,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.odmg.Implementation;
-import org.odmg.OQLQuery;
-import org.photovault.dbhelper.ODMG;
-import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.FolderEditor;
@@ -146,7 +139,10 @@ public class SchemaUpdateAction {
 
         if ( oldVersion < 4 ) {
             // In older version hashcolumn was not included in schema so we must fill it.
-            createHashes();
+            /**
+             TODO: Implement this for 0.6.0
+             */
+            throw new IllegalStateException( "Conversion from pre-0.5.0 databases not yet supported" );
         }
         /*
         if ( oldVersion < 10 ) {
@@ -196,51 +192,6 @@ public class SchemaUpdateAction {
         
         fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_COMPLETE, 100 ) ); 
     
-    }
-
- 
-
-    /**
-     Create hashes for all instances that do not have those.
-     TODO: update this to work without ImageInstance
-     */
-    private void createHashes() {
-        fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_CREATING_HASHES, 0 ) );
-        String oql = "select photos from " + PhotoInfo.class.getName();
-        List photos = null;
-        
-        // Get transaction context
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( oql );
-            photos = (List) query.execute();
-            txw.commit();
-        } catch (Exception e ) {
-            txw.abort();
-            return;
-        }
-        
-        Iterator iter =photos.iterator();
-        int photoCount = photos.size();
-        int processedPhotos = 0;
-        while ( iter.hasNext() ) {
-//            PhotoInfo photo = (PhotoInfo) iter.next();
-//            for ( ImageInstance inst : photo.getInstances() ) {
-//                /*
-//                 Hashes are generated on demand, so this call calculates the hash
-//                 if it has not been calculated previously.
-//                 */
-//                byte[] hash = inst.getHash();
-//            }
-//            // Check tha also the photo info object contains original contains hash.
-//            byte[] origHash = photo.getOrigInstanceHash();
-//            processedPhotos++;
-//            fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_CREATING_HASHES,
-//                    (processedPhotos*100)/photoCount ) );
-        }
     }
     
 
