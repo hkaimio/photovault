@@ -17,7 +17,7 @@
   along with Photovault; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 -->
-<project name="Photovault" default="dist" basedir=".">
+<project name="Photovault" default="dist" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
     <description>
         Photovault image organization system
     </description>
@@ -30,77 +30,22 @@
     <property name="junittest.properties" value="junittest.properties"/>
     <property name="junittest.configfile" value="conf/junittest_config.xml"/>
     <property file="build.properties"/> 
+    <property name="ivy.jar.dir" location="ivy"/>
 
-   	
-  <!-- Checkstyle ant task definition -->
-  <!--taskdef resource="checkstyletask.properties"
-            classpath="lib/checkstyle-all-4.0-beta6.jar"/-->
-    
-    <!-- SVN info task definition -->
-    <taskdef name="svninfoproperties" classname="com.jwhitlock.ant.taskdefs.SvnInfoProperties" classpath="lib/svninfo_task.jar" />
-  
-  <!-- Clover task definition -->
-    <property name="clover.jar" location="/home/harri/tmp/clover-ant-2.0b1/lib/clover.jar"/>
-    <taskdef resource="cloverlib.xml" classpath="${clover.jar}"/>
   
   <!-- Coberture class definition -->
     <path id="cobertura-path">
         <path location="${lib}/cobertura/cobertura.jar" />
-        <path location="${lib}/log4j-1.2.12.jar"/>
+        <path location="${lib}/log4j.jar"/>
         <path location="${lib}/cobertura/asm-2.2.1.jar"/>
         <path location="${lib}/cobertura/asm-tree-2.2.1.jar"/>
         <path location="${lib}/cobertura/jakarta-oro-2.0.8.jar"/>
     </path>
     <taskdef classpathref="cobertura-path" resource="tasks.properties"/>
   
-  <!-- Hibernate tools task definition -->
-    <path id="hib-toolslib">
-        <path location="${lib}/hibernate-tools/hibernate-tools.jar" />
-        <path location="${lib}/hibernate3.jar" />
-        <path location="${lib}/hibernate-tools/freemarker.jar" />
- <!-- <path location="${jdbc.driver.jar}" /> -->
-    </path>
-    <taskdef name="hibernatetool" 
-         classname="org.hibernate.tool.ant.HibernateToolTask" 
-         classpathref="hib-toolslib" />
     <path id="runtime.path">
         <fileset id="runtime.fileset" dir="${build.lib.dir}">
-            <include name="db-ojb-1.0.4.jar"/>
-          
-          <!-- Hibernate & dependencies -->
-            <include name="hibernate3.jar"/>
-            <include name="jta.jar"/>
-            <include name="jdbc2.0-stdext.jar"/>
-            <include name="javassist.jar"/>
-            <include name="ehcache-1.2.3.jar"/>
-            <include name="c3p0-0.9.1.jar"/>
-            <include name="hibernate-annotations.jar"/>
-            <include name="hibernate-commons-annotations.jar"/>
-            <include name="ejb3-persistence.jar"/>
-            <include name="antlr-2.7.5.jar"/>
-            <include name="dom4j-1.6.1.jar"/>
-          
-          <!-- EXIF librabry -->
-            <include name="exif_extract.jar"/>
-          
-          <!-- <include name="jai_codec.jar"/>
-          <include name="jai_core.jar"/>-->
-          
-          <!-- JAI imageio -->
-            <include name="jai_imageio.jar"/>
-            <include name="clibwrapper_jiio.jar"/>
-          
-          <!-- Derby & JDBC drivers -->
-            <include name="mysql-connector-java.jar"/>
-            <include name="derby.jar"/>
-          
-          <!-- Logging -->
-            <include name="log4j-1.2.12.jar"/>
-            <include name="commons-*.jar"/>
-            <include name="swing-layout-*.jar"/>
-            <include name="DdlUtils-*"/>
-            <include name="quaqua.jar"/>
-            <include name="clover.jar"/>
+            <include name="*"/>
         </fileset>
     </path>
     <path id="project.class.path">
@@ -121,18 +66,20 @@
     <property environment="env"/>
   
   <!-- Hibernate tools task definitions -->
-    <path id="toolslib">
-        <path location="lib/hibernate-tools/hibernate-tools.jar" />
-        <path location="lib/hibernate3.jar" />
-        <path location="lib/hibernate-tools/freemarker.jar" />
-        <path location="lib/derby.jar" />
-        <path location="lib/log4j-1.2.12.jar" />
-        <path location="lib/commons-logging.jar" />
-        <path refid="project.class.path" />
-    </path>
-    <taskdef name="hibernatetool" 
+    <target name="-hibernate-tool-task">
+        <path id="toolslib">
+            <path location="lib/hibernate-tools.jar" />
+            <path location="lib/hibernate3.jar" />
+            <path location="lib/freemarker.jar" />
+            <path location="lib/derby.jar" />
+            <path location="lib/log4j.jar" />
+            <path location="lib/commons-logging.jar" />
+            <path refid="project.class.path" />
+        </path>
+        <taskdef name="hibernatetool" 
          classname="org.hibernate.tool.ant.HibernateToolTask" 
          classpathref="toolslib" />
+    </target>
     <target name="check-svn" description="Check whether Subversion is installed">
         <available property="svn.installed" file="svn" filepath="${env.PATH}"/>
         <echo message="Subversion installed: ${svn.installed}"/>
@@ -143,11 +90,34 @@
         <exec executable="svnversion" outputproperty="svnrevision" failifexecutionfails="false">
             <arg line="."/>
         </exec>
-        <svninfoproperties dir="." verbose="true"/>
         <echo message="SVN revision: ${svnrevision}"/>
         <echo message="SVN URL: ${svn.info.url}"/>
     </target>
-    <target name="init" depends="init-svn">
+
+
+    <target name="init-ivy">
+        <path id="ivy.lib.path">
+            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml"
+                 uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+    </target>
+
+
+    <target name="/noresolve" description="Do not try to resolve library dependencies (if e.g. Internet connection is not available)">
+        <property name="no.resolve" value="1"/>
+    </target>
+
+    <target name="resolve"  depends="init-ivy"
+        description="retrieve dependencies wth Ivy" unless="no.resolve">
+        <ivy:settings file="ivy/ivysettings.xml" />
+        <ivy:retrieve type="jar" pattern="${ivy.lib.dir}/[artifact].[ext]"/>
+        <ivy:report todir="reports/ivy" />
+    </target>
+
+
+    <target name="init" depends="resolve">
     <!-- Create the time stamp -->
         <tstamp/>
     <!-- Create the build directory structure used by compile -->
@@ -264,7 +234,7 @@
         </exec>
     </target>
     <target name="testng" depends="dist" description="TestNG test">
-        <taskdef  resource="testngtasks" classpath="lib/testng.jar"/>
+        <taskdef  resource="testngtasks" classpath="lib/testng-jdk15.jar"/>
         <testng outputDir="${reports.test}/testresults"
                 workingdir="${basedir}"
                 haltOnFailure="false" verbose="5"
@@ -625,7 +595,7 @@
             <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
         </javadoc>
     </target>
-    <target name="hibernate.hbm" depends="dist" description="Create Hibernate HBM file based on current mapping">
+    <target name="hibernate.hbm" depends="dist,-hibernate-tool-task" description="Create Hibernate HBM file based on current mapping">
         <hibernatetool destdir="build/hibernate">
             <classpath refid="runtime.path"/>
             <annotationconfiguration

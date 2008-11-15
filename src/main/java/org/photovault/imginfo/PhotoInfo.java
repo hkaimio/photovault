@@ -966,7 +966,7 @@ public class PhotoInfo implements PhotoEditor {
         Metadata metadata = null;
         try {
             metadata = JpegMetadataReader.readMetadata( f );
-        } catch (FileNotFoundException ex) {
+        } catch (com.drew.imaging.jpeg.JpegProcessingException ex) {
             ex.printStackTrace();
         }
         ExifDirectory exif = null;
