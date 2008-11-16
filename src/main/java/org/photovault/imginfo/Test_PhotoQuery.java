@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,23 +20,50 @@
 
 package org.photovault.imginfo;
 
-import junit.framework.*;
 import java.util.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.photovault.folder.*;
-import org.photovault.imginfo.FuzzyDate;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.HibernateDtoResolverFactory;
+import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.test.PhotovaultTestCase;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 public class Test_PhotoQuery extends PhotovaultTestCase {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoQuery.class.getName() );
+    static Log log = LogFactory.getLog( Test_PhotoQuery.class.getName() );
 
-    Vector photos = null;
+    Vector<PhotoInfo> photos = null;
     Vector uids = null;
     PhotoFolder folder = null;
     PhotoFolder subfolder = null;
+    DAOFactory daoFactory;
+    PhotoInfoDAO photoDAO = null;
+    PhotoFolderDAO folderDAO = null;
+    Session session = null;
+    Transaction tx = null;
     
+    @BeforeClass
+    @Override
     public void setUp() {
-
+        session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory hdf = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        hdf.setSession( session );
+        daoFactory = hdf;
+        photoDAO = daoFactory.getPhotoInfoDAO();
+        folderDAO = daoFactory.getPhotoFolderDAO();
+        tx = session.beginTransaction();
+        
 	// Create several photos with different shooting dates
 	// Add them to a collection so that they are easy to delete afterwards
 	Calendar cal = Calendar.getInstance();
@@ -51,38 +78,56 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	cal.set( 2002, 11, 25 );
 	makePhoto( cal, 1, "" );
 
-        folder = PhotoFolder.create( "QueryTest", PhotoFolder.getRoot() );
-	subfolder = PhotoFolder.create( "QueryTest subfolder", folder );
-	folder.addPhoto( (PhotoInfo)photos.get(0) );
-	subfolder.addPhoto( (PhotoInfo)photos.get(3) );
-	folder.addPhoto( (PhotoInfo)photos.get(2) );
-	
+        PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
+        folder = folderDAO.create( "QueryTest", null );
+        folder.reparentFolder( folderDAO.findRootFolder() );
+        subfolder = folderDAO.create( "QueryTest subfolder", folder );
+        FolderPhotoAssocDAO assocDao = daoFactory.getFolderPhotoAssocDAO();
+        FolderPhotoAssociation assoc1 = assocDao.getAssociation( folder, photos.get(0) );
+        folder.addPhotoAssociation( assoc1 );
+        photos.get(0).addFolderAssociation( assoc1 );
 
+        FolderPhotoAssociation assoc2 = assocDao.getAssociation( subfolder, photos.get(3) );
+        subfolder.addPhotoAssociation( assoc2 );
+        photos.get(3).addFolderAssociation( assoc2 );
+        
+        FolderPhotoAssociation assoc3 = assocDao.getAssociation( folder, photos.get(2) );
+        folder.addPhotoAssociation( assoc3 );
+        photos.get(2).addFolderAssociation( assoc3 );
+        session.flush();
     }
 
+    @AfterClass
+    @Override
+    public void tearDown() {
+	for ( Object o : photos ) {
+            PhotoInfo photo = (PhotoInfo) o;
+            photo.delete();
+            photoDAO.makeTransient( photo );
+	}
+        folder.delete();
+        subfolder.delete();
+	folderDAO.makeTransient( folder );	
+        folderDAO.makeTransient( subfolder );
+        tx.commit();
+    }
+    
+    
     PhotoInfo makePhoto( Calendar cal, double accuracy, String desc ) {
-	PhotoInfo photo = PhotoInfo.create();
-	photo.setShootTime( cal.getTime() );
-	photo.setTimeAccuracy( accuracy );
-	photo.setDescription( desc );
-	int uid = photo.getUid();
-	log.debug( "Created photo " + uid + " " + photo.getShootTime() );
+	PhotoInfo photo = photoDAO.create();
+        DTOResolverFactory rf = new HibernateDtoResolverFactory( session );
+        VersionedObjectEditor<PhotoInfo> pe = 
+                new VersionedObjectEditor<PhotoInfo>( photo, rf );
+        PhotoEditor pep = (PhotoEditor) pe.getProxy();
+        pep.setFuzzyShootTime( new FuzzyDate(  cal.getTime(), accuracy ) );
+	pep.setDescription( desc );
+        pe.apply();
 	photos.add( photo );
-	uids.add( new Integer( photo.getUid() ) );
+	uids.add( photo.getUuid() );
 	return photo;
     }
     
-    public void tearDown() {
-	Iterator iter = photos.iterator();
-	while ( iter.hasNext() ) {
-	    PhotoInfo photo = (PhotoInfo) iter.next();
-	    photo.delete();
-	}
-
-	folder.delete();
-	
-    }
-
+    @Test
     public void testUpperUnboundedRange() {
 	PhotoQuery q = new PhotoQuery();
 	Calendar cal = Calendar.getInstance();
@@ -95,6 +140,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected1 );
     }
     
+    @Test
     public void testBoundedRange() {
 	PhotoQuery q = new PhotoQuery();
 	Calendar cal = Calendar.getInstance();
@@ -106,6 +152,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected2 );
     }
 
+    @Test
     public void testFuzzyDateProbable() {
 	PhotoQuery q = new PhotoQuery();
 
@@ -124,6 +171,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected1 );
     }
     
+    @Test
     public void testFuzzyDatePossible() {
 	PhotoQuery q = new PhotoQuery();
 
@@ -140,6 +188,7 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected2 );
     }
 
+    @Test
     public void testFuzzyDateCertain() {
 	PhotoQuery q = new PhotoQuery();
 
@@ -158,9 +207,11 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 
     }
 
+    @Test
     public void testLowerUnboundedRange() {
 	PhotoQuery q = new PhotoQuery();
-	Calendar cal = Calendar.getInstance();
+
+        Calendar cal = Calendar.getInstance();
         cal.clear();
 	cal.set( 2002, 11, 24 );
 	// First the case in which there is only lower bound
@@ -178,24 +229,30 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
     }
     */
     
+    @Test
     public void testLike() {
 	PhotoQuery q = new PhotoQuery();
-	q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "*Lassi*" );
+
+        q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "%Lassi%" );
 	boolean[] expected3 = { true, true, false, false };
 	checkResults( q, expected3 );
     }
 
+    @Test
     public void testFolderLimit() {
 	PhotoQuery q = new PhotoQuery();
-	q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "*Lassi*" );
+
+        q.setLikeCriteria( PhotoQuery.FIELD_DESCRIPTION, "%Lassi%" );
 	q.limitToFolder( folder );
 	boolean[] expected3 = { true, false, false, false };
 	checkResults( q, expected3 );
     }
     
+    @Test
     public void testFolderLimitSubfolders() {
 	PhotoQuery q = new PhotoQuery();
-	q.limitToFolder( folder );
+
+        q.limitToFolder( folder );
 	boolean[] expected3 = { true, false, true, true };
 	checkResults( q, expected3 );
     }
@@ -206,9 +263,11 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
        Tjis is originally implemented to find demonstrate a defect in which the reuslt set was not cleaned
        before the new query.
     */
+    @Test
     public void testQueryModification() {
 	PhotoQuery q = new PhotoQuery();
-	Calendar cal = Calendar.getInstance();
+
+        Calendar cal = Calendar.getInstance();
         cal.clear();
 	cal.set( 2002, 11, 24 );
 	// First the case in which there is only lower bound
@@ -221,32 +280,6 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	checkResults( q, expected2 );
     }
 
-    void checkResults( PhotoQuery q, boolean[] expected ) {
-	log.debug( "Checking results" );
-	for( int n = 0; n < q.getPhotoCount(); n++ ) {
-	    PhotoInfo photo = q.getPhoto( n );
-	    int m = uids.indexOf( new Integer( photo.getUid() ) );
-	    log.debug( "Getting photo " + photo.getUid() + " " + photo.getShootTime() + " " + m );
-	    if ( m >= 0 ) {
-		if ( expected[m] ) {
-		    expected[m] = false;
-		    log.debug( "Photo " + photo.getUid() + " found" );
-		} else {
-		    fail( "Photo dated " + photo.getShootTime().toString() + " not expected!!!" );
-		}
-	    }
-	}
-	// Check that all photos were found
-	log.debug( "Checking that all are found" );
-	for ( int n = 0; n < expected.length; n++ ) {
-	    if ( expected[n] ) {
-                PhotoInfo photo = (PhotoInfo)photos.elementAt( n );
-                FuzzyDate d = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
-		fail( "Photo "+ n + " (id" + photo.getUid() + ", dated " + d.format() + ") not included in result set" );
-	    }
-	}
-    }
-
     class TestListener implements PhotoCollectionChangeListener {
 	public boolean notified = false;
 	public PhotoCollection changedObject = null;
@@ -255,10 +288,12 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	    changedObject = (PhotoCollection) e.getSource();
 	}
     }
-
+    
+    @Test
     public void testNotification() {
 	PhotoQuery q = new PhotoQuery();
-	TestListener l1 = new TestListener();
+
+        TestListener l1 = new TestListener();
 	q.addPhotoCollectionChangeListener( l1 );
 	Calendar cal = Calendar.getInstance();
 	cal.set( 2002, 11, 24 );
@@ -280,19 +315,29 @@ public class Test_PhotoQuery extends PhotovaultTestCase {
 	assertFalse( "Removed listener notified", l1.notified );
     }
 
-
-    
-    public static void main( String[] args ) {
-	//	org.apache.log4j.BasicConfigurator.configure();
-	log.setLevel( org.apache.log4j.Level.DEBUG );
-	org.apache.log4j.Logger photoLog = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
-	photoLog.setLevel( org.apache.log4j.Level.DEBUG );
-	junit.textui.TestRunner.run( suite() );
+    void checkResults( PhotoQuery q, boolean[] expected ) {
+	log.debug( "Checking results" );
+        List<PhotoInfo> result = q.queryPhotos( session );
+	for( PhotoInfo photo : result ) {
+	    int m = uids.indexOf( photo.getUuid() );
+	    log.debug( "Getting photo " + photo.getUuid() + " " + photo.getShootTime() + " " + m );
+	    if ( m >= 0 ) {
+		if ( expected[m] ) {
+		    expected[m] = false;
+		    log.debug( "Photo " + photo.getUuid() + " found" );
+		} else {
+		    fail( "Photo dated " + photo.getShootTime().toString() + " not expected!!!" );
+		}
+	    }
+	}
+	// Check that all photos were found
+	log.debug( "Checking that all are found" );
+	for ( int n = 0; n < expected.length; n++ ) {
+	    if ( expected[n] ) {
+                PhotoInfo photo = (PhotoInfo)photos.elementAt( n );
+                FuzzyDate d = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
+		fail( "Photo "+ n + " (id" + photo.getUuid() + ", dated " + d.format() + ") not included in result set" );
+	    }
+	}
     }
-    
-    public static Test suite() {
-	return new TestSuite( Test_PhotoQuery.class );
-    }
-        
-
 }

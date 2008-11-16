@@ -22,20 +22,16 @@ package org.photovault.swingui;
 
 import java.util.List;
 import org.photovault.folder.*;
-import junit.framework.*;
 import javax.swing.event.*;
-import org.apache.ojb.odmg.*;
-import org.odmg.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.test.PhotovaultTestCase;
-import org.photovault.dbhelper.ODMG;
+
 
 public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Test_PhotoFolderTreeModel.class.getName() );
+    static private final Log log = LogFactory.getLog( Test_PhotoFolderTreeModel.class.getName() );
 
-    Implementation odmg = null;
-    //Database db = null;
     PhotoFolder rootFolder = null;
-    Transaction tx = null;
     PhotoFolderTreeModel model = null;
     
     /**
@@ -43,36 +39,22 @@ public class Test_PhotoFolderTreeModel extends PhotovaultTestCase {
      as the root folder.
      */
     public void setUp() {
-	odmg = ODMG.getODMGImplementation();
-
-        tx = odmg.newTransaction();
-	tx.begin();
 	List folders = null;
-	try {
-	    OQLQuery query = odmg.newOQLQuery();
-	    query.create( "select folders from " + PhotoFolder.class.getName()  + " where name = \"subfolderTest\"" );
-	    folders = (List) query.execute();
-	    tx.commit();
-	} catch ( Exception e ) {
-	    tx.abort();
-	    fail( e.getMessage() );
-	}
+//	try {
+//	    OQLQuery query = odmg.newOQLQuery();
+//	    query.create( "select folders from " + PhotoFolder.class.getName()  + " where name = \"subfolderTest\"" );
+//	    folders = (List) query.execute();
+//	    tx.commit();
+//	} catch ( Exception e ) {
+//	    tx.abort();
+//	    fail( e.getMessage() );
+//	}
 	rootFolder = (PhotoFolder) folders.get(0);
 	model = new PhotoFolderTreeModel();
 	model.setRoot( rootFolder );
     }
 
     public void tearDown() {
-    }
-
-    public static Test suite() {
-	return new TestSuite( Test_PhotoFolderTreeModel.class );
-    }
-
-    public static void main( String[] args ) {
-	org.apache.log4j.BasicConfigurator.configure();
-	log.setLevel( org.apache.log4j.Level.DEBUG );
-	junit.textui.TestRunner.run( suite() );
     }
 
     public void testChildRetrieval() {

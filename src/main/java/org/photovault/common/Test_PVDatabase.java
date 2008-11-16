@@ -102,7 +102,7 @@ public class Test_PVDatabase extends TestCase {
         dbDir.delete();
         PVDatabase pvd = new PVDatabase();
         pvd.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-        pvd.setEmbeddedDirectory( dbDir );
+        pvd.setDataDirectory( dbDir );
         pvd.createDatabase( "", "" );
     }
     

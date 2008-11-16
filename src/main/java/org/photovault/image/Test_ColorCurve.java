@@ -20,29 +20,30 @@
 
 package org.photovault.image;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 /**
  Unit test cases for {@link ColorCurve}
  */
-public class Test_ColorCurve extends TestCase {
+public class Test_ColorCurve {
     
     /** Creates a new instance of Test_ColorCurve */
     public Test_ColorCurve() {
     }
     
 
-    public static Test suite() {
-	return new TestSuite( Test_ColorCurve.class );
-    }    
     
     final static double DELTA = 0.00001;
     
     /**
      When there are no control points, should return identity transform
      */
+    @Test
     public void testNoPoints() {
         ColorCurve c = new ColorCurve();
         for ( double d = -1.0 ; d < 2.0 ; d += 0.1 ) {
@@ -53,6 +54,7 @@ public class Test_ColorCurve extends TestCase {
     /**
      For 1 control point, should return constant data
      */
+    @Test
     public void testConstant() {
         ColorCurve c = new ColorCurve();
         c.addPoint( 0.4, 0.2 );
@@ -65,6 +67,7 @@ public class Test_ColorCurve extends TestCase {
      If 2 control points, should have straight line between them and constant 
      otherwise.
      */
+    @Test
     public void testStraightLine() {
         ColorCurve c = new ColorCurve();
         c.addPoint( 0.1, 0.2 );
@@ -85,6 +88,7 @@ public class Test_ColorCurve extends TestCase {
     /**
      Test with 4 control points
      */
+    @Test
     public void testInterpolation() {
         ColorCurve c = new ColorCurve();
         c.addPoint( 0.0, 0.0 );
@@ -114,6 +118,7 @@ public class Test_ColorCurve extends TestCase {
     /**
      Test moving a control point
      */
+    @Test
     public void testMovePoint() {
         ColorCurve c = new ColorCurve();
         c.addPoint( 0.0, 0.0 );
@@ -163,6 +168,7 @@ public class Test_ColorCurve extends TestCase {
         assertEquals( 0.4, c.getY( 2 ), DELTA );        
     }
     
+    @Test
     public void testOutOfBounds() {
         ColorCurve c = new ColorCurve();
         boolean except = false;
@@ -194,7 +200,7 @@ public class Test_ColorCurve extends TestCase {
         assertTrue( except );
     }
     
-    
+    @Test
     public void testEquals() {
         ColorCurve c = new ColorCurve();
         c.addPoint( 0.0, 0.0 );
@@ -212,7 +218,23 @@ public class Test_ColorCurve extends TestCase {
         assertTrue( c2.equals( c ) );
     }
         
-    public static void main( String[] args ) {
-	junit.textui.TestRunner.run( suite() );
-    }        
+    @Test
+    public void testSerialization() throws IOException, ClassNotFoundException {
+        ColorCurve c = new ColorCurve();
+        c.addPoint( 0.0, 0.0 );
+        c.addPoint( 1.0, 1.0 );
+        c.addPoint( 0.5, 0.2 );
+        c.addPoint( 0.6, 0.3 );
+        
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream( os );
+        oos.writeObject( c );
+        byte[] data = os.toByteArray();
+        
+        ByteArrayInputStream is = new ByteArrayInputStream( data );
+        ObjectInputStream ois = new ObjectInputStream( is );
+        ColorCurve c2 = (ColorCurve) ois.readObject();
+        assertEquals( c, c2 );
+    }
+    
 }

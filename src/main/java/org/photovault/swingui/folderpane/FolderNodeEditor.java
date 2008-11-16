@@ -243,7 +243,7 @@ class FolderNodeEditor
      */
     public void actionPerformed(ActionEvent actionEvent) {
         if ( actionEvent.getSource() == check ) {
-            check.setUndef( false );
+                check.setUndef( false );
             // Add or remove photos from current node depending on checkbox state
             if ( check.isSelected() ) {
                 treePane.addAllToSelectedFolder();

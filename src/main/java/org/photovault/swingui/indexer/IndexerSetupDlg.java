@@ -8,8 +8,10 @@ package org.photovault.swingui.indexer;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.swingui.PhotoFolderTree;
+import org.photovault.swingui.PhotoFolderTreeController;
 
 /**
  *
@@ -21,14 +23,19 @@ public class IndexerSetupDlg extends javax.swing.JDialog {
     public IndexerSetupDlg(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        folderTree = new PhotoFolderTree();
+        // TODO: Fix container & parent controller!!!
+        treeCtrl = new PhotoFolderTreeController(null, null );
+        treeCtrl.setCommandHandler( new PhotovaultCommandHandler( null ) );        
+        // TODO: FIX!!!
+        folderTree = treeCtrl.folderTree;
         folderTree.setPreferredSize( folderTreePane.getSize() );
         folderTreePane.setLayout( new BorderLayout() );        
         folderTreePane.add( folderTree, BorderLayout.CENTER );
         PhotoFolder root = PhotoFolder.getRoot();
-        folderTree.setSelected( root );        
+        treeCtrl.setSelected( root );        
     }
     
+    PhotoFolderTreeController treeCtrl = null;
     PhotoFolderTree folderTree = null;
     
     /**
@@ -40,7 +47,7 @@ public class IndexerSetupDlg extends javax.swing.JDialog {
     public PhotoFolder getExtvolParentFolder() {
         PhotoFolder folder = null;
         if ( this.jCheckBox1.isSelected() ) {
-            folder = folderTree.getSelected();
+            folder = treeCtrl.getSelected();
         }
         return folder;
     }

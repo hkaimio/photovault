@@ -19,7 +19,9 @@
 */
 
 package org.photovault.imginfo;
-import org.apache.ojb.broker.query.Criteria;
+
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 
 public class QueryRangeCriteria implements QueryFieldCriteria {
 
@@ -39,11 +41,11 @@ public class QueryRangeCriteria implements QueryFieldCriteria {
 
     public void setupQuery( Criteria crit ) {
 	if ( lower != null && upper != null ) {
-	    crit.addBetween( field.getName(), lower, upper );
+	    crit.add( Restrictions.between( field.getName(), lower, upper ) );
 	} else if ( lower != null ) {
-	    crit.addGreaterOrEqualThan( field.getName(), lower );
+	    crit.add( Restrictions.ge( field.getName(), lower ) );
 	} else if ( upper != null ) {
-	    crit.addLessOrEqualThan( field.getName(), upper );
+	    crit.add( Restrictions.le( field.getName(), upper ) );
 	}
     }
 

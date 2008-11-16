@@ -23,54 +23,36 @@ package org.photovault.common;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.io.InputStream;
-import org.apache.ddlutils.DynaSqlException;
-import org.apache.ojb.broker.PBKey;
-import org.apache.ojb.broker.PersistenceBroker;
-import org.apache.ojb.broker.PersistenceBrokerFactory;
-import org.apache.ojb.broker.accesslayer.LookupException;
-import org.apache.ojb.broker.metadata.ConnectionRepository;
-import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
-import org.apache.ojb.broker.metadata.MetadataManager;
-import org.odmg.Implementation;
-import org.odmg.OQLQuery;
-import org.photovault.dbhelper.ODMG;
-import org.photovault.dbhelper.ODMGXAWrapper;
-import org.photovault.imginfo.ImageInstance;
-import org.photovault.imginfo.PhotoInfo;
 import  org.photovault.imginfo.Volume;
 import java.util.Random;
-import javax.sql.DataSource;
-import org.apache.commons.beanutils.DynaBean;
-import org.apache.ddlutils.io.DatabaseIO;
-import org.apache.ddlutils.model.Database;
-import org.apache.ddlutils.Platform;
-import org.apache.ddlutils.PlatformFactory;
-import org.apache.ddlutils.io.DataToDatabaseSink;
-import org.apache.ddlutils.io.DataReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.sql.Connection;
-import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.photovault.imginfo.VolumeBase;
-import org.xml.sax.SAXException;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSourceFactory;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 
 /**
- * PVDatabase represents metadata about a single Photrovault database. A database 
+ * PVDatabase represents metadata about a single Photovault database. A database 
  * consists of an SQL database for storing photo metadata and 1 or more volumes 
  * for storing the actual photos
  * @author Harri Kaimio
  */
 public class PVDatabase {
+    
+    static private Log log = LogFactory.getLog( PVDatabase.class.getName() );
     
     /**
      * Database type for a Photovault instance which uses an embedded Derby database
@@ -83,16 +65,83 @@ public class PVDatabase {
      */
     public static final String TYPE_SERVER = "TYPE_SERVER";
     
+    
+    /**
+     Class for describing the pre-0.6.0 volumes still present in configuration 
+     file.
+     */
+    
+    public static class LegacyVolume {
+        
+        public LegacyVolume() {};
+        
+        public LegacyVolume( String name, String bd ) {
+            this.name = name;
+            this.baseDir = bd;
+
+        }
+        private String name;
+        private String baseDir;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName( String name ) {
+            this.name = name;
+        }
+
+        public String getBaseDir() {
+            return baseDir;
+        }
+
+        public void setBaseDir( String baseDir ) {
+            this.baseDir = baseDir;
+        }
+        
+    }
+    
+    /**
+     Class for describing the pre-0.6.0 external volume still present in 
+     configuration file.
+     */
+    public static class LegacyExtVolume extends LegacyVolume {
+        
+        public LegacyExtVolume() {
+            super();
+        }
+        
+        public LegacyExtVolume( String name, String bd, int folderId ) {
+            super( name, bd );
+            this.folderId = folderId;
+        }
+        
+        private int folderId;
+
+        public int getFolderId() {
+            return folderId;
+        }
+
+        public void setFolderId( int folderId ) {
+            this.folderId = folderId;
+        }
+    }
+    
     /** Creates a new instance of PVDatabase */
     public PVDatabase() {
-        volumes = new ArrayList();
+        volumes = new ArrayList<VolumeBase>();
     }
     
     private String name;
     private String dbHost = "";
     private String dbName = "";
-    private ArrayList volumes;
+    private ArrayList<VolumeBase> volumes;
 
+    /**
+     UUID of the default volume.
+     */
+    private UUID defaultVolumeId;
+    
     public void setName( String name ) {
         this.name = name;
     }
@@ -125,6 +174,7 @@ public class PVDatabase {
      Add a new volume to this database.
      @param volume The new volume
      @throws @see PhotovaultException if another volume with the same name is already present
+     @deprecated For configuration file parsing backward compatibility only.
      */
     public void addVolume( VolumeBase volume ) throws PhotovaultException {
         VolumeBase v = getVolume( volume.getName() );
@@ -133,6 +183,11 @@ public class PVDatabase {
                     " already exists" );
         }
         volumes.add( volume );
+        
+        // Ensure that this volume's basedir is in mount point list
+        if ( volume.getBaseDir() != null ) {
+            mountPoints.add( volume.getBaseDir() );
+        }
     }
     
     /**
@@ -144,13 +199,52 @@ public class PVDatabase {
         volumes.remove( volume );
     }
     
+    List<LegacyVolume> legacyVolumes = new ArrayList<LegacyVolume>();
+    
+    public void addLegacyVolume( LegacyVolume v ) {
+        legacyVolumes.add( v );
+    }
+    
+    List<LegacyVolume> getLegacyVolumes() {
+        return legacyVolumes;
+    }
+    
+    /**
+     Mount points in which volumes for this database can be mounted.
+     */
+    Set<File> mountPoints = new HashSet<File>();
+    
+    /**
+     Add a new mount point for volumes
+     
+     @param path Absolute path to the volume mount point.
+     */
+    public void addMountPoint( String path ) {
+        if ( path != null ) {
+            mountPoints.add( new File( path ) );
+        }
+    }
+    
+    /**
+     Get mount points for volumes of this database
+     @return
+     */
+    public Set<File> getMountPoints() {
+        return mountPoints;
+    }
+    
     /**
      Get a list of volumes for this database.
+     @deprecated Use VolumeDAO intead
      */       
     public List getVolumes( ) {
         return  volumes;
     }
 
+    /**
+     Get default volume
+     @deprecated Use VolumeDAO#getDefaultVolume instead
+     */
     public VolumeBase getDefaultVolume() {
         VolumeBase vol = null;
         if ( volumes.size() > 0 ) {
@@ -179,27 +273,40 @@ public class PVDatabase {
         } 
     }    
 
-
-    private File embeddedDirectory = null;
+    /**
+     Path to the directory where data for this database is stored
+     
+     */
+    private File dataDirectory = null;
     
-    public File getEmbeddedDirectory() {
-        return embeddedDirectory;
+    /**
+     Get the data directory of this database. In case of Derby based database,
+     both the database and photos reside in this directory. In case of MySQL, 
+     only photos are stored here (database resider in server)
+     @return Path to data directory.
+     */
+    public File getDataDirectory() {
+        return dataDirectory;
     }
 
-    public void setEmbeddedDirectory(File embeddedDirectory) {
-        this.embeddedDirectory = embeddedDirectory;
+    /**
+     Set the data directory for the database.
+     @param embeddedDirectory The directory
+     */
+    public void setDataDirectory( File embeddedDirectory ) {
+        this.dataDirectory = embeddedDirectory;
     }
     
     public String getInstanceDir() {
         String res = "";
-        if ( embeddedDirectory != null ) {
-            res = embeddedDirectory.getAbsolutePath();
+        if ( dataDirectory != null ) {
+            res = dataDirectory.getAbsolutePath();
         }
         return res;
     }
 
     public void setInstanceDir( String path ) {
-        embeddedDirectory = new File( path );
+        dataDirectory = new File( path );
     }
     
     /**
@@ -222,28 +329,6 @@ public class PVDatabase {
             }
         }
         return vol;
-    }
-
-
-    /**
-     Tries to find the volume into which a fiel belongs, i.e. whether it is under 
-     the base directory of some volume.
-     @param f The file whose volume is of interest
-     @return The volume the file belongs to or <code>null</code> if it does not 
-     belong to any volume of this database
-     @throws IOException if there is an error constructing canonical form of the file
-     */
-    public VolumeBase getVolumeOfFile( File f ) throws IOException {
-        Iterator iter = volumes.iterator();
-        VolumeBase v = null;
-        while ( iter.hasNext() ) {
-            VolumeBase candidate = (VolumeBase) iter.next();
-            if ( candidate.isFileInVolume( f ) ) {
-                v = candidate;
-                break;
-            }
-        }
-        return v;
     }
     
     /**
@@ -275,90 +360,25 @@ public class PVDatabase {
     public void createDatabase( String user, String passwd, String seedDataResource ) {
         
         // Get the database schema XML file
-        InputStream schemaIS = getClass().getClassLoader().getResourceAsStream( "photovault_schema.xml" );
-        DatabaseIO dbio = new DatabaseIO();
-        dbio.setValidateXml( false );
-        Database dbModel = dbio.read( new InputStreamReader( schemaIS ) );
         
-        // Create the datasource for accessing this database
-        
-        String driverName = "com.mysql.jdbc.Driver";
-        String dbUrl = "jdbc:mysql://" + getHost() + "/" + getDbName();
-        
-        DataSource ds = null;
-        if ( instanceType == TYPE_EMBEDDED ) {
-            if ( !embeddedDirectory.exists() ) {
-                embeddedDirectory.mkdirs();
-            }
-            File derbyDir = new File( embeddedDirectory, "derby" );
-            File photoDir = new File( embeddedDirectory, "photos");
-            Volume vol = new Volume( "photos", photoDir.getAbsolutePath() );
-            try {
-                addVolume( vol );
-            } catch (PhotovaultException ex) {
-                // This should not happen since this is the first volume, there cannot be 
-                // name conflict!!!
-            }
-            System.setProperty( "derby.system.home", derbyDir.getAbsolutePath() );
-            driverName = "org.apache.derby.jdbc.EmbeddedDriver";
-            dbUrl = "jdbc:derby:photovault;create=true";
-            EmbeddedDataSource derbyDs = new EmbeddedDataSource();
-            derbyDs.setDatabaseName( "photovault" );
-            derbyDs.setCreateDatabase( "create" );
-            ds = derbyDs;
-        } else {
-        
-            MysqlDataSource mysqlDs = new MysqlDataSource();
-            mysqlDs.setURL( dbUrl );
-            mysqlDs.setUser( user );
-            mysqlDs.setPassword( passwd );
-            ds = mysqlDs;
-        }
-        
-        Platform platform = PlatformFactory.createNewPlatformInstance( ds );
-        
-        /*
-         * Do not use delimiters for the database object names in SQL statements.
-         * This is to avoid case sensitivity problems with SQL92 compliant 
-         * databases like Derby - non-delimited identifiers are interpreted as case 
-         *  insensitive.
-         *
-         * I am not sure if this is the correct way to solve the issue, however,
-         * I am not willing to make a big change of schema definitions either.
-         */
-        platform.getPlatformInfo().setDelimiterToken( "" );
-        platform.setUsername( user );
-        platform.setPassword( passwd );
-        platform.createTables( dbModel, true, true );
-        
-        // Insert the seed data to database
-        DataToDatabaseSink sink = new DataToDatabaseSink( platform, dbModel );
-        DataReader reader = new DataReader();
-        reader.setModel( dbModel );
-        reader.setSink( sink );
-        
-
-        InputStream seedDataStream = this.getClass().getClassLoader().getResourceAsStream( "photovault_seed_data.xml" );
         try {
-            reader.parse( seedDataStream );
-        } catch (SAXException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            HibernateUtil.init( user, passwd, this );
+        } catch ( PhotovaultException e ) {
+            log.error( e.getMessage(), e );
         }
+        SchemaExport schexport = new SchemaExport( HibernateUtil.getConfiguration() );
+        schexport.create( true, true );
         
-        if ( seedDataResource != null ) {
-            seedDataStream = this.getClass().getClassLoader().getResourceAsStream( seedDataResource );
-            try {
-                reader.parse( seedDataStream );
-            } catch (SAXException ex) {
-                ex.printStackTrace();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
+        Session s = HibernateUtil.getSessionFactory().openSession();
+        Transaction tr = s.beginTransaction();
         
-        // Create the database 
+        HibernateDAOFactory df = 
+                (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        df.setSession( s );
+        PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
+        PhotoFolder topFolder = folderDao.create( PhotoFolder.ROOT_UUID, null );
+        topFolder.setName( "Top" );
+        s.save( topFolder );
         
         // TODO: Since the seed has only 48 significant bits this id is not really an 
         // 128-bit random number!!!
@@ -370,12 +390,23 @@ public class PVDatabase {
             idBuf.append( Integer.toHexString( r ) );
         }
         idStr = idBuf.toString();
-        DynaBean dbInfo = dbModel.createDynaBeanFor( "database_info", false );
-        dbInfo.set( "database_id", idStr );
-        dbInfo.set( "schema_version", new Integer( CURRENT_SCHEMA_VERSION ) );
-        dbInfo.set( "create_time", new Timestamp( System.currentTimeMillis() ) );
-        platform.insert( dbModel, dbInfo );
-    }        
+        
+        // Create default volume
+        Volume defVol = new Volume();
+        defVol.setName( "default_volume" );
+        s.save( defVol );
+        
+        DbInfo dbInfo = new DbInfo();
+        dbInfo.setCreateTime( new Date() );
+        dbInfo.setId( idStr );
+        dbInfo.setVersion( CURRENT_SCHEMA_VERSION );
+        dbInfo.setDefaultVolumeId( defVol.getId() );
+        s.save( dbInfo );
+        
+        s.flush();
+        tr.commit();
+        s.close();
+    }
 
     /**
      Returns the schema version of the Photovault database
@@ -400,11 +431,26 @@ public class PVDatabase {
                     "\" dbName=\"" + dbName + "\"");
         }        
         outputWriter.write( ">\n" );
-        Iterator iter = volumes.iterator();
+        outputWriter.write( String.format( "%s  <volume-mounts>\n", s ) );
+        for ( File mount : mountPoints ) {
+            outputWriter.write( String.format( 
+                    "%s    <mountpoint dir=\"%s\"/>\n", 
+                    s, mount.getAbsolutePath() ) );
+        }
+        outputWriter.write( String.format( "%s  </volume-mounts>\n", s ) );
+        
         outputWriter.write( s + "  " + "<volumes>\n" );
-        while( iter.hasNext() ) {
-            VolumeBase v = (VolumeBase) iter.next();
-            v.writeXml( outputWriter, indent+4 );            
+        for( LegacyVolume v : legacyVolumes ) {
+            if ( v instanceof LegacyExtVolume ) {
+                LegacyExtVolume ev = (LegacyExtVolume )  v;
+                outputWriter.write( String.format( 
+                        "%s    <external-volume name=\"%s\" basedir=\"%s\" folder=\"%d\"/>", 
+                        s, ev.getName(), ev.getBaseDir(), ev.getFolderId() ) );
+            } else {
+                outputWriter.write( String.format( 
+                        "%s    <volume name=\"%s\" basedir=\"%s\"/>", 
+                        s, v.getName(), v.getBaseDir() ) );
+            }
         }
         outputWriter.write( s + "  " + "</volumes>\n" );
         outputWriter.write( s + "</database>\n" );
@@ -416,5 +462,5 @@ public class PVDatabase {
      The latest schema version which should be used with this version of 
      Photovault
      */
-    static public final int CURRENT_SCHEMA_VERSION = 9;
+    static public final int CURRENT_SCHEMA_VERSION = 12;
 }

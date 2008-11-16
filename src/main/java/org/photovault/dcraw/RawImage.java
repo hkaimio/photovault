@@ -62,6 +62,8 @@ import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
 import javax.media.jai.operator.RenderableDescriptor;
 import javax.media.jai.operator.ScaleDescriptor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
 import org.photovault.image.PhotovaultImage;
 
@@ -103,7 +105,7 @@ import org.photovault.image.PhotovaultImage;
  
  */
 public class RawImage extends PhotovaultImage {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( RawImage.class.getName() );
+    static private Log log = LogFactory.getLog( RawImage.class.getName() );
     
     
     /**
@@ -115,11 +117,6 @@ public class RawImage extends PhotovaultImage {
      {@link DCRawProcessWrapper} used for raw conversions
      */
     DCRawProcessWrapper dcraw = null;
-    
-    /**
-     The raw image file or <code>null</code> if not set
-     */
-    File f = null;
     
     /**
      16 bit linear image returned by dcraw or <code>null</code> if the image
@@ -1091,19 +1088,24 @@ public class RawImage extends PhotovaultImage {
      @return The conversion settings
      */
     public RawConversionSettings getRawSettings() {
-        RawSettingsFactory f = new RawSettingsFactory( null );
-        f.setDaylightMultipliers( daylightMultipliers );
-        f.setRedGreenRation( chanMultipliers[0]/chanMultipliers[1] );
-        f.setBlueGreenRatio( chanMultipliers[2]/chanMultipliers[1] );
-        f.setBlack( black );
-        f.setWhite( white );
-        f.setEvCorr( evCorr );
-        f.setHlightComp( highlightCompression );
-        f.setUseEmbeddedProfile( hasICCProfile );
-        f.setColorProfile( colorProfile );
+        if ( rawImage == null ) {
+            loadRawImage();
+            doAutoExpose();
+        }
+        
+        RawSettingsFactory rsf = new RawSettingsFactory( null );
+        rsf.setDaylightMultipliers( daylightMultipliers );
+        rsf.setRedGreenRation( chanMultipliers[0]/chanMultipliers[1] );
+        rsf.setBlueGreenRatio( chanMultipliers[2]/chanMultipliers[1] );
+        rsf.setBlack( black );
+        rsf.setWhite( white );
+        rsf.setEvCorr( evCorr );
+        rsf.setHlightComp( highlightCompression );
+        rsf.setUseEmbeddedProfile( hasICCProfile );
+        rsf.setColorProfile( colorProfile );
         RawConversionSettings s = null;
         try {
-            s = f.create();
+            s = rsf.create();
         } catch (PhotovaultException ex) {
             log.error( "Error while reacting raw settings object: " + 
                     ex.getMessage() );

@@ -24,33 +24,75 @@ import com.sun.media.jai.util.SunTileCache;
 import java.awt.Dimension;
 import java.util.Collection;
 import javax.media.jai.JAI;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import org.odmg.*;
 import javax.swing.JOptionPane;
+import org.hibernate.Session;
+import org.hibernate.context.ManagedSessionContext;
+import org.photovault.command.CommandExecutedEvent;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.SchemaUpdateAction;
 import org.photovault.common.SchemaUpdateEvent;
 import org.photovault.common.SchemaUpdateListener;
-import org.photovault.dbhelper.ODMG;
 import java.net.URL;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
+import org.photovault.command.CommandListener;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.swingui.db.DbSettingsDlg;
+import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
+import org.photovault.taskscheduler.TaskScheduler;
 
 /**
    Main class for the photovault application
 */
-
-
-public class Photovault implements SchemaUpdateListener {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Photovault.class.getName() );
+public class Photovault extends AbstractController implements SchemaUpdateListener {
+    static Log log = LogFactory.getLog( Photovault.class.getName() );
 
     PhotovaultSettings settings = null;
-
-    public Photovault() {
+    
+    static Photovault instance;
+    private SwingWorkerTaskScheduler taskScheduler;
+    
+    
+    private Photovault() {
 	settings = PhotovaultSettings.getSettings();
+        setCommandHandler( new PhotovaultCommandHandler( null ) );
+        // Forward command execution events to all subcontrollers
+        commandHandler.addCommandListener( new CommandListener(  ) {
+
+            public void commandExecuted( CommandExecutedEvent e ) {
+                fireEventGlobal( e );
+            }
+        } );
+        
+        taskScheduler = new SwingWorkerTaskScheduler( this );
+        instance = this;
     }
+    
+    /**
+     Get the Photovault instance
+     @return the Photovault object
+     */
+    public static Photovault getInstance() {
+        return instance;
+    }
+    
+    /**
+     Get the task scheduler associated with the application
+     @return TaskScheduler
+     */
+    public TaskScheduler getTaskScheduler() {
+        return taskScheduler;
+    }
+    
+    Session currentSession  = null;
 
     private void login( LoginDlg ld ) throws PhotovaultException {
 	boolean success = false;
@@ -67,14 +109,18 @@ public class Photovault implements SchemaUpdateListener {
             throw new PhotovaultException( "Could not find dbname for configuration " + db );
         }
         
-        ODMG.initODMG( user, passwd, db );
+        HibernateUtil.init( user, passwd, db );
+        
+        // TODO: Hack...
+        currentSession = HibernateUtil.getSessionFactory().openSession();
+        ManagedSessionContext.bind( (org.hibernate.classic.Session) currentSession );
         log.debug( "Connection succesful!!!" );
         // Login is succesfull
         // ld.setVisible( false );
         success = true;
         
         int schemaVersion = db.getSchemaVersion();
-        if ( schemaVersion < db.CURRENT_SCHEMA_VERSION ) {
+        if ( schemaVersion < PVDatabase.CURRENT_SCHEMA_VERSION ) {
             String options[] = {"Proceed", "Exit Photovault"};
             if ( JOptionPane.YES_OPTION == JOptionPane.showOptionDialog( ld,
                     "The database was created with an older version of Photovault\n" +
@@ -89,6 +135,7 @@ public class Photovault implements SchemaUpdateListener {
                 SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg( null, true );
                 updater.addSchemaUpdateListener( statusDlg );
                 Thread upgradeThread = new Thread() {
+                    @Override
                     public void run() {
                         updater.upgradeDatabase();
                     }
@@ -107,7 +154,7 @@ public class Photovault implements SchemaUpdateListener {
      initJai() method calls JAI.setTileCache which causes a static dependency to
      JAI. If the method was part of Photovault class Java VM would fail to load
      the class which is not acceptable since the class must give the user instructions
-     how to install JAI if it is not installed. So the method must be isoalted to
+     how to install JAI if it is not installed. So the method must be isolated to
      its own class.
      */
     static class JaiInitializer {
@@ -122,7 +169,7 @@ public class Photovault implements SchemaUpdateListener {
         public static void initJAI() {
             JAI jaiInstance = JAI.getDefaultInstance();
             jaiInstance.setTileCache( new SunTileCache( 100*1024*1024 ) );
-            jaiInstance.setDefaultTileSize( new Dimension( 256, 256 ) );
+            JAI.setDefaultTileSize( new Dimension( 256, 256 ) );
         /*
          Not sure how much this helps in practice - Photovault still seems to use
          all heap available in the long run.
@@ -151,7 +198,7 @@ public class Photovault implements SchemaUpdateListener {
         Collection databases = settings.getDatabases();
         if ( databases.size() == 0 ) {
             DbSettingsDlg dlg = new DbSettingsDlg( null, true );
-            if ( dlg.showDialog() != dlg.APPROVE_OPTION ) {
+            if ( dlg.showDialog() != DbSettingsDlg.APPROVE_OPTION ) {
                 System.exit( 0 );
             }
         }
@@ -166,7 +213,7 @@ public class Photovault implements SchemaUpdateListener {
                     break;
                 case LoginDlg.RETURN_REASON_NEWDB:
                     DbSettingsDlg dlg = new DbSettingsDlg( null, true );
-                    if ( dlg.showDialog() == dlg.APPROVE_OPTION ) {
+                    if ( dlg.showDialog() == DbSettingsDlg.APPROVE_OPTION ) {
                         login = new LoginDlg( this );
                     }
                     break;
@@ -174,12 +221,17 @@ public class Photovault implements SchemaUpdateListener {
                     try {
                         login( login ); 
                         loginOK = true;
-                        BrowserWindow wnd = new BrowserWindow();
+                        BrowserWindow wnd = new BrowserWindow( this, null );
                         wnd.setTitle( "Photovault - " + login.getDb() );
                     } catch( PhotovaultException e ) {
                         JOptionPane.showMessageDialog( null, e.getMessage(), 
                                 "Login error", JOptionPane.ERROR_MESSAGE );
                     }
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            ManagedSessionContext.bind( (org.hibernate.classic.Session) currentSession);
+                        }
+                    });
                     break;
                 default:
                     log.error( "Unknown return code form LoginDlg.showDialog(): " + retval );
@@ -299,6 +351,28 @@ public class Photovault implements SchemaUpdateListener {
         System.out.println( "Phase " + e.getPhase()+ ", " + e.getPercentComplete() + "%" );
     }
 
+    /**
+     Called by commandHandler when a command has changed an entity. Fires global 
+     event to subcontrollers.
+     @param o The changed entity
+     */
+    public void entityChanged( Object o ) {
+        DefaultEvent e = null;
+//        if ( o instanceof PhotoInfo ) {
+//            e = new PhotoInfoModifiedEvent( this, (PhotoInfo) o );
+//        } else if ( o instanceof PhotoFolder ) {
+//            e = new PhotoFolderModifiedEvent( this, (PhotoFolder) o );
+//        } 
+        final AbstractController ttish = this;
+        final DefaultEvent evt = e;
+        if ( e != null ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    ttish.fireEventGlobal( evt );
+                }
+            });
+        }
+    }
 }
 
 

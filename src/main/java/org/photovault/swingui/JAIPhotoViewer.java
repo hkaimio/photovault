@@ -20,51 +20,47 @@
 
 package org.photovault.swingui;
 
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import javax.media.jai.RenderedOp;
+import org.photovault.command.CommandException;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.dcraw.RawImageChangeEvent;
 import org.photovault.dcraw.RawImageChangeListener;
-import org.photovault.image.ChannelMapOperation;
-import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
-import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
+import org.photovault.image.ChannelMapOperation;
 import org.photovault.imginfo.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.*;
-import javax.imageio.ImageIO;
 import java.io.*;
-import java.awt.geom.AffineTransform;
-import java.text.*;
 import java.util.*;
-import javax.media.jai.PlanarImage;
-import javax.media.jai.JAI;
-import org.photovault.imginfo.ImageInstance;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.photovault.dcraw.ColorProfileDesc;
+import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
 import org.photovault.swingui.color.ColorSettingsDlg;
-import org.photovault.swingui.color.PhotoInfoViewAdapter;
+import org.photovault.swingui.color.ColorSettingsPreview;
 import org.photovault.swingui.color.RawSettingsPreviewEvent;
 
 public class JAIPhotoViewer extends JPanel implements 
         PhotoInfoChangeListener, ComponentListener, CropAreaChangeListener,
-        RawImageChangeListener {
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( JAIPhotoViewer.class.getName() );
+        RawImageChangeListener, ColorSettingsPreview {
+    static Log log = LogFactory.getLog( JAIPhotoViewer.class.getName() );
 
-    public JAIPhotoViewer() {
+    public JAIPhotoViewer( PhotoViewController ctrl ) {
 	super();
+        this.ctrl = ctrl;
 	createUI();
 	
     }
 
+    PhotoViewController ctrl;
+    
     public void createUI() {
 	setLayout( new BorderLayout() );
         addComponentListener( this );
@@ -132,8 +128,11 @@ public class JAIPhotoViewer extends JPanel implements
      */
     private RawConversionSettings localRawSettings = null;
     
+    /**
+     Locally applied color mapping or <code>null</code> if such one is not 
+     applied
+     */
     private ChannelMapOperation localChanMap = null;
-    
     
     /**
      Set the photo displayed in the component.
@@ -163,7 +162,7 @@ public class JAIPhotoViewer extends JPanel implements
         localRawSettings = null;
         localChanMap = null;
 
-        log.debug( "JAIPhotoViewer.setPhoto() photo="  + photo.getUid() );
+        log.debug( "JAIPhotoViewer.setPhoto() photo="  + photo.getUuid() );
 
 	photo.addChangeListener( this );
         try {
@@ -182,15 +181,15 @@ public class JAIPhotoViewer extends JPanel implements
      
      */
     private void showBestInstance() throws PhotovaultException {
-	// Find the original file
         EnumSet<ImageOperations> allowedOps = EnumSet.allOf( ImageOperations.class );
         allowedOps.removeAll( dynOps );
-        ImageInstance instance = photo.getPreferredInstance( 
+        ImageDescriptorBase image = photo.getPreferredImage( 
                 EnumSet.noneOf( ImageOperations.class ),
                 allowedOps,
-                imageView.getWidth(), imageView.getHeight() );
-        if ( instance != null ) {
-            File imageFile = instance.getImageFile();
+                imageView.getWidth(), imageView.getHeight(),
+                Integer.MAX_VALUE, Integer.MAX_VALUE );
+        if ( image != null && image.getLocator().equals( "image#0" ) ) {
+            File imageFile = image.getFile().findAvailableCopy();
             if ( imageFile != null && imageFile.canRead() ) {
                 // TODO: is this really needed?
                 String fname = imageFile.getName();
@@ -218,50 +217,58 @@ public class JAIPhotoViewer extends JPanel implements
                                     msg, "Error loading file",
                                     JOptionPane.ERROR_MESSAGE );
                         }
-                    });
+                    } );
                 }
                 if ( img != null ) {
+                    appliedOps = EnumSet.noneOf( ImageOperations.class );
                     if ( rawImage != null ) {
                         rawImage.removeChangeListener( this );
                     }
                     if ( img instanceof RawImage ) {
                         rawImage = (RawImage) img;
-                        rawImage.setRawSettings( 
-                                localRawSettings != null ? 
-                                    localRawSettings : photo.getRawSettings() );
+                        rawImage.setRawSettings( localRawSettings != null ? 
+                            localRawSettings : photo.getRawSettings(  ) );
                         rawImage.addChangeListener( this );
                         // Check the correct resolution for this image
                         if ( isFit ) {
-                            fit();
+                            fit(  );
                         } else {
-                            setScale( getScale() );
+                            setScale( getScale(  ) );
                         }
                     } else {
                         rawImage = null;
                         rawConvScaling = 1.0f;
                     }
                 }
-                appliedOps = instance.getAppliedOperations();
-                if ( !appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
-                    img.setColorAdjustment( 
-                            localChanMap != null ? 
-                                localChanMap : photo.getColorChannelMapping() );
+                if ( image instanceof CopyImageDescriptor ) {
+                    // This is a copy, so it may be cropped already
+                    appliedOps = ((CopyImageDescriptor) image).getAppliedOperations(  );
+                    if ( !appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
+                        img.setColorAdjustment( localChanMap != null ? 
+                            localChanMap : photo.getColorChannelMapping(  ) );
+                    }
+                    if ( !appliedOps.contains( ImageOperations.CROP ) ) {
+                        instanceRotation = ((CopyImageDescriptor) image).getRotation(  );
+                        double rot = photo.getPrefRotation(  ) - instanceRotation;
+                        imageView.setRotation( rot );
+                        imageView.setCrop( photo.getCropBounds(  ) );
+                    }
+                } else {
+                    // This is original so we must apply corrections
+                    img.setColorAdjustment( localChanMap != null ? 
+                        localChanMap : photo.getColorChannelMapping(  ) );
+                    imageView.setRotation( photo.getPrefRotation(  )  );
+                    imageView.setCrop( photo.getCropBounds(  ) );
                 }
                 setImage( img );
-                if ( !appliedOps.contains( ImageOperations.CROP ) ) {
-                    instanceRotation = instance.getRotated();
-                    double rot = photo.getPrefRotation() - instanceRotation;
-                    imageView.setRotation( rot );
-                    imageView.setCrop( photo.getCropBounds() );
-                }
-                fireViewChangeEvent();
+                fireViewChangeEvent(  );
                 return;
             }
         }
         // if we get this far no instance of the original image has been found
         setImage( null );
         throw new PhotovaultException( "No suitable instance of photo " 
-                + photo.getUid() + " found" );
+                + photo.getUuid() + " found" );
         
     }
     
@@ -352,8 +359,17 @@ public class JAIPhotoViewer extends JPanel implements
     }
 
     public void cropAreaChanged(CropAreaChangeEvent evt) {
-        photo.setPrefRotation( evt.getRotation() );
-        photo.setCropBounds( evt.getCropArea() );
+        ChangePhotoInfoCommand changeCmd = new ChangePhotoInfoCommand( photo.getUuid() );
+        changeCmd.setPrefRotation( evt.getRotation() );
+        changeCmd.setCropBounds( evt.getCropArea() );
+        try {
+            ctrl.getCommandHandler().executeCommand( changeCmd );
+        } catch (CommandException ex) {
+            log.error( ex.getMessage() );
+            JOptionPane.showMessageDialog( this, 
+                    "Error while storing new crop settings:\n" + ex.getMessage(), 
+                    "Crop error", JOptionPane.ERROR_MESSAGE );
+        }
         imageView.setDrawCropped( true );
     }
 
@@ -442,7 +458,7 @@ public class JAIPhotoViewer extends JPanel implements
      @param name Name of the color curve that was changed
      @param c The changed color curve
      */
-    public void colorCurveChanged( PhotoInfoViewAdapter v, String name, ColorCurve c ) {
+    public void setColorCurve( String name, ColorCurve c ) {
         dynOps.add( ImageOperations.COLOR_MAP );
         if ( appliedOps.contains( ImageOperations.COLOR_MAP ) ) {
             try {
@@ -452,10 +468,7 @@ public class JAIPhotoViewer extends JPanel implements
                 ex.printStackTrace();
             }
         }
-        PhotoInfo[] model = v.getController().getPhotos();
-        if ( model != null && model.length == 1 && model[0] == photo ) {
-            imageView.setColorCurve( name, c );
-        }
+        imageView.setColorCurve( name, c );
         // Save the channel mapping so that it can be reapplied if we must again
         // cahnge the used instance for some other reason.
         if ( imageView.getImage() != null ) {
@@ -465,6 +478,94 @@ public class JAIPhotoViewer extends JPanel implements
 
     public void setSaturation(double newSat) {
         imageView.setSaturation( newSat );
+    }
+    
+    /**
+     Set a raw conversion parameter in displayer image
+     @param field The field that is changed
+     @param value New value for the field
+     */
+    private void setRawConvParam( PhotoInfoFields field, Object value ) {
+        dynOps.add( ImageOperations.RAW_CONVERSION );
+        if ( appliedOps.contains( ImageOperations.RAW_CONVERSION ) ) {
+            try {
+                /*
+                 Current instance has raw conversion preapplied so we cannot 
+                 use it
+                 */
+                showBestInstance();
+            } catch (PhotovaultException ex) {
+                ex.printStackTrace();
+            }
+        }
+        RawConversionSettings s = imageView.getRawSettings();
+        RawSettingsFactory f = new RawSettingsFactory( s );
+        switch ( field ) {
+        case RAW_BLACK_LEVEL:
+            f.setBlack( (Integer) value );
+            break;
+        case RAW_COLOR_PROFILE:
+            f.setColorProfile( (ColorProfileDesc) value );
+            break;
+        case RAW_CTEMP:
+            f.setColorTemp( (Double) value );
+            break;
+        case RAW_EV_CORR:
+            f.setEvCorr( (Double) value );
+            break;
+        case RAW_GREEN:
+            f.setGreenGain( (Double) value );
+            break;
+        case RAW_HLIGHT_COMP:
+            f.setHlightComp( (Double) value );
+            break;
+        case RAW_WHITE_LEVEL:
+            f.setWhite( (Integer) value );
+            break;
+        default:
+            log.error( "Unknown raw setting parameter: " + field );
+        }
+        try {
+            localRawSettings = f.create();
+            imageView.setRawSettings( localRawSettings );
+        } catch ( PhotovaultException e ) {
+            log.error( "Unexpected exception while creating raw settings: " + 
+                    e.getMessage() );
+        }
+    }
+
+    /**
+     This method is called to set value of a field in the image to new value
+     when the control is used as a preview.
+     
+     @param field The field to change
+     @param value New value for the field
+     @param refValues Reference values for the field (ignored)
+     */
+    public void setField(PhotoInfoFields field, Object value, java.util.List refValues) {
+        
+        switch ( field ) {
+            case COLOR_CURVE_VALUE:
+                setColorCurve( "value", (ColorCurve) value );
+                break;
+            case COLOR_CURVE_RED:
+                setColorCurve( "red", (ColorCurve) value );
+                break;
+            case COLOR_CURVE_GREEN:
+                setColorCurve( "green", (ColorCurve) value );
+                break;
+            case COLOR_CURVE_BLUE:
+                setColorCurve( "blue", (ColorCurve) value );
+                break;
+            case COLOR_CURVE_SATURATION:
+                setColorCurve( "saturation", (ColorCurve) value );
+                break;
+        default:
+            if ( PhotoInfoFields.RAW_FIELDS.contains( field ) ) {
+                setRawConvParam( field, value );
+            }
+            break;
+        }
     }
     
     JAIPhotoView imageView = null;

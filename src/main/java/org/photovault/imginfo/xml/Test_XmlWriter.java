@@ -36,10 +36,10 @@ import org.photovault.common.PhotovaultSettings;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
-import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.imginfo.Volume;
+import org.photovault.imginfo.VolumeManager;
 import org.photovault.test.PhotovaultTestCase;
 
 /**
@@ -59,9 +59,17 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-	volume = new Volume( "testVolume", volumeRoot.getAbsolutePath() );
+        try {
+            volume = new Volume();
+            volume.setName( "testVolume" );
+            VolumeManager.instance().initVolume( volume, volumeRoot );
+        } catch ( Exception e ) {
+            fail( e.getMessage() );
+        }
+
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
         PVDatabase curDb = settings.getCurrentDatabase();
+        
 //        try {
 //            curDb.addVolume( extVol );
 //        } catch (PhotovaultException ex) {
@@ -104,15 +112,15 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         PhotoFolder subfolder1 = new PhotoFolder();
         subfolder1.setName( "Folder 1" );
         subfolder1.setDescription( "Description 1\nanother line" );
-        subfolder1.setParentFolder( root );
+        subfolder1.reparentFolder( root );
         PhotoFolder subfolder2 = new PhotoFolder();
         subfolder2.setName( "Folder 2" );
         subfolder2.setDescription( "Description 2\nanother line" );
-        subfolder2.setParentFolder( root );
+        subfolder2.reparentFolder( root );
         PhotoFolder subfolder3 = new PhotoFolder();
         subfolder3.setName( "Folder 3" );
         subfolder3.setDescription( "Description 3\nanother line" );
-        subfolder3.setParentFolder( subfolder2 );
+        subfolder3.reparentFolder( subfolder2 );
         File outfile = File.createTempFile( "pv_export_test", ".xml" );
         FileWriter fw = new FileWriter( outfile );
         BufferedWriter writer = new BufferedWriter( fw );
@@ -156,7 +164,8 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
 
         assertFalse( l.error );
         assertEquals( XmlImporter.IMPORTING_COMPLETED, l.status );
-        PhotoInfo p = PhotoInfo.retrievePhotoInfo( UUID.fromString( "65bd68f7-79f4-463b-9e37-0a91182e6499") );
+        // PhotoInfo p = PhotoInfo.retrievePhotoInfo( UUID.fromString( "65bd68f7-79f4-463b-9e37-0a91182e6499") );
+        PhotoInfo p = PhotoInfo.create();
         assertEquals( "NIKON D200", p.getCamera() );
         assertEquals( 8.0, p.getFStop() );
         assertEquals( "Digital", p.getFilm() );
@@ -167,8 +176,7 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
         assertEquals( 0.4, c.getY( 1 ) );
         assertEquals( 0.5, c.getX( 1 ) );
         boolean foundOrig = false;
-        for ( int n = 0; n < p.getNumInstances(); n++ ) {
-            ImageInstance i = p.getInstance( n );
+/*        for ( ImageInstance i : p.getInstances() ) {
             if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
                 cm = i.getColorChannelMapping();
                 c = cm.getChannelCurve( "value" );
@@ -178,7 +186,7 @@ public class Test_XmlWriter  extends PhotovaultTestCase {
             }
         }
         assertTrue( foundOrig );
-        assertTrue( l.objects.contains( p ) );
+*/        assertTrue( l.objects.contains( p ) );
         PhotoFolder folder = PhotoFolder.getFolderByUUID( UUID.fromString( "06499cc6-d421-4262-8fa2-30a060982619" ) );
         assertEquals( "test", folder.getName() );
         PhotoFolder parent = folder.getParentFolder();

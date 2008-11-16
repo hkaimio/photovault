@@ -30,7 +30,7 @@ import org.photovault.imginfo.PhotoInfo;
 public class ExtVolIndexerEvent extends EventObject {
     
     /** Creates a new instance of ExtVolIndexerEvent */
-    public ExtVolIndexerEvent( ExtVolIndexer source ) {
+    public ExtVolIndexerEvent( Object source ) {
         super( source );
     }
     

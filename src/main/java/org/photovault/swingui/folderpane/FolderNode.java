@@ -23,8 +23,9 @@ package org.photovault.swingui.folderpane;
 
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.folder.*;
-import org.photovault.imginfo.*;
 import java.util.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * FolderNode keeps track of photos currently in the model that belong to a certain folder.
@@ -36,11 +37,12 @@ import java.util.*;
  * to get the node representation for DefaultMutableTree, since the representation 
  * needs information from both field model and PhotoFolder. However almost all 
  * processing is done in @see FolderController - it might be more logical to 
- * encapsulate also the relean logic here.
+ * encapsulate also the relevant logic here.
  */
 
 class FolderNode {
 
+    static Log log = LogFactory.getLog( FolderNode.class );
     Object[] model;
     /**
      * Constructor
@@ -82,6 +84,7 @@ class FolderNode {
      * Adds a photo to this folder.
      */
     public void addPhoto( PhotoInfo photo ) {
+        log.debug( "addPhoto node " + this + " photo " + photo.getUuid() );
 	photos.add( photo );
     }
 
@@ -91,6 +94,8 @@ class FolderNode {
      */
     
     public boolean containsPhotos() {
+        log.debug( "containsPhotos node " + this + " allAdded " + allAdded + 
+                ", removed: " + allRemoved + ", photos: " + photos.size() );
         return allAdded || ((photos.size() > 0) && !allRemoved);
     }
 
@@ -138,7 +143,4 @@ class FolderNode {
 	}
 	return strbuf.toString();
     }
-
-
-
 }

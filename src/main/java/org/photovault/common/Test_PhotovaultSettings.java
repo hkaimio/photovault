@@ -21,22 +21,34 @@
 
 package org.photovault.common;
 
-import org.photovault.dbhelper.ODMG;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoNotFoundException;
 import org.photovault.imginfo.Thumbnail;
-import org.photovault.imginfo.Volume;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
-import junit.framework.*;
+import java.util.Set;
+import org.hibernate.Session;
+import org.photovault.imginfo.ImageFile;
+import org.photovault.imginfo.OriginalImageDescriptor;
+import org.photovault.imginfo.PhotoEditor;
+import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.VersionedObjectEditor;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
+
 /**
  *
  * @author harri
  */
-public class Test_PhotovaultSettings extends TestCase {
+public class Test_PhotovaultSettings {
     
     /** Creates a new instance of Test_PhotovaultSettings */
     public Test_PhotovaultSettings() {
@@ -44,11 +56,14 @@ public class Test_PhotovaultSettings extends TestCase {
     
     PhotovaultSettings oldSettings = null;
     Properties oldSysProperties = null;
+    
+    @BeforeMethod
     public void setUp() {
         oldSettings = PhotovaultSettings.settings;
         oldSysProperties = System.getProperties();
     }
     
+    @AfterMethod
     public void tearDown() {
         PhotovaultSettings.settings = oldSettings;
         System.setProperties( oldSysProperties );
@@ -57,6 +72,7 @@ public class Test_PhotovaultSettings extends TestCase {
     /**
      * Verify that settings file is loaded from home directory.
      */
+    @Test
     public void testSettingsFileInHomeDir() {
         System.setProperty( "user.home", "testfiles/testHomeDir" );
         
@@ -70,6 +86,7 @@ public class Test_PhotovaultSettings extends TestCase {
         assertNotNull( db );
     }
     
+    @Test
     public void testNoSettingsFile() {
         try {
             File f = File.createTempFile( "photovault_settings", ".xml" );
@@ -99,6 +116,7 @@ public class Test_PhotovaultSettings extends TestCase {
         assertEquals( db2.getName(), db.getName() );
     }
     
+    @Test
     public void testSpecialSettingsFile() {
         System.setProperty( "photovault.configfile", "testfiles/testconfig.xml");
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
@@ -109,6 +127,7 @@ public class Test_PhotovaultSettings extends TestCase {
     /**
      * Test creation of a new database
      */ 
+    @Test
     public void testCreateDB() {
         File confFile = null;
         File dbDir = null;
@@ -129,7 +148,11 @@ public class Test_PhotovaultSettings extends TestCase {
         PVDatabase db = new PVDatabase();
         db.setName( "testing" );
         db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-        db.setEmbeddedDirectory( dbDir );
+        db.setDataDirectory( dbDir );
+        db.addMountPoint( "/tmp/testing" );
+        db.addLegacyVolume( new PVDatabase.LegacyVolume( "legacyTest1", "testdir/legacyvolume1" ) );
+        db.addLegacyVolume( 
+                new PVDatabase.LegacyExtVolume( "legacyTest2", "testdir/legacyvolume2", 4 ) );
         try {
             settings.addDatabase( db );
         } catch (PhotovaultException ex) {
@@ -140,12 +163,27 @@ public class Test_PhotovaultSettings extends TestCase {
         settings = PhotovaultSettings.getSettings();
         settings.setConfiguration( "testing" );     
         db = settings.getCurrentDatabase();
+        Set<File> mounts = db.getMountPoints();
+        assertEquals( 1, mounts.size() );
+        assertTrue( mounts.contains( new File( "/tmp/testing" ) ) );
+        List<PVDatabase.LegacyVolume> lvs = db.getLegacyVolumes();
+        assertEquals( 2, lvs.size() );
+        for ( PVDatabase.LegacyVolume lv : lvs ) {
+            if ( lv instanceof PVDatabase.LegacyExtVolume ) {
+                assertEquals( "legacyTest2", lv.getName() );
+                assertEquals( "testdir/legacyvolume2", lv.getBaseDir() );
+                assertEquals( 4, ((PVDatabase.LegacyExtVolume)lv).getFolderId() );
+            } else {
+                assertEquals( "legacyTest1", lv.getName() );
+                assertEquals( "testdir/legacyvolume1", lv.getBaseDir() );
+            }
+        }
         
         // try creating another database with the same name
         PVDatabase db2 = new PVDatabase();
         db2.setName( "testing" );
         db2.setInstanceType( PVDatabase.TYPE_EMBEDDED );
-        db2.setEmbeddedDirectory( dbDir );
+        db2.setDataDirectory( dbDir );
         boolean throwsException = false;
         try {
             settings.addDatabase( db2 );
@@ -157,56 +195,39 @@ public class Test_PhotovaultSettings extends TestCase {
         
         db.createDatabase( "", "" );
         try {
-            
-            // Verify that the database can be used by importing a file
-            ODMG.initODMG( "", "", db );
+            HibernateUtil.init( "", "", db );
         } catch (PhotovaultException ex) {
             fail( ex.getMessage() );
         }
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        HibernateDAOFactory daoFactory = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        daoFactory.setSession( session );
+        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         File photoFile = new File( "testfiles/test1.jpg" );
         PhotoInfo photo = null;
         try {
-            photo = PhotoInfo.addToDB(photoFile);
-        } catch (PhotoNotFoundException ex) {
+            ImageFile ifile = new ImageFile( photoFile );
+            OriginalImageDescriptor orig = new OriginalImageDescriptor( ifile, "image#0" );
+            photo = PhotoInfo.create();
+            photo = photoDAO.makePersistent( photo );
+            VersionedObjectEditor<PhotoInfo> ve = 
+                    new VersionedObjectEditor<PhotoInfo>( photo, 
+                    daoFactory.getDTOResolverFactory() );
+            ve.setField( "original", orig );
+            ve.apply();
+            session.flush();
+        } catch (PhotovaultException ex) {
             ex.printStackTrace();
             fail( ex.getMessage() );
+        } catch( IOException e ) {
+            e.printStackTrace();
+            fail( e.getMessage() );
         }
-        photo.setPhotographer( "test" );
-        try {
-            
-            PhotoInfo photo2 = PhotoInfo.retrievePhotoInfo( photo.getUid() );
-            Thumbnail thumb = photo2.getThumbnail();
-            this.assertFalse( "Default thumbnail returned", thumb == Thumbnail.getDefaultThumbnail() );
-        } catch (PhotoNotFoundException ex) {
-            fail( "Photo not found in database" );
-        }
-    }
-    
-    public void testProperties() {
-        PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        settings.setProperty( "test", "testing" );
-        settings.setProperty( "test2", "testing2" );
-        assertEquals( "testing", settings.getProperty( "test" ) );
-        assertEquals( "testing2", settings.getProperty( "test2" ) );
-        assertNull( settings.getProperty( "test3" ) );
-        assertEquals( "testing3", settings.getProperty( "test3", "testing3" ) );
-        settings.saveConfig();
-        PhotovaultSettings.settings = null;
-        settings = PhotovaultSettings.getSettings();
-        assertEquals( "testing", settings.getProperty( "test" ) );
-        assertEquals( "testing2", settings.getProperty( "test2" ) );
-        assertNull( settings.getProperty( "test3" ) );
-        assertEquals( "testing3", settings.getProperty( "test3", "testing3" ) );        
-    }
-    
-    public static void main( String[] args ) {
-	junit.textui.TestRunner.run( suite() );
-    }
-    
-    public static Test suite() {
-	return new TestSuite( Test_PhotovaultSettings.class );
-    }    
-    
+        PhotoInfo photo2 = photoDAO.findByUUID( photo.getUuid() );
+
+        assertNotNull( photo2.getOriginal() );
+        session.close();
+    }     
 }
 
     

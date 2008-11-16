@@ -19,50 +19,69 @@
  */
 
 package org.photovault.imginfo;
-import com.sun.media.imageio.plugins.tiff.BaselineTIFFTagSet;
-import com.sun.media.imageio.plugins.tiff.EXIFTIFFTagSet;
-import com.sun.org.apache.xerces.internal.impl.dtd.models.DFAContentModel;
 import java.awt.image.renderable.ParameterBlock;
 import java.util.*;
-import java.sql.*;
 import java.io.*;
-import java.text.*;
 import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
-import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.*;
 import com.sun.media.jai.codec.*;
-import java.awt.Transparency;
 import java.awt.image.*;
 import java.awt.geom.*;
 import com.drew.metadata.*;
 import com.drew.metadata.exif.*;
 import com.drew.imaging.jpeg.*;
-import org.apache.ojb.broker.PersistenceBroker;
-import org.apache.ojb.broker.query.Criteria;
-import org.apache.ojb.broker.query.QueryByCriteria;
-import org.apache.ojb.odmg.*;
-import org.odmg.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+import org.hibernate.Session;
 import org.photovault.common.PhotovaultException;
-import org.photovault.dbhelper.ODMG;
-import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
 import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ColorCurve;
 import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.dto.FolderRefResolver;
+import org.photovault.imginfo.dto.OrigImageRefResolver;
+import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
+import org.photovault.replication.ObjectHistory;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.History;
+import org.photovault.replication.SetField;
+import org.photovault.replication.ValueField;
+import org.photovault.replication.Versioned;
+import org.photovault.replication.VersionedObjectEditor;
 
 /**
  PhotoInfo represents information about a single photograph
  TODO: write a decent doc!
  */
-public class PhotoInfo {
+@Entity
+@Table( name = "pv_photos" )
+@Versioned( editor = PhotoEditor.class )
+public class PhotoInfo implements PhotoEditor {
     
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfo.class.getName() );
+    static Log log = LogFactory.getLog( PhotoInfo.class.getName() );
     
-    // Stirng field lengths
+    // String field lengths
     /** Max length of camera field */
     final static int CAMERA_LENGTH = 30;
     /** Max length of shooting place field */
@@ -76,130 +95,96 @@ public class PhotoInfo {
     /** Max length of origFname field */
     final static int ORIG_FNAME_LENGTH = 30;
     
+    /**
+     Create a new PhotoInfo. This constructor must be used by persistence layer 
+     only. Otherwise, set original image in constructor.
+     */
     public PhotoInfo() {
+//         uuid = UUID.randomUUID();
+        changeHistory = new ObjectHistory<PhotoInfo>( this );
+        changeHistory.setTargetUuid( UUID.randomUUID() );                
         changeListeners = new HashSet();
-        instances = new Vector();
     }
     
+    public PhotoInfo( OriginalImageDescriptor original ) {
+        changeListeners = new HashSet();
+        this.original = original;
+        original.photos.add( this );
+        changeHistory = new ObjectHistory<PhotoInfo>( this );
+    }
+    
+    
+    ObjectHistory<PhotoInfo> changeHistory = null;
+    
+    @History
+    @OneToOne( cascade=CascadeType.ALL )
+    @org.hibernate.annotations.Cascade( org.hibernate.annotations.CascadeType.SAVE_UPDATE )
+    @PrimaryKeyJoinColumn
+    public ObjectHistory<PhotoInfo> getHistory() {
+        return changeHistory;
+    }
+    
+    public void setHistory( ObjectHistory<PhotoInfo> h ) {
+        changeHistory = h;
+    }
+     
+
     /**
-     Static method to load photo info from database by photo id.
-     @param photoId ID of the photo to be retrieved
+     Creates an editor for this photo
+     @param rf DTO resolver factory usedby the editor
+     @return
      */
-    public static PhotoInfo retrievePhotoInfo( int photoId ) throws PhotoNotFoundException {
-        log.debug( "Fetching PhotoInfo with ID " + photoId );
-        String oql = "select photos from " + PhotoInfo.class.getName() + " where uid=" + photoId;
-        List photos = null;
+    public VersionedObjectEditor<PhotoInfo> editor( DTOResolverFactory rf ) {
+        return new VersionedObjectEditor<PhotoInfo>(  this , rf );
+    }
         
-        // Get transaction context
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( oql );
-            photos = (List) query.execute();
-            txw.commit();
-        } catch (Exception e ) {
-            log.warn( "Error fetching record: " + e.getMessage() );
-            txw.abort();
-            throw new PhotoNotFoundException();
-        }
-        if ( photos.size() == 0 ) {
-            throw new PhotoNotFoundException();
-        }
-        PhotoInfo photo = (PhotoInfo) photos.get(0);
-        
-        // For some reason when seeking for e.g. photoId -1, a photo with ID = 1 is returned
-        // This sounds like a bug in OJB?????
-        if ( photo.getUid() != photoId ) {
-            log.warn( "Found photo with ID = " + photo.getUid() + " while looking for ID " + photoId );
+    
+    /**
+     Get a PhotoInfo object with given ID
+     @param session the persistence context into which the object is requested
+     @param uid UID of the requested object.
+     @return The PhotoInfo with given UID or <code>null</code> if no such is 
+     available.
+     */
+    public static PhotoInfo findPhotoInfo( Session session, Integer uid )
+    throws PhotoNotFoundException {        
+        PhotoInfo photo =  (PhotoInfo) session.get( PhotoInfo.class, uid );
+        if ( photo == null ) {
             throw new PhotoNotFoundException();
         }
         return photo;
     }
     
-    /**
-     Static method to load photo info from database by its globally unique id
-     @param uuid UUID of the photo to be retrieved 
-     @return PhotoInfo onject with the given uuid or <code>null<code> if 
-     such object is not found.
-     */
-    public static PhotoInfo retrievePhotoInfo( UUID uuid ) throws PhotoNotFoundException {
-        log.debug( "Fetching PhotoInfo with UUID " + uuid );
-        String oql = "select photos from " + PhotoInfo.class.getName() + " where uuid=\"" + uuid.toString() + "\"";
-        List photos = null;
-        
-        // Get transaction context
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        try {
-            OQLQuery query = odmg.newOQLQuery();
-            query.create( oql );
-            photos = (List) query.execute();
-            txw.commit();
-        } catch (Exception e ) {
-            log.warn( "Error fetching record: " + e.getMessage() );
-            txw.abort();
-            throw new PhotoNotFoundException();
-        }
-        PhotoInfo photo = null;
-        if ( photos.size() > 0 ) {
-            if ( photos.size() > 1 ) {
-                log.warn( "" + photos.size() + " photos with UUID " + uuid );
-            }
-            photo = (PhotoInfo) photos.get(0);
-        }
-        return photo;
-    }
     
     /**
      Retrieves the PhotoInfo objects whose original instance has a specific hash code
      @param hash The hash code we are looking for
      @return An array of matching PhotoInfo objects or <code>null</code>
      if none found.
+     @deprecated Use PhotoInfoDAO#findPhotosWithOriginalHash instead.
      */
     static public PhotoInfo[] retrieveByOrigHash(byte[] hash) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Implementation odmg = ODMG.getODMGImplementation();
-        
-        Transaction tx = odmg.currentTransaction();
-        
-        PhotoInfo photos[] = null;
-        try {
-            PersistenceBroker broker = ((HasBroker) tx).getBroker();
-            
-            Criteria crit = new Criteria();
-            crit.addEqualTo( "origInstanceHash", hash );
-            
-            QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
-            Collection result = broker.getCollectionByQuery( q );
-            if ( result.size() > 0 ) {
-                photos = (PhotoInfo[]) result.toArray( new PhotoInfo[result.size()] );
-            }
-            txw.commit();
-        } catch ( Exception e ) {
-            log.warn( "Error executing query: " + e.getMessage() );
-            e.printStackTrace( System.out );
-            txw.abort();
-        }
-        return photos;  
+        throw new UnsupportedOperationException( 
+                "retrieveByOrigHash not supported with Hibernate, " +
+                "Use PhotoInfoDAO#findPhotosWithOriginalHash instead" );
+//        PhotoInfo photos[] = null;
+//        List result = new ArrayList();
+//        if ( result.size() > 0 ) {
+//                photos = (PhotoInfo[]) result.toArray( new PhotoInfo[result.size()] );
+//            }
+//        return photos;  
     }
     
     /**
      Creates a new persistent PhotoInfo object and stores it in database
      (just a dummy one with no meaningful field values)
      @return A new PhotoInfo object
+     @deprecated Use the {@link PhotoInfoDAO#create()} instead
      */
     public static PhotoInfo create() {
         PhotoInfo photo = new PhotoInfo();
-        photo.uuid = UUID.randomUUID();
-        
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();        
-        db.makePersistent( photo );
-        txw.lock( photo, Transaction.WRITE );
-        txw.commit();
+        // photo.uuid = UUID.randomUUID();
+        // photo.setHistory( new PhotoInfoChangeSupport( photo ) );
         return photo;
     }
     
@@ -210,131 +195,73 @@ public class PhotoInfo {
      */
     public static PhotoInfo create(UUID uuid) {
         PhotoInfo photo = new PhotoInfo();
-        photo.uuid = uuid;
-        
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();        
-        db.makePersistent( photo );
-        txw.lock( photo, Transaction.WRITE );
-        txw.commit();
+        // photo.uuid = uuid;
+        // photo.setHistory( new PhotoInfoChangeSupport( photo ) );
         return photo;
     }
     
     /**
-     Add a new image to the database. Unless the image resides in an external
+     Create a new Photo based on an image file. Unless the image resides in an external
      volume this method first copies a given image file to the default database
      volume. It then extracts the information it can from the image file and
-     stores a corresponding entry in DB.
+     creates a PhotoInfo object based on this.
      
      @param imgFile File object that describes the image file that is to be added
      to the database
      @return The PhotoInfo object describing the new file.
      @throws PhotoNotFoundException if the file given as imgFile argument does
      not exist or is unaccessible. This includes a case in which imgFile is part
-     if normal Volume.
+     of normal Volume.
+     @deprecated Not supported anymore
+     
+     // TODO: Move this into a command object.
      */
     public static PhotoInfo addToDB( File imgFile )  throws PhotoNotFoundException {
-        VolumeBase vol = null;
-        try {
-            vol = VolumeBase.getVolumeOfFile( imgFile );
-        } catch (IOException ex) {
-            throw new PhotoNotFoundException();
-        }
-        
-        // Determine the fle that will be added as an instance
-        File instanceFile = null;
-        if ( vol == null ) {
-            /*
-             The "normal" case: we are adding a photo that is not part of any
-             volume. Copy the file to the archive.
-             */
-            vol = VolumeBase.getDefaultVolume();
-            instanceFile = vol.getFilingFname( imgFile );
-            
-            try {
-                FileUtils.copyFile( imgFile, instanceFile );
-            } catch (IOException ex) {
-                log.warn( "Error copying file: " + ex.getMessage() );
-                throw new PhotoNotFoundException();
-            }
-        } else if ( vol instanceof ExternalVolume ) {
-            // Thisfile is in an external volume so we do not need a copy
-            instanceFile = imgFile;
-        } else if ( vol instanceof Volume ) {
-            // Adding file from normal volume is not permitted
-            throw new PhotoNotFoundException();
-        } else {
-            throw new java.lang.Error( "Unknown subclass of VolumeBase: "
-                    + vol.getClass().getName() );
-        }
-        
-        // Create the image
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        PhotoInfo photo = PhotoInfo.create();
-        txw.lock( photo, Transaction.WRITE );
-        photo.addInstance( vol, instanceFile, ImageInstance.INSTANCE_TYPE_ORIGINAL );
-        photo.setCropBounds( new Rectangle2D.Float( 0.0F, 0.0F, 1.0F, 1.0F ) );
-        photo.updateFromOriginalFile();
-        txw.commit();
-        return photo;
+        throw new UnsupportedOperationException( "addToDb is not supported anymore" );
     }
-    
-    UUID uuid = null;
     
     /**
      Get the globally unique ID for this photo;
      */
-    public UUID getUUID() {
-        if ( uuid == null ) {
-            setUUID( UUID.randomUUID() );
-        }
-        return uuid;
+    @Column( name = "photo_uuid" )
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )
+    @Id
+    public UUID getUuid() {
+        return changeHistory.getTargetUuid();
     }    
     
-    public void setUUID( UUID uuid ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-	txw.lock( this, Transaction.WRITE );
-	this.uuid = uuid;
-	modified();
-	txw.commit();
+    public void setUuid( UUID uuid ) {
+	// this.uuid = uuid;
+        changeHistory.setTargetUuid( uuid );
+        modified();
     }
     
     /**
-     Reads field values from original file EXIF values
-     @return true if successfull, false otherwise
+     Last change that vas applied to this photo
+     */
+    PhotoInfoChangeDesc version;
+    
+    /**
+     Get the last change that was made to this photo
+     
+     @return ChangeDesc describing the last change
      */
     
-    public boolean updateFromOriginalFile() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        ImageInstance instance = null;
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance candidate = (ImageInstance) instances.get( n );
-            if ( candidate.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-                instance = candidate;
-                File f = instance.getImageFile();
-                boolean success = false;
-                if ( f != null ) {
-                    String suffix = "";
-                    int suffixStart = f.getName().lastIndexOf( "." );
-                    if ( suffixStart >= 0 &&  suffixStart < f.getName().length() -1 ) {
-                        suffix = f.getName().substring( suffixStart+1 );
-                    }
-                    Iterator readers = ImageIO.getImageReadersBySuffix( suffix );
-                    if ( readers.hasNext() ) {
-                        updateFromFileMetadata( f );
-                        success = true;
-                    } else {
-                        success = updateFromRawFileMetadata( f );
-                    }
-                    txw.commit();
-                    return success;
-                }
-            }
-        }
-        txw.commit();
-        return false;
+    @OneToOne( cascade = CascadeType.ALL )
+    @JoinColumn( name="version_uuid" )
+    public PhotoInfoChangeDesc getVersion() {
+        return version;
     }
     
+    /**
+     Set the version of this photo
+     
+     @param v Description of the change that was last made to this photo.
+     */
+    public void setVersion( PhotoInfoChangeDesc v ) {
+        version = v;
+    }
+
     /**
      This method reads the metadata from image file and updates the PhotoInfo record from it
      @param f The file to read
@@ -406,32 +333,24 @@ public class PhotoInfo {
      {@link #delete( boolean deleteExternalInstances )} instead.
      */
     public void delete() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();
-        
+        log.warn( "Calling PhotoInfo.delete()" );
         // First delete all instances
-        for ( int i = 0; i < instances.size(); i++ ) {
-            ImageInstance f = (ImageInstance) instances.get( i );
-            f.delete();
-        }
         
         // Then delete the photo from all folders it belongs to
-        if ( folders != null ) {
-            Object[] foldersArray = folders.toArray();
-            for ( int n = 0; n < foldersArray.length; n++ ) {
-                ((PhotoFolder)foldersArray[n]).removePhoto( this );
-            }
-        }
-        
-        // Then delete the PhotoInfo itself
-        db.deletePersistent( this );
-        txw.commit();
+//        if ( folders != null ) {
+//            Object[] foldersArray = folders.toArray();
+//            for ( int n = 0; n < foldersArray.length; n++ ) {
+//                ((PhotoFolder)foldersArray[n]).removePhoto( this );
+//            }
+//        }
     }
     
     /**
-     Tries to delete a this photo, including all of its instances. If some
+     Tries to delete this photo, including all of its instances. If some
      instances cannot be deleted, other instances are deleted anyway but the actual
      PhotoInfo and its associations to folders are preserved.
+     
+     @deprecated TODO: This should be reimplemented according to new database schema
      
      @param deleteExternalInstances Tries to delete also instances on external 
      volumes
@@ -439,45 +358,7 @@ public class PhotoInfo {
      @throws PhotovaultException if some instances of the photo cannot be deleted
      */
     public void delete( boolean deleteExternalInstances ) throws PhotovaultException {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        Database db = ODMG.getODMGDatabase();
-
-        // First delete all instances
-        Vector deletedInstances = new Vector();
-        Vector notDeletedInstances = new Vector();
-        for ( int i = 0; i < instances.size(); i++ ) {
-            ImageInstance f = (ImageInstance) instances.get( i );
-            if ( f.delete( deleteExternalInstances ) ) {
-                deletedInstances.add( f );
-            } else {
-                notDeletedInstances.add( f );
-            }
-        }
-        
-        // Remove all instances we were able to delete
-        for ( int i = 0 ; i < deletedInstances.size(); i++ ) {
-            instances.remove( deletedInstances.elementAt( i ) );
-        }
-        
-        if ( notDeletedInstances.size() > 0 ) {
-            txw.commit();
-            throw new PhotovaultException( "Unable to delete some instances of the photo" );
-        }
-
-        /*
-         All instances were succesfully deleted, so we can delete metadata as well.
-         First, delete the photo from all folders it belongs to
-         */
-        if ( folders != null ) {
-            Object[] foldersArray = folders.toArray();
-            for ( int n = 0; n < foldersArray.length; n++ ) {
-                ((PhotoFolder)foldersArray[n]).removePhoto( this );
-            }
-        }
-        
-        // Then delete the PhotoInfo object itself
-        db.deletePersistent( this );
-        txw.commit();        
+        throw new UnsupportedOperationException( "delete() not implemented in Hibernate schema" );
     }
         
     
@@ -513,9 +394,7 @@ public class PhotoInfo {
      set of the listeners that should be notified of any changes to this object
      */
     HashSet changeListeners = null;
-    
-    
-    private int uid;
+
     
     /**
      * Describe timeAccuracy here.
@@ -541,137 +420,89 @@ public class PhotoInfo {
      * Describe origFname here.
      */
     private String origFname;
-    
+
+
+    private OriginalImageDescriptor original;
+
     /**
-     Returns the uid of the object
+     Get image descriptor for original of this photo
+     @return original's image descriptor.
      */
-    public int getUid() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
-        return uid;
+    @ValueField( dtoResolver=OrigImageRefResolver.class )
+    @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
+    @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
+    @JoinColumn( name = "original_id", nullable = true )    
+    @org.hibernate.annotations.AccessType( "field" )
+    public OriginalImageDescriptor getOriginal() {
+        return original;
     }
     
     /**
-     Adds a new image instance for this photo
-     @param i The new instance
+     Set the original for this photo. Note that this method should be used only
+     by persistence layer. Otherwise the original must be set in constructor.
+     @param original image descriptor for the original
      */
-    public void addInstance( ImageInstance i ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        txw.lock( i, Transaction.WRITE );
-        instances.add( i );
-        i.setPhotoUid(  uid );
-        if ( i.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-            origInstanceHash = i.getHash();
+    public void setOriginal( OriginalImageDescriptor original ) {
+        this.original = original;
+        if ( original != null ) {
+            original.photos.add( this );
         }
-        txw.commit();
-        
-    }
-    
-    /**
-     Adds a new instance of the photo into the database.
-     @param volume Volume in which the instance is stored
-     @param instanceFile File name of the instance
-     @param instanceType Type of the instance - original, modified or thumbnail.
-     @return The new instance
-     @see ImageInstance class documentation for details.
-     */
-    public ImageInstance addInstance( VolumeBase volume, File instanceFile, int instanceType ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        // Vector origInstances = getInstances();
-        ImageInstance instance = ImageInstance.create( volume, instanceFile, this, instanceType );
-        instances.add( instance );
-        
-        // If this is the first instance or we are adding original image we need to invalidate
-        // thumbnail
-        if ( instances.size() == 1 || instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-            invalidateThumbnail();
-        }
-        
-        if ( instanceType == ImageInstance.INSTANCE_TYPE_ORIGINAL ) {
-            // Store the hash code of original (even if this original instance is later deleted
-            // we can identify later that another file is an instance of this photo)
-            origInstanceHash = instance.getHash();
-            // If an original instance is added notify listeners since some of
-            // them may be displaying the default thumbnail
-            modified();
-        }
-        txw.commit();
-        return instance;
-    }
-    
-    public void removeInstance( int instanceNum )  throws IndexOutOfBoundsException {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        ImageInstance instance = null;
-        try {
-            instance = (ImageInstance) getInstances().get(instanceNum );
-        } catch ( IndexOutOfBoundsException e ) {
-            txw.abort();
-            throw e;
-        }
-        txw.lock( this, Transaction.WRITE );
-        txw.lock( instance, Transaction.WRITE );
-        instances.remove( instance );
-        instance.delete();
-        txw.commit();
-    }
-    
-    /**
-     Returns the number of instances of this photo that are stored in database
-     */
-    public int getNumInstances() {
-        return instances.size();
     }
     
     
     /**
-     Returns the arrayList that contains all instances of this file.
+     Find instance that is preferred for use in particular situation. This function 
+     seeks for an image that has at least a given resolution, has certain
+     operations already applied and is available.
+     @param requiredOpers Set of operations that must be applied correctly 
+     in the returned image (but not that the operations need not be applied if 
+     this photo does not specify some operation. So even if this is non-empty
+     it is possible that the method returns original image!
+     @param allowedOpers Set of operations that may be applied to the returned
+     image
+     @param minWidth Minimum width of the returned image in pixels
+     @param minHeight Minimum height of the returned image in pixels
+     @param maxWidth Maximum width of the returned image in pixels
+     @param maxHeight Maximum height of the returned image in pixels
+     @return Image that best matches the given criteria or <code>null</code>
+     if no suct image exists or is not available.
      */
-    public Vector getInstances() {
-        return instances;
-    }
-    
-    Vector instances = null;
-    
-    /**
-     Return a single image instance based on its order number
-     @param instanceNum Number of the instance to return
-     @throws IndexOutOfBoundsException if instanceNum is < 0 or >= the number of instances
-     */
-    public ImageInstance getInstance( int instanceNum ) throws IndexOutOfBoundsException {
-        ImageInstance instance =  (ImageInstance) getInstances().get(instanceNum );
-        return instance;
-    }
-    
-    /**
-     Find instance that is preferred for using in particular situatin. This function 
-     seeks for an isntance that has at least a given resolution and has certain
-     operations already applied.
-     */
-    public ImageInstance getPreferredInstance( EnumSet<ImageOperations> requiredOpers,
-            EnumSet<ImageOperations> allowedOpers, int minWidth, int minHeight ) {
-        ImageInstance preferred = null;
+    public ImageDescriptorBase getPreferredImage( Set<ImageOperations> requiredOpers,
+            Set<ImageOperations> allowedOpers, int minWidth, int minHeight,
+            int maxWidth, int maxHeight ) {
+        ImageDescriptorBase preferred = null;
         EnumSet<ImageOperations> appliedPreferred = null;
         
-        Vector instances = getInstances();
-        for ( Object o : instances ) {
-            ImageInstance i = (ImageInstance) o;
-            File f = i.getImageFile();
-            if ( f != null && f.exists() && i.getWidth() >= minWidth &&
-                    i.getHeight() >= minHeight ) {
-                EnumSet<ImageOperations> applied = i.getAppliedOperations();
+        // We are not interested in operations that are not specified for this photo
+        EnumSet<ImageOperations> specifiedOpers = getAppliedOperations();
+        requiredOpers = EnumSet.copyOf( requiredOpers );
+        requiredOpers.removeAll( EnumSet.complementOf( specifiedOpers ) );
+        
+        /*
+         Would the original be OK?
+         */
+        if ( requiredOpers.size() == 0 && 
+                original.getWidth() <= maxWidth &&
+                original.getHeight() <= maxHeight &&
+                original.getFile().findAvailableCopy() != null ) {
+            preferred = original;
+            appliedPreferred = EnumSet.noneOf( ImageOperations.class );
+        }
+        
+        // Check the copies
+        Set<CopyImageDescriptor> copies = original.getCopies();
+        for ( CopyImageDescriptor copy : copies ) {
+            if ( copy.getWidth() >= minWidth && copy.getHeight() >= minHeight &&
+                    copy.getWidth() <= maxWidth && copy.getHeight() <= maxHeight &&
+                    copy.getFile().findAvailableCopy() != null ) {
+                EnumSet<ImageOperations> applied = copy.getAppliedOperations();
                 if ( applied.containsAll( requiredOpers ) && 
                         allowedOpers.containsAll( applied ) && 
-                        isConsistentWithCurrentSettings( i ) ) {
+                        isConsistentWithCurrentSettings( copy ) ) {
                     
-                    // This is potential one
-                    if ( preferred == null ) {
-                        preferred = i;
-                        appliedPreferred = applied;
-                    } else if ( !appliedPreferred.containsAll( applied ) ) {
-                        preferred = i;
+                    // This is a potential one
+                    if ( preferred == null || !appliedPreferred.containsAll( applied ) ) {
+                        preferred = copy;
                         appliedPreferred = applied;                        
                     }
                 }
@@ -681,15 +512,43 @@ public class PhotoInfo {
     }
     
     /**
-     Returns a thumbnail of this image. If no thumbnail instance is yetavailable, creates a
-     new instance on the default volume. Otherwise loads an existing thumbnail instance. <p>
-     
-     If thumbnail creation fails of if there is no image instances available at all, returns
-     a default thumbnail image.
-     @return Thumbnail of this photo or default thumbnail if no photo instances available
+     Get operations that have been applied to this photo.
+     @return set of {@link ImageOperations} values for those operations that have 
+     been applied.
      */
+    @Transient
+    public EnumSet<ImageOperations> getAppliedOperations() {
+        EnumSet<ImageOperations> applied = EnumSet.noneOf( ImageOperations.class );
+        
+        if ( !this.getCropBounds().contains( 0.0, 0.0, 1.0, 1.0 ) ||
+                this.getPrefRotation() != 0.0 ) {
+            applied.add( ImageOperations.CROP );
+        }
+        // Check for raw conversion
+        if ( getRawSettings() != null ) {
+            applied.add( ImageOperations.RAW_CONVERSION );
+        }
+        // Check for color mapping
+        ChannelMapOperation colorMap = getColorChannelMapping();
+        if ( colorMap != null ) {
+            applied.add( ImageOperations.COLOR_MAP );
+        }
+        return applied;
+    }
+    
+    /**
+     Returns a thumbnail of this image. If no thumbnail instance is yet available, 
+     creates a new instance on the default volume. Otherwise loads an existing 
+     thumbnail instance. <p>
+     
+     If thumbnail creation fails of if there is no image instances available at 
+     all, returns a default thumbnail image.
+     @return Thumbnail of this photo or default thumbnail if no photo instances 
+     available
+     */
+    @Transient
     public Thumbnail getThumbnail() {
-        log.debug( "getThumbnail: entry, Finding thumbnail for " + uid );
+        log.debug( "getThumbnail: entry, Finding thumbnail for " + getUuid() );
         if ( thumbnail == null ) {
             thumbnail = getExistingThumbnail();
             if ( thumbnail == null ) {
@@ -710,28 +569,24 @@ public class PhotoInfo {
     }
     
     /**
-     Returns an existing thumbnail for this photo but do not try to contruct a new
-     one if there is no thumbnail already created.
+     Returns an existing thumbnail for this photo but do not try to construct a 
+     new one if there is no thumbnail already created.
      @return Thumbnail for this photo or null if none is found.
      */
-    
+    @Transient
     public Thumbnail getExistingThumbnail() {
         if ( thumbnail == null ) {
             log.debug( "Finding thumbnail from database" );
-            // First try to find an instance from existing instances
-            ImageInstance original = null;
-            for ( int n = 0; n < instances.size(); n++ ) {
-                ImageInstance instance = (ImageInstance) instances.get( n );
-                if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-                        && matchesCurrentSettings( instance ) ) {
-                    File f = instance.getImageFile();
-                    if ( f != null ) {
-                        log.debug( "Found thumbnail from database" );
-                        thumbnail = Thumbnail.createThumbnail( this, instance.getImageFile() );
-                        oldThumbnail = null;
-                        break;
-                    }
-                }
+            ImageDescriptorBase img = getPreferredImage(
+                    EnumSet.allOf( ImageOperations.class),
+                    EnumSet.allOf( ImageOperations.class),
+                    0, 0, 100, 100 );
+            if ( img != null ) {
+                log.debug( "Found thumbnail from database" );
+                // TODO: This must take also locator.
+                thumbnail = Thumbnail.createThumbnail( this,
+                        img.getFile().findAvailableCopy() );
+                oldThumbnail = null;
             }
         }
         return thumbnail;
@@ -742,7 +597,7 @@ public class PhotoInfo {
      false otherwise
      */
     public boolean hasThumbnail() {
-        log.debug( "hasThumbnail: entry, Finding thumbnail for " + uid );
+        log.debug( "hasThumbnail: entry, Finding thumbnail for " + getUuid() );
         if ( thumbnail == null ) {
             thumbnail = getExistingThumbnail();
         }
@@ -757,6 +612,7 @@ public class PhotoInfo {
      */
     Thumbnail oldThumbnail = null;
     
+    @Transient
     public Thumbnail getOldThumbnail() {
         return oldThumbnail;
     }
@@ -780,29 +636,27 @@ public class PhotoInfo {
      */
     private void purgeInvalidInstances() {
         log.debug( "entry: purgeInvalidInstances" );
-        Vector purgeList = new Vector();
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance instance = (ImageInstance) instances.get( n );
-            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-                    && !matchesCurrentSettings( instance ) ) {
-                purgeList.add( instance );
-            } else if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED
-                    && !isConsistentWithCurrentSettings( instance ) ) {
-                purgeList.add( instance );                
-            }
-        }
-        log.debug( "Deleting " + purgeList.size() + " instances" );
-        Iterator iter = purgeList.iterator();
-        while ( iter.hasNext() ) {
-            ImageInstance i = (ImageInstance) iter.next();
-            ODMGXAWrapper txw = new ODMGXAWrapper();
-            txw.lock( this, Transaction.WRITE );
-            txw.lock( i, Transaction.WRITE );
-            instances.remove( i );
-            i.delete();
-            txw.commit();
-        }
-        log.debug( "exit: purgeInvalidInstances" );        
+        throw new UnsupportedOperationException( "ImageInstance has been deprecated!!!" );
+//        List<ImageInstance> purgeList = new ArrayList<ImageInstance>();
+//        for ( ImageInstance instance : instances ) {
+//            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
+//                    && !matchesCurrentSettings( instance ) ) {
+//                purgeList.add( instance );
+//            } else if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED
+//                    && !isConsistentWithCurrentSettings( instance ) ) {
+//                purgeList.add( instance );                
+//            }
+//        }
+//        log.debug( "Deleting " + purgeList.size() + " instances" );
+//        for ( ImageInstance i : purgeList ) {
+//            ODMGXAWrapper txw = new ODMGXAWrapper();
+//            txw.lock( this, Transaction.WRITE );
+//            txw.lock( i, Transaction.WRITE );
+//            instances.remove( i );
+//            i.delete();
+//            txw.commit();
+//        }
+//        log.debug( "exit: purgeInvalidInstances" );        
     }
 
     /**
@@ -811,6 +665,8 @@ public class PhotoInfo {
      @param height height of the image
      @param pixelAspect Aspect ratio of a single pixel (width/height)
      @return aspect ratio (width/height)
+     
+     @deprecated Use {@link PhotoInstanceCreator} instead
      */
     private double getAspect( int width, int height, double pixelAspect ) {
         return height > 0
@@ -825,6 +681,8 @@ public class PhotoInfo {
      @param minWidth Minimun width needed for creating a thumbnail
      @param minHeight Minimum height needed for creating a thumbnail
      @param origAspect Aspect ratio of the original image
+
+     @deprecated Use {@link PhotoInstanceCreator} instead
      */
     private boolean isOkForThumbCreation( int width, int height,
             int minWidth, int minHeight, double origAspect, double aspectAccuracy ) {
@@ -836,28 +694,26 @@ public class PhotoInfo {
         }
         return true;
     }
-    
-    private boolean matchesCurrentSettings( ImageInstance instance ) {
-        return Math.abs(instance.getRotated() - prefRotation) < 0.0001
-                && instance.getCropBounds().equals( getCropBounds() )
-                && (channelMap == null || channelMap.equals( instance.getColorChannelMapping()))
-                && ( rawSettings == null || rawSettings.equals( instance.getRawSettings()));            
-        }
         
     
-    private boolean isConsistentWithCurrentSettings( ImageInstance instance ) {
-        EnumSet<ImageOperations> applied = instance.getAppliedOperations();
+    private boolean isConsistentWithCurrentSettings( CopyImageDescriptor img ) {
+        EnumSet<ImageOperations> applied = img.getAppliedOperations();
         if ( applied.contains( ImageOperations.CROP ) && 
-                !(Math.abs(instance.getRotated() - prefRotation) < 0.0001
-                && instance.getCropBounds().equals( getCropBounds() ) ) ) {
+                !(Math.abs(img.getRotation() - prefRotation) < 0.0001
+                && img.getCropArea().equals( getCropBounds() ) ) ) {
             return false;
         }
-        if ( applied.contains( ImageOperations.COLOR_MAP ) && 
-                !(channelMap == null || channelMap.equals( instance.getColorChannelMapping() ) ) ) {
-            return false;
+        if ( applied.contains( ImageOperations.COLOR_MAP ) ) {
+            ChannelMapOperation imgCm = img.getColorChannelMapping();
+            if ( channelMap != null && !channelMap.isAlmostEqual( imgCm, 0.005 ) ) {
+                return false;
+            }
+            if ( channelMap == null && imgCm != null && !imgCm.isAlmostEqual(channelMap, 0.005 ) ) {
+                return false;
+            }
         }
         if ( applied.contains( ImageOperations.RAW_CONVERSION ) &&
-                !( rawSettings == null || rawSettings.equals( instance.getRawSettings() ) ) ) {
+                !( rawSettings == null || rawSettings.equals( img.getRawSettings() ) ) ) {
             return false;
         }
         return true;
@@ -875,10 +731,9 @@ public class PhotoInfo {
         EnumSet<ImageOperations> previewOps = EnumSet.of( 
                 ImageOperations.COLOR_MAP, 
                 ImageOperations.RAW_CONVERSION );
-        ImageInstance previewInstance = this.getPreferredInstance( EnumSet.noneOf( ImageOperations.class ),
-                previewOps, 1024, 1024 );
-        if ( previewInstance != null && 
-                previewInstance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED ) {
+        ImageDescriptorBase previewImage = this.getPreferredImage( EnumSet.noneOf( ImageOperations.class ),
+                previewOps, 1024, 1024, 2048, 2048 );
+        if ( previewImage != null ) {
             recreatePreview = false;
         }
         createThumbnail( volume, recreatePreview );
@@ -886,13 +741,13 @@ public class PhotoInfo {
     
     /** Creates new thumbnail and preview instances for this image on specific volume
      @param volume The volume in which the instance is to be created
-     @param createpreview, if <code>true</code> create also a preview image.
+
+     @deprecated Use {@link PhotoInstanceCreator} instead
+     
      */
     protected void createThumbnail( VolumeBase volume, boolean createPreview ) {
         
-        log.debug( "Creating thumbnail for " + uid );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
+        log.debug( "Creating thumbnail for " + getUuid() );
         
         // Maximum size of the thumbnail
         int maxThumbWidth = 100;
@@ -923,16 +778,15 @@ public class PhotoInfo {
             minInstanceHeight = 1024;
         }
         
-        ImageInstance original = this.getPreferredInstance( EnumSet.noneOf( ImageOperations.class ),
-                allowedOps, minInstanceWidth, minInstanceHeight );
+        ImageDescriptorBase srcImage = this.getPreferredImage( EnumSet.noneOf( ImageOperations.class ),
+                allowedOps, minInstanceWidth, minInstanceHeight, 
+                Integer.MAX_VALUE, Integer.MAX_VALUE );
         
-        if ( original == null ) {
+        if ( srcImage == null ) {
             // If there are no uncorrupted instances, no thumbnail can be created
             log.warn( "Error - no original image was found!!!" );
-            txw.commit();
             return;
         }
-        txw.lock( original, Transaction.READ );
         log.debug( "Found original, reading it..." );
         
         /*
@@ -954,7 +808,7 @@ public class PhotoInfo {
         RenderedImage previewImage = null;
         
         try {
-            File imageFile = original.getImageFile();
+            File imageFile = srcImage.getFile().findAvailableCopy();
             PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
             PhotovaultImage img = imgFactory.create( imageFile, false, false );
             if ( channelMap != null ) {
@@ -975,7 +829,11 @@ public class PhotoInfo {
                 previewImage = img.getRenderedImage( previewWidth, previewHeight, false );
             }
             img.setCropBounds( this.getCropBounds() );
-            img.setRotation( prefRotation - original.getRotated() );
+            double srcRotation = 0.0;
+            if ( srcImage instanceof CopyImageDescriptor ) {
+                srcRotation = ((CopyImageDescriptor)srcImage).getRotation();
+            }
+            img.setRotation( prefRotation - srcRotation );
             thumbImage = img.getRenderedImage( maxThumbWidth, maxThumbHeight, true );
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
@@ -983,7 +841,6 @@ public class PhotoInfo {
             // problems later with non-existing transaction. We should really
             // rethink the error handling logic in the whole function. Anyway, we
             // haven't changed anything yet so we can safely commit the tx.
-            txw.commit();
             return;
         }
         log.debug( "Done, finding name" );
@@ -999,29 +856,36 @@ public class PhotoInfo {
                 System.gc();
             }
         } catch (PhotovaultException ex) {
-            log.error( "error writing thumbnail for " + original.getImageFile().getAbsolutePath() + 
+            log.error( "error writing thumbnail for " + 
+                    srcImage.getFile().findAvailableCopy().getAbsolutePath() + 
                     ": " + ex.getMessage() );
             // TODO: If we abort here due to image writing problem we will have 
             // problems later with non-existing transaction. We should really 
             // rethink the error handling login in the whole function. Anyway, we 
             // haven't changed anything yet so we can safely commit the tx.
-            txw.commit();
             return;
         }
+        try {
+            ImageFile thumbFile;
+            thumbFile = new ImageFile(thumbnailFile);
+            CopyImageDescriptor thumbImageDesc = new CopyImageDescriptor( thumbFile, "image#0", original );
+            thumbImageDesc.setRotation( prefRotation );
+            thumbImageDesc.setCropArea( getCropBounds() );
+            thumbImageDesc.setColorChannelMapping( channelMap );
+            thumbImageDesc.setRawSettings( rawSettings );
+            thumbFile.addLocation( new FileLocation( volume,
+                    volume.mapFileToVolumeRelativeName( thumbnailFile ) ) );
+        } catch ( Exception ex ) {
+            log.error( "Error creating thumb instance: " + ex.getMessage() );
+        } 
         
-        // add the created instance to this persistent object
-        ImageInstance thumbInstance = addInstance( volume, thumbnailFile,
-                ImageInstance.INSTANCE_TYPE_THUMBNAIL );
-        thumbInstance.setRotated( prefRotation -original.getRotated() );
-        thumbInstance.setCropBounds( getCropBounds() );
-        thumbInstance.setColorChannelMapping( channelMap );
-        thumbInstance.setRawSettings( rawSettings );
         log.debug( "Loading thumbnail..." );
         
         thumbnail = Thumbnail.createThumbnail( this, thumbnailFile );
         oldThumbnail = null;
         log.debug( "Thumbnail loaded" );
         
+        /*
         if ( createPreview ) {
             File previewFile = volume.getInstanceName( this, "jpg" );
             try {
@@ -1031,13 +895,8 @@ public class PhotoInfo {
                     System.gc();
                 }
             } catch (PhotovaultException ex) {
-                log.error( "error writing preview for " + original.getImageFile().getAbsolutePath() +
+                log.error( "error writing preview for " + srcImage.getFile().findAvailableCopy() +
                         ": " + ex.getMessage() );
-                // TODO: If we abort here due to image writing problem we will have
-                // problems later with non-existing transaction. We should really
-                // rethink the error handling login in the whole function. Anyway, we
-                // haven't changed anything yet so we can safely commit the tx.
-                txw.commit();
                 return;
             }
             ImageInstance previewInstance = addInstance( volume, previewFile,
@@ -1046,6 +905,7 @@ public class PhotoInfo {
             previewInstance.setRawSettings( rawSettings );
         }
         txw.commit();
+         */
     }
     
     /**
@@ -1106,7 +966,7 @@ public class PhotoInfo {
         Metadata metadata = null;
         try {
             metadata = JpegMetadataReader.readMetadata( f );
-        } catch (FileNotFoundException ex) {
+        } catch (com.drew.imaging.jpeg.JpegProcessingException ex) {
             ex.printStackTrace();
         }
         ExifDirectory exif = null;
@@ -1142,6 +1002,9 @@ public class PhotoInfo {
     }
     
     /**
+     TODO: The exported image must be stored as ImafeFile in database (so that it 
+     can be found later)
+     
      Exports an image from database to a specified file with given resolution.
      The image aspect ratio is preserved and the image is scaled so that it fits
      to the given maximum resolution.
@@ -1151,33 +1014,19 @@ public class PhotoInfo {
      @param height Height of the exported image in pixels
      @throws PhotovaultException if exporting the photo fails for some reason.
      */
-    public void exportPhoto( File file, int width, int height ) throws PhotovaultException {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
+    public void exportPhoto( File file, int width, int height ) throws PhotovaultException {        
+
+        File imageFile = original.getFile().findAvailableCopy();
         
-        // Find the original image to use as a staring point
-        ImageInstance original = null;
-        for ( int n = 0; n < instances.size(); n++ ) {
-            ImageInstance instance = (ImageInstance) instances.get( n );
-            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_ORIGINAL
-                    && instance.getImageFile() != null 
-                    && instance.getImageFile().exists() ) {
-                original = instance;
-                txw.lock( original, Transaction.READ );
-                break;
-            }
-        }
-        if ( original == null ) {
+        if ( imageFile == null ) {
             // If there are no instances, nothing can be exported
             log.warn( "Error - no original image was found!!!" );
-            txw.commit();
             throw new PhotovaultException( "No image file found to export photo" );
         }
         
         // Read the image
         RenderedImage exportImage = null;
         try {
-            File imageFile = original.getImageFile();
             String fname = imageFile.getName();
             int lastDotPos = fname.lastIndexOf( "." );
             if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
@@ -1185,17 +1034,14 @@ public class PhotoInfo {
             }
             PhotovaultImageFactory imageFactory = new PhotovaultImageFactory();
             PhotovaultImage img = null;
-            try {
-                /*
-                 Do not read the image yet since setting raw conversion
-                 parameters later may force a re-read.
-                 */
-                img = imageFactory.create(imageFile, false, false);
-            } catch (PhotovaultException ex) {
-                log.error( ex.getMessage() );
-            }
+            /*
+            Do not read the image yet since setting raw conversion
+            parameters later may force a re-read.
+             */
+            img = imageFactory.create( imageFile, false, false );
+
             img.setCropBounds( this.getCropBounds() );
-            img.setRotation( prefRotation - original.getRotated() );
+            img.setRotation( prefRotation );
             if ( channelMap != null ) {
                 img.setColorAdjustment( channelMap );
             }
@@ -1207,7 +1053,6 @@ public class PhotoInfo {
                     // No raw settings for this photo yet, let's use
                     // the thumbnail settings
                     rawSettings = ri.getRawSettings();
-                    txw.lock( rawSettings, Transaction.WRITE );
                 }
             }
             if ( width > 0 ) {
@@ -1217,7 +1062,6 @@ public class PhotoInfo {
             }
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
-            txw.abort();
             throw new PhotovaultException( "Error reading image: " + e.getMessage(), e );
         }
                 
@@ -1290,7 +1134,7 @@ public class PhotoInfo {
                 } finally {
                     if (ios != null) ios.close();
                     writer.dispose();
-                    if ( exportImage != null & exportImage instanceof PlanarImage ) {
+                    if ( exportImage != null && exportImage instanceof PlanarImage ) {
                         ((PlanarImage)exportImage).dispose();
                         System.gc();
                     }
@@ -1299,37 +1143,11 @@ public class PhotoInfo {
             
         } catch ( IOException e ) {
             log.warn( "Error writing exported image: " + e.getMessage() );
-            txw.abort();
             throw new PhotovaultException( "Error writing exported image: " + e.getMessage(), e );
         }
-        
-        txw.commit();
     }
     
     
-    /**
-     MD5 hash code of the original instance of this PhotoInfo. It must is stored also
-     as part of PhotoInfo object since the original instance might be deleted from the
-     database (or we might synchronize just metadata without originals into other database!).
-     With the hash code we are still able to detect that an image file is actually the
-     original.
-     */
-    byte origInstanceHash[] = null;
-    
-    public byte[] getOrigInstanceHash() {
-        return (origInstanceHash != null) ? ((byte[])origInstanceHash.clone()) : null;
-    }
-    
-    /**
-     Sets the original instance hash. This is intended for only internal use
-     @param hash MD5 hash value for original instance
-     */
-    protected void setOrigInstanceHash( byte[] hash ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        origInstanceHash = (byte[]) hash.clone();
-        txw.commit();
-    }
     
     java.util.Date shootTime;
     
@@ -1338,10 +1156,9 @@ public class PhotoInfo {
      null (to mean that the time is unspecified)1
      @return value of shootTime.
      */
+    @Column( name = "shoot_time" )
+    @Temporal( value = TemporalType.TIMESTAMP )
     public java.util.Date getShootTime() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return shootTime != null ? (java.util.Date) shootTime.clone() : null;
     }
     
@@ -1350,11 +1167,8 @@ public class PhotoInfo {
      * @param v  Value to assign to shootTime.
      */
     public void setShootTime(java.util.Date  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.shootTime = (v != null) ? (java.util.Date) v.clone()  : null;
         modified();
-        txw.commit();
     }
     
     /**
@@ -1362,19 +1176,29 @@ public class PhotoInfo {
      @param v FuzzyTime containing new values.
      */
     public void setFuzzyShootTime( FuzzyDate v ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        this.shootTime = (java.util.Date) v.getDate().clone();
-        this.timeAccuracy = v.getAccuracy();
+        if ( v != null ) {
+            java.util.Date d = v.getDate();
+            this.shootTime = (d != null ) ? (java.util.Date) d.clone() : null;
+            this.timeAccuracy = v.getAccuracy();
+        } else {
+            this.shootTime = null;
+            this.timeAccuracy = 0.0;
+        }
         modified();
-        txw.commit();        
+    }
+    
+    @ValueField
+    @Transient
+    public FuzzyDate getFuzzyShootTime() {
+        return new FuzzyDate( shootTime, timeAccuracy );
     }
     
     /**
      
      @return The timeAccuracty value
      */
-    public final double getTimeAccuracy() {
+    @Column( name = "time_accuracy")
+    public double getTimeAccuracy() {
         return timeAccuracy;
     }
     
@@ -1386,45 +1210,21 @@ public class PhotoInfo {
      
      * @param newTimeAccuracy The new TimeAccuracy value.
      */
-    public final void setTimeAccuracy(final double newTimeAccuracy) {
+    public void setTimeAccuracy(final double newTimeAccuracy) {
         this.timeAccuracy = newTimeAccuracy;
     }
     
     
-    String desc;
-    
-    /**
-     * Get the value of desc.
-     * @return value of desc.
-     */
-    public String getDesc() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
-        return desc;
-    }
-    
-    /**
-     * Set the value of desc.
-     * @param v  Value to assign to desc.
-     */
-    public void setDesc(String  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        this.desc = v;
-        modified();
-        txw.commit();
-    }
+ 
     double FStop;
     
     /**
      * Get the value of FStop.
      * @return value of FStop.
      */
+    @ValueField( field="FStop" )
+    @Column( name = "f_stop" )
     public double getFStop() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return FStop;
     }
     
@@ -1433,11 +1233,8 @@ public class PhotoInfo {
      * @param v  Value to assign to FStop.
      */
     public void setFStop(double  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.FStop = v;
         modified();
-        txw.commit();
     }
     double focalLength;
     
@@ -1445,10 +1242,9 @@ public class PhotoInfo {
      * Get the value of focalLength.
      * @return value of focalLength.
      */
+    @ValueField
+    @Column(name = "focal_length")
     public double getFocalLength() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return focalLength;
     }
     
@@ -1457,11 +1253,8 @@ public class PhotoInfo {
      * @param v  Value to assign to focalLength.
      */
     public void setFocalLength(double  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.focalLength = v;
         modified();
-        txw.commit();
     }
     String shootingPlace;
     
@@ -1469,10 +1262,9 @@ public class PhotoInfo {
      * Get the value of shootingPlace.
      * @return value of shootingPlace.
      */
+    @ValueField
+    @Column( name = "shooting_place" )
     public String getShootingPlace() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return shootingPlace;
     }
     
@@ -1482,11 +1274,8 @@ public class PhotoInfo {
      */
     public void setShootingPlace(String  v) {
         checkStringProperty( "Shooting place", v, SHOOTING_PLACE_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.shootingPlace = v;
         modified();
-        txw.commit();
     }
     String photographer;
     
@@ -1494,10 +1283,9 @@ public class PhotoInfo {
      * Get the value of photographer.
      * @return value of photographer.
      */
+    @ValueField
+    @Column( name = "photographer" )
     public String getPhotographer() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return photographer;
     }
     
@@ -1505,13 +1293,11 @@ public class PhotoInfo {
      * Set the value of photographer.
      * @param v  Value to assign to photographer.
      */
+    @SuppressWarnings("static-access")
     public void setPhotographer(String  v) {
         checkStringProperty( "Photographer", v, this.PHOTOGRAPHER_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.photographer = v;
         modified();
-        txw.commit();
     }
     double shutterSpeed;
     
@@ -1519,10 +1305,9 @@ public class PhotoInfo {
      * Get the value of shutterSpeed.
      * @return value of shutterSpeed.
      */
+    @ValueField
+    @Column( name = "shutter_speed" )
     public double getShutterSpeed() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return shutterSpeed;
     }
     
@@ -1531,11 +1316,8 @@ public class PhotoInfo {
      * @param v  Value to assign to shutterSpeed.
      */
     public void setShutterSpeed(double  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.shutterSpeed = v;
         modified();
-        txw.commit();
     }
     String camera;
     
@@ -1543,10 +1325,9 @@ public class PhotoInfo {
      * Get the value of camera.
      * @return value of camera.
      */
+    @ValueField
+    @Column( name = "camera" )
     public String getCamera() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return camera;
     }
     
@@ -1556,11 +1337,8 @@ public class PhotoInfo {
      */
     public void setCamera(String  v) {
         checkStringProperty( "Camera", v, CAMERA_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.camera = v;
         modified();
-        txw.commit();
     }
     String lens;
     
@@ -1568,10 +1346,9 @@ public class PhotoInfo {
      * Get the value of lens.
      * @return value of lens.
      */
+    @ValueField
+    @Column( name = "lens" )
     public String getLens() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return lens;
     }
     
@@ -1581,11 +1358,8 @@ public class PhotoInfo {
      */
     public void setLens(String  v) {
         checkStringProperty( "Lens", v, LENS_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.lens = v;
         modified();
-        txw.commit();
     }
     String film;
     
@@ -1593,10 +1367,9 @@ public class PhotoInfo {
      * Get the value of film.
      * @return value of film.
      */
+    @ValueField
+    @Column( name = "film" )
     public String getFilm() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return film;
     }
     
@@ -1606,11 +1379,8 @@ public class PhotoInfo {
      */
     public void setFilm(String  v) {
         checkStringProperty( "Film", v, FILM_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.film = v;
         modified();
-        txw.commit();
     }
     int filmSpeed;
     
@@ -1618,10 +1388,9 @@ public class PhotoInfo {
      * Get the value of filmSpeed.
      * @return value of filmSpeed.
      */
+    @ValueField
+    @Column( name = "film_speed" )
     public int getFilmSpeed() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return filmSpeed;
     }
     
@@ -1630,11 +1399,8 @@ public class PhotoInfo {
      * @param v  Value to assign to filmSpeed.
      */
     public void setFilmSpeed(int  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.filmSpeed = v;
         modified();
-        txw.commit();
     }
     
     double prefRotation;
@@ -1644,10 +1410,9 @@ public class PhotoInfo {
      indicate that the image should be rotated clockwise.
      @return value of prefRotation.
      */
+    @ValueField
+    @Column( name = "pref_rotation" )
     public double getPrefRotation() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return prefRotation;
     }
     
@@ -1665,16 +1430,13 @@ public class PhotoInfo {
             v -= 360.0;
         }
         
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         if ( v != prefRotation ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
-            purgeInvalidInstances();
+            // purgeInvalidInstances();
         }
         this.prefRotation = v;
         modified();
-        txw.commit();
     }
     
     /**
@@ -1699,11 +1461,18 @@ public class PhotoInfo {
     /**
      Get the preferred crop bounds of the original image
      */
+    @ValueField
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.CropRectUserType" )
+    @org.hibernate.annotations.Columns( 
+        columns = {
+            @Column( name = "clip_xmin" ),
+            @Column( name = "clip_xmax" ),
+            @Column( name = "clip_ymin" ),
+            @Column( name = "clip_ymax", length = 4 )
+        } 
+    )
     public Rectangle2D getCropBounds() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
         checkCropBounds();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return new Rectangle2D.Double( cropMinX, cropMinY,
                 cropMaxX-cropMinX, cropMaxY-cropMinY );
     }
@@ -1714,12 +1483,13 @@ public class PhotoInfo {
      @param cropBounds New crop bounds
      */
     public void setCropBounds( Rectangle2D cropBounds ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
+        if ( cropBounds == null ) {
+            cropBounds = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
+        }
         if ( !cropBounds.equals( getCropBounds() ) ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
-            purgeInvalidInstances();            
+            // purgeInvalidInstances();            
         }
         cropMinX = cropBounds.getMinX();
         cropMinY = cropBounds.getMinY();
@@ -1727,7 +1497,6 @@ public class PhotoInfo {
         cropMaxY = cropBounds.getMaxY();
         checkCropBounds();
         modified();
-        txw.commit();
     }
     
     
@@ -1754,31 +1523,56 @@ public class PhotoInfo {
      @param cm the new color channel mapping
      */
     public void setColorChannelMapping( ChannelMapOperation cm ) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         if ( cm != null ) {
             if ( !cm.equals( channelMap ) ) {
                 // Rotation changes, invalidate the thumbnail
                 invalidateThumbnail();
-                purgeInvalidInstances();
+                // purgeInvalidInstances();
             }
         }
         channelMap = cm;
         modified();
-        txw.commit();
     }
 
     /**
      Get currently preferred color channe?l mapping.
      @return The current color channel mapping
      */
+    // TODO: Do mapping for these
+    @ValueField
+    @Transient
     public ChannelMapOperation getColorChannelMapping() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return channelMap;
     }
     
+    /**
+     Get the XML data for color channel mapping that is stored into database field.
+     */
+    @Column( name = "channel_map" )
+    protected byte[] getColorChannelMappingXmlData() {
+        byte [] data = null;
+        if ( channelMap != null ) {
+            String xmlStr = this.channelMap.getAsXml();
+            data = xmlStr.getBytes();
+        }
+        return data;
+    }
+
+    /**
+     Set the color channel mapping based on XML data read from database field. For
+     Hibernate use.
+     @param data The data read from database.
+     */
+    protected void setColorChannelMappingXmlData( byte[] data ) {
+        ChannelMapOperation oldMap = channelMap;
+                channelMap = ChannelMapOperationFactory.createFromXmlData( data );
+        if ( ( channelMap == null && oldMap != null ) || 
+                (channelMap != null && !channelMap.equals( oldMap ))  ) {
+            invalidateThumbnail();
+            // purgeInvalidInstances();
+            modified();
+        }
+    }
     
     /**
      Raw conversion settings or <code>null</code> if no raw image is available
@@ -1786,73 +1580,50 @@ public class PhotoInfo {
     RawConversionSettings rawSettings = null;
     
     /**
-     OJB database identified for the raw settings
+     Get the current raw conversion settings.
+     @return Current settings or <code>null</code> if this is not a raw image.     
      */
-    int rawSettingsId;
+    @ValueField
+    public RawConversionSettings getRawSettings() {
+        return (rawSettings != null ) ? rawSettings.clone() : null;
+    }
     
     /**
      Set the raw conversion settings for this photo
      @param s The new raw conversion settings to use. The method makes a clone of 
      the object.     
      */
+    @Embedded
     public void setRawSettings( RawConversionSettings s ) {
         log.debug( "entry: setRawSettings()" );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
-        RawConversionSettings settings = null;
         if ( s != null ) {
             if ( !s.equals( rawSettings ) ) {
                 invalidateThumbnail();
-                purgeInvalidInstances();
-            }
-            settings =  s.clone();
-            Database db = ODMG.getODMGDatabase();
-            db.makePersistent( settings );
-            RawConversionSettings oldSettings = rawSettings;
-            txw.lock( settings, Transaction.WRITE );
-            if ( oldSettings != null ) {
-                txw.lock( oldSettings, Transaction.WRITE );
-                db.deletePersistent( oldSettings );
             }
         } else {
             // s is null so this should not be raw image
             if ( rawSettings != null ) {
                 log.error( "Setting raw conversion settings of an raw image to null!!!" );
                 invalidateThumbnail();
-                purgeInvalidInstances();                
+                // purgeInvalidInstances();                
             }
         }
-        rawSettings = settings;
+        rawSettings = (s==null) ? null : s.clone();
         modified();
-        txw.commit();
         log.debug( "exit: setRawSettings()" );
     }
 
-    /**
-     Get the current raw conversion settings.
-     @return Current settings or <code>null</code> if this is not a raw image.     
-     */
-    public RawConversionSettings getRawSettings() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
-        return rawSettings;
-    }
-
-    public int getRawSettingsId() {
-        return rawSettingsId;
-    }
-    
+               
+               
     String description;
     
     /**
      * Get the value of description.
      * @return value of description.
      */
+    @ValueField
+    @Column( name = "description" )
     public String getDescription() {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.commit();
         return description;
     }
     
@@ -1861,11 +1632,8 @@ public class PhotoInfo {
      * @param v  Value to assign to description.
      */
     public void setDescription(String  v) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.description = v;
         modified();
-        txw.commit();
     }
     
     public static final int QUALITY_UNDEFINED = 0;
@@ -1880,7 +1648,9 @@ public class PhotoInfo {
      *
      * @return an <code>int</code> value
      */
-    public final int getQuality() {
+    @ValueField
+    @Column( name = "photo_quality" )
+    public int getQuality() {
         return quality;
     }
     
@@ -1899,28 +1669,25 @@ public class PhotoInfo {
      *
      * @param newQuality The new Quality value.
      */
-    public final void setQuality(final int newQuality) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
+    public void setQuality(final int newQuality) {
         this.quality = newQuality;
         modified();
-        txw.commit();
     }
     
     /**
      Returns the time when this photo (=metadata of it) was last modified
      * @return a <code>Date</code> value
      */
-    public final java.util.Date getLastModified() {
+    @ValueField
+    @Column( name = "last_modified" )
+    @Temporal(value = TemporalType.TIMESTAMP )
+    public java.util.Date getLastModified() {
         return lastModified != null ? (java.util.Date) lastModified.clone() : null;
     }
     
     public  void setLastModified(final java.util.Date newDate) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.lastModified = (newDate != null) ? (java.util.Date) newDate.clone()  : null;
         modified();
-        txw.commit();
     }
     
     /**
@@ -1928,7 +1695,9 @@ public class PhotoInfo {
      *
      * @return a <code>String</code> value
      */
-    public final String getTechNotes() {
+    @ValueField
+    @Column( name = "tech_notes" )
+    public String getTechNotes() {
         return techNotes;
     }
     
@@ -1937,12 +1706,9 @@ public class PhotoInfo {
      *
      * @param newTechNotes The new TechNotes value.
      */
-    public final void setTechNotes(final String newTechNotes) {
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
+    public void setTechNotes( String newTechNotes ) {
         this.techNotes = newTechNotes;
         modified();
-        txw.commit();
     }
     
     /**
@@ -1950,7 +1716,9 @@ public class PhotoInfo {
      
      * @return a <code>String</code> value
      */
-    public final String getOrigFname() {
+    @ValueField
+    @Column( name = "orig_fname" )
+    public String getOrigFname() {
         return origFname;
     }
     
@@ -1961,55 +1729,151 @@ public class PhotoInfo {
      @throws IllegalArgumentException if the given file name is longer than
      {@link #ORIG_FNAME_LENGTH}
      */
-    public final void setOrigFname(final String newFname) {
+    public void setOrigFname(final String newFname) {
         checkStringProperty( "OrigFname", newFname, ORIG_FNAME_LENGTH );
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.WRITE );
         this.origFname = newFname;
         modified();
-        txw.commit();
-    }
-    
-    
-    /**
-     List of folders this photo belongs to
-     */
-    Collection folders = null;
-    
-    /**
-     This is called by PhotoFolder when the photo is added to a folder
-     */
-    public void addedToFolder( PhotoFolder folder ) {
-        if ( folders == null ) {
-            folders = new Vector();
-        }
-        
-        folders.add( folder );
     }
     
     /**
-     This is called by PhotoFolder when the photo is removed from a folder
+     Utility method to get the color curve assigned to red channel
+     @return The curve or <code>null</code> if no curve is assigned
      */
-    public void removedFromFolder( PhotoFolder folder ) {
-        if ( folders == null ) {
-            folders = new Vector();
-        }
-        
-        folders.remove( folder );
+    @Transient
+    public ColorCurve getRedColorCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "red" ) : null;
+    }
+    
+    /**
+     Utility method to get the color curve assigned to green channel
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getGreenColorCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "green" ) : null;
+    }
+    
+    /**
+     Utility method to get the color curve assigned to blue channel
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getBlueColorCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "blue" ) : null;
+    }
+    
+    /**
+     Utility method to get the color curve assigned to saturation adjustment.
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getSaturationCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "saturation" ) : null;
+    }
+    
+    /**
+     Utility method to get the color curve assigned to master value adjustment.
+     @return The curve or <code>null</code> if no curve is assigned
+     */
+    @Transient
+    public ColorCurve getMasterCurve() {
+        return channelMap != null ? channelMap.getChannelCurve( "value" ) : null;
+    }
+    
+    @Transient
+    public Integer getRawBlack() {
+        return rawSettings != null ? rawSettings.getBlack() : null;
+    }
+    
+    @Transient
+    public Integer getRawWhite() {
+        return rawSettings != null ? rawSettings.getWhite() : null;
+    }
+    
+    @Transient
+    public Double getRawEvCorr() {
+        return rawSettings != null ? rawSettings.getEvCorr() : null;
+    }
+
+    @Transient
+    public Double getRawHlightComp() {
+        return rawSettings != null ? rawSettings.getHighlightCompression() : null;
+    }
+    
+    @Transient
+    public Double getRawColorTemp() {
+        return rawSettings != null ? rawSettings.getColorTemp(): null;
     }
     
     
     /**
      Returns a collection that contains all folders the photo belongs to
      */
-    public Collection getFolders() {
-        Vector foldersCopy = new Vector();
-        if ( folders != null ) {
-            foldersCopy = new Vector( folders );
+    // TODO: implement mapping of folders
+    @Transient
+    public Set<PhotoFolder> getFolders() {
+        Set<PhotoFolder> folders = new HashSet<PhotoFolder>();
+        for ( FolderPhotoAssociation a : folderAssociations ) {
+            PhotoFolder f = a.getFolder();
+            if ( f != null ) {
+                folders.add( f );
+            }
         }
-        return foldersCopy;
+        return folders;
     }
     
+    
+    /**
+     Folder associations this photo is part of.
+     */
+    Set<FolderPhotoAssociation> folderAssociations = 
+            new HashSet<FolderPhotoAssociation>();
+    
+    /**
+     Get all know associations from this photo to folders. Note that some of the
+     folders may not be known in this database, just the association is known. In
+     these cases the folder field in the association object in<code>null</code>
+     @return
+     */
+    @SetField( elemClass=FolderPhotoAssociation.class, 
+               dtoResolver=FolderRefResolver.class )
+    @OneToMany( mappedBy = "photo" )
+    public Set<FolderPhotoAssociation> getFolderAssociations() {
+        return folderAssociations;
+    }
+    
+    /**
+     Set the folder associations for this object. For Hibernate use
+     @param s Set of all known associations
+     */
+    public void setFolderAssociations( Set<FolderPhotoAssociation> s ) {
+        folderAssociations = s;
+    }
+    
+    /**
+     Add an association to a folder
+     @param a The associaton object
+     @throws IllegalStateException if the association is really created to other 
+     photo.
+     */
+    public void addFolderAssociation( FolderPhotoAssociation a ) {
+        folderAssociations.add( a );
+        a.setPhoto( this );
+    }
+    
+    public void removeFolderAssociation( FolderPhotoAssociation a ) {
+        folderAssociations.remove( a );
+        a.setPhoto( null );
+    }
+    
+    /**
+     Helper method for comparing testing equality of 2 objects that can 
+     potentially be null
+     @param o1 First object to compare
+     @param o2 The second object to compare
+     @return <code>true</code> if o1 and o2 are both <code>null</code> or equal.
+     <code>false</code> otherwise.     
+     */
     static private boolean isEqual( Object o1, Object o2 ) {
         if ( o1 == null ) {
             if ( o2 == null ) {
@@ -2022,7 +1886,7 @@ public class PhotoInfo {
     }
     
     /**
-     Checks that a string is no longer tha tmaximum length allowed for it
+     Checks that a string is no longer that maximum length allowed for it
      @param propertyName The porperty name used in error message
      @param value the new value
      @param maxLength Maximum length for the string
@@ -2036,15 +1900,12 @@ public class PhotoInfo {
         }
     }
     
+    @Override
     public boolean equals( Object obj ) {
         if ( obj == null || obj.getClass() != this.getClass() ) {
             return false;
         }
         PhotoInfo p = (PhotoInfo)obj;
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        txw.lock( this, Transaction.READ );
-        txw.lock( p, Transaction.READ );
-        txw.commit();
         
         return ( isEqual( p.photographer, this.photographer )
         && isEqual( p.shootingPlace, this.shootingPlace )
@@ -2056,21 +1917,18 @@ public class PhotoInfo {
         && isEqual( p.techNotes, this.techNotes )
         && isEqual( p.origFname, this.origFname )
         && isEqual( p.channelMap, this.channelMap )
+        && isEqual( p.getUuid(), this.getUuid() )
         && p.shutterSpeed == this.shutterSpeed
                 && p.filmSpeed == this.filmSpeed
                 && p.focalLength == this.focalLength
                 && p.FStop == this.FStop
-                && p.uid == this.uid
                 && p.quality == this.quality
                 && (( p.rawSettings == null && this.rawSettings == null ) || 
                     ( p.rawSettings != null && p.rawSettings.equals( this.rawSettings ) )));
     }
     
+    @Override
     public int hashCode() {
-        return uid;
+        return getUuid().hashCode();
     }
-
-
-
-
 }

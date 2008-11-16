@@ -1,4 +1,4 @@
-/*color
+/*
   Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
@@ -20,32 +20,30 @@
 
 package org.photovault.swingui.color;
 
-import com.sun.jdori.common.query.tree.ThisExpr;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Polygon;
-import java.awt.Shape;
-import java.awt.event.ActionListener;
 import java.awt.image.ColorModel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import javax.media.jai.Histogram;
-import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawConversionSettings;
@@ -54,16 +52,14 @@ import org.photovault.dcraw.RawImageChangeEvent;
 import org.photovault.dcraw.RawImageChangeListener;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperation;
-import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.image.ImageRenderingListener;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoNotFoundException;
+import org.photovault.imginfo.PhotoInfoFields;
 import org.photovault.swingui.JAIPhotoViewer;
-import org.photovault.swingui.PhotoInfoController;
-import org.photovault.swingui.PhotoInfoView;
+import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.PhotoViewChangeEvent;
 import org.photovault.swingui.PhotoViewChangeListener;
 import org.photovault.swingui.PreviewImageView;
@@ -79,8 +75,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         implements RawImageChangeListener, RawPhotoView, PhotoViewChangeListener, 
         PreviewImageView, ImageRenderingListener {
 
-    static org.apache.log4j.Logger log = 
-            org.apache.log4j.Logger.getLogger( ColorSettingsDlg.class.getName() );
+    private static Log log = LogFactory.getLog( ColorSettingsDlg.class.getName() );
     
     /**
      * Creates new form ColorSettingsDlg
@@ -88,12 +83,10 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      * @param modal Whether the dialog is displayed as modal
      * @param photos Array of the photos that will be edited
      */
-    public ColorSettingsDlg(java.awt.Frame parent, boolean modal, PhotoInfo[] photos ) {
+    public ColorSettingsDlg(java.awt.Frame parent, ColorSettingsDlgController ctrl, boolean modal, PhotoInfo[] photos ) {
         super(parent, modal);
+        this.ctrl = ctrl;
         initComponents();
-        ctrl = new PhotoInfoController();
-        ctrl.setView( this );
-        ctrl.setPhotos( photos );
         checkIsRawPhoto();
         final ColorSettingsDlg staticThis = this;
         this.colorCurvePanel1.addListener( new ColorCurveChangeListener() {
@@ -105,26 +98,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
     }
-    
-    /**
-     * Creates new form ColorSettingsDlg
-     * @param parent Parent frame of this dialog
-     * @param modal Whether the dialog is displayed as modal
-     * @param photo The photo that will be edited
-     */
-    public ColorSettingsDlg(java.awt.Frame parent, boolean modal, PhotoInfo photo ) {
-        super(parent, modal);
-        initComponents();
-        ctrl = new PhotoInfoController();
-        ctrl.setPhoto( photo );
-        ctrl.setView( this );
-        checkIsRawPhoto();
-    }
-    
+
     /**
      Controller for the photos that will be edited
      */
-    PhotoInfoController ctrl = null;
+    PhotoSelectionController ctrl = null;
     RawConversionSettings rawSettings = null;
     
     /**
@@ -135,7 +113,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     /**
      Curves that will be drawn as references for each channel
      */
-    ArrayList refCurves[] = new ArrayList[5];
+    List refCurves[] = new ArrayList[5];
     
     /**
      Names of the color channels
@@ -189,22 +167,24 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     int currentColorCurve = 0;
     
     protected void applyChanges() {
-        try {
-            ctrl.save();
-            photoChanged = true;
-        } catch (PhotovaultException ex) {
-            JOptionPane.showMessageDialog( this, 
-                    "Error while applying changes:\n" + ex.getMessage(),
-                    "Error saving changes", JOptionPane.ERROR_MESSAGE );
-            log.error( "Error while applying changes: " + ex.getMessage() );
-        }
+//        try {
+//            // TODO: Hibernate refactoring
+//            // ctrl.save();
+//            photoChanged = true;
+//        } catch (PhotovaultException ex) {
+//            JOptionPane.showMessageDialog( this, 
+//                    "Error while applying changes:\n" + ex.getMessage(),
+//                    "Error saving changes", JOptionPane.ERROR_MESSAGE );
+//            log.error( "Error while applying changes: " + ex.getMessage() );
+//        }
     }
     
     /**
      Discard changes made in the dialog & reload model values
      */
     protected void discardChanges() {
-        ctrl.discard();
+        // TODO: Hibernate refactoring
+        // ctrl.discard();
     }
     
     static class ModelValueAnnotation extends JPanel {
@@ -334,14 +314,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Colors");
-        applyBtn.setText("Apply");
+        applyBtn.setAction(ctrl.getActionAdapter( "save"));
         applyBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 applyBtnActionPerformed(evt);
             }
         });
 
-        discardBtn.setText("Discard");
+        discardBtn.setAction(ctrl.getActionAdapter( "discard" ));
         discardBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 discardBtnActionPerformed(evt);
@@ -617,7 +597,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newGain = Math.pow( 2, greenEv );
         if ( Math.abs( newGain - this.greenGain ) > 0.005 ) {
             greenGain= newGain;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_GREEN );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_GREEN, newGain );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setGreenGain( newGain );
@@ -642,7 +622,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newCTemp = ctempSlider.getValue();
         if ( Math.abs( newCTemp - this.colorTemp ) > 10 ) {
             colorTemp= newCTemp;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_CTEMP );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_CTEMP, newCTemp );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setColorTemp( newCTemp );
@@ -662,7 +642,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         int newBlack = (int) blackLevelSlider.getValue();
         if ( Math.abs( newBlack - black ) > 0.05 ) {
             black = newBlack;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_BLACK_LEVEL );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_BLACK_LEVEL, black );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setBlack( newBlack );
@@ -683,7 +663,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newEv = evCorrSlider.getValue();
         if ( Math.abs( newEv - evCorr ) > 0.05 ) {
             evCorr = newEv;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_EV_CORR );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_EV_CORR, evCorr );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setEvCorr( newEv );
@@ -703,7 +683,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         double newHlightComp = hlightCompSlider.getValue();
         if ( (Math.abs( newHlightComp - this.hlightComp ) > 0.001 ) ) {
             this.hlightComp = newHlightComp;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_HLIGHT_COMP );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_HLIGHT_COMP, hlightComp );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setHlightComp( newHlightComp );
@@ -729,7 +709,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ColorProfileDesc p = profiles[selectedId];
         if ( p != profile ) {
             profile = p;
-            ctrl.viewChanged( this, PhotoInfoController.RAW_COLOR_PROFILE );
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_COLOR_PROFILE, profile );
             if ( rawSettings != null ) {
                 RawSettingsFactory f = new RawSettingsFactory( rawSettings );
                 f.setColorProfile( p );
@@ -806,19 +786,19 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         colorCurves[currentColorCurve] = c;
         switch ( currentColorCurve ) {
             case 0:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_VALUE );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_VALUE, c );
                 break;
             case 1:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_RED );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_RED, c );
                 break;
             case 2:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_GREEN );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_GREEN, c );
                 break;
             case 3:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_BLUE );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_BLUE, c );
                 break;
             case 4:
-                ctrl.viewChanged( this, PhotoInfoController.COLOR_CURVE_SATURATION );
+                ctrl.viewChanged( this, PhotoInfoFields.COLOR_CURVE_SATURATION, c );
                 break;                
             default:
                 // Should never happend
@@ -896,77 +876,6 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     
     JAIPhotoViewer previewCtrl = null;
     
-    static class PhotoViewerAdapter 
-            extends PhotoInfoViewAdapter 
-            implements PhotoViewChangeListener {
-        public PhotoViewerAdapter( JAIPhotoViewer preview, PhotoInfoController ctrl ) {
-            super( ctrl );
-            this.previewCtrl = preview;
-            preview.addViewChangeListener( this );
-        }
-        
-        JAIPhotoViewer previewCtrl;
-        
-        public void setColorChannelCurve( String name, ColorCurve c ) {
-            if ( previewCtrl != null ) {
-                previewCtrl.colorCurveChanged( this, name, c );
-            }
-        }
-        
-        public PhotovaultImage getPreviewImage() {
-            return previewCtrl.getImage();
-        }
-
-        public void photoViewChanged(PhotoViewChangeEvent e) {
-            c.viewChanged( this, PhotoInfoController.PREVIEW_IMAGE );
-        }
-    }
-    
-    public void setPreviewControl( JAIPhotoViewer viewer ) {
-        previewCtrl = viewer;
-        previewCtrl.addViewChangeListener( this );
-        PhotoViewerAdapter a = new PhotoViewerAdapter( previewCtrl, ctrl ); 
-        a.photoViewChanged( null );
-        reloadHistogram();
-    }
-
-    /**
-     Set the photo whose settings will be changed
-     */
-    public void setPhoto( PhotoInfo p ) {
-        ctrl.setPhoto( p );  
-        if ( previewCtrl != null ) {
-            previewImage = previewCtrl.getImage();
-            ctrl.viewChanged( this, ctrl.PREVIEW_IMAGE );
-            setupColorCurvesForImage();
-        }        
-        rawPreviewImage = null;
-        checkIsRawPhoto();
-    }
-    
-    /**
-     Set the photos whose settings will be changed
-     */
-    public void setPhotos( PhotoInfo[] p ) {
-        ctrl.setPhotos( p );        
-        rawPreviewImage = null;
-        if ( previewCtrl != null ) {
-            previewImage = previewCtrl.getImage();
-            /*
-             HACK: PREVIEW_IMAGE is not really a field of the model but provided 
-             by another view. Therefore resetting the model will clear it. What 
-             is really needed is a mechanism with which different views can publish
-             information for others.
-             */
-            ctrl.viewChanged( this, ctrl.PREVIEW_IMAGE );
-            setupColorCurvesForImage();
-        }
-        checkIsRawPhoto();
-        reloadHistogram();
-        
-    }
-    
-    
     /**
      Checks if the model supports raw conversion settings and disables
      or enables controls based on this. Raw settings are only allowed if all 
@@ -1043,26 +952,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         }
         colorCurveSelectionCombo.setSelectedIndex( chan );
-        int[] histData = null;
-        if ( previewImage != null ) {
-            if ( channelHistType[chan] != null ) {
-                Histogram h = previewImage.getHistogram( channelHistType[chan] );
-                if ( h != null ) {
-                    if ( channelHistBand[chan] == -1 ) {
-                    /*
-                     TODO: All histogram bands should be shown. Currently
-                     this is not supported by ColorCurvePanel. If the image is
-                     black and white, show jus thte value.
-                     */
-                        if ( h.getNumBands() < 3 ) {
-                            histData = h.getBins( 0 );
-                        }
-                    } else if ( channelHistBand[chan] < h.getNumBands() ) {
-                        histData = h.getBins( channelHistBand[chan] );
-                    }
-                }
-            }
-        }
+        int[] histData = histograms.get( colorCurveNames[chan] ); 
         colorCurvePanel1.setHistogram( histData, Color.BLACK );
     }
     
@@ -1174,14 +1064,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public void setQualityMultivalued(boolean mv) {
     }
 
-    public void setShootPlace(String newValue) {
+    public void setShootingPlace(String newValue) {
     }
 
-    public String getShootPlace() {
+    public String getShootingPlace() {
         return null;
     }
 
-    public void setShootPlaceMultivalued(boolean mv) {
+    public void setShootingPlaceMultivalued(boolean mv) {
     }
 
     public void setFocalLength(Number newValue) {
@@ -1244,14 +1134,14 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     public void setDescriptionMultivalued(boolean mv) {
     }
 
-    public void setTechNote(String newValue) {
+    public void setTechNotes(String newValue) {
     }
 
-    public String getTechNote() {
+    public String getTechNotes() {
         return null;
     }
 
-    public void setTechNoteMultivalued(boolean mv) {
+    public void setTechNotesMultivalued(boolean mv) {
     }
 
     public void setShutterSpeed(Number newValue) {
@@ -1350,6 +1240,23 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         blackLevelSlider.setValue( (double) black );
     }
 
+    public void setRawBlack( int black, List refValues ) {
+        this.black = black;
+        blackLevelSlider.setValue( (double) black );
+        if ( refValues != null && refValues.size() > 1  ) {
+            double[] annotations = new double[refValues.size()];
+            for ( int n = 0; n < refValues.size() ; n++ ) {
+                annotations[n] = ((Number)refValues.get(n)).doubleValue();
+            }
+            blackLevelSlider.setAnnotations( annotations );
+            blackLevelSlider.setMultivalued( true );
+        } else {
+            // restore the normal label table without any extra annotations
+            blackLevelSlider.setAnnotations( null );
+        blackLevelSlider.setMultivalued( false );
+        }        
+    }
+    
     public void setRawBlackMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             double[] annotations = new double[values.length];
@@ -1374,6 +1281,18 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         evCorrSlider.setValue( evCorr );        
     }
 
+    public void setRawEvCorr(double evCorr, List refValues ) {
+        this.evCorr = evCorr;
+        evCorrSlider.setValue( evCorr );        
+        if ( refValues != null && refValues.size() > 1 ) {
+            annotateSlider( evCorrSlider, refValues );
+            evCorrSlider.setMultivalued( true );
+        } else {
+            evCorrSlider.setAnnotations( null );
+            evCorrSlider.setMultivalued( false );
+        }
+    }
+    
     public void setRawEvCorrMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             annotateSlider( evCorrSlider, values );
@@ -1396,6 +1315,18 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         hlightCompSlider.setValue( comp );
     }
 
+    public void setRawHlightComp(double comp, List refValues ) {
+        this.hlightComp = comp;
+        hlightCompSlider.setValue( comp );
+        if ( refValues != null && refValues.size() > 1 ) {
+            annotateSlider( hlightCompSlider, refValues );
+            hlightCompSlider.setMultivalued( true );
+        } else {
+            hlightCompSlider.setAnnotations( null );
+            hlightCompSlider.setMultivalued( false );
+        }
+    }
+    
     public void setRawHlightCompMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             annotateSlider( hlightCompSlider, values );
@@ -1418,6 +1349,18 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ctempSlider.setValue( ct );
     }
 
+    public void setRawColorTemp(double ct, List refValues ) {
+        colorTemp = ct;
+        ctempSlider.setValue( ct );
+        if ( refValues != null && refValues.size() > 1 ) {
+            annotateSlider( ctempSlider, refValues );
+            ctempSlider.setMultivalued( true );
+        } else {
+            ctempSlider.setAnnotations( null );
+            ctempSlider.setMultivalued( false );
+        }
+    }
+    
     public void setRawColorTempMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             annotateSlider( ctempSlider, values );
@@ -1438,6 +1381,23 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         greenGain = g;
         double logGreen = Math.log( g ) / Math.log(2);
         greenGainSlider.setValue( logGreen );
+    }
+    
+    public void setRawGreenGain( double g, List refValues ) {
+        greenGain = g;
+        double logGreen = Math.log( g ) / Math.log(2);
+        greenGainSlider.setValue( logGreen );
+        if ( refValues != null && refValues.size() > 1 ) {
+            double[] annotations = new double[refValues.size()];
+            for ( int n = 0; n < refValues.size(); n++ ) {
+                annotations[n] = Math.log( ((Number)refValues.get(n)).doubleValue() ) / Math.log(2); 
+            }
+            greenGainSlider.setAnnotations( annotations );
+            greenGainSlider.setMultivalued( true );
+        } else {
+            greenGainSlider.setAnnotations( null );
+            greenGainSlider.setMultivalued( false );            
+        }
     }
 
     public void setRawGreenGainMultivalued(boolean multivalued, Object[] values ) {
@@ -1466,6 +1426,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         setupColorProfile();
     }
 
+    public void setRawProfile(ColorProfileDesc p, List refValues ) {
+        profile = p;
+        setupColorProfile();
+    }
+    
     public void setRawProfileMultivalued(boolean multivalued, Object[] values ) {
     }
 
@@ -1485,6 +1450,26 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }        
     }    
     
+    /**
+     Set new value for a color channel curve
+     @param name Name of the curve to set
+     @param curve The new curve
+     @param refCurves Reference curves to show in the background     
+     */
+    public void setColorChannelCurve(String name, ColorCurve curve, List refCurves ) {
+        for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
+            if ( colorCurveNames[n].equals( name ) ) {
+                colorCurves[n] = curve;
+                this.refCurves[n] = refCurves;
+                showCurve( currentColorCurve );
+                break;
+            }
+        }
+    }    
+    
+    /**
+     @deprecated
+     */
     public void setColorChannelMultivalued(String name, boolean isMultivalued, ColorCurve[] values ) {
         for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
             if ( colorCurveNames[n].equals( name ) ) {
@@ -1505,6 +1490,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         
     }
     
+    /**
+     Get current value of a color channel curve
+     @param name Name of the curve
+     @return Current curve for the channel or <code>null</code> if not specified.
+     */
     public ColorCurve getColorChannelCurve(String name) {
         ColorCurve ret = null;
         for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
@@ -1515,7 +1505,27 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }        
         return ret;
     }    
+    
+    /**
+     Get reference curves displayed for channel
+     @param name Name of the channel
+     @return Reference curves displayed for a channel or <code>null</code> if 
+     no reference curves are displayed-
+     */
+    public List getRefCurves( String channel ) {
+        List ret = null;
+        for ( int n = 0 ; n < colorCurveNames.length ; n++ ) {
+            if ( colorCurveNames[n].equals( channel ) ) {
+                ret = refCurves[n];
+                break;
+            }
+        }        
+        return ret;
+    }
 
+    /**
+     @deprecated
+     */
     private void annotateSlider( FieldSliderCombo slider, Object [] values ) {
         double[] annotations = new double[values.length];
         for ( int n = 0; n < values.length ; n++ ) {
@@ -1523,6 +1533,20 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
         slider.setAnnotations( annotations );
     }
+    
+
+    /**
+     Annotate a slider with given values
+     @param slider The slider to annotate
+     @param values Annotation values. Note! Cannot be null!!
+     */
+    private void annotateSlider( FieldSliderCombo slider, List values ) {
+        double[] annotations = new double[values.size()];
+        for ( int n = 0; n < values.size() ; n++ ) {
+            annotations[n] = ((Number)values.get(n)).doubleValue();
+        }
+        slider.setAnnotations( annotations );
+    }    
 
     /**
      This callback is called by JAIPhotoViewer when the image displayed in the 
@@ -1575,6 +1599,84 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         // Update color curves with histogram data from this image.
         showCurve( currentColorCurve );
     }
+
+    public void setField(PhotoInfoFields field, Object newValue) {
+        // TODO: implement
+    }
+
+    public void setFieldMultivalued(PhotoInfoFields field, boolean isMultivalued) {
+        // TODO: implement
+    }
+
+    public Object getField(PhotoInfoFields field) {
+        // TODO: Implement
+        return null;
+    }
+
+    public void setField(PhotoInfoFields field, Object newValue, List refValues) {
+        switch ( field ) {
+            case COLOR_CURVE_VALUE:
+                this.setColorChannelCurve( "value", (ColorCurve) newValue, refValues );
+                break;
+            case COLOR_CURVE_SATURATION:
+                this.setColorChannelCurve( "saturation", (ColorCurve) newValue, refValues );
+                break;
+            case COLOR_CURVE_RED:
+                this.setColorChannelCurve( "red", (ColorCurve) newValue, refValues );
+                break;
+            case COLOR_CURVE_GREEN:
+                this.setColorChannelCurve( "green", (ColorCurve) newValue, refValues );
+                break;
+            case COLOR_CURVE_BLUE:
+                this.setColorChannelCurve( "blue", (ColorCurve) newValue, refValues );
+                break;
+            case RAW_BLACK_LEVEL:
+                setRawBlack( newValue != null ? ( (Number)newValue).intValue() : 0, refValues );
+                break;
+            case RAW_CTEMP:
+                setRawColorTemp( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
+                break;
+            case RAW_EV_CORR:
+                setRawEvCorr( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
+                break;
+            case RAW_GREEN:
+                setRawGreenGain( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
+                break;
+            case RAW_HLIGHT_COMP:
+                setRawHlightComp( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
+                break;
+            case RAW_COLOR_PROFILE:
+                setRawProfile( (ColorProfileDesc) newValue, refValues );
+                break;
+            default:
+                // No action for other fields
+                break;
+        }
+    }
+
+    /**
+     * Histograms for each color channel
+     */
+    Map<String, int[]> histograms = new HashMap<String, int[]>();
+    
+    /**
+     * Set histogram displayed for a certain channel
+     * @param channel Name of the color channel
+     * @param histData Array of values for each histogram bin
+     */
+    public void setHistogram( String channel, int[] histData ) {
+        if ( histData == null ) { 
+            histograms.remove( channel );
+        } else {
+            histograms.put( channel, histData );
+        }
+        
+        if ( colorCurveNames[currentColorCurve].equals( channel ) ) {
+            showCurve( currentColorCurve );
+        }
+    }
+    
+    
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton applyBtn;
@@ -1603,5 +1705,5 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private javax.swing.JPanel rawControlsPane;
     private javax.swing.JPanel rawHistogramPane;
     // End of variables declaration//GEN-END:variables
-    
+
 }

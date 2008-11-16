@@ -20,7 +20,6 @@
 
 package org.photovault.imginfo.xml;
 
-import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Date;
@@ -31,15 +30,16 @@ import java.util.UUID;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.Rule;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ChannelMapRuleSet;
 import org.photovault.imginfo.FuzzyDate;
-import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
-import org.photovault.imginfo.PhotoNotFoundException;
+import org.photovault.imginfo.PhotoInfoDAO;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -50,7 +50,7 @@ import org.xml.sax.SAXException;
  */
 public class XmlImporter {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( XmlImporter.class.getName() );
+    static Log log = LogFactory.getLog( XmlImporter.class.getName() );
     
     /**
      Reader from which the data is read.
@@ -211,7 +211,7 @@ public class XmlImporter {
             if ( folder == null ) {
                 folder = PhotoFolder.create( uuid, parent );
             } else if ( parentUuidStr != null || forceReparent ) {
-                folder.setParentFolder( parent );
+                folder.reparentFolder( parent );
             }
             return folder;
         }
@@ -238,14 +238,9 @@ public class XmlImporter {
             String uuidStr = attrs.getValue( "id" );
             UUID uuid = UUID.fromString( uuidStr );
             PhotoInfo p = null;
-            try {
-                p = PhotoInfo.retrievePhotoInfo(uuid);
-            } catch (PhotoNotFoundException ex) {
-                log.error( "Error while finding PhotoInfo with uuid " + uuid + 
-                        ":" + ex.getMessage() );
-                ex.printStackTrace();
-            }
-            
+            PhotoInfoDAO photoDao = null;
+            p = photoDao.findByUUID( uuid );
+
             if ( p == null ) {
                 p = PhotoInfo.create( uuid );
                 digester.push( STACK_CREATING_NEW, Boolean.TRUE );
@@ -260,6 +255,8 @@ public class XmlImporter {
      Factory used for creating and fetching ImageInstance in Digester rule. It
      first tries to find a photo with the uuid specified in XML. If no such 
      photo is found, a new folder is created.
+     
+     TODO: Change this to create ImageDesriptors instead.
      */
     public static class InstanceFactory extends AbstractObjectCreationFactory {
         public InstanceFactory() {
@@ -267,7 +264,7 @@ public class XmlImporter {
         }
         
         public Object createObject( Attributes attrs ) {
-            String uuidStr = attrs.getValue( "id" );
+/*            String uuidStr = attrs.getValue( "id" );
             UUID uuid = UUID.fromString( uuidStr );
             ImageInstance i = null;
             i = ImageInstance.retrieveByUuid(uuid);
@@ -289,30 +286,10 @@ public class XmlImporter {
                 
             }
             return i;
+*/
+            return null;
         }
     }
-
-    /**
-     Factory object for creating a rectangle2D object based on crop element.
-     */
-    public static class RectangleFactory extends AbstractObjectCreationFactory {
-        public RectangleFactory() {
-            
-        }
-        
-        public Object createObject( Attributes attrs ) {
-            String xminStr = attrs.getValue( "xmin" );
-            double xmin = Double.parseDouble( xminStr );
-            String xmaxStr = attrs.getValue( "xmax" );
-            double xmax = Double.parseDouble( xmaxStr );
-            String yminStr = attrs.getValue( "ymin" );
-            double ymin = Double.parseDouble( yminStr );
-            String ymaxStr = attrs.getValue( "ymax" );
-            double ymax = Double.parseDouble( ymaxStr );
-            Rectangle2D r = new Rectangle2D.Double( xmin, ymin, xmax-xmin, ymax-ymin );
-            return r;
-        }
-    }    
 
     /**
      Factory for creating fuzzy date in Digester rule
@@ -352,6 +329,7 @@ public class XmlImporter {
         digester.addFactoryCreate( "*/photos/photo", new PhotoFactory() );
         // After the photo  is ready, inform listeners  if a new photo was created.
         digester.addRule( "*/photos/photo", new Rule() {
+            @Override
             public void end( String namespace, String name ) {
                 Boolean isCreatingNew = (Boolean) digester.pop( STACK_CREATING_NEW );
                 if ( isCreatingNew.booleanValue() ) {
@@ -396,6 +374,7 @@ public class XmlImporter {
         digester.addCallMethod( "*/raw-conversion/ev-corr", "setEvCorr", 0, new Class[] {Double.class} );
         digester.addCallMethod( "*/raw-conversion/hlight-corr", "setHlightComp", 0, new Class[] {Double.class} );
         digester.addRule( "*/raw-conversion/color-balance", new Rule() {
+            @Override
             public void begin( String namespace, String name, Attributes attrs ) {
                 String rgStr = attrs.getValue( "red-green-ratio" );
                 String bgStr = attrs.getValue( "blue-green-ratio" );
@@ -413,6 +392,7 @@ public class XmlImporter {
             } 
         });
         digester.addRule( "*/raw-conversion/daylight-color-balance", new Rule() {
+            @Override
             public void begin( String namespace, String name, Attributes attrs ) {
                 String rgStr = attrs.getValue( "red-green-ratio" );
                 String bgStr = attrs.getValue( "blue-green-ratio" );
@@ -431,6 +411,7 @@ public class XmlImporter {
         });
         digester.addRuleSet( new ChannelMapRuleSet( "*/photo/") );
         digester.addRule( "*/photo/color-mapping", new Rule() {
+            @Override
             public void end( String namespace, String name ) {
                 PhotoInfo p = (PhotoInfo) digester.peek(1);
                 ChannelMapOperationFactory f = 
@@ -441,6 +422,7 @@ public class XmlImporter {
         
         digester.addObjectCreate( "*/photo/raw-conversion", RawSettingsFactory.class );
         digester.addRule( "*/photo/raw-conversion", new Rule() {
+            @Override
             public void end( String namespace, String name ) {
                 PhotoInfo p = (PhotoInfo)digester.peek(1);
                 RawSettingsFactory f = (RawSettingsFactory) digester.peek();
@@ -462,26 +444,34 @@ public class XmlImporter {
         digester.addFactoryCreate( "*/instance/crop", new RectangleFactory() );
         digester.addSetNext( "*/instance/crop", "setCropBounds" );
         digester.addRule( "*/instance/hash", new Rule() {
+            @Override
             public void body( String namespace, String name, String text ) {
+/*                
                 byte[] hash = Base64.decode( text );
                 ImageInstance i = (ImageInstance) digester.peek();
                 i.setHash( hash );
+*/
             }
         } );
         digester.addRuleSet( new ChannelMapRuleSet( "*/instance/") );
         digester.addRule( "*/instance/color-mapping", new Rule() {
+            @Override
             public void end( String namespace, String name ) {
+/*
                 ImageInstance i = (ImageInstance) digester.peek(1);
                 ChannelMapOperationFactory f = 
                         (ChannelMapOperationFactory) digester.peek();
                 i.setColorChannelMapping( f.create() );                
+*/
             }
         });
         // Raw conversion parsing was already specified earlier. We just need a 
         // method for binding the RawConversionSettings object to instance
         digester.addObjectCreate( "*/instance/raw-conversion", RawSettingsFactory.class );
         digester.addRule( "*/instance/raw-conversion", new Rule() {
+            @Override
             public void end( String namespace, String name ) {
+/*
                 ImageInstance i = (ImageInstance)digester.peek(1);
                 RawSettingsFactory f = (RawSettingsFactory) digester.peek();
                 try {
@@ -489,6 +479,7 @@ public class XmlImporter {
                 } catch (PhotovaultException ex) {
                     digester.createSAXException( ex );
                 }
+*/
             }
         });  
         /*

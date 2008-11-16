@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007 Harri Kaimio
+  Copyright (c) 2007-2008 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -21,6 +21,10 @@
 package org.photovault.image;
 
 import java.awt.geom.CubicCurve2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
   Mapping from original color channel to to desired output channel values. In 
@@ -39,7 +43,9 @@ import java.awt.geom.CubicCurve2D;
  and next control points, with the exception that in first and last CP the derivative 
  is noncontiguous.
  */
-public class ColorCurve {
+public class ColorCurve implements Serializable {
+    
+    static final long serialVersionUID = -4691331290177499814L;
     
     /** Creates a new instance of ColorCurve */
     public ColorCurve() {
@@ -48,19 +54,19 @@ public class ColorCurve {
     /**
      X coordinates for control points, in increasing order
      */
-    double[] pointX = {};
+    transient double[] pointX = {};
     
     /**
      Y coordinates for control points.
      */
-    double[] pointY = {};
+    transient double[] pointY = {};
     
     /**
      Bezier coefficiens for each segment. This array contains the Y coordinates, 
      X coordinates x1 & x2 are defined so that x1 = 2/3 * x0 + 1/3 * x3 and
      x2 = 1/3 * x0 + 2/3 * x3. 
      */
-    double b[][] = null;
+    transient double b[][] = null;
     
     /**
      Add a new control point to the function
@@ -156,6 +162,11 @@ public class ColorCurve {
             return pointY[0];
         }
         
+        if ( b == null ) {
+            // The object was just de-serialized
+            calcCoeffs();
+        }
+                
         // Find the correct segment
         int n = 0;
         while ( n < pointX.length && x >= pointX[n] ) {
@@ -197,6 +208,7 @@ public class ColorCurve {
      @param o Object to compare this curve with
      @return true if o is equal to this object, false otherwise
      */
+    @Override
     public boolean equals( Object o ) {
         if ( !(o instanceof ColorCurve) ) {
             return false;
@@ -217,8 +229,53 @@ public class ColorCurve {
     }
     
     /**
+     Check whether two curves are equal up to given precision. The method tests 
+     values of both curves in each control point defined to either of them.
+     
+     @param c The other ColorCurve
+     @param precision Maximum error allowed
+     @return <code>true</code> if the curves are equal, <code>false</code> 
+     otherwise. If c is <code>null</code> the method calls isAlmostIdentity() and
+     returns result of that, as null curve is assumed to act as identity curve in 
+     Photovault.
+     */
+    public boolean isAlmostEqual( ColorCurve c, double precision ) {
+        if ( c == null ) {
+            return isAlmostIdentity( precision );
+        }
+        
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            if ( Math.abs( c.getValue( pointX[n] ) - pointY[n] ) > precision ) {
+                return false;
+            }
+        }
+        for ( int n = 0 ; n < c.pointX.length ; n++ ) {
+            if ( Math.abs( getValue( c.pointX[n] ) - c.pointY[n] ) > precision ) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     Check whether this curve defines an identity mapping up to a given precision
+     
+     @param precision Maximum deviation from identity mapping allowed
+     @return
+     */
+    public boolean isAlmostIdentity( double precision ) {
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            if ( Math.abs( pointX[n] - pointY[n] ) > precision ) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
      Calculate hash code for this curve.
      */
+    @Override
     public int hashCode() {
         long hash = 0;
         for ( int n = 0 ; n < pointX.length ; n++ ) {
@@ -270,5 +327,35 @@ public class ColorCurve {
         b[pointX.length][1] = pointY[pointY.length-1];
         b[pointX.length][2] = pointY[pointY.length-1];
         b[pointX.length][3] = pointY[pointY.length-1];
+    }
+    
+    /**
+     Serialization code
+     @serialData First then number of points is written as integer. After that 
+     follows the coordinates for each point - first X coordinate and after that 
+     Y coordinate as doubles.
+     @param os
+     @throws java.io.IOException
+     */
+    private void writeObject( ObjectOutputStream os ) throws IOException {
+        os.defaultWriteObject();
+        os.writeInt( pointX.length );
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            os.writeDouble( pointX[n] );
+            os.writeDouble( pointY[n] );
+        }
+    }
+    
+    private void readObject( ObjectInputStream is ) 
+            throws IOException, ClassNotFoundException {
+        is.defaultReadObject();
+        int pointCount = is.readInt();
+        pointX = new double[pointCount];
+        pointY = new double[pointCount];
+        for  ( int n = 0  ; n < pointCount ; n++ ) {
+            pointX[n] = is.readDouble();
+            pointY[n] = is.readDouble();            
+        }
+        calcCoeffs();
     }
 }

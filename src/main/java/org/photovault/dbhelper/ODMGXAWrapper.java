@@ -21,52 +21,39 @@
 
 package org.photovault.dbhelper;
 
-import org.odmg.*;
-import org.apache.ojb.odmg.*;
+import java.lang.RuntimeException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.photovault.persistence.HibernateUtil;
 
 
 /**
-   ODMGXAWrapper is a simple wrapper for ODMG transactions. When created it checks if there is
-   currently an open transaction and if there is not it creates a new one. When calling commit() method
-   the the object commits transaction if the transacttion is owned by this object. If it is not then nothing will be done.
+   ODMGXAWrapper was a simple wrapper for ODMG transactions. Currently it just 
+ checks whether we are in transaction context.
 */
 
 public class ODMGXAWrapper {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( ODMGXAWrapper.class.getName() );
-    Transaction tx = null;
-    boolean ownsTx = false;
-    static Implementation odmg = ODMG.getODMGImplementation();
 
     public ODMGXAWrapper() {
-	tx = odmg.currentTransaction();
-	if ( tx == null ) {
-            log.debug( "Starting transaction" );
-	    tx = odmg.newTransaction();
-	    tx.begin();
-	    ownsTx = true;
-	}
+//        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+//        Session session = sessionFactory.getCurrentSession();
+//        if ( session == null ) {
+//            throw new RuntimeException( "Not in transaction context!!!" );
+//        }
     }
 
     public void commit() {
-	if ( ownsTx ) {
-	    tx.commit();
-            log.debug( "Committing transaction" );
-	}
+        // Empty
     }
 
     public void abort() {
-        log.debug( "Aborting transaction" );
-	tx.abort();
+        // Empty
     }
 
     public void lock( Object obj, int type ) {
-        log.debug( "Trying to lock " + obj );
-        tx.lock( obj, type );
-        log.debug( "Success" );
     }
 
     public void flush() {
-        log.debug( "Flushing transaction" );
-        ((TransactionExt)tx).flush();
     }
 }

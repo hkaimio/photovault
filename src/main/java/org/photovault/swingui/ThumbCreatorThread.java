@@ -22,9 +22,14 @@ package org.photovault.swingui;
 
 import java.lang.*;
 import javax.swing.*;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.Thumbnail;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 
 /**
  ThumbCreatorThread is used for deferred creation of thumbnails by PhotoCollectionThumbView.
@@ -60,7 +65,7 @@ class ThumbCreatorThread extends Thread {
      @param photo the photo for which the thumbnail will be created.
      */
     synchronized public void createThumbnail( PhotoInfo photo ) {
-	log.debug( "createThumbnail for " + photo.getUid() );
+	log.debug( "createThumbnail for " + photo.getUuid() );
 	this.photo = photo;
 	notify();
     }
@@ -83,8 +88,15 @@ class ThumbCreatorThread extends Thread {
 		    wait();
 		    log.debug( "Waited..." );
 		    if ( photo != null ) {
-			log.debug( "Creating thumbnail for " + photo.getUid() );
+			log.debug( "Creating thumbnail for " + photo.getUuid() );
+                        Session session = HibernateUtil.getSessionFactory().openSession();
+                        Transaction tx = session.beginTransaction();
+                        HibernateDAOFactory daoFactory = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+                        daoFactory.setSession( session );
+                        PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
+                        photo = photoDAO.findByUUID( photo.getUuid() );
 			Thumbnail thumb = null;
+                        
 			while ( thumb == null ) {
 			    try {
 				thumb = photo.getThumbnail();
@@ -100,13 +112,16 @@ class ThumbCreatorThread extends Thread {
 			    }
 			}
 			log.debug( "Done!" );
+                        session.flush();
+                        tx.commit();
+                        session.close();
 
 			// Inform the view that the thumbnail is now created
 			final PhotoInfo lastPhoto = photo;
 			photo = null;
 			SwingUtilities.invokeLater( new Runnable() {
 				public void run() {
-				    log.debug( "drawing new thumbnail for " + lastPhoto.getUid() );
+				    log.debug( "drawing new thumbnail for " + lastPhoto.getUuid() );
 				    view.thumbnailCreated( lastPhoto );
                                 }
                         });

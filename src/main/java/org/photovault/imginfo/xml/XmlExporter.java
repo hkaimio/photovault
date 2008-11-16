@@ -23,7 +23,6 @@ package org.photovault.imginfo.xml;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
@@ -36,7 +35,6 @@ import org.photovault.common.PhotovaultSettings;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.image.ChannelMapOperation;
-import org.photovault.imginfo.ImageInstance;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoQuery;
 
@@ -214,7 +212,7 @@ public class XmlExporter {
         Set remainingFolders = new HashSet( folders );
         PhotoFolder rootFolder = PhotoFolder.getRoot();
         writer.write( getIndent() + "<folders root-uuid=\"" + 
-                rootFolder.getUUID() + "\">" );
+                rootFolder.getUuid() + "\">" );
         writer.newLine();
         indent += 2;
         writeFolder( rootFolder, remainingFolders, true );
@@ -283,12 +281,12 @@ public class XmlExporter {
      @throws IOException if error occurs during writing
      */
     private void writeFolder(PhotoFolder folder, Set remainingFolders, boolean writeParentId) throws IOException {
-        UUID folderUUID = folder.getUUID();
+        UUID folderUUID = folder.getUuid();
         writer.write( getIndent() + "<folder id=\"" + folderUUID + "\"" );
         if ( writeParentId ) {
             PhotoFolder parent = folder.getParentFolder();
             if ( parent != null ) {
-                writer.write( " parent-id=\"" + parent.getUUID() + "\"" );
+                writer.write( " parent-id=\"" + parent.getUuid() + "\"" );
             }
         }
         Date createTime = folder.getCreationDate();
@@ -330,7 +328,7 @@ public class XmlExporter {
      @throws IOException if error occurs during writing     
      */
     private void writePhoto( PhotoInfo p ) throws IOException {
-        writer.write( getIndent() + "<photo id=\"" + p.getUUID() + "\"" );
+        writer.write( getIndent() + "<photo id=\"" + p.getUuid() + "\"" );
         writer.write( " modified=\"" + p.getLastModified() + "\">" );
         writer.newLine();
         indent += 2;
@@ -389,10 +387,12 @@ public class XmlExporter {
         writer.write( getIndent() + "<instances>" );
         writer.newLine();
         indent += 2;
-        for ( int n = 0; n < p.getNumInstances(); n++ ) {
-            ImageInstance i = p.getInstance( n );
+/*
+ TODO: Store information about images
+        for ( ImageInstance i : p.getInstances() ) {
             writeInstance( i );
         }
+*/
         indent -= 2;
         writer.write( getIndent() + "</instances>" );
         writer.newLine();
@@ -404,7 +404,7 @@ public class XmlExporter {
             Iterator iter = folders.iterator();
             while ( iter.hasNext() ) {
                 PhotoFolder f = (PhotoFolder) iter.next();
-                writer.write( getIndent() + "<folder-ref id=\"" + f.getUUID() + "\"/>" );
+                writer.write( getIndent() + "<folder-ref id=\"" + f.getUuid() + "\"/>" );
                 writer.newLine();
             }
             indent -= 2;
@@ -416,62 +416,6 @@ public class XmlExporter {
         writer.newLine();
         photoCount++;
         fireObjectExportedEvent( p );
-    }
-    
-    /**
-     Writes XML element that describes a single instance
-     @param The ImageInstance to write.
-     @throws IOException if error occurs during writing     
-     */
-    private void writeInstance( ImageInstance i ) throws IOException {
-        writer.write( getIndent() + "<instance id=\"" + i.getUUID() + "\" type=\"" );
-        switch ( i.getInstanceType() ) {
-            case ImageInstance.INSTANCE_TYPE_ORIGINAL:
-                writer.write( "original" );
-                break;
-            case ImageInstance.INSTANCE_TYPE_THUMBNAIL:
-                writer.write( "thumbnail" );
-                break;
-            case ImageInstance.INSTANCE_TYPE_MODIFIED:
-                writer.write( "modified" );
-                break;
-        }
-        writer.write( "\">" );
-        writer.newLine();
-        indent += 2;
-        writer.write( getIndent() + "<hash>" + Base64.encodeBytes( i.getHash() ) + "</hash>" );
-        writer.newLine();
-        writer.write( getIndent() + "<file-size>" + i.getFileSize() + "</file-size>" );
-        writer.newLine();
-        writer.write( getIndent() + "<width>" + i.getWidth() + "</width>" );
-        writer.newLine();
-        writer.write( getIndent() + "<height>" + i.getHeight() + "</height>" );
-        writer.newLine();
-        writer.write( getIndent() + "<crop rot=\"" + i.getRotated() + "\" " );
-        Rectangle2D c = i.getCropBounds();
-        writer.write( "xmin=\"" + c.getMinX() + "\" " );
-        writer.write( "xmax=\"" + c.getMaxX() + "\" " );
-        writer.write( "ymin=\"" + c.getMinY() + "\" " );
-        writer.write( "ymax=\"" + c.getMaxY() + "\"/>" );
-        writer.newLine();
-        ChannelMapOperation cm = i.getColorChannelMapping();
-        if ( cm != null ) {
-            String chanMapXml = cm.getAsXml( indent );
-            writer.write( chanMapXml );
-        }
-        RawConversionSettings rs = i.getRawSettings();
-        if ( rs != null ) {
-            writeRawSettings( rs );
-        }
-        File f = i.getImageFile();
-        if ( f != null ) {
-            writer.write( getIndent() + "<location file=\"" + f.getPath() + "\"/>" );
-            writer.newLine();
-        }
-        indent -= 2;
-        writer.write( getIndent() + "</instance>" );
-        writer.newLine(); 
-        instanceCount++;
     }
     
     /**

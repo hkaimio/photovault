@@ -27,7 +27,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
-import java.awt.image.ComponentSampleModel;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.renderable.ParameterBlock;
@@ -38,7 +37,6 @@ import java.util.Set;
 import java.util.Vector;
 import javax.media.jai.Histogram;
 import javax.media.jai.IHSColorSpace;
-import javax.media.jai.ImageLayout;
 import javax.media.jai.Interpolation;
 import javax.media.jai.InterpolationBilinear;
 import javax.media.jai.JAI;
@@ -47,12 +45,13 @@ import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
 import javax.media.jai.RenderedOp;
-import javax.media.jai.operator.BandCombineDescriptor;
+import javax.media.jai.operator.CropDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
-import javax.media.jai.operator.MultiplyConstDescriptor;
-import javax.media.jai.operator.RenderableDescriptor;
-import javax.media.jai.operator.TranslateDescriptor;
+import javax.media.jai.operator.OverlayDescriptor;
+import javax.media.jai.operator.ScaleDescriptor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  PhotovaultImage is a facade fro Photovault imaging pipeline. It is abstract 
@@ -60,14 +59,14 @@ import javax.media.jai.operator.TranslateDescriptor;
  */
 public abstract class PhotovaultImage {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultImage.class.getName() );
+    static private Log log = LogFactory.getLog( PhotovaultImage.class.getName() );
     
     /** Creates a new instance of PhotovaultImage */
     public PhotovaultImage() {
     }
 
     
-    File f = null;
+    protected File f = null;
 
     /**
      * Get aperture (f-stop) used when shooting the image
@@ -405,9 +404,9 @@ public abstract class PhotovaultImage {
         } else {
             satCurve.addPoint( 1.0/s, 1.0 );
         }
-        ChannelMapOperationFactory f = new ChannelMapOperationFactory( channelMap );
-        f.setChannelCurve( "saturation", satCurve );
-        channelMap = f.create();
+        ChannelMapOperationFactory cmf = new ChannelMapOperationFactory( channelMap );
+        cmf.setChannelCurve( "saturation", satCurve );
+        channelMap = cmf.create();
         // Check that this image has a color model that supports saturation change
         if ( saturatedIhsImage != null ) {
             saturatedIhsImage.setParameter( createSaturationMappingLUT() , 0 );
@@ -646,6 +645,7 @@ public abstract class PhotovaultImage {
         float origWidth = uncroppedImage.getWidth();
         float origHeight = uncroppedImage.getHeight();
         
+        
         AffineTransform xform = org.photovault.image.ImageXform.getRotateXform(
                 rot, origWidth, origHeight );
         
@@ -664,9 +664,19 @@ public abstract class PhotovaultImage {
          */
         hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
         rotatedImage = JAI.createRenderable( "affine", rotParams, hints );
+
+        /*
+         Due to rounding errors in JAI pipeline transformations we have a danger 
+         that the crop border goes outside image area. To avoind this, create a
+         slightly larger background and overlay the actual image in front of it.         
+         */
+        RenderableOp background = ScaleDescriptor.createRenderable( 
+                rotatedImage, 1.01f, 1.01f, 0.0f, 0.0f, 
+                Interpolation.getInstance( Interpolation.INTERP_BILINEAR ), hints );
+        RenderableOp overlayed = OverlayDescriptor.createRenderable( background, rotatedImage, hints );
         
         ParameterBlockJAI cropParams = new ParameterBlockJAI( "crop" );
-        cropParams.addSource( rotatedImage );
+        cropParams.addSource( overlayed );
         float cropWidth = (float) (cropMaxX - cropMinX);
         cropWidth = ( cropWidth > 0.000001 ) ? cropWidth : 0.000001f;
         float cropHeight = (float) (cropMaxY - cropMinY);
@@ -684,12 +694,30 @@ public abstract class PhotovaultImage {
             Rectangle2D.intersect( srcRect, cropRect, cropRect );
             if ( !srcRect.contains( cropRect ) ) {
                 // Ups, we have a problem... this can happen due to rounding errors
-                // (for example, if cropY is just above zero). Disable cropping
-                // to avoid error.
-                cropX = rotatedImage.getMinX();
-                cropY = rotatedImage.getMinY();
-                cropW = rotatedImage.getWidth();
-                cropH = rotatedImage.getHeight();
+                // (for example, if cropY is just above zero). 
+                // Make the crop rectangle slightly smaller so that the rounding 
+                // error is avoided
+                final float correction = 5E-3f;
+                if ( srcRect.getMinX() > cropRect.getMinX() ) {
+                    cropX += correction;
+                }
+                if ( srcRect.getMinY() > cropRect.getMinY() ) {
+                    cropY += correction;
+                }
+                if ( srcRect.getMaxX() < cropRect.getMaxX() ) {
+                    cropW -= correction;
+                }
+                if ( srcRect.getMaxY() < cropRect.getMaxY() ) {
+                    cropH -= correction;
+                }
+                cropRect = new Rectangle2D.Float( cropX, cropY, cropW, cropH );
+                if ( !srcRect.contains( cropRect ) ) {
+                    // Hmm, now I am out of ideas...
+                    cropX = rotatedImage.getMinX();
+                    cropY = rotatedImage.getMinY();
+                    cropW = rotatedImage.getWidth();
+                    cropH = rotatedImage.getHeight();
+                }
             }
         }
         
@@ -697,6 +725,12 @@ public abstract class PhotovaultImage {
         cropParams.setParameter( "y", cropY );
         cropParams.setParameter( "width", cropW );
         cropParams.setParameter( "height", cropH );
+        CropDescriptor cdesc = new CropDescriptor();
+        StringBuffer msg = new StringBuffer();        
+        if ( !cdesc.validateArguments( "renderable", cropParams, msg ) ) {
+            log.error( "Error settings up crop operation: " + msg.toString() );
+        }
+        
         croppedImage = JAI.createRenderable("crop", cropParams, hints );
         // Translate the image so that it begins in origo
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );

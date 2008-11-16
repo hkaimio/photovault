@@ -20,7 +20,6 @@
 
 package org.photovault.image;
 
-import com.sun.jdori.common.query.tree.ThisExpr;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.StringReader;
@@ -32,7 +31,6 @@ import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.RuleSetBase;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import xjavadoc.JavaCharStream;
 
 /**
  Digester rule set for reading channel-map tag into ChannelMapOperation object

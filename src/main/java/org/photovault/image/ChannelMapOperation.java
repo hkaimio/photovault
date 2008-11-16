@@ -21,9 +21,15 @@
 package org.photovault.image;
 
 import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  This class is the database representation of mapping from input color channels 
@@ -33,7 +39,9 @@ import java.util.Map;
  This class is immutable, new objects should be created using {@link 
  ChannelMapOperationFactory}.
  */
-public class ChannelMapOperation {
+public class ChannelMapOperation implements Serializable {
+
+    static final long serialVersionUID = 5997544060700510698L;
     
     /**
      * Creates a new instance of ChannelMapOperation. Should not be used by 
@@ -44,8 +52,8 @@ public class ChannelMapOperation {
     
     /**
      Map from channel name to an array of control points (Point2D objects)
-     */
-    Map channelPoints = new HashMap();
+      */
+    transient Map<String, Point2D[]> channelPoints = new HashMap();
     
     /**
      Get names of defined channels
@@ -124,6 +132,7 @@ public class ChannelMapOperation {
      @param o The object to compare this object with
      @return true if o and this object are equal, false otherwise
      */
+    @Override
     public boolean equals( Object o ) {
         if ( !(o instanceof ChannelMapOperation ) ) {
             return false;
@@ -148,6 +157,52 @@ public class ChannelMapOperation {
         return true;
     }
     
+    /**
+     Test whether two channel mappings produce equal results up to given precision
+     
+     @param c the other channel mapping
+     @param precision Maximum error allowed
+     @return <code>true</code> if the mappings are equal, <code>false</code> 
+     otherwise
+     */
+    public boolean isAlmostEqual( ChannelMapOperation c, double precision ) {
+        if ( c == null ) {
+            return isAlmostIdentity( precision );
+        }
+        Set<String> chanNames = new HashSet<String>();
+        chanNames.addAll( (Set<String>) channelPoints.keySet() );
+        chanNames.addAll( (Set<String>) c.channelPoints.keySet() );
+        for ( String chanName : chanNames ) {
+            ColorCurve c1 = this.getChannelCurve( chanName );
+            ColorCurve c2 = c.getChannelCurve( chanName );
+            if ( c1 == null && c2 != null && !c2.isAlmostIdentity( precision ) ) {
+                return false;
+            } else if ( c1 != null && c2 == null && !c1.isAlmostIdentity( precision ) ) {
+                return false;
+            } else if ( c1 != null && c2 != null && !c1.isAlmostEqual( c2, precision ) ) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     Check whether this is an Identity mapping up to given precision
+     
+     @param precision The maximum deviation fron identity allowed
+     @return
+     */
+    private boolean isAlmostIdentity( double precision ) {
+        for ( String chanName : (Set<String>) channelPoints.keySet() ) {
+            if ( !getChannelCurve( chanName ).isAlmostIdentity( precision ) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    @Override
     public int hashCode() {
         int hash = 0;
         String[] channelNames = getChannelNames();
@@ -157,5 +212,44 @@ public class ChannelMapOperation {
             hash = hash * 31 + p.hashCode();
         }
         return hash;
+    }
+
+    /**
+     Serialize the object
+     @param os The object stream
+     @throws java.io.IOException
+     @serialData Number of channels, followed by for each channel: name of the 
+     channel, number of points, for each point x and y coordinates
+     */
+    private void writeObject( ObjectOutputStream os ) throws IOException {
+        os.defaultWriteObject();
+        os.writeInt( channelPoints.size() );
+        for ( Map.Entry<String, Point2D[]> e : channelPoints.entrySet() ) {
+            os.writeObject( e.getKey() );
+            Point2D[] points = e.getValue();
+            os.writeInt( points.length );
+            for ( Point2D p : points ) {
+               os.writeDouble( p.getX() ); 
+               os.writeDouble( p.getY() ); 
+            }
+        }
+    }
+    
+    private void readObject( ObjectInputStream is ) 
+            throws IOException, ClassNotFoundException {
+        is.defaultReadObject();
+        channelPoints = new HashMap<String, Point2D[]>();
+        int chanCount = is.readInt();
+        for ( int n = 0 ; n < chanCount ; n++ ) {
+            String chanName = (String) is.readObject();
+            int pointCount = is.readInt();
+            Point2D[] points = new Point2D[pointCount];
+            for ( int m = 0 ; m < pointCount ; m++ ) {
+                double x = is.readDouble();
+                double y = is.readDouble();
+                points[m] = new Point2D.Double( x, y );
+            }
+            channelPoints.put(  chanName, points );
+        }
     }
 }

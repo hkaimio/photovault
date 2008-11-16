@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -23,17 +23,10 @@ package org.photovault.swingui;
 
 import java.util.*;
 import org.photovault.folder.*;
+import org.photovault.swingui.framework.DefaultEvent;
 
-public class PhotoFolderTreeEvent extends EventObject {
-
-    PhotoFolder selected = null;
-    
-    public PhotoFolderTreeEvent( PhotoFolderTree src, PhotoFolder selected ) {
-	super( src );
-	this.selected = selected;
-    }
-
-    public PhotoFolder getSelected () {
-	return selected;
+public class PhotoFolderTreeEvent extends DefaultEvent<PhotoFolder> {
+    public PhotoFolderTreeEvent( Object source, PhotoFolder selected ) {
+	super( source, selected );
     }
 }

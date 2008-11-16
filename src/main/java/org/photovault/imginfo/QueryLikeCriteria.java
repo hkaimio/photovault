@@ -19,7 +19,9 @@
 */
  
 package org.photovault.imginfo;
-import org.apache.ojb.broker.query.Criteria;
+
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 
 public class QueryLikeCriteria implements QueryFieldCriteria {
 
@@ -38,7 +40,7 @@ public class QueryLikeCriteria implements QueryFieldCriteria {
 
     public void setupQuery( Criteria crit ) {
 	if ( searchText != null ) {
-	    crit.addLike( field.getName(), searchText );
+	    crit.add( Restrictions.like( field.getName(), searchText ) );
 	}
     }
 

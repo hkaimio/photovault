@@ -20,26 +20,41 @@
 
 package org.photovault.imginfo;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-public class FuzzyDate {
+public class FuzzyDate implements Serializable {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( FuzzyDate.class.getName() );
+    static final transient Log log = LogFactory.getLog( FuzzyDate.class.getName() );
+
+    static final long serialVersionUID = -5128190100805002040L;
     
     public FuzzyDate( Date date, double accuracy ) {
-	this.date = (date != null) ? (Date) date.clone()  : null;
-	this.accuracy = accuracy;
+	this.midpoint = (date != null) ? date.getTime() : Long.MIN_VALUE;
+	this.variation = (long) (accuracy * MILLIS_IN_DAY);
     }
     
-    Date date;
-    double accuracy;
-    static final double MILLIS_IN_MINUTE = 60000;
-    static final double MILLIS_IN_HOUR = 3600 * 1000;
-    static final double MILLIS_IN_DAY = 24 * MILLIS_IN_HOUR;
+    /**
+     Midpoint of the date range, as milliseconds from 00:00 Jan 1 1970 GMT
+     @serial
+     */
+    long midpoint;
+        
+    /**
+     Allowed deviation from midpoint in milliseconds
+     @serial
+     */
+    long variation;
+    
+    static final transient double MILLIS_IN_MINUTE = 60000;
+    static final transient double MILLIS_IN_HOUR = 3600 * 1000;
+    static final transient double MILLIS_IN_DAY = 24 * MILLIS_IN_HOUR;
 
     static class FuzzyDateParser {
         
@@ -122,14 +137,17 @@ public class FuzzyDate {
     }
     
 
-    static FuzzyDateParser fdParsers[] = null;
+    static transient FuzzyDateParser fdParsers[] = null;
     
     public Date getDate() {
-	return date != null ? (Date)date.clone() : null;
+        if ( midpoint == Long.MIN_VALUE ) {
+            return null;
+        }
+	return new Date( midpoint );
     }
 
     public double getAccuracy() {
-	return accuracy;
+        return ((double) variation) / MILLIS_IN_DAY;
     }
 
 
@@ -137,22 +155,20 @@ public class FuzzyDate {
        Returns the earliest time that fits into the accuracy interval
     */
     public Date getMinDate() {
-	Date d = null;
-	if ( date != null ) {
-	    d = new Date( date.getTime() - (long) (accuracy*MILLIS_IN_DAY) );
-	}
-	return d;
+        if ( midpoint == Long.MIN_VALUE ) {
+            return null;
+        }
+	return new Date( midpoint - variation );
     }
     
     /**
        Returns the latest time that fits into the accuracy interval
     */
     public Date getMaxDate() {
-	Date d = null;
-	if ( date != null ) {
-	    d = new Date( date.getTime() + (long) (accuracy*MILLIS_IN_DAY) );
-	}
-	return d;
+        if ( midpoint == Long.MIN_VALUE ) {
+            return null;
+        }
+	return new Date( midpoint + variation );
     }
     
     static private void createParsers() {
@@ -217,24 +233,23 @@ public class FuzzyDate {
     }
 
     public String format() {
-	long lAccuracy = (long) (accuracy  * 24 * 3600 * 1000);
 
         String dateStr = "";
-	if ( date == null ) {
+	if ( midpoint == Long.MIN_VALUE ) {
 	    return "";
 	}
         
-        Date lower = new Date( date.getTime() - lAccuracy );
-        Date upper = new Date( date.getTime() + (lAccuracy-1) );
+        Date lower = new Date( midpoint - variation );
+        Date upper = new Date( midpoint + variation - 1 );
 
 	if ( fdParsers == null ) {
             createParsers();
         }
-	if ( accuracy > 0 ) {
+	if ( variation > 0 ) {
 	    // Find the correct format to use
             FuzzyDateParser parser = fdParsers[0];
             for ( int i = 0; i < fdParsers.length; i++ ) {
-		if ( (2 * lAccuracy) < fdParsers[i].getFuzzyPeriodLength( lower ) ) {
+		if ( (2 * variation) < fdParsers[i].getFuzzyPeriodLength( lower ) ) {
 		    break;
 		}
 		parser = fdParsers[i];
@@ -249,29 +264,23 @@ public class FuzzyDate {
 	    }
 	} else {
 	    DateFormat df = new SimpleDateFormat( "dd.MM.yyyy k:mm" );
-	    dateStr = df.format( date );
+	    dateStr = df.format( new Date( midpoint ) );
 	}
 	return dateStr;
     }
 
+    @Override
     public boolean equals( Object obj ) {
-	boolean isEqual = false;
 	if ( obj instanceof FuzzyDate ) {
 	    FuzzyDate fd = (FuzzyDate) obj;
-	    if ( date != null ) {
-		isEqual = date.equals( fd.date ) && (Math.abs(accuracy - fd.accuracy) < 0.0001);
-	    } else {
-		isEqual = (fd.date == null ) && ( accuracy == fd.accuracy );
-	    }
+            return fd.midpoint == midpoint && fd.variation == variation;
 	}
-	return isEqual;
+	return false;
     }
     
+    @Override
     public int hashCode() {
-        int hash = new Double( accuracy ).hashCode();
-        if ( date != null ) {
-            hash ^= date.hashCode();
-        }
+        int hash = (int) (31 * (midpoint + 27 * variation));
         return hash;
     }
 }

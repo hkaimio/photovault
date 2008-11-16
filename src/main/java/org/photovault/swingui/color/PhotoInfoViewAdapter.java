@@ -20,38 +20,46 @@
 
 package org.photovault.swingui.color;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
 import org.photovault.image.PhotovaultImage;
+import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.FuzzyDate;
-import org.photovault.swingui.PhotoInfoController;
-import org.photovault.swingui.PhotoInfoView;
+import org.photovault.imginfo.PhotoInfoFields;
+import org.photovault.swingui.selection.PhotoSelectionController;
+import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.PreviewImageView;
 
 /**
- Adapter class for getting notifications from some PhotoInfoController generated 
- events. Just implements {@link PhotoInfoView} with empty methods so that it is 
- easier to use when only a few methods are needed.
- <p> 
- In future PhotoInfoView should be refactored, using this class is more future 
- proof.
+ * Adapter class for getting notifications from some PhotoSelectionController generated 
+ * events. Just implements {@link PhotoInfoView} with empty methods so that it is 
+ * easier to use when only a few methods are needed.
+ * <p> 
+ * In future PhotoInfoView should be refactored, using this class is more future 
+ * proof.
  */
-public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
+public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageView {
+    private static Log log = LogFactory.getLog( PhotoInfoViewAdapter.class );
     
-    PhotoInfoController c;
+    PhotoSelectionController c;
     
     /**
      * Creates a new instance of PhotoInfoViewAdapter
      */
-    public PhotoInfoViewAdapter( PhotoInfoController c ) {
+    public PhotoInfoViewAdapter( PhotoSelectionController c ) {
         this.c = c;
         c.addView( this );
     }
     
-    public PhotoInfoController getController() {
+    public PhotoSelectionController getController() {
         return c;
     }
 
@@ -85,14 +93,14 @@ public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
     public void setQualityMultivalued(boolean mv) {
     }
 
-    public void setShootPlace(String newValue) {
+    public void setShootingPlace(String newValue) {
     }
 
-    public String getShootPlace() {
+    public String getShootingPlace() {
         return null;
     }
 
-    public void setShootPlaceMultivalued(boolean mv) {
+    public void setShootingPlaceMultivalued(boolean mv) {
     }
 
     public void setFocalLength(Number newValue) {
@@ -155,14 +163,14 @@ public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
     public void setDescriptionMultivalued(boolean mv) {
     }
 
-    public void setTechNote(String newValue) {
+    public void setTechNotes(String newValue) {
     }
 
-    public String getTechNote() {
+    public String getTechNotes() {
         return null;
     }
 
-    public void setTechNoteMultivalued(boolean mv) {
+    public void setTechNotesMultivalued(boolean mv) {
     }
 
     public void setShutterSpeed(Number newValue) {
@@ -210,7 +218,7 @@ public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
     public ColorCurve getColorChannelCurve(String name) {
         return null;
     }
-
+    
     public void setColorChannelMapping(ChannelMapOperation cm) {
     }
 
@@ -227,5 +235,56 @@ public class PhotoInfoViewAdapter implements PhotoInfoView, PreviewImageView {
     public PhotovaultImage getPreviewImage() {
         return null;
     }
+
+    public Object getField(PhotoInfoFields field) {
+        Object value = null;
+        String propertyName = field.getName();
+        try {
+            value = PropertyUtils.getProperty( this, propertyName );
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot get property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+        return value;
+    }
+
+
+    public void setField(PhotoInfoFields field, Object newValue) {
+        String propertyName = field.getName();
+        try {
+            PropertyUtils.setProperty( this, propertyName, newValue );
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot set property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+    }
     
+    public void setFieldMultivalued(PhotoInfoFields field, boolean isMultivalued) {
+        String propertyName = field.getName() + "Multivalued";
+        try {
+            PropertyUtils.setProperty( this, propertyName, isMultivalued );
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot set property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+    }
+
+    public void setField(PhotoInfoFields field, Object newValue, List refValues) {
+    }
+
+    public void setHistogram( String channel, int[] histData ) {
+    }
+        
 }

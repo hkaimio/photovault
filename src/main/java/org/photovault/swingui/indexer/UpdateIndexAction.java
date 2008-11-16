@@ -23,65 +23,81 @@ package org.photovault.swingui.indexer;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
-import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import org.photovault.common.PVDatabase;
-import org.photovault.common.PhotovaultSettings;
+import org.hibernate.Session;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.VolumeBase;
-import org.photovault.imginfo.indexer.ExtVolIndexer;
-import org.photovault.imginfo.indexer.ExtVolIndexerEvent;
-import org.photovault.imginfo.indexer.ExtVolIndexerListener;
+import org.photovault.imginfo.VolumeDAO;
+import org.photovault.imginfo.indexer.IndexFileTask;
+import org.photovault.imginfo.indexer.IndexingResult;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.swingui.Photovault;
 import org.photovault.swingui.StatusChangeEvent;
 import org.photovault.swingui.StatusChangeListener;
+import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DataAccessAction;
+import org.photovault.swingui.framework.DefaultAction;
+import org.photovault.swingui.taskscheduler.TaskPriority;
+import org.photovault.swingui.taskscheduler.BackgroundTaskListener;
+import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
+import org.photovault.taskscheduler.BackgroundTask;
+import org.photovault.taskscheduler.TaskProducer;
 
 /**
  * Class control the updating of indexed external volumes. When this action is 
  * initiated it starts to go through all external volumes sequentially and updates
  *their indexes using separate threads.
+ * TODO: This class should be refactored more aggressively after migrating to
+ * {@link BackgroundTaskScheduler}
  *
  * @author Harri Kaimio
  */
-public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerListener {
+public class UpdateIndexAction extends DefaultAction implements BackgroundTaskListener {
     
     /** Creates a new instance of UpdateIndexAction */
-    public UpdateIndexAction( String text, ImageIcon icon, String desc, 
+    public UpdateIndexAction( AbstractController ctrl, String text, ImageIcon icon, String desc, 
             int mnemonic) {
         super( text, icon );
+        this.ctrl = ctrl;
 	putValue(SHORT_DESCRIPTION, desc);
         putValue(MNEMONIC_KEY, new Integer( mnemonic) );
     }
     
     /**
+     Controller owning this action
+     */
+    AbstractController ctrl;
+    
+    /**
      * List of volumes to index. After indexing of a volume has started it will be 
      * removed from this list
      */
-    Vector volumes = null;
+    List<ExternalVolume> volumes = null;
     
     /**
      * Starts the index updating process. After calling this function the action 
      * will stay disabled as long as the opeation is in progress.
      */
-    public void actionPerformed(ActionEvent actionEvent) {
+    @Override
+    public void actionPerformed( ActionEvent actionEvent ) {
+
         /*
          * Get a list of external volumes
          */
         
-        PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        PVDatabase db = settings.getCurrentDatabase();
-        List allVolumes = db.getVolumes();
-        volumes = new Vector();
-        Iterator iter = allVolumes.iterator();
-        while ( iter.hasNext() ) {
-            VolumeBase vol = (VolumeBase) iter.next();
+        DAOFactory daoFactory = DAOFactory.instance(HibernateDAOFactory.class);
+        VolumeDAO volDAO = daoFactory.getVolumeDAO();
+        List<VolumeBase> allVolumes = volDAO.findAll();
+        volumes = new ArrayList<ExternalVolume>();
+        for ( VolumeBase vol : allVolumes ) {
             if ( vol instanceof ExternalVolume ) {
-                volumes.add( vol );
+                volumes.add( (ExternalVolume)vol );
             }
         }
         
@@ -98,12 +114,15 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
     private void indexNextVolume() {
         if ( volumes.size() > 0 ) {
             errorFiles.clear();
-            vol = (ExternalVolume)volumes.get(0);
-            ExtVolIndexer indexer = new ExtVolIndexer( vol );
+            vol = (ExternalVolume) volumes.get(0);
+            BackgroundIndexer indexer =
+                    new BackgroundIndexer( vol.getBaseDir(  ), vol,
+                    vol.getFolder(  ), true );
             volumes.remove( vol );
-            indexer.addIndexerListener( this );
-            Thread t = new Thread( indexer );
-            t.start();
+            SwingWorkerTaskScheduler sched = 
+                    (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
+            sched.addTaskListener(indexer, this );
+            sched.registerTaskProducer(indexer, TaskPriority.INDEX_EXTVOL );
             percentIndexed = 0;
             StatusChangeEvent e = new StatusChangeEvent( this, "Indexing " 
                     + vol.getBaseDir() );
@@ -122,32 +141,37 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
      */
     ExternalVolume vol = null;
     
+    /**
+     Files that caused error during indexing     
+     */
     List errorFiles = new ArrayList();
     
-    public void fileIndexed(ExtVolIndexerEvent e) {
-        ExtVolIndexer indexer = (ExtVolIndexer) e.getSource();
-        int newPercentIndexed = indexer.getPercentComplete();
-        if ( e.getResult() == ExtVolIndexerEvent.RESULT_ERROR ) {
+    public void fileIndexed( BackgroundIndexer p, IndexFileTask t ) {
+        if ( t.getResult() == IndexingResult.ERROR ) {
             StringBuffer errorBuf = new StringBuffer( "Error indexing file" );
-            if ( e.getIndexedFile() != null ) {
-                errorBuf.append( " " ).append( e.getIndexedFile().getAbsolutePath() );
-                errorFiles.add( e.getIndexedFile() );
+            if ( t.getFile() != null ) {
+                errorBuf.append( " " ).append( t.getFile().getAbsolutePath() );
+                errorFiles.add( t.getFile() );
             }
             StatusChangeEvent statusEvent = new StatusChangeEvent( this, 
                     errorBuf.toString() );
             fireStatusChangeEvent( statusEvent );
             
-        } else if ( newPercentIndexed > percentIndexed ) {
-            StatusChangeEvent statusEvent = new StatusChangeEvent( this, "Indexing " 
-                    + vol.getBaseDir() + " - " + newPercentIndexed + "%");
+        } else {
+            StatusChangeEvent statusEvent = 
+                    new StatusChangeEvent( this, p.getStatusMessage() + " " + 
+                    p.getPercentComplete() + "%" );
             fireStatusChangeEvent( statusEvent );
         }
     }
 
-    public void indexingComplete(ExtVolIndexer indexer) {
+    public void indexingComplete( BackgroundIndexer indexer ) {
         if ( errorFiles.size() > 0 ) {
             showErrorDialog();
         }
+        SwingWorkerTaskScheduler sched =
+                (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
+        sched.removeTaskListener( indexer, this );
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 indexNextVolume();
@@ -155,17 +179,6 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
         });
     }
 
-    public void indexingError(String message) {
-        final String finalMessage = "Error while indexing " + 
-                        vol.getBaseDir() + ":\n" + message;
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                JOptionPane.showMessageDialog( null, finalMessage, "Indexing error", 
-                        JOptionPane.ERROR_MESSAGE );
-                indexNextVolume();
-            }
-        });
-    }
 
     /**
      Shows an error dialog that informas about files that the indexer was not 
@@ -207,6 +220,25 @@ public class UpdateIndexAction extends AbstractAction implements ExtVolIndexerLi
             StatusChangeListener l = (StatusChangeListener) iter.next();
             l.statusChanged( e );
         }
+    }
+
+    /**
+     Callback from task shceduler when file has been indexed for this action
+     @param producer The BackgroundIndexer that indexed the file
+     @param task The IndexFileTask that was executed
+     */
+    public void taskExecuted( TaskProducer producer, BackgroundTask task ) {
+        if ( task instanceof IndexFileTask ) {
+            fileIndexed( (BackgroundIndexer) producer, (IndexFileTask) task );
+        }
+    }
+
+    /**
+     Callback from task scheduler when all files in a volume have been indexed.
+     @param producer The BackgroundIndexer responsible for indexing that volume
+     */
+    public void taskProducerFinished( TaskProducer producer ) {
+        indexingComplete( (BackgroundIndexer) producer );
     }
 
 }

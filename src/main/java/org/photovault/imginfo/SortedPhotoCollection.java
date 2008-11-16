@@ -22,11 +22,14 @@
 package org.photovault.imginfo;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Iterator;
+import java.util.UUID;
+import org.hibernate.Session;
 
 /**
  * <p>This class implements a filter for sorting a photo collection by specific criteria. 
@@ -70,21 +73,15 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
     protected Vector changeListeners = new Vector();
     
     /**
-     * Comparator that orders the photos based on their uid.
+     * Comparator that orders the photos based on their uuid.
      */
     static class PhotoIdComparator implements Comparator {
         public int compare( Object o1, Object o2 ) {
             PhotoInfo p1 = (PhotoInfo) o1;
             PhotoInfo p2 = (PhotoInfo) o2;
-            int id1 = p1.getUid();
-            int id2 = p2.getUid();
-            if ( id1 == id2 ) {
-                return 0;
-            } else if ( id1 < id2 ) {
-                return -1;
-            } else {
-                return 1;
-            }
+            UUID id1 = p1.getUuid();
+            UUID id2 = p2.getUuid();
+            return id1.compareTo( id2 );
         }
     }
         
@@ -190,5 +187,9 @@ public class SortedPhotoCollection implements PhotoCollection, PhotoCollectionCh
         this.comparator = comparator;
         sortCollection();
         notifyListeners();
+    }
+
+    public List<PhotoInfo> queryPhotos( Session arg0 ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
 }

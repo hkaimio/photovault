@@ -22,7 +22,11 @@
 package org.photovault.swingui;
 
 
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.tree.TreePath;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
@@ -43,19 +47,21 @@ import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.folderpane.FolderTreePane;
+import org.photovault.swingui.selection.PhotoSelectionController;
+import org.photovault.swingui.selection.PhotoSelectionView;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
     Use can either edit an existing record or create a completely new record.
 */
 
-public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionListener, DocumentListener, PropertyChangeListener {
+public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, ActionListener, DocumentListener, PropertyChangeListener {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoInfoEditor.class.getName() );
+    static Log log = LogFactory.getLog( PhotoInfoEditor.class );
 
     static Color multiValueColor = Color.LIGHT_GRAY;
     static Color singleValueColor = Color.WHITE;
-    
-    public PhotoInfoEditor( PhotoInfoController ctrl ) {
+
+    public PhotoInfoEditor( PhotoSelectionController ctrl ) {
 	super();
 	this.ctrl = ctrl;
 	createUI();
@@ -79,13 +85,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	photographerField = new JTextField( 30 );
 	photographerDoc = photographerField.getDocument();
 	photographerDoc.addDocumentListener( this );
-	photographerDoc.putProperty( FIELD_NAME, PhotoInfoController.PHOTOGRAPHER );
+	photographerDoc.putProperty( FIELD, PhotoInfoFields.PHOTOGRAPHER );
 
 	// "Fuzzy time" field
 	JLabel fuzzyDateLabel = new JLabel( "Shooting date" );
 	fuzzyDateField = new JTextField( 30 );
 	fuzzyDateDoc = fuzzyDateField.getDocument();
-	fuzzyDateDoc.putProperty( FIELD_NAME, PhotoInfoController.FUZZY_DATE );
+	fuzzyDateDoc.putProperty( FIELD, PhotoInfoFields.FUZZY_SHOOT_TIME );
 	fuzzyDateDoc.addDocumentListener( this );
 
 
@@ -98,7 +104,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	shootingPlaceField = new JTextField( 30 );
 	shootingPlaceDoc = shootingPlaceField.getDocument();
 	shootingPlaceDoc.addDocumentListener( this );
-	shootingPlaceDoc.putProperty( FIELD_NAME, PhotoInfoController.SHOOTING_PLACE );
+	shootingPlaceDoc.putProperty( FIELD, PhotoInfoFields.SHOOTING_PLACE );
 	
 	// Description text
 	JLabel descLabel = new JLabel( "Description" );
@@ -111,19 +117,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	descBorder = BorderFactory.createTitledBorder( descBorder, "Description" );
         descScrollPane.setBorder( descBorder );
 	descriptionDoc = descriptionTextArea.getDocument();
-	descriptionDoc.putProperty( FIELD_NAME, PhotoInfoController.DESCRIPTION );
+	descriptionDoc.putProperty( FIELD, PhotoInfoFields.DESCRIPTION );
 	descriptionDoc.addDocumentListener( this );
-	
-	// Save button
-	JButton saveBtn = new JButton( "Save" );
-	saveBtn.setActionCommand( "save" );
-	saveBtn.addActionListener( this );
-
-	// Discard button
-	JButton discardBtn = new JButton( "Discard" );
-	discardBtn.setActionCommand( "discard" );
-	discardBtn.addActionListener( this );
-	
+		
 	// Lay out the created controls
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
@@ -151,17 +147,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 
 	createTechDataUI();
 	createFolderPaneUI();
-
-	// Create a pane for the buttols
-	JPanel buttonPane = new JPanel();
-	buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
-	buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-	buttonPane.add(Box.createHorizontalGlue());
-	buttonPane.add(discardBtn);
-	buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
-	buttonPane.add(saveBtn);
-	//	add( buttonPane, BorderLayout.SOUTH );
-
     }
 
     protected void createTechDataUI() {
@@ -172,47 +157,54 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	cameraField = new JTextField( 20 );
 	cameraDoc = cameraField.getDocument();
 	cameraDoc.addDocumentListener( this );
-	cameraDoc.putProperty( FIELD_NAME, PhotoInfoController.CAMERA_MODEL );
+	cameraDoc.putProperty( FIELD, PhotoInfoFields.CAMERA );
 	
 	JLabel lensLabel =  new JLabel( "Lens" );
 	lensField = new JTextField( 20 );
 	lensDoc = lensField.getDocument();
 	lensDoc.addDocumentListener( this );
-	lensDoc.putProperty( FIELD_NAME, PhotoInfoController.LENS_TYPE );
+	lensDoc.putProperty( FIELD, PhotoInfoFields.LENS );
 
 	JLabel filmLabel =  new JLabel( "Film" );
 	filmField = new JTextField( 20 );
 	filmDoc = filmField.getDocument();
 	filmDoc.addDocumentListener( this );
-	filmDoc.putProperty( FIELD_NAME, PhotoInfoController.FILM_TYPE );
+	filmDoc.putProperty( FIELD, PhotoInfoFields.FILM );
 
 	JLabel filmSpeedLabel =  new JLabel( "Film speed" );
-	DecimalFormat filmSpeedFormat = new DecimalFormat( "#########0" );	
-	filmSpeedField = new JFormattedTextField( filmSpeedFormat );
+	NumberFormatter filmSpeedFormatter = new NumberFormatter( new DecimalFormat( "#########0" ) );	
+        filmSpeedFormatter.setValueClass( PhotoInfoFields.FILM_SPEED.getType() );
+        filmSpeedField = new JFormattedTextField( filmSpeedFormatter );
+
 	filmSpeedField.setColumns( 5 );
 	filmSpeedField.addPropertyChangeListener( this );
-	filmSpeedField.putClientProperty( FIELD_NAME, PhotoInfoController.FILM_SPEED );
+	filmSpeedField.putClientProperty( FIELD, PhotoInfoFields.FILM_SPEED );
 
 	JLabel shutterSpeedLabel =  new JLabel( "Shutter speed" );
 	DecimalFormat shutterSpeedFormat = new DecimalFormat( "###0.####" );
-	shutterSpeedField = new JFormattedTextField( new NumberFormatter( shutterSpeedFormat ) );
+        NumberFormatter shutterSpeedFormatter = new NumberFormatter( shutterSpeedFormat );
+        shutterSpeedFormatter.setValueClass( PhotoInfoFields.SHUTTER_SPEED.getType() );
+	shutterSpeedField = new JFormattedTextField( shutterSpeedFormatter );
 	shutterSpeedField.setColumns( 5 );
 	shutterSpeedField.addPropertyChangeListener( this );
-	shutterSpeedField.putClientProperty( FIELD_NAME, PhotoInfoController.SHUTTER_SPEED );
+	shutterSpeedField.putClientProperty( FIELD, PhotoInfoFields.SHUTTER_SPEED );
 
 	JLabel fStopLabel =  new JLabel( "F-stop" );
 	DecimalFormat fStopFormat = new DecimalFormat( "#0.#" );
-	fStopField = new JFormattedTextField( new NumberFormatter( fStopFormat ) );
+        NumberFormatter fStopFormatter = new NumberFormatter( fStopFormat );
+        fStopFormatter.setValueClass( PhotoInfoFields.FSTOP.getType() );
+	fStopField = new JFormattedTextField( fStopFormatter );
 	fStopField.setColumns( 5 );
 	fStopField.addPropertyChangeListener( this );
-	fStopField.putClientProperty( FIELD_NAME, PhotoInfoController.F_STOP );
+	fStopField.putClientProperty( FIELD, PhotoInfoFields.FSTOP );
 	
 	JLabel focalLengthLabel =  new JLabel( "Focal length" );
-	DecimalFormat focalLengthFormat = new DecimalFormat( "#######0.#" );
-	focalLengthField = new JFormattedTextField( new NumberFormatter( focalLengthFormat ));
+	NumberFormatter focalLengthFormatter = new NumberFormatter( new DecimalFormat( "#######0.#" ) );
+        focalLengthFormatter.setValueClass( PhotoInfoFields.FSTOP.getType() );
+	focalLengthField = new JFormattedTextField( focalLengthFormatter );
 	focalLengthField.setColumns( 5 );
 	focalLengthField.addPropertyChangeListener( this );
-	focalLengthField.putClientProperty( FIELD_NAME, PhotoInfoController.FOCAL_LENGTH );
+	focalLengthField.putClientProperty( FIELD, PhotoInfoFields.FOCAL_LENGTH );
 
 	// Tech note text
 	JLabel notesLabel = new JLabel( "Tech. notes" );
@@ -225,7 +217,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	technoteBorder = BorderFactory.createTitledBorder( technoteBorder, "Description" );
         technoteScrollPane.setBorder( technoteBorder );
 	technoteDoc = technoteTextArea.getDocument();
-	technoteDoc.putProperty( FIELD_NAME, PhotoInfoController.TECHNOTE );
+	technoteDoc.putProperty( FIELD, PhotoInfoFields.TECH_NOTES );
 	technoteDoc.addDocumentListener( this );
 	
 	// Lay out the created controls
@@ -258,7 +250,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
 
     public void setPhotographer( String newValue ) {
+        photographerField.getDocument().removeDocumentListener( this );
 	photographerField.setText( newValue );
+        photographerField.getDocument().addDocumentListener( this );
     }
     
     public String getPhotographer( ) {
@@ -289,37 +283,17 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
 	fuzzyDateField.setBackground( mv ? multiValueColor : singleValueColor );
     }
     
-    public void setShootTime( Date newValue ) {
-	log.warn( "setShootingTime: " + newValue );
-	shootingDayField.setValue( newValue );
-    }
-
-    public Date getShootTime( ) {
-	log.warn( "getShootingTime" );
-	return (Date) shootingDayField.getValue();
-    }
-
-    public void setShootTimeMultivalued( boolean mv ) {
-	shootingDayField.setBackground( mv ? multiValueColor : singleValueColor );
-    }
-
-    public void setTimeAccuracy( Number newValue ) {
-	timeAccuracyField.setValue( newValue );
-    }
-
-    public Number getTimeAccuracy() {
-	return (Number) timeAccuracyField.getValue();
-    }
-
-    public void setShootPlace( String newValue ) {
+    public void setShootingPlace( String newValue ) {
+        shootingPlaceField.getDocument().removeDocumentListener( this );
 	shootingPlaceField.setText( newValue );
+        shootingPlaceField.getDocument().addDocumentListener( this );
     }
     
-    public String getShootPlace( ) {
+    public String getShootingPlace( ) {
 	return shootingPlaceField.getText( );
     }
     
-    public void setShootPlaceMultivalued( boolean mv ) {
+    public void setShootingPlaceMultivalued( boolean mv ) {
 	shootingPlaceField.setBackground( mv ? multiValueColor : singleValueColor );
     }
 
@@ -375,7 +349,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
 
     public void setCamera( String newValue ) {
+        cameraField.getDocument().removeDocumentListener( this );
 	cameraField.setText( newValue );
+        cameraField.getDocument().addDocumentListener( this );
     }
     
     public String getCamera( ) {
@@ -386,7 +362,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     public void setLens( String newValue ) {
+        lensField.getDocument().removeDocumentListener( this );
 	lensField.setText( newValue );
+        lensField.getDocument().addDocumentListener( this );
     }
     
     public String getLens( ) {
@@ -398,7 +376,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     public void setFilm( String newValue ) {
-	filmField.setText( newValue );
+	filmField.getDocument().removeDocumentListener( this );
+        filmField.setText( newValue );
+	filmField.getDocument().addDocumentListener( this );
     }
     
     public String getFilm( ) {
@@ -410,7 +390,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
     
     public void setDescription( String newValue ) {
+        descriptionTextArea.getDocument().removeDocumentListener( this );
 	descriptionTextArea.setText( newValue );
+        descriptionTextArea.getDocument().addDocumentListener( this );
     }
     
     public String getDescription( ) {
@@ -422,15 +404,17 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     }
 
     
-    public void setTechNote( String newValue ) {
+    public void setTechNotes( String newValue ) {
+        technoteTextArea.getDocument().removeDocumentListener( this );
 	technoteTextArea.setText( newValue );
+        technoteTextArea.getDocument().addDocumentListener( this );
     }
     
-    public String getTechNote( ) {
+    public String getTechNotes( ) {
 	return technoteTextArea.getText( );
     }
     
-    public void setTechNoteMultivalued( boolean mv ) {
+    public void setTechNotesMultivalued( boolean mv ) {
 	technoteTextArea.setBackground( mv ? multiValueColor : singleValueColor );
     }
 
@@ -468,8 +452,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     Document photographerDoc = null;
     JTextField fuzzyDateField = null;
     Document fuzzyDateDoc = null;
-    JFormattedTextField shootingDayField = null;
-    JFormattedTextField timeAccuracyField = null;
     Document shootingDayDoc = null;
     JTextField shootingPlaceField = null;
     Document shootingPlaceDoc = null;
@@ -503,23 +485,13 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     FolderTreePane folderTreePane = null;
     
     public void actionPerformed( ActionEvent evt ) {
-	if ( evt.getActionCommand().equals( "save" ) ) {
-	    try {
-		ctrl.save();
-	    } catch ( Exception e ) {
-		log.warn( "exception while saving" + e.getMessage() );
-		e.printStackTrace();
-	    }
-	} else if ( evt.getActionCommand().equals( "discard" ) ) {
-	    log.debug( "Discarding data" );
-	    ctrl.discard();
-	} else if ( evt.getSource() == qualityField ) {
+	if ( evt.getSource() == qualityField ) {
 	    log.debug( "quality changed"  );
 	    // If getQuality returns null this action event is generated
 	    // by the controller that is setting up quality field to display
 	    // model with multiple quality values.
 	    if ( getQuality() != null ) {
-		ctrl.viewChanged( this, PhotoInfoController.QUALITY );
+		ctrl.viewChanged( this, PhotoInfoFields.QUALITY, getQuality() );
 	    }
 	}
     }
@@ -528,54 +500,67 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public void changedUpdate( DocumentEvent ev ) {
     }
 
+    /**
+     DocumentEvent is generated when text field (or to be more exact, its 
+     document) is modified.
+     @param ev The DocumentEvent describing the change.
+     */
     public void insertUpdate( DocumentEvent ev ) {
-	log.debug( "insertUpdate,  " );
 	Document changedDoc = ev.getDocument();
-	String changedField = (String) changedDoc.getProperty( FIELD_NAME );
-	Object fieldValue = ctrl.getField( changedField );
+	PhotoInfoFields changedField = (PhotoInfoFields) changedDoc.getProperty( FIELD );	
+        Set fieldValues = ctrl.getFieldValues( changedField );
 	/* Avoid emptying model when the field has multiple values
 	   in the model.
 	*/
-	if ( fieldValue != null || changedDoc.getLength() > 0 ) {
-	    ctrl.viewChanged( this, changedField );
-	}
-
-// 	// Handle fuzzy time
-// 	if ( changedDoc == fuzzyDateDoc ) {
-// 	    log.warn( "Fuzzy date entered" );
-// 	    String fdStr = fuzzyDateField.getText();
-// 	    FuzzyDate fd = FuzzyDate.parse( fdStr );
-// // 	    if ( fd != null ) {
-// // 		log.warn( "FuzzyDate parsed succesfully!!!" );
-// // 		shootingDayField.setValue( fd.getDate() );
-// // 		timeAccuracyField.setValue( new Double( fd.getAccuracy() ) );
-// // 	    }
-	    
-// 	}	
+        Object value = getField( changedField );
+        StringBuffer debugMsg = new StringBuffer();
+        debugMsg.append( "insertUpdate " ).append( changedField ).append( ": ").append( value );
+        debugMsg.append( "\nOld values: [");
+        boolean first = true;
+        for ( Object oldValue : fieldValues ) {
+            if ( !first ) debugMsg.append( ", " );
+            debugMsg.append( oldValue );
+            first = false;
+        }
+        debugMsg.append( "]" );
+        log.debug( debugMsg.toString() );
+        
+        
+        if ( ( fieldValues.size() == 1 && !fieldValues.iterator().next().equals( value ) ) || 
+                ( fieldValues.size() != 1 && changedDoc.getLength() > 0 ) ) {
+            ctrl.viewChanged( this, changedField, value );
+        }
     }
 
     public void removeUpdate( DocumentEvent ev ) {
 	insertUpdate( ev );
     }
 
-    // PropertyChangeListener implementation
+    /**
+     PropertyChange method is called when a FormattedTextField is modified
+     @param ev The event
+     */
     public void propertyChange( PropertyChangeEvent ev ) {
 	if ( ev.getPropertyName().equals( "value" ) ) {
 	    Object src = ev.getSource();
 	    if ( src.getClass() == JFormattedTextField.class ) {
-		Object field = ((JFormattedTextField) src).getClientProperty( FIELD_NAME );
-		Object value = ((JFormattedTextField) src).getValue();
+		PhotoInfoFields field = 
+                        (PhotoInfoFields) ((JFormattedTextField) src).getClientProperty( FIELD );
+                Object value = ((JFormattedTextField) src).getValue();
 
-		/* Field value is set to null (as it is when ctrl is
-		 controlling multiple photos which have differing
+                StringBuffer debugMsg = new StringBuffer();
+                debugMsg.append( "valueChange " ).append( field ).append( ": ").append( value );
+                
+                /* Field value is set to null (as it is when ctrl is
+                 controlling multiple photos which have differing
 		 value for te field) this is called every time the
 		 field is accessed, so we must not notify the
 		 controller.  After the user has actually set the
 		 value it is no longer null.
 		*/
 		if ( value != null ) {
-		    log.debug( "Property changed: " + (String) field );
-		    ctrl.viewChanged( this, (String) field );
+		    log.debug( "Property changed: " +  field );
+		    ctrl.viewChanged( this, field, value );
 		}
 	    } 
 	}
@@ -604,49 +589,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
             gridbag.setConstraints(textFields[i], c);
             container.add(textFields[i]);
         }
-    }
-    
-    /** Main method to aid in testing this component
-     */
-    public static void main( String args[] ) {
-	// Parse the arguments
-	PhotoInfo photo = null;
-	log.debug( "Number of args" + args.length );
-	log.debug( args.toString() );
-	if ( args.length == 2 ) {
-	    if ( args[0].equals( "-f" ) ) {
-		File f = new File( args[1] );
-		try {
-		    log.debug( "Getting file " + f.getPath() );
-		    photo = PhotoInfo.addToDB( f );
-		} catch ( Exception e ) {
-		    log.warn( e.getMessage() );
-		}
-	    } else if ( args[0].equals( "-id" ) ) {
-		try {
-		    int id = Integer.parseInt( args[1] );
-		    log.debug( "Getting photo " + id );
-		    photo = PhotoInfo.retrievePhotoInfo( id );
-		} catch ( Exception e ) {
-		    log.warn( e.getMessage() );
-		}
-	    }
-	}
-	
-	JFrame frame = new JFrame( "PhotoInfoEditorTest" );
-	PhotoInfoController ctrl = new PhotoInfoController();
-	PhotoInfoEditor editor = new PhotoInfoEditor( ctrl );
-	if ( photo != null ) {
-	    ctrl.setPhoto( photo );
-	}
-	frame.getContentPane().add( editor, BorderLayout.CENTER );
-	frame.addWindowListener(new WindowAdapter() {
-		public void windowClosing(WindowEvent e) {
-		    System.exit(0);
-		}
-	    } );
-	frame.pack();
-	frame.setVisible( true );
     }
 
     RawConversionSettings rawSettings = null;
@@ -681,6 +623,177 @@ public class PhotoInfoEditor extends JPanel implements PhotoInfoView, ActionList
     public void setColorChannelMappingMultivalued(boolean mv) {
     }
 
-    private PhotoInfoController ctrl = null;
-    private static final String FIELD_NAME = "FIELD_NAME";
+
+    public void setField(PhotoInfoFields field, Object newValue) {
+        StringBuffer debugMsg = new StringBuffer();
+        debugMsg.append( "setField " ).append( field ).append( ": ").append( newValue );
+        log.debug( debugMsg.toString() );
+        String propertyName = field.getName();
+        try {
+            PropertyUtils.setProperty( this, propertyName, newValue );
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot set property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+    }
+
+    /**
+     Get the current value of given field in the editor
+     @param field The field to get
+     @return Value of field
+     */
+
+    public Object getField(PhotoInfoFields field) {
+        Object value = null;
+        switch( field ) {
+            case CAMERA:
+                value = getCamera();
+                break;
+            case DESCRIPTION:
+                value = getDescription();
+                break;
+            case FILM:
+                value = getFilm();
+                break;
+            case FILM_SPEED:
+                value = getFilmSpeed();
+                break;
+            case FOCAL_LENGTH:
+                value = getFocalLength();
+                break;
+            case FSTOP:
+                value = getFStop();
+                break;
+            case LENS:
+                value = getLens();
+                break;
+            case PHOTOGRAPHER:
+                value = getPhotographer();
+                break;
+            case QUALITY:
+                value = getQuality();
+                break;
+            case SHOOTING_PLACE:
+                value = getShootingPlace();
+                break;
+            case FUZZY_SHOOT_TIME:
+                value = getFuzzyDate();
+                break;
+            case SHUTTER_SPEED:
+                value = getShutterSpeed();
+                break;
+            case TECH_NOTES:
+                value = getTechNotes();
+                break;
+            default:
+                log.debug( "field " + field + " not available" );
+        }
+        return value;
+    }
+
+    /**     
+     Set the multivalued state of given field
+     @param field Field to set
+     @param isMultivalued If <code>null, set the field to multivalued state. If not, set
+     it to normal state 
+     */
+    public void setFieldMultivalued(PhotoInfoFields field, 
+            boolean isMultivalued) {
+        String propertyName = field.getName() + "Multivalued";
+        try {
+            PropertyUtils.setProperty( this, propertyName, isMultivalued ); 
+        } catch (NoSuchMethodException ex) {
+            log.error( "Cannot set property " + propertyName );
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) {
+            log.error( ex.getMessage() );
+        } catch (InvocationTargetException ex) {
+            log.error( ex.getMessage() );
+        }
+    }
+
+    /**
+     Set a field in the UI to given value
+     @param field The field to set
+     @param newValue New value for the field
+     @param refValues Reference values (i.e. other values that the selection has 
+     for this field. If there are more than 1 reference value and newValue is 
+     <code>null</code> the field ins interpreted to be in multivalued state.
+     */
+    public void setField(PhotoInfoFields field, Object newValue, java.util.List refValues) {
+        StringBuffer debugMsg = new StringBuffer();
+        debugMsg.append( "setField " ).append( field ).append( ": ").append( newValue );
+        log.debug( debugMsg.toString() );
+
+        boolean isMultivalued = false;
+        if ( newValue == null && refValues != null && refValues.size() > 1 ) {
+            isMultivalued = true;
+        }
+        switch( field ) {
+            case CAMERA:
+                setCamera( (String) newValue);
+                setCameraMultivalued( isMultivalued );
+                break;
+            case DESCRIPTION:
+                setDescription( (String) newValue);
+                setDescriptionMultivalued( isMultivalued );
+                break;
+            case FILM:
+                setFilm( (String) newValue);
+                setFilmMultivalued( isMultivalued );
+                break;
+            case FILM_SPEED:
+                setFilmSpeed( (Number) newValue);
+                setFilmSpeedMultivalued( isMultivalued );
+                break;
+            case FOCAL_LENGTH:
+                setFocalLength( (Number) newValue);
+                setFocalLengthMultivalued( isMultivalued );
+                break;
+            case FSTOP:
+                setFStop( (Number) newValue);
+                setFStopMultivalued( isMultivalued );
+                break;
+            case LENS:
+                setLens( (String) newValue);
+                setLensMultivalued( isMultivalued );
+                break;
+            case PHOTOGRAPHER:
+                setPhotographer( (String) newValue);
+                setPhotographerMultivalued( isMultivalued );
+                break;
+            case QUALITY:
+                setQuality( (Number) newValue);
+                setQualityMultivalued( isMultivalued );
+                break;
+            case SHOOTING_PLACE:
+                setShootingPlace( (String) newValue);
+                setShootingPlaceMultivalued( isMultivalued );
+                break;
+            case FUZZY_SHOOT_TIME:
+                setFuzzyDate( (FuzzyDate) newValue );
+                setFuzzyDateMultivalued( isMultivalued );
+                break;
+            case SHUTTER_SPEED:
+                setShutterSpeed( (Number) newValue);
+                setShutterSpeedMultivalued( isMultivalued );
+                break;
+            case TECH_NOTES:
+                setTechNotes( (String) newValue);
+                setTechNotesMultivalued( isMultivalued );
+                break;
+            default:
+                log.debug( "field " + field + " not used" );
+        }
+    }
+
+    private PhotoSelectionController ctrl = null;
+    private static final String FIELD = "FIELD";
+
+    public void setHistogram( String channel, int[] histData ) {
+    }
 }

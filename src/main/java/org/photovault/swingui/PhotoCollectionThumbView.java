@@ -32,6 +32,10 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.Toolkit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.photovault.command.CommandException;
 import org.photovault.dbhelper.ODMGXAWrapper;
 import org.photovault.imginfo.FuzzyDate;
 import org.photovault.imginfo.PhotoCollection;
@@ -40,7 +44,6 @@ import org.photovault.imginfo.PhotoCollectionChangeListener;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoChangeEvent;
 import org.photovault.imginfo.PhotoInfoChangeListener;
-import org.photovault.imginfo.SortedPhotoCollection;
 import org.photovault.imginfo.Thumbnail;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -57,10 +60,9 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -74,7 +76,15 @@ import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.TransferHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.imginfo.CreateCopyImageCommand;
+import org.photovault.imginfo.Volume;
+import org.photovault.imginfo.VolumeDAO;
+import org.photovault.swingui.taskscheduler.TaskPriority;
+import org.photovault.taskscheduler.TaskProducer;
+import org.photovault.taskscheduler.BackgroundTask;
 
 
 
@@ -106,15 +116,17 @@ public class PhotoCollectionThumbView
     extends JPanel
     implements MouseMotionListener, MouseListener, ActionListener,
 	       PhotoCollectionChangeListener, PhotoInfoChangeListener,
-               Scrollable {
+               Scrollable, TaskProducer {
     
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoCollectionThumbView.class.getName() );
+    static Log log = LogFactory.getLog( PhotoCollectionThumbView.class.getName() );
     
+    PhotoViewController ctrl;
+        
     /**
      Default constructor
      */
     public PhotoCollectionThumbView() {
-        this( null );
+        this( null, null );
     }
     
     /**
@@ -122,87 +134,37 @@ public class PhotoCollectionThumbView
      @param collection Initial collection to show. If this collection is nonempty,
      select the first photo in it when creating the control.
      */
-    public PhotoCollectionThumbView( PhotoCollection collection ) {
+    public PhotoCollectionThumbView( PhotoViewController ctrl, List<PhotoInfo> initialPhotos ) {
         super();
-        if ( collection != null ) {
-            photoCollection = new SortedPhotoCollection( collection );
-        }
+        this.ctrl = ctrl;
         createUI();
-        if ( collection != null && collection.getPhotoCount() > 0 ) {
-            selection.add( collection.getPhoto( 0 ) );
+        if ( photos.size() > 0 ) {
+            selection.add( photos.get( 0 ) );
         }
-	thumbCreatorThread = new ThumbCreatorThread( this );
-	thumbCreatorThread.start();
+        setPhotos( initialPhotos );
     }
 
-    ThumbCreatorThread thumbCreatorThread;
     
-    
-    /**
-     * Returns the currently displayed photo collection or <code>null</code> if none specified 
-     <p>
-     Note that PhotoCollectionThumbView can internally sort the collection, so the order
-     of photos in returned collection may be different than the display order.
-     If you need the collection in same sorting order as displayed use 
-     {@link #getSortedCollection()} instead.
-     */
-    public PhotoCollection getCollection() {
-        if ( photoCollection != null ) {
-            return photoCollection.getOrigCollection();
+    public void setPhotos( List<PhotoInfo> photos ) {
+        for ( PhotoInfo photo : this.photos ) {
+	    photo.removeChangeListener( this );
+	}
+	
+	this.photos.clear();
+
+        if ( photos != null ) {
+            for ( Object o : photos ) {
+                PhotoInfo photo = (PhotoInfo) o;
+                photo.addChangeListener( this );
+                this.photos.add( photo );
+            }
         }
-        return null;
+        revalidate();
+        repaint();
     }
-
-    public SortedPhotoCollection getSortedCollection() {
-        return photoCollection;
-    }
-    
-
-    SortedPhotoCollection photoCollection = null;
-    
-    /**
-     * Set the collection that should be viewed
-     * @param v  Value to assign to collection.
-     */
-    public void setCollection(PhotoCollection  v) {
-      if ( photoCollection != null ) {
-	photoCollection.removePhotoCollectionChangeListener( this );
-      }
-        
-      photoCollection = new SortedPhotoCollection( v );
-      if ( photoOrderComparator != null ) {
-          photoCollection.setComparator( photoOrderComparator );
-      }
-      photoCollection.addPhotoCollectionChangeListener( this );
-      refreshPhotoChangeListeners();
-      
-      revalidate();
-      repaint();
-    }
-
-    /**
-     * Comparator object that is used for sorting thumbnails
-     */
-    Comparator photoOrderComparator;
-    
-    /**
-     * Sets the comparator that is used for ordering the thumbnails in this view. After
-     * calling this method the whole window is repainted.
-     * @param c The comparator object to be used
-     */
-    public void setPhotoOrderComparator( Comparator c ) {
-        photoOrderComparator = c;
-        if ( photoCollection != null ) {
-            photoCollection.setComparator( c );
-        }
-    }
-    
-    /**
-     * Returns the comparator object tjat is currently used for ordering thumbnails
-     * in this view
-     */
-    public Comparator getPhotoOrderComparator() {
-        return photoOrderComparator;
+   
+    public List<PhotoInfo> getPhotos() {
+        return Collections.unmodifiableList( photos );
     }
     
     /**
@@ -217,19 +179,17 @@ public class PhotoCollectionThumbView
 	    photo.removeChangeListener( this );
 	}
 	
-	photos.removeAllElements();
+	photos.clear();
 	
 	// Add the change listeners to all photos so that we are aware of modifications
-	for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
-	    PhotoInfo photo = photoCollection.getPhoto( n );
+	for ( int n = 0; n < photos.size(); n++ ) {
+	    PhotoInfo photo = photos.get( n );
 	    photo.addChangeListener( this );
-	    photos.add( photo );
 	}
     }	
     
-
     PhotoCollection collection;
-    Vector photos = new Vector();
+    List<PhotoInfo> photos = new ArrayList<PhotoInfo>();
 
     
     /**
@@ -261,7 +221,7 @@ public class PhotoCollectionThumbView
         }
     }
 
-    HashSet selection = new HashSet();
+    Set<PhotoInfo> selection = new HashSet<PhotoInfo>();
 
 
     /**
@@ -286,7 +246,8 @@ public class PhotoCollectionThumbView
 	}
     }
     
-    Vector selectionChangeListeners = new Vector();
+    List<SelectionChangeListener> selectionChangeListeners = 
+            new ArrayList<SelectionChangeListener>();
     
     int columnWidth = 150;
     int rowHeight = 150;
@@ -308,10 +269,12 @@ public class PhotoCollectionThumbView
        This helper class from Java Tutorial handles displaying of popup menu on correct mouse events
     */
     class PopupListener extends MouseAdapter {
+        @Override
         public void mousePressed(MouseEvent e) {
             maybeShowPopup(e);
         }
         
+        @Override
         public void mouseReleased(MouseEvent e) {
             maybeShowPopup(e);
         }
@@ -364,33 +327,13 @@ public class PhotoCollectionThumbView
                 "Show the selected phot(s)",
                 KeyEvent.VK_S );
         JMenuItem showItem = new JMenuItem( showSelectedPhotoAction );
+        showHistoryAction = new ShowPhotoHistoryAction( this, "Show history", 
+                null, "Show history of selected photo", KeyEvent.VK_H, null );
         
-        ImageIcon rotateCWIcon = getIcon( "rotate_cw.png" );
-        rotateCWAction =
-                new RotateSelectedPhotoAction( this, 90, "Rotate 90 deg CW",
-                rotateCWIcon, "Rotates the selected photo clockwise",
-                KeyEvent.VK_R );
-        rotateCWAction.putValue( AbstractAction.ACCELERATOR_KEY, 
-                KeyStroke.getKeyStroke( KeyEvent.VK_R, 
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
-        JMenuItem rotateCW = new JMenuItem( rotateCWAction );
+        JMenuItem rotateCW = new JMenuItem( ctrl.getActionAdapter( "rotate_cw" ) );
+        JMenuItem rotateCCW = new JMenuItem( ctrl.getActionAdapter( "rotate_ccw" ) );
+        JMenuItem rotate180deg = new JMenuItem( ctrl.getActionAdapter( "rotate_180" ) );        
         
-        ImageIcon rotateCCWIcon = getIcon( "rotate_ccw.png" );
-        rotateCCWAction
-                = new RotateSelectedPhotoAction( this, 270, "Rotate 90 deg CCW",
-                rotateCCWIcon,
-                "Rotates the selected photo counterclockwise",
-                KeyEvent.VK_W );
-        rotateCCWAction.putValue( AbstractAction.ACCELERATOR_KEY, 
-                KeyStroke.getKeyStroke( KeyEvent.VK_L, 
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
-        JMenuItem rotateCCW = new JMenuItem( rotateCCWAction );
-        
-        ImageIcon rotate180Icon = getIcon( "rotate_180.png" );
-        rotate180degAction
-                = new RotateSelectedPhotoAction( this, 180, "Rotate 180 deg",
-                rotate180Icon, "Rotates the selected photo 180 degrees", KeyEvent.VK_T );
-        JMenuItem rotate180deg = new JMenuItem( rotate180degAction );
         JMenuItem addToFolder = new JMenuItem( "Add to folder..." );
         addToFolder.addActionListener( this );
         addToFolder.setActionCommand( PHOTO_ADD_TO_FOLDER_CMD );
@@ -435,6 +378,7 @@ public class PhotoCollectionThumbView
         
         rawIcon = getIcon( "raw_icon.png" );
         
+        JMenuItem showHistory = new JMenuItem( showHistoryAction );
         
         popup.add( showItem );
         popup.add( propsItem );
@@ -446,6 +390,7 @@ public class PhotoCollectionThumbView
         popup.add( addToFolder );
         popup.add( exportSelected );
         popup.add( deleteSelected );
+        popup.add( showHistory );
         MouseListener popupListener = new PopupListener();
         addMouseListener( popupListener );
         
@@ -524,6 +469,7 @@ public class PhotoCollectionThumbView
     private AbstractAction selectNextAction;
     private AbstractAction selectPrevAction;
     private AbstractAction deleteSelectedAction;
+    private AbstractAction showHistoryAction;
     
 
     public AbstractAction getExportSelectedAction() {
@@ -566,6 +512,8 @@ public class PhotoCollectionThumbView
         return deleteSelectedAction;
     }
     
+    
+    @Override
     public void paint( Graphics g ) {
         super.paint( g );
         Graphics2D g2 = (Graphics2D) g;
@@ -574,8 +522,8 @@ public class PhotoCollectionThumbView
         // columnCount = (int)(compSize.getWidth()/columnWidth);
         
         int photoCount = 0;
-        if ( photoCollection != null ) {
-            photoCount = photoCollection.getPhotoCount();
+        if ( photos != null ) {
+            photoCount = photos.size();
         }
 
         // Determine the grid size based on couln & row count
@@ -596,10 +544,9 @@ public class PhotoCollectionThumbView
         int row = 0;
         Rectangle thumbRect = new Rectangle();
         
-        for ( int i = 0; i < photoCount; i++ ) {
+        for ( PhotoInfo photo : photos ) {
             thumbRect.setBounds(col*columnWidth, row*rowHeight, columnWidth, rowHeight );
             if ( thumbRect.intersects( clipRect ) ) {
-                PhotoInfo photo = photoCollection.getPhoto( i );
                 if ( photo != null ) {
                     paintThumbnail( g2, photo, col*columnWidth, row*rowHeight, selection.contains( photo ) );
                 }
@@ -629,7 +576,7 @@ public class PhotoCollectionThumbView
     boolean showQuality = true;
     
     private void paintThumbnail( Graphics2D g2, PhotoInfo photo, int startx, int starty, boolean isSelected ) {
-        log.debug( "paintThumbnail entry " + photo.getUid() );
+        log.debug( "paintThumbnail entry " + photo.getUuid() );
         long startTime = System.currentTimeMillis();
         long thumbReadyTime = 0;
         long thumbDrawnTime = 0;
@@ -638,16 +585,12 @@ public class PhotoCollectionThumbView
         int ypos = starty + rowHeight/2;
         boolean useOldThumbnail = false;
         
-        // Create a transaction which will be used for persisten object operations
-        // during painting (to avoid creating several short-livin transactions)
-        ODMGXAWrapper txw = new ODMGXAWrapper();
-        
         Thumbnail thumbnail = null;
         log.debug( "finding thumb" );
         boolean hasThumbnail = photo.hasThumbnail();
         log.debug( "asked if has thumb" );
         if ( hasThumbnail ) {
-            log.debug( "Photo " + photo.getUid() + " has thumbnail" );
+            log.debug( "Photo " + photo.getUuid() + " has thumbnail" );
             thumbnail = photo.getThumbnail();
             log.debug( "got thumbnail" );
         } else {
@@ -663,12 +606,10 @@ public class PhotoCollectionThumbView
                 thumbnail = Thumbnail.getDefaultThumbnail();
             }
 
-            // The photo does not have a thumbnail, so request one to be created
-            if ( !thumbCreatorThread.isBusy() ) {
-                log.debug( "Create thumbnail for " + photo.getUid() );
-                thumbCreatorThread.createThumbnail( photo );
-                log.debug( "Thumbnail request submitted" );
-            }            
+            // Inform background task scheduler that we have some work to do
+            ctrl.getBackgroundTaskScheduler().
+                    registerTaskProducer( this, 
+                    TaskPriority.CREATE_VISIBLE_THUMBNAIL );
         }
         thumbReadyTime = System.currentTimeMillis();
         
@@ -787,15 +728,12 @@ public class PhotoCollectionThumbView
             ypos += bounds.getHeight() + 4;
         }
         g2.setBackground( prevBkg );
-        txw.commit();
-        
         endTime = System.currentTimeMillis();
-        log.debug( "paintThumbnail: exit " + photo.getUid() );
+        log.debug( "paintThumbnail: exit " + photo.getUuid() );
         log.debug( "Thumb fetch " + (thumbReadyTime - startTime ) + " ms" );
         log.debug( "Thumb draw " + ( thumbDrawnTime - thumbReadyTime ) + " ms" );
         log.debug( "Deacoration draw " + (endTime - thumbDrawnTime ) + " ms" );
         log.debug( "Total " + (endTime - startTime ) + " ms" );
-        
     }
 
 
@@ -806,22 +744,22 @@ public class PhotoCollectionThumbView
         if ( columnCount > 0 ) {
             prefWidth = columnWidth * columnCount;
             prefHeight = rowHeight;
-            if ( photoCollection != null ) {
-                prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columnCount );
+            if ( photos != null ) {
+                prefHeight += rowHeight * (int)(photos.size()/ columnCount );
             }
         } else if ( rowCount > 0 ) {
             prefHeight = rowHeight * rowCount;
             prefWidth = columnWidth;
-            if ( photoCollection != null ) {
-                prefWidth += columnWidth * (int)( photoCollection.getPhotoCount() / rowCount );
+            if ( photos != null ) {
+                prefWidth += columnWidth * (int)( photos.size() / rowCount );
             }
         } else {
             Dimension compSize = getSize();
             int columns = (int)(compSize.getWidth() / columnWidth);
             prefWidth = columnWidth * columns;
             prefHeight = rowHeight;
-            if ( photoCollection != null ) {
-                prefHeight += rowHeight * (int)(photoCollection.getPhotoCount() / columns );
+            if ( photos != null ) {
+                prefHeight += rowHeight * (int)(photos.size() / columns );
             }            
         }
         prefHeight += 10;
@@ -863,7 +801,7 @@ public class PhotoCollectionThumbView
 
     /**
        Issues a repaint request for a certain photo.
-       @param n index of the photo in current PhotoCollection
+       @param n index of the photo in photos
     */
     protected void repaintPhoto( int n ) {
 	if ( n >= 0 ) {
@@ -888,20 +826,20 @@ public class PhotoCollectionThumbView
        between photos.
     */
     private PhotoInfo getPhotoAtLocation( int x, int y ) {
-        if ( photoCollection == null ) {
+        if ( photos == null ) {
             return null;
         }
 
         PhotoInfo photo = null;
-        int row = (int) y / rowHeight;
-        int col = (int) x / columnWidth;
+        int row = y / rowHeight;
+        int col = x / columnWidth;
         int photoNum = row * columnsToPaint + col;
-        log.warn( "Located photo # " + photoNum ); 
+        log.debug( "Located photo # " + photoNum ); 
         
-        if ( photoNum < photoCollection.getPhotoCount() ) {
+        if ( photoNum < photos.size() ) {
             Rectangle imgRect = getPhotoBounds( photoNum );
             if ( imgRect.contains( new Point( x, y ) ) ) {
-                photo = photoCollection.getPhoto( photoNum );
+                photo = photos.get( photoNum );
             }
         }
         return photo;
@@ -915,8 +853,8 @@ public class PhotoCollectionThumbView
      * # of photos.
      */
     protected Rectangle getPhotoBounds( int photoNum ) {
-        if ( photoNum < photoCollection.getPhotoCount() ) {
-            PhotoInfo photoCandidate = photoCollection.getPhoto( photoNum );
+        if ( photoNum < photos.size() ) {
+            PhotoInfo photoCandidate = photos.get( photoNum );
             log.debug( "Checking bounds" );
 
             // Get thumbnail dimensions or use defaults if no thumbnail available
@@ -931,10 +869,10 @@ public class PhotoCollectionThumbView
                 width = img.getWidth();
                 height = img.getHeight();
             }
-	    int row = (int) photoNum / columnsToPaint;
+	    int row = photoNum / columnsToPaint;
 	    int col = photoNum - row*columnsToPaint;
-            int imgX = col * columnWidth + (columnWidth - width)/(int)2;
-            int imgY = row * rowHeight + (rowHeight -  height)/(int)2;
+            int imgX = col * columnWidth + (columnWidth - width)/2;
+            int imgY = row * rowHeight + (rowHeight -  height)/2;
             Rectangle imgRect = new Rectangle( imgX, imgY, width, height );
 	    return imgRect;
 	}
@@ -953,7 +891,7 @@ public class PhotoCollectionThumbView
      */
     protected Rectangle getPhotoCellBounds( int photoNum ) {
         Rectangle boundsRect = null;
-        if ( photoNum >= 0 && photoNum < photoCollection.getPhotoCount() ) {
+        if ( photoNum >= 0 && photoNum < photos.size() ) {
 	    int row = (int) photoNum / columnsToPaint;
 	    int col = photoNum - row*columnsToPaint;
             int imgX = col * columnWidth;
@@ -970,7 +908,8 @@ public class PhotoCollectionThumbView
        to create a thumbnail for it.
     */
     public void thumbnailCreated( PhotoInfo photo ) {
-	log.debug( "thumbnailCreated for " + photo.getUid() );
+	log.debug( "thumbnailCreated for " + photo.getUuid() );
+        photo = (PhotoInfo) ctrl.getPersistenceContext().merge( photo );
 	repaintPhoto( photo );
 
 	Container parent = getParent();
@@ -985,9 +924,9 @@ public class PhotoCollectionThumbView
 	// and does not have a thumbnail. If all visible photos have a thumbnail
         // but some non-visible ones do not, create a thumbnail for one of those.
 	log.debug( "Finding photo without thumbnail" );
-	for ( int n = 0; n < photoCollection.getPhotoCount(); n++ ) {
-            PhotoInfo photoCandidate = photoCollection.getPhoto( n );
-	    log.debug( "Photo " + photoCandidate.getUid() );
+	for ( int n = 0; n < photos.size(); n++ ) {
+            PhotoInfo photoCandidate = photos.get( n );
+	    log.debug( "Photo " + photoCandidate.getUuid() );
 	    if ( !photoCandidate.hasThumbnail() ) {
 		log.debug( "No thumbnail" );
 		Rectangle photoRect = getPhotoBounds( n );
@@ -1003,17 +942,17 @@ public class PhotoCollectionThumbView
 		}		    
 	    }
 	}
-	if ( nextPhoto != null && !thumbCreatorThread.isBusy() ) {
-	    final PhotoInfo p = nextPhoto;
-// 	    SwingUtilities.invokeLater( new Runnable() {
-// 		    public void run() {
-	    log.debug( "Making request for the next thumbail, " + p.getUid() );
-			thumbCreatorThread.createThumbnail( p );
-	    log.debug( "request submitted" );
-// 		    }
-// 		});
-	}
-
+//	if ( nextPhoto != null ) {
+//                lastInstanceCreator = new PhotoInstanceCreator( this, 
+//                        ctrl.getDAOFactory().getPhotoInfoDAO(), nextPhoto, 
+//                        (Volume) VolumeBase.getDefaultVolume()  );
+//                lastInstanceCreator.execute();
+////                log.debug( "Making request for the next thumbail, " + p.getUid() );
+////                thumbCreatorThread.createThumbnail( p );
+////                log.debug( "request submitted" );
+//	} else {
+//            lastInstanceCreator = null;
+//        }
     }
     
     /**
@@ -1029,7 +968,7 @@ public class PhotoCollectionThumbView
      * @param mouseEvent a <code>MouseEvent</code> value
      */
     public void mouseClicked(MouseEvent mouseEvent) {
-        log.warn( "mouseClicked (" + mouseEvent.getX() + ", " + mouseEvent.getY() );
+        log.debug( "mouseClicked (" + mouseEvent.getX() + ", " + mouseEvent.getY() );
 
 	if ( dragJustEnded ) {
 	    // Selection was already handled by drag handler so do nothing
@@ -1154,7 +1093,7 @@ public class PhotoCollectionThumbView
      */
     public void mouseReleased(MouseEvent mouseEvent) {
         firstMouseEvent = null;
-	if ( dragType == DRAG_TYPE_SELECT && photoCollection != null ) {
+	if ( dragType == DRAG_TYPE_SELECT && photos != null ) {
             
             // Find out thumbails inside the selection rectangle
             
@@ -1163,8 +1102,8 @@ public class PhotoCollectionThumbView
             int bottomRow = ((int) dragSelectionRect.getMaxY()/rowHeight)+1;
             int startPhoto = topRow * columnsToPaint;
             int endPhoto = bottomRow * columnsToPaint;
-            if ( endPhoto > photoCollection.getPhotoCount() ) {
-                endPhoto = photoCollection.getPhotoCount();
+            if ( endPhoto > photos.size() ) {
+                endPhoto = photos.size();
             }
             
             
@@ -1180,8 +1119,8 @@ public class PhotoCollectionThumbView
                 if ( dragSelectionRect.intersects( cellRect ) ) {
                     Rectangle photoRect = getPhotoBounds( n );
                     if ( dragSelectionRect.intersects( photoRect ) ) {
-                        selection.add( photoCollection.getPhoto( n ) );
-                        repaintPhoto( photoCollection.getPhoto( n ) );
+                        selection.add( photos.get( n ) );
+                        repaintPhoto( photos.get( n ) );
                     }
                 }
 	    }
@@ -1248,7 +1187,7 @@ public class PhotoCollectionThumbView
         }
 
         if (firstMouseEvent != null) {
-            log.warn( "considering drag" );
+            log.debug( "considering drag" );
             e.consume();
 
             
@@ -1262,7 +1201,7 @@ public class PhotoCollectionThumbView
             //Arbitrarily define a 5-pixel shift as the
             //official beginning of a drag.
             if (dx > 5 || dy > 5) {
-                log.warn( "Start a drag" );
+                log.debug( "Start a drag" );
                 //This is a drag, not a click.
                 JComponent c = (JComponent)e.getSource();
                 //Tell the transfer handler to initiate the drag.
@@ -1337,7 +1276,6 @@ public class PhotoCollectionThumbView
     
     
     JFrame frame = null;
-    PhotoViewer viewer = null;
 
 
     /**
@@ -1429,6 +1367,71 @@ public class PhotoCollectionThumbView
 
     public boolean getScrollableTracksViewportHeight() {
         return false;
+    }
+
+    /**
+     This method is called by background task scheduler when it is ready to execute
+     a task for this window.
+     @return Task to create a thumbnail if one is needed. <code>null</code> 
+     otherwise.
+     */
+    public BackgroundTask requestTask( ) {
+	PhotoInfo nextPhoto = null;
+	Container parent = getParent();
+	Rectangle viewRect = null;
+	if ( parent instanceof JViewport ) {
+	    viewRect = ((JViewport)parent).getViewRect();
+	}
+	
+	// Walk through all photos until we find a photo that is visible
+	// and does not have a thumbnail. If all visible photos have a thumbnail
+        // but some non-visible ones do not, create a thumbnail for one of those.
+	log.debug( "Finding photo without thumbnail" );
+	for ( int n = 0; n < photos.size(); n++ ) {
+            PhotoInfo photoCandidate = photos.get( n );
+	    log.debug( "Photo " + photoCandidate.getUuid() );
+	    if ( !photoCandidate.hasThumbnail() ) {
+		log.debug( "No thumbnail" );
+		Rectangle photoRect = getPhotoBounds( n );
+		if ( photoRect.intersects( viewRect )  ) {
+		    // This photo is visible so it is a perfect candidate
+		    // for thumbnail creation. Do not look further
+		    nextPhoto = photoCandidate;
+		    break;
+		} else if ( nextPhoto == null ) {
+		    // Not visible but no photo without thumbnail has been
+		    // found previously. Store as a candidate and keep looking.
+		    nextPhoto = photoCandidate;
+		}		    
+	    }
+	}
+	if ( nextPhoto != null ) {
+            // We found a photo without thumbnail
+            VolumeDAO volDAO = ctrl.getDAOFactory().getVolumeDAO();
+            Volume vol = volDAO.getDefaultVolume();
+            final CreateCopyImageCommand cmd = 
+                    new CreateCopyImageCommand( nextPhoto, vol, 100, 100 );
+            return new BackgroundTask() {
+                
+                public void run( ) {
+                    try {
+                        cmdHandler.executeCommand( cmd );
+                    } catch ( CommandException ex ) {
+                        log.error( ex.getMessage() );
+                    }
+                }
+
+            };
+	} 
+        // All photos have thumbnail :-)
+        return null;
+    }
+
+    /**
+     Called after executing a thumbnail creation task. CUrrently a no-op.
+     @param task The task executed
+     */
+    public void taskExecuted( BackgroundTask task ) {
     }
 
 }

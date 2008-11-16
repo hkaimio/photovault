@@ -81,7 +81,9 @@
       <SubComponents>
         <Component class="javax.swing.JButton" name="applyBtn">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Apply"/>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="ctrl.getActionAdapter( &quot;save&quot;)" type="code"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="applyBtnActionPerformed"/>
@@ -89,7 +91,9 @@
         </Component>
         <Component class="javax.swing.JButton" name="discardBtn">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Discard"/>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="ctrl.getActionAdapter( &quot;discard&quot; )" type="code"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="discardBtnActionPerformed"/>

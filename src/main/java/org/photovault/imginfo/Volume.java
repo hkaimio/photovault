@@ -23,6 +23,10 @@ package org.photovault.imginfo;
 import java.io.*;
 import java.text.*;
 import java.util.*;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 
@@ -30,34 +34,39 @@ import org.photovault.common.PhotovaultSettings;
    The class Volume presents a single volume. e.g. storage area for image files
 */
 
+@Entity
+@DiscriminatorValue( "volume" )
 public class Volume extends VolumeBase {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Volume.class.getName() );
+    static Log log = LogFactory.getLog( Volume.class.getName() );
 
 
+    /**
+     * Creates a new volume.
+     */
     public Volume() {
-        
+        super();
     }
     
+    /**
+     * Creates a new volume
+     * @param volName Name of the volume
+     * @param volBaseDir Root directory of the volume
+     */
     public Volume( String volName, String volBaseDir ) {
         super( volName, volBaseDir );
     }
+	
 
+	
+	
     /**
-       Sets the specified directory as the root for the default volume
-       @param volBaseDir Directory that will be assigned as the new volume root
-    */
-    public static void setDefaultVolume( String volBaseDir ) {
-	defaultVolume = new Volume( "defaultVolume", volBaseDir );
-    }
-	
-
-	
-	
-    /** This function provides a filing name for a certain image. The name given will be 
-	based on last modified date of the photograph, which is supposed to match the 
-	shooting time in most cases.
-    */
+     * This function provides a filing name for a certain image. The name given will be 
+     * 	based on last modified date of the photograph, which is supposed to match the 
+     * 	shooting time in most cases.
+     * @param imgFile File in the file system
+     * @return Filing name for the file or <CODE>null</CODE> if it is not in the volume directory
+     */
 
     public File getFilingFname( File imgFile ) {
 
@@ -72,10 +81,11 @@ public class Volume extends VolumeBase {
     }
 
     /**
-       Constructs a file name that can be used as a name for an instance for a given photo
-       @param photo the photo whose isntance is to be created
-       @param strExtension String to use as extension for the file name
-    */
+     *       Constructs a file name that can be used as a name for an instance for a given photo
+     * @param photo the photo whose isntance is to be created
+     * @param strExtension String to use as extension for the file name
+     * @return File name for the photo.
+     */
     public File getInstanceName( PhotoInfo photo, String strExtension ) {
 	java.util.Date d = photo.getShootTime();
 	// shooting time can in practice be null, use current date in this case (Date is used just for readability)
@@ -95,7 +105,7 @@ public class Volume extends VolumeBase {
 	fmt.applyPattern( "yyyyMMdd" );
 	String strDate = fmt.format( date );
 
-	File yearDir = new File( volumeBaseDir, strYear );
+	File yearDir = new File( getBaseDir(), strYear );
         log.debug( "YearDir: " + yearDir );
 	if ( !yearDir.exists() ) {
 	    log.debug( "making yeardir" );
@@ -142,14 +152,15 @@ public class Volume extends VolumeBase {
     }
 
     /**
-       Maps a file name to a path in this volume. File names in a volume are unique but for
-       performance reasons they are divided to several directories bsaed on year and month of shooting
-       @param fname The file name to be mapped
-       @return Path to the actual file
-       @throws FineNotFoundException if the file does not exist
-    */
+     *       Maps a file name to a path in this volume. File names in a volume are 
+     *       unique but for performance reasons they are divided to several directories 
+     *       based on year and month of shooting
+     * @return Path to the actual file
+     * @param fname The file name to be mapped
+     * @throws java.io.FileNotFoundException 
+     */
     public File mapFileName( String fname ) throws FileNotFoundException {
-	File yearDir = new File( volumeBaseDir, fname.substring( 0, 4 ) );
+	File yearDir = new File( getBaseDir(), fname.substring( 0, 4 ) );
 	File monthDir = new File ( yearDir, fname.substring( 0, 6 ) );
 	File archiveFile = new File( monthDir, fname );
         log.debug( "Mapped " + fname + " to " + archiveFile );
@@ -167,6 +178,12 @@ public class Volume extends VolumeBase {
        return f.getName(); 
     }
 
+    /**
+     * Write the volume as XML
+     * @param outputWriter Writer to use
+     * @param indent indentation of the outermost element.
+     * @throws java.io.IOException if writing fails.
+     */
     public void writeXml(BufferedWriter outputWriter, int indent ) throws IOException {
         String s = "                                ".substring( 0, indent );
         outputWriter.write( s + "<volume name=\"" + getName() +

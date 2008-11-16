@@ -25,9 +25,21 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.UUID;
 import java.util.Vector;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PVDatabase;
+import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 
 
@@ -39,16 +51,43 @@ import org.photovault.common.PhotovaultSettings;
   
  @author Harri Kaimio
  */
+@Entity
+@Table( name = "pv_volumes" )
+@Inheritance( strategy = InheritanceType.SINGLE_TABLE )
+@DiscriminatorColumn( name = "volume_type", discriminatorType = DiscriminatorType.STRING )
 public abstract class VolumeBase {
     
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( VolumeBase.class.getName() );
+    Log log = LogFactory.getLog( VolumeBase.class.getName() );
 
     static VolumeBase defaultVolume = null;
     private static HashMap volumes = null;
     
+    private UUID id;
+    
     /**
-       Returns the current default volume object
-    */
+     * Get UUID of this volume
+     * @return UUID
+     */
+    @Id
+    @Column( name = "volume_id" )
+    @org.hibernate.annotations.Type( type = "org.photovault.persistence.UUIDUserType" )    
+    public UUID getId() {
+        return id;
+    }
+    
+    /**
+     * Set the UUID of this volume. USed only by persistence layer.
+     * @param id New uuid
+     */
+    public void setId( UUID id ) {
+        this.id = id;
+    }
+    
+    /**
+     *       Returns the current default volume object
+     * @return The default volume
+     @deprecated Use VolumeDAO#getDefaultVolume instead
+     */
     public static VolumeBase getDefaultVolume() {
 	if ( defaultVolume == null ) {
             PhotovaultSettings settings = PhotovaultSettings.getSettings();
@@ -59,9 +98,10 @@ public abstract class VolumeBase {
     }
 
     /**
-       Returns the volume with a given name or null if such volume does not exist
-       @param volName The name to look for
-    */
+     *       Returns the volume with a given name or null if such volume does not exist
+     * @param volName The name to look for
+     * @return The volume of <CODE>null</CODE>
+     */
     public static VolumeBase getVolume( String volName ) {
 	VolumeBase vol = null;
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
@@ -69,40 +109,38 @@ public abstract class VolumeBase {
 	vol = db.getVolume( volName );
 	return vol;
     }
-     
-    /**
-     Tries to find the volume into which a fiel belongs, i.e. whether it is under 
-     the base directory of some volume of current database.
-     @param f The file whose volume is of interest
-     @return The volume the file belongs to or <code>null</code> if it does not 
-     belong to any volume
-     @throws IOException if there is an error constructing canonical form of the file
-     @deprecated Use PVDatabase#getVolumeOfFile instead.
-     */
-    public static VolumeBase getVolumeOfFile( File f ) throws IOException {
-        VolumeBase v = null;
-        PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        PVDatabase db = settings.getCurrentDatabase();
-	v = db.getVolumeOfFile( f );
-        return v;
-    }
 
+    /**
+     * Base constructor.
+     */
     public VolumeBase() {
-        
+        id = UUID.randomUUID();
     }
     
     /**
      Constructor.
      @param volName Name of the new volume
      @param volBaseDir Tob directory of the volume's directory hierarchy
+     @deprecated Volume constructor should not take base directory as it is not
+     volume's property, and creating a volume in directory that is already a 
+     volume is an error.
      */
      
     public VolumeBase( String volName, String volBaseDir ) {
+        id = UUID.randomUUID();
 	volumeName = volName;
-	volumeBaseDir = new File( volBaseDir );
-	if ( !volumeBaseDir.exists() ) {
-	    volumeBaseDir.mkdir();
-	}
+        File volumeBaseDir = new File(volBaseDir);
+        if (!volumeBaseDir.exists()) {
+            volumeBaseDir.mkdir();
+        }
+        getManager().addMountPoint(volumeBaseDir);
+        // TODO: we should return an error if volumeBaseDir has already been initialized
+        try {
+            getManager().initVolume(this, volumeBaseDir);
+        } catch (PhotovaultException e) {
+
+        }
+
 	registerVolume();
     }
 
@@ -111,7 +149,6 @@ public abstract class VolumeBase {
      This private method adds the volume into volumes collection
      */
     private void registerVolume() {
-        log.debug( "registering volume " + volumeName + ", basedir " + volumeBaseDir );
 	if ( volumes == null ) {
 	    volumes = new HashMap();
 	}
@@ -128,9 +165,12 @@ public abstract class VolumeBase {
     }
     
     /**
-     This abstract method must be overloaded by each VolumeBase implementation so
-     that it returns the correct file path in which a given image should be stored 
-     in the volume.
+     *     This abstract method must be overloaded by each VolumeBase implementation so
+     *     that it returns the correct file path in which a given image should be stored 
+     *     in the volume.
+     * @param imageFile File whose name to look for
+     * @return Volume internal name for that file or <code>null</code> if it is not inside 
+     * volume directory hierarchy.
      */
     abstract public File getFilingFname( File imageFile );
     
@@ -155,7 +195,7 @@ public abstract class VolumeBase {
      @throws FileNotFoundException if there is no file with the given name
      */
     public File mapFileName( String fname ) throws FileNotFoundException {
-        File f= new File( volumeBaseDir, fname );
+        File f= new File( getBaseDir(), fname );
         if ( !f.exists() ) {
             throw new FileNotFoundException( "File " + f.getAbsolutePath() + " does not exist" );
         }
@@ -201,26 +241,32 @@ public abstract class VolumeBase {
     
     /**
      Returns the base directory for the volume.
-    */
-    
+     
+     @return The base directory or <code>null</code> if the volume is not 
+     mounted.
+     */
+    @Transient
     public File getBaseDir() {
-	return volumeBaseDir;
+	return getManager().getVolumeMountPoint( this );
     }
-
+    
     /**
-     * Sets the base dir for the volume. If the directory does no exist it is 
-     * created.
+     Sets the base dir for the volume. If the directory does no exist it is 
+     created.
+     @param baseDirName absolute path to base directory
+     @deprecated Since 0.6 volume mount points are deermined dynamically
      */
     public void setBaseDir( String baseDirName ) {
         log.debug( "New basedir for " + volumeName + ": " + baseDirName );
         File baseDir = new File( baseDirName );
         setBaseDir( baseDir );
     }
-    
 
     /**
      * Sets the base dir for the volume. If the directory does no exist it is 
      * created.
+     * @param baseDir Base directory.
+     @deprecated Use VolumeManger instead
      */
     public void setBaseDir( File baseDir ) {
         log.debug( "New basedir for " + volumeName + ": " + baseDir );        
@@ -230,17 +276,24 @@ public abstract class VolumeBase {
 	}        
     }
     
+    
+    /**
+     * Name of this volume
+     */
     protected String volumeName = "";
 
     /**
-       Returns the volume name
+     *       Returns the volume name
+     * @return Name of the volume
      */
+    @Column( name = "volume_name" )
     public String getName() {
 	return volumeName;
     }
 
     /**
      * Sets the voume name
+     * @param volName New name fot the volume
      */
     public void setName( String volName ) {
         unregisterVolume();
@@ -248,21 +301,25 @@ public abstract class VolumeBase {
         registerVolume();
     }
     
-    /** returns true if the volume is available, false otherwise (if e.g. the volume is
-	stored on CD-ROM that is not mounted currently
-    */
-    
+    /**
+     * returns true if the volume is available, false otherwise (if e.g. the volume is
+     * 	stored on CD-ROM that is not mounted currently
+     * @return Availablility status
+     */
+    @Transient
     public boolean isAvailable() {
 	return true;
     }
     
     /**
-     Checks whether a certain file is part  of the volume (i.e. in the directory 
-     hierarchy under the base directory. Note that existence of the file is not 
-     ckecked, nor whether the file is really an instance of a PhotoInfo.
-     @return true if the file belongs to the volume, false otherwise
-     @throws IOException if is an error when creating canonical form of f
+     *     Checks whether a certain file is part  of the volume (i.e. in the directory 
+     *     hierarchy under the base directory. Note that existence of the file is not 
+     *     ckecked, nor whether the file is really an instance of a PhotoInfo.
+     * @return true if the file belongs to the volume, false otherwise
+     * @param f File 
+     * @throws IOException if is an error when creating canonical form of f
      */
+    @Transient
     public boolean isFileInVolume( File f ) throws IOException {
         boolean isInVolume = false;
         
@@ -272,7 +329,11 @@ public abstract class VolumeBase {
         
         // First get the canonical forms of both f and volumeBaseDir
         // After that check if f or some of its parents matches f
-        File vbdCanon = volumeBaseDir.getCanonicalFile();
+        File basedir = getBaseDir();
+        if ( basedir == null ) {
+            return false;
+        }
+        File vbdCanon = basedir.getCanonicalFile();
         File fCanon = f.getCanonicalFile();
         File p = fCanon;        
         while ( p != null ) {
@@ -287,11 +348,24 @@ public abstract class VolumeBase {
     }
 
     /**
-     The derived classes must overload this method to write the value of the object as an 
-     XML element.
-     @param outputWriter The writer into which the object is written
-     @param indent Number of spaces to indent each line
+     *     The derived classes must overload this method to write the value of the object as an 
+     *     XML element.
+     * @param outputWriter The writer into which the object is written
+     * @param indent Number of spaces to indent each line
+     * @throws java.io.IOException if writing fails.
      */
     public abstract void writeXml(BufferedWriter outputWriter, int indent ) throws IOException;
-    protected File volumeBaseDir;    
+    /**
+     * Base directory for the volume
+     */
+    protected File volumeBaseDir;  
+    
+    /**
+     Helper function to get volume manager instance
+     @return The volume manager
+     */
+    @Transient
+    protected VolumeManager getManager() {
+        return VolumeManager.instance();
+    }
 }

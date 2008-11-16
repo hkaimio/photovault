@@ -22,6 +22,7 @@ package org.photovault.swingui;
 
 import java.awt.event.ActionEvent;
 import java.util.Comparator;
+import java.util.UUID;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import org.photovault.imginfo.PhotoInfo;
@@ -68,10 +69,9 @@ public class SetPhotoOrderAction extends AbstractAction  {
             if ( res == 0 ) {
                 PhotoInfo p1 = (PhotoInfo) o1;
                 PhotoInfo p2 = (PhotoInfo) o2;
-                int id1 = p1.getUid();
-                int id2 = p2.getUid();
-                if ( id1 < id2 ) res = -1;
-                if ( id1 > id2 ) res = 1;
+                UUID id1 = p1.getUuid();
+                UUID id2 = p2.getUuid();
+                res = id1.compareTo( id2 );
             }
             return res;
         }
@@ -79,7 +79,9 @@ public class SetPhotoOrderAction extends AbstractAction  {
     
     public void actionPerformed( ActionEvent ev ) {
 	// Show the file chooser dialog
-        view.setPhotoOrderComparator( c );
+        // TODO: change to do this in controller
+        // view.setPhotoOrderComparator( c );
+        // throw new UnsupportedOperationException( "Not migrated to Hibernate" ); 
     }
 
     PhotoCollectionThumbView view;

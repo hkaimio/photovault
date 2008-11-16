@@ -19,116 +19,122 @@
 */
 package org.photovault.dcraw;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Transient;
+
 /**
  * Wrapper object for all settings related to raw conversion using dcraw.
  * This is an immutable object.
  * @author Harri Kaimio
  */
-public class RawConversionSettings implements Cloneable {
+@Embeddable
+public class RawConversionSettings implements Cloneable, Externalizable {
     
+    static final long serialVersionUID = 1131589578728161524L;
     /**
-     OJB identifier
+    Version of the serialized for of this object
      */
-    int rawSettingId;
-    
+    static final int version = 1;
     /**
-     The white pixel value in raw image (unadjusted)
+    The white pixel value in raw image (unadjusted)
      */
     int white;
     
     /**
-     EV correction of the image
+    EV correction of the image
      */
     double evCorr;
     
     /**
-     Highlight compression (in f-stops)
+    Highlight compression (in f-stops)
      */
     double hlightComp;
     
     /**
-     black level
+    black level
      */
     int black;
     
     /**
-     Whether the ICC profile embedded to raw file should be used
+    Whether the ICC profile embedded to raw file should be used
      */
     boolean useEmbeddedICCProfile;
     
     /**
-     Database ID for the color profile (used by OJB)
+    Database ID for the color profile (used by OJB)
      */
     int colorProfileId;
     
     /**
-     ICC color profile used for raw conversion.
+    ICC color profile used for raw conversion.
      */
     ColorProfileDesc colorProfile;
     
     /**
-     Methodfor setting the white balance
+    Methodfor setting the white balance
      */
     int whiteBalanceType;
     
     /**
-     Invalid default value
+    Invalid default value
      */
     final public static int WB_INVALID = 0;
 
     /**
-     Use camera WB settings
+    Use camera WB settings
      */
     final public static int WB_CAMERA = 1;
 
     /**
-     User dcraw's automatic WB algorithm
+    User dcraw's automatic WB algorithm
      */
     final public static int WB_AUTOMATIC = 2;
     
     /**
-     Set white balance manually
+    Set white balance manually
      */
     final public static int WB_MANUAL = 3;
     
     /**
-     Ratio of red & green channel multipliers
+    Ratio of red & green channel multipliers
      */
     double redGreenRatio;
 
     /**
-     Ratio of blue & green channel multipliers
+    Ratio of blue & green channel multipliers
      */
     double blueGreenRatio;
     
     /**
-     Ratio of red & green channel multipliers in daylight
+    Ratio of red & green channel multipliers in daylight
      */
     double daylightRedGreenRatio;
 
     /**
-     Ratio of blue & green channel multipliers in daylight
+    Ratio of blue & green channel multipliers in daylight
      */
     double daylightBlueGreenRatio;
-    
+
     /** Creates a new instance of RawConversionSettings */
     public RawConversionSettings() {
-    }
-
-    /**
-     * Get the OJB gey for this object
-     * @return The key used in database
-     */
-    public int getRawSettingId() {
-        return rawSettingId;
     }
 
     /**
      *     Get the white point
      * @return See {@link #white}
      */
+    @Column(name = "raw_whitepoint")
     public int getWhite() {
         return white;
+    }
+
+    protected void setWhite( int white ) {
+        this.white = white;
     }
 
     /**
@@ -136,32 +142,52 @@ public class RawConversionSettings implements Cloneable {
      * 
      * @return See {@link #black}
      */
+    @Column(name = "raw_blackpoint")
     public int getBlack() {
         return black;
     }
-    
+
+    protected void setBlack( int black ) {
+        this.black = black;
+    }
+
     /**
      *     Get exposure correction
      * @return See {@link #evCorr}
      */
+    @Column(name = "raw_ev_corr")
     public double getEvCorr() {
         return evCorr;
+    }
+
+    protected void setEvCorr( double newEv ) {
+        this.evCorr = newEv;
     }
 
     /**
      * Get the highlight compression used
      * @return Number of f-stops the highlights are compressed.
      */
+    @Column( name = "raw_hlight_corr")
     public double getHighlightCompression() {
         return hlightComp;
+    }
+
+    protected void setHighlightCompression( double hlc ) {
+        this.hlightComp = hlc;
     }
     
     /**
      * Get info whether to use embedded color profile
      * @return See {@link #useEmbeddedICCProfile}
      */
+    @Column( name = "raw_embedded_profile" )
     public boolean getUseEmbeddedICCProfile() {
         return useEmbeddedICCProfile;
+    }
+
+    protected void setUseEmbeddedICCProfile( boolean isEmbedded ) {
+        this.useEmbeddedICCProfile = isEmbedded;
     }
     
     /**
@@ -169,7 +195,7 @@ public class RawConversionSettings implements Cloneable {
      @return The used profile or <code>null</code> if no non-embedded profile
      is assigned.
      */
-
+    @Transient
     public ColorProfileDesc getColorProfile() {
         return colorProfile;
     }
@@ -179,40 +205,65 @@ public class RawConversionSettings implements Cloneable {
      * @return One of {@link #WB_AUTOMATIC}, {@link #WB_MANUAL} 
      * or {@link #WB_CAMERA}
      */
+    @Column( name = "raw_wb_type" )
     public int getWhiteBalanceType() {
         return whiteBalanceType;
     }
 
+    protected void setWhiteBalanceType( int wbType ) {
+        this.whiteBalanceType = wbType;
+    }
+    
     /**
      * Get the red/green channel multiplier ratio
      * @return see {@link #redGreenRatio}
      */
+    @Column( name = "raw_r_g_ratio" )
     public double getRedGreenRatio() {
         return redGreenRatio;
     }
 
+    protected void setRedGreenRatio( double newRatio ) {
+        this.redGreenRatio = newRatio;
+    }
+    
     /**
      * Get blue/green channel multiplier ratio
      * @return See {@link #blueGreenRatio}
      */
+    @Column( name = "raw_b_g_ratio" )
     public double getBlueGreenRatio() {
         return blueGreenRatio;
     }
 
+    protected void setBlueGreenRatio( double newRatio ) {
+        this.blueGreenRatio = newRatio;
+    }
+    
     /**
      * Get daylight channel multipliers
      * @return See {@link #daylightRedGreenRatio}
      */
+    @Column( name = "raw_dl_r_g_ratio" )
     public double getDaylightRedGreenRatio() {
         return daylightRedGreenRatio;
+    }
+
+    protected void setDaylightRedGreenRatio( double newRatio ) {
+        this.daylightRedGreenRatio = newRatio;
     }
 
     /**
      * Get daylight channel multipliers
      * @return See {@link #daylightBlueGreenRatio}
      */
+    @Column( name = "raw_dl_b_g_ratio" )
     public double getDaylightBlueGreenRatio() {
         return daylightBlueGreenRatio;
+    }
+
+    protected void setDaylightBlueGreenRatio( double newRatio ) {
+        this.daylightBlueGreenRatio = newRatio;
     }
     
     final static double XYZ_to_RGB[][] = {
@@ -297,6 +348,7 @@ public class RawConversionSettings implements Cloneable {
      * Get color temperature of the image
      * @return Color temperature (in Kelvin)
      */
+    @Transient
     public double getColorTemp() {
         double rgb[] = {
             daylightRedGreenRatio/redGreenRatio,
@@ -312,6 +364,7 @@ public class RawConversionSettings implements Cloneable {
      * @return Ratio of green channel multiplier to the multiplier caused by 
      * illuminant with current comlor temperature.
      */
+    @Transient
     public double getGreenGain() {
         double rgb[] = {
             daylightRedGreenRatio/redGreenRatio,
@@ -373,7 +426,7 @@ public class RawConversionSettings implements Cloneable {
         RawConversionSettings s = new RawConversionSettings();
         s.daylightRedGreenRatio = daylightMult[0]/daylightMult[1];
         s.daylightBlueGreenRatio = daylightMult[2]/daylightMult[1];
-        double[] rgb = s.colorTempToRGB( colorTemp );
+        double[] rgb = RawConversionSettings.colorTempToRGB( colorTemp );
         s.redGreenRatio = (s.daylightRedGreenRatio/(rgb[0]/(rgb[1]))) / greenGain;
         s.blueGreenRatio = (s.daylightBlueGreenRatio/(rgb[2]/(rgb[1]))) / greenGain;
         s.evCorr = evCorr;
@@ -389,6 +442,7 @@ public class RawConversionSettings implements Cloneable {
      * Create a copy of this object
      * @return Copy initialized with current field values
      */
+    @Override
     public RawConversionSettings clone() {
         RawConversionSettings s;
         try {
@@ -396,17 +450,6 @@ public class RawConversionSettings implements Cloneable {
         } catch (CloneNotSupportedException ex) {
             return null;
         }
-        s.blueGreenRatio = blueGreenRatio;
-        s.redGreenRatio = redGreenRatio;
-        s.daylightBlueGreenRatio = daylightBlueGreenRatio;
-        s.daylightRedGreenRatio = daylightRedGreenRatio;
-        s.evCorr = evCorr;
-        s.hlightComp = hlightComp;
-        s.useEmbeddedICCProfile = useEmbeddedICCProfile;
-        s.colorProfile = colorProfile;
-        s.white = white;
-        s.black = black;
-        s.whiteBalanceType = whiteBalanceType;
         return s;
     }
     
@@ -426,6 +469,7 @@ public class RawConversionSettings implements Cloneable {
      * @param o The object to compare with
      * @return Whether the 2 objects are equal.
      */
+    @Override
     public boolean equals( Object o ) {
         if ( o instanceof RawConversionSettings ) {
             RawConversionSettings s = (RawConversionSettings) o;
@@ -445,8 +489,59 @@ public class RawConversionSettings implements Cloneable {
         }
     }
     
+    @Override
     public int hashCode() {
         return ( white + black + (int) (blueGreenRatio * 1000000.0) + 
                 (int)( redGreenRatio * 1000000.0 ) );
+    }
+    
+
+    /**
+     Searializes the object.
+     @param oo 
+     @throws java.io.IOException
+     
+     @serialData
+     RawConversionSettings serial format starts with version ID (which is 1 for
+     current settings format. After that the fields are stored in the following 
+     order:
+     <ul>    
+      <li>black point (int)</li>
+      <li>white point (int)</li>
+      <li>evCorr (double)</li>
+      <li>hlightComp (double)</li>
+      <li>daylightRedGreenRatio (double)</li>
+      <li>daylightBlueGreenRatio (double)</li>
+      <li>redGreenRatio (double)</li>
+      <li>blueGreenRatio (double)</li>
+    </ul>
+     
+     */
+    public void writeExternal( ObjectOutput oo ) throws IOException {
+        oo.writeInt( version );
+        oo.writeInt( black );
+        oo.writeInt(  white );
+        oo.writeDouble( evCorr );
+        oo.writeDouble( hlightComp );
+        oo.writeDouble( daylightRedGreenRatio );
+        oo.writeDouble( daylightBlueGreenRatio );
+        oo.writeDouble( redGreenRatio );
+        oo.writeDouble( blueGreenRatio );
+    }
+
+    public void readExternal( ObjectInput oi ) 
+            throws IOException, ClassNotFoundException {
+        int v = oi.readInt();
+        if ( v > 1 ) { 
+            throw new IOException( "Too new version " + v );
+        }
+        black = oi.readInt();
+        white = oi.readInt();
+        evCorr = oi.readDouble();
+        hlightComp = oi.readDouble();
+        daylightRedGreenRatio = oi.readDouble();
+        daylightBlueGreenRatio = oi.readDouble();
+        redGreenRatio = oi.readDouble();
+        blueGreenRatio = oi.readDouble();
     }
 }

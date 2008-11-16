@@ -29,14 +29,15 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Collection;
 import java.io.InputStream;
-import java.io.FileInputStream;
 import java.net.URL;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.apache.commons.digester.Digester;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.Volume;
+import org.photovault.imginfo.VolumeManager;
 import org.xml.sax.SAXException;
 
 /**
@@ -49,7 +50,7 @@ import org.xml.sax.SAXException;
 
 public class PhotovaultSettings {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultSettings.class.getName() );
+    static private Log log = LogFactory.getLog( PhotovaultSettings.class.getName() );
     static PhotovaultSettings settings = null;
     
     /**
@@ -183,8 +184,11 @@ public class PhotovaultSettings {
         digester.addCallParam( "*/photovault-config/property", 0, "name" );
         digester.addCallParam( "*/photovault-config/property", 1, "value" );
         
+        digester.addCallMethod( "*/database/volume-mounts/mountpoint", "addMountPoint", 1 );
+        digester.addCallParam( "*/database/volume-mounts/mountpoint", 0, "dir" );
+        
         // Volume creation
-        digester.addObjectCreate( "*/database/volumes/volume", Volume.class );
+        digester.addObjectCreate( "*/database/volumes/volume", PVDatabase.LegacyVolume.class );
         String [] volumeAttrNames = {
             "basedir", "name"
         };
@@ -193,8 +197,8 @@ public class PhotovaultSettings {
         };
         digester.addSetProperties( "*/database/volumes/volume",
                 volumeAttrNames, volumePropNames );
-        digester.addSetNext( "*/database/volumes/volume", "addVolume" );
-        digester.addObjectCreate( "*/database/volumes/external-volume", ExternalVolume.class );
+        digester.addSetNext( "*/database/volumes/volume", "addLegacyVolume" );
+        digester.addObjectCreate( "*/database/volumes/external-volume", PVDatabase.LegacyExtVolume.class );
         String [] extVolAttrNames = {
             "folder", "basedir", "name"
         };
@@ -204,7 +208,7 @@ public class PhotovaultSettings {
         
         digester.addSetProperties( "*/database/volumes/external-volume", 
                 extVolAttrNames, extVolPropNames );
-        digester.addSetNext( "*/database/volumes/external-volume", "addVolume" );
+        digester.addSetNext( "*/database/volumes/external-volume", "addLegacyVolume" );
         try {
             
             digester.parse( f );
@@ -226,6 +230,12 @@ public class PhotovaultSettings {
     */
     public void setConfiguration( String confName ) {
 	this.confName = confName;
+        
+        VolumeManager vm = VolumeManager.instance();
+        for ( File mount : databases.getDatabase( confName ).getMountPoints() ) {
+            vm.addMountPoint( mount );
+        }
+        vm.updateVolumeMounts();
     }
 
 

@@ -1,5 +1,5 @@
-/*Ac
-  Copyright (c) 2006 Harri Kaimio
+/*
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -20,54 +20,72 @@
 
 package org.photovault.swingui;
 
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.io.*;
-import java.util.*;
-import org.photovault.common.PVDatabase;
-import org.photovault.common.PhotovaultException;
-import org.photovault.common.PhotovaultSettings;
+import java.util.List;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.photovault.command.CommandException;
+import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.imginfo.*;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.ShootingDateComparator;
 import org.photovault.imginfo.ShootingPlaceComparator;
 import org.photovault.folder.*;
-import org.apache.log4j.Logger;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.PropertyConfigurator;
-import org.photovault.imginfo.indexer.ExtVolIndexer;
+import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DefaultAction;
+import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.framework.DefaultEventListener;
+import org.photovault.swingui.indexer.BackgroundIndexer;
+import org.photovault.swingui.indexer.CurrentFolderIndexer;
 import org.photovault.swingui.indexer.IndexerFileChooser;
-import org.photovault.swingui.indexer.IndexerStatusDlg;
 import org.photovault.swingui.indexer.UpdateIndexAction;
+import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
+import org.photovault.swingui.taskscheduler.TaskPriority;
 
-public class BrowserWindow extends JFrame implements SelectionChangeListener {
+public class BrowserWindow extends AbstractController {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( BrowserWindow.class.getName() );
+    static Log log = LogFactory.getLog( BrowserWindow.class.getName() );
 
+    JFrame window;
     
-    public BrowserWindow() {
-        this( null );
+    PhotoViewController viewCtrl = null;
+    
+    /**
+     Indexer job that updates the currently displayed external folder to match
+     file system state.
+     */
+    CurrentFolderIndexer folderIndexer = null;
+    
+    public BrowserWindow( AbstractController parent ) {
+        this( parent, null );
     }
+    
     
     /**
        Constructor
     */
-    public BrowserWindow( final PhotoCollection initialCollection ) {
-        super( "Photovault Browser");
-//        SwingUtilities.invokeLater(new java.lang.Runnable() {
-//            public void run() {
-                createUI( null );
-                if ( initialCollection != null ) {
-                    viewPane.setCollection( initialCollection );
-                    SwingUtilities.invokeLater(new java.lang.Runnable() {
-                        public void run() {
-                            viewPane.selectFirstPhoto();
-                        }
-                    });
+    public BrowserWindow( AbstractController parent, final List<PhotoInfo> initialPhotos ) {
+        super( parent );
+        window = new JFrame( "Photovault Browser");
+        folderIndexer = new CurrentFolderIndexer(
+                Photovault.getInstance().getTaskScheduler(), 
+                (PhotovaultCommandHandler) getCommandHandler() );
+        createUI( null );
+        if ( initialPhotos != null ) {
+            viewPane.setPhotos( initialPhotos );
+            SwingUtilities.invokeLater(new java.lang.Runnable() {
+                public void run() {
+                    viewPane.selectFirstPhoto();
                 }
-//            }
-//        });
+            });
+        }
         
     }
     
@@ -78,20 +96,21 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
      @param c The photo collection to show
      */
     public void setPhotoCollection( PhotoCollection c ) {
-        viewPane.setCollection( c );
+        viewCtrl.setCollection( c );
     }
     
     protected void createUI( PhotoCollection collection ) {
-        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        window.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	tabPane = new JTabbedPane();
 	queryPane = new QueryPane();
-	treePane = new PhotoFolderTree();
+        PhotoFolderTreeController treeCtrl = new PhotoFolderTreeController( window, this );
+        viewCtrl = new PhotoViewController( window, this );
+	treePane = treeCtrl.folderTree;
+        viewPane = viewCtrl.getThumbPane();
+        previewPane = viewCtrl.getPreviewPane();
 	tabPane.addTab( "Query", queryPane );
 	tabPane.addTab( "Folders", treePane );
 	//	viewPane = new TableCollectionView();
-	viewPane = new PhotoCollectionThumbView( collection );
-        viewPane.addSelectionChangeListener( this );
-        previewPane = new JAIPhotoViewer();
         
         // TODO: get rid of this!!!!
         EditSelectionColorsAction colorAction = 
@@ -101,45 +120,37 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	// Set listeners to both query and folder tree panes
 
 	/*
-	  If an actionEvent comes from queryPane & the viewed folder is
-	  no the query resouts, swich to it (the result folder will be nodified of
-	  changes to quert parameters directly
+	  If an actionEvent comes from query pane, swich to query results.
 	*/
-	queryPane.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    if ( viewPane.getCollection() != queryPane.getResultCollection() ) {
-			viewPane.setCollection( queryPane.getResultCollection() );
-		    }
-		}
+        queryPane.addActionListener( new ActionListener(  ) {
+
+            public void actionPerformed( ActionEvent e ) {
+                viewCtrl.setCollection( queryPane.getResultCollection(  ) );
+            }
         } );
         
         /*
           If the selected folder is changed in treePane, switch to that immediately
          */
-        treePane.addPhotoFolderTreeListener( new PhotoFolderTreeListener() {
-            public void photoFolderTreeSelectionChanged( PhotoFolderTreeEvent e ) {
-                PhotoFolder f = e.getSelected();
+        
+        treeCtrl.registerEventListener( PhotoFolderTreeEvent.class,
+                new DefaultEventListener<PhotoFolder>(){
+            public void handleEvent(DefaultEvent<PhotoFolder> event) {
+                PhotoFolder f = event.getPayload();
                 if ( f != null ) {
-                    viewPane.setCollection( f );
+                    viewCtrl.setCollection( f );
+                    if ( f.getExternalDir() != null ) {
+                        folderIndexer.updateFolder( f );
+                    }
                 }
-            }
-        } );
+            }            
+        });
         
-        // Create the split pane to display both of these components
-        
-        viewScroll = new JScrollPane( viewPane );
-        viewPane.setBackground( Color.WHITE );
-        viewScroll.getViewport().setBackground( Color.WHITE );
-        
-        collectionPane = new JPanel();
-        collectionPane.add( viewScroll );
-        collectionPane.add( previewPane );
-        
-        setupLayoutPreviewWithHorizontalIcons();
-        
+        collectionPane = viewCtrl.getCollectionPane();
+                
 	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );
         split.putClientProperty( JSplitPane.ONE_TOUCH_EXPANDABLE_PROPERTY, new Boolean( true ) );
-        Container cp = getContentPane();
+        Container cp = window.getContentPane();
 	cp.setLayout( new BorderLayout() );
 	cp.add( split, BorderLayout.CENTER );
 
@@ -149,7 +160,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         // Create actions for BrowserWindow UI
 
         ImageIcon indexDirIcon = getIcon( "index_dir.png" );
-        indexDirAction = new AbstractAction( "Index directory...", indexDirIcon ) {
+        DefaultAction indexDirAction = new DefaultAction( "Index directory...", indexDirIcon ) {
             public void actionPerformed( ActionEvent e ) {
                 indexDir();
             }
@@ -157,6 +168,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         indexDirAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_D );
         indexDirAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Index all images in a directory" );
+        this.registerAction( "new_ext_vol", indexDirAction );
+        
         
         ImageIcon importIcon = getIcon( "import.png" );
         importAction = new AbstractAction( "Import image...", importIcon ) {
@@ -171,48 +184,54 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         
         importAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Import new image into database" );
-
-                ImageIcon updateIcon = getIcon( "update_indexed_dirs.png" );
-        updateIndexAction = new UpdateIndexAction( "Update indexed dirs",
+        
+        ImageIcon updateIcon = getIcon( "update_indexed_dirs.png" );
+        UpdateIndexAction updateIndexAction = new UpdateIndexAction( viewCtrl, 
+                "Update indexed dirs",
                 updateIcon, "Check for changes in previously indexed directories",
                 KeyEvent.VK_U );
-        
+        this.registerAction( "update_indexed_dirs", updateIndexAction );
+        updateIndexAction.addStatusChangeListener( statusBar );
+
         ImageIcon previewTopIcon = getIcon( "view_preview_top.png" );
-        previewTopAction = new AbstractAction( "Preview on top", previewTopIcon ) {
+        DefaultAction previewTopAction = new DefaultAction( "Preview on top", previewTopIcon ) {
             public void actionPerformed( ActionEvent e ) {
-                setupLayoutPreviewWithHorizontalIcons();
+                viewCtrl.setupLayoutPreviewWithHorizontalIcons();
             }
         };
         previewTopAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show preview on top of thumbnails" );
         previewTopAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_T );
+        this.registerAction( "view_preview_top", previewTopAction );
         
         ImageIcon previewRightIcon = getIcon( "view_preview_right.png" );
-        previewRightAction = new AbstractAction( "Preview on right", previewRightIcon ) {
+        DefaultAction previewRightAction = new DefaultAction( "Preview on right", previewRightIcon ) {
             public void actionPerformed( ActionEvent e ) {
-                setupLayoutPreviewWithVerticalIcons();
+                viewCtrl.setupLayoutPreviewWithVerticalIcons();
             }
         };
         previewRightAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show preview on right of thumbnails" );
         previewRightAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_R );
+        this.registerAction( "view_preview_right", previewRightAction );
 
         ImageIcon previewNoneIcon = getIcon( "view_no_preview.png" );
-        previewNoneAction = new AbstractAction( "No preview", previewNoneIcon ) {
+        DefaultAction previewNoneAction = new DefaultAction( "No preview", previewNoneIcon ) {
             public void actionPerformed( ActionEvent e ) {
-                setupLayoutNoPreview();
+                viewCtrl.setupLayoutNoPreview();
             }
         };
         previewNoneAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show no preview image" );
         previewNoneAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_O );
+        this.registerAction( "view_no_preview", previewNoneAction );
         
         JToolBar tb = createToolbar();
         cp.add( tb, BorderLayout.NORTH );
         
 	// Create the menu bar & menus
 	JMenuBar menuBar = new JMenuBar();
-	setJMenuBar( menuBar );
+	window.setJMenuBar( menuBar );
 	// File menu
 	JMenu fileMenu = new JMenu( "File" );
 	fileMenu.setMnemonic(KeyEvent.VK_F);
@@ -222,7 +241,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         newWindowItem.setIcon( getIcon( "window_new.png" ) );
 	newWindowItem.addActionListener( new ActionListener() {
 		public void actionPerformed( ActionEvent e ) {
-		    BrowserWindow br = new BrowserWindow();
+		    BrowserWindow br = new BrowserWindow( getParentController(), null );
 		    //		    br.setVisible( true );
 		}
 	    });
@@ -234,10 +253,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	JMenuItem indexDirItem = new JMenuItem( indexDirAction );
         fileMenu.add( indexDirItem );
         
-        
-        updateIndexAction.addStatusChangeListener( statusBar );
-        JMenuItem updateIndexItem = new JMenuItem( updateIndexAction );
-        fileMenu.add( updateIndexItem );
+        fileMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "update_indexed_dirs" ) ) );
         
         ExportSelectedAction exportAction = 
                 (ExportSelectedAction) viewPane.getExportSelectedAction();
@@ -315,9 +331,9 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 
 	imageMenu.add( new JMenuItem( viewPane.getEditSelectionPropsAction() ) );
 	imageMenu.add( new JMenuItem( viewPane.getShowSelectedPhotoAction() ) );
-	imageMenu.add( new JMenuItem( viewPane.getRotateCWActionAction() ) );
-	imageMenu.add( new JMenuItem( viewPane.getRotateCCWActionAction() ) );
-	imageMenu.add( new JMenuItem( viewPane.getRotate180degActionAction() ) );
+	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_cw" ) ) );
+	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_ccw" ) ) );
+	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_180" ) ) );
         imageMenu.add( new JMenuItem( previewPane.getCropAction() ) );
         imageMenu.add( new JMenuItem( viewPane.getEditSelectionColorsAction() ) );
         imageMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
@@ -328,8 +344,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         
         menuBar.add( Box.createHorizontalGlue() );
         menuBar.add( aboutMenu );
-	pack();
-	setVisible( true );
+	window.pack();
+	window.setVisible( true );
     }
     
     /**
@@ -340,20 +356,20 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         
         JButton importBtn = new JButton( importAction );
         importBtn.setText( "" );
-        JButton indexBtn = new JButton( indexDirAction );
+        JButton indexBtn = new JButton( viewCtrl.getActionAdapter( "new_ext_vol" ) );
         indexBtn.setText( "" );
-        JButton updateBtn = new JButton( updateIndexAction );
+        JButton updateBtn = new JButton( viewCtrl.getActionAdapter( "update_indexed_dirs" ) );
         updateBtn.setText( "" );
         JButton exportBtn = new JButton( viewPane.getExportSelectedAction() );
         exportBtn.setText( "" );
         JButton deleteBtn = new JButton( viewPane.getDeleteSelectedAction() );
         deleteBtn.setText( "" );
         
-        JButton rotCWBtn = new JButton( viewPane.getRotateCWActionAction() );
+        JButton rotCWBtn = new JButton( viewCtrl.getActionAdapter("rotate_cw" ) );
         rotCWBtn.setText( "" );
-        JButton rotCCWBtn = new JButton( viewPane.getRotateCCWActionAction() );
+        JButton rotCCWBtn = new JButton( viewCtrl.getActionAdapter( "rotate_ccw" ) );
         rotCCWBtn.setText( "" );
-        JButton rot180Btn = new JButton( viewPane.getRotate180degActionAction() );
+        JButton rot180Btn = new JButton( viewCtrl.getActionAdapter( "rotate_180" ) );
         rot180Btn.setText( "" );
         JButton cropBtn = new JButton( previewPane.getCropAction() );
         cropBtn.setText( "" );
@@ -364,11 +380,11 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         nextBtn.setText( "" );
         JButton prevBtn = new JButton( viewPane.getSelectPreviousAction() );
         prevBtn.setText( "" );
-        JButton previewRightBtn = new JButton( previewRightAction );
+        JButton previewRightBtn = new JButton( getActionAdapter( "view_preview_right" ) );
         previewRightBtn.setText( "" );
-        JButton previewTopBtn = new JButton( previewTopAction );
+        JButton previewTopBtn = new JButton( getActionAdapter( "view_preview_top" ) );
         previewTopBtn.setText( "" );
-        JButton previewNoneBtn = new JButton( previewNoneAction );
+        JButton previewNoneBtn = new JButton( getActionAdapter( "view_no_preview" ) );
         previewNoneBtn.setText( "" );
         
 	ZoomComboBox zoomCombo = new ZoomComboBox( previewPane );
@@ -419,126 +435,6 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
         tabPane.setVisible( b );
     }
     
-    /**
-     * Sets up the window layout so that the collection is displayed as one vertical
-     * column with preview image on right
-     */
-    protected void setupLayoutPreviewWithVerticalIcons() {
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0;
-        c.weightx = 0.0;
-        c.gridx = 0;
-
-        // Minimum size is the size of one thumbnail
-        viewScroll.setMinimumSize( new Dimension( 170, 150 ));
-        viewScroll.setPreferredSize( new Dimension( 170, 150 ));
-        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
-        viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
-        viewScroll.setVisible( true );
-        layout.setConstraints( viewScroll, c );
-        viewPane.setColumnCount( 1 );
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        // c.gridheight = GridBagConstraints.REMAINDER;
-        c.gridx = 1;
-        c.weightx = 1.0;
-        layout.setConstraints( previewPane, c );
-        previewPane.setVisible( true );
-        validate();
-    }
-    
-     /**
-     * Sets up the window layout so that the collection is displayed as one horizontal
-     * row with preview image above it.
-     */
-    protected void setupLayoutPreviewWithHorizontalIcons() {
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-        
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 0.0;
-        c.weightx = 1.0;
-        c.gridy = 1;
-
-        // Minimum size is the size of one thumbnail
-        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
-        viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
-        viewScroll.setMinimumSize( new Dimension( 150, 180 ));
-        viewScroll.setPreferredSize( new Dimension( 150, 180 ));
-        viewScroll.setVisible( true );
-        layout.setConstraints( viewScroll, c );
-        viewPane.setRowCount( 1 );
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        // c.gridheight = GridBagConstraints.REMAINDER;
-        c.gridy = 0;
-        c.weighty = 1.0;
-        layout.setConstraints( previewPane, c );
-        previewPane.setVisible( true );
-        validate();
-    }   
-    
-    /**
-     Hide the preview pane
-     */
-    public void setupLayoutNoPreview() {
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0;
-        c.weightx = 1.0;
-        c.gridy = 0;
-
-        // Minimum size is the size of one thumbnail
-        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
-        viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
-        viewScroll.setMinimumSize( new Dimension( 150, 200 ));
-        viewScroll.setVisible( true );
-        layout.setConstraints( viewScroll, c );
-        viewPane.setRowCount( -1 );
-        viewPane.setColumnCount( -1 );
-        
-        previewPane.setVisible( false );
-        validate();        
-    }
-
-    /**
-     Show only preview image, no thumbnail pane.
-     */
-    public void setupLayoutNoThumbs() {
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-        
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 0.0;
-        c.weightx = 0.0;
-        c.gridy = 1;
-
-        // Minimum size is the size of one thumbnail
-//        viewScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
-//        viewScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
-//        viewScroll.setMinimumSize( new Dimension( 150, 180 ));
-        layout.setConstraints( viewScroll, c );
-        viewPane.setRowCount( 1 );
-        viewScroll.setVisible( false );
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        // c.gridheight = GridBagConstraints.REMAINDER;
-        c.gridy = 0;
-        c.weighty = 1.0;
-        c.weightx = 1.0;
-        layout.setConstraints( previewPane, c );
-        previewPane.setVisible( true );
-        validate();
-    }
     
     /** 
 	Shows an file selection dialog that allows user to select a
@@ -553,16 +449,17 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	fc.setAccessory( new ImagePreview( fc ) );
 	fc.setMultiSelectionEnabled( true );
 	
-	int retval = fc.showDialog( this, "Import" );
+	int retval = fc.showDialog( window, "Import" );
 	if ( retval == JFileChooser.APPROVE_OPTION ) {
 	    // Add the selected file to the database and allow user to edit its attributes
 	    final File[] files = fc.getSelectedFiles();
 
-	    final ProgressDlg pdlg = new ProgressDlg( this, true );
+	    final ProgressDlg pdlg = new ProgressDlg( window, true );
 	    
 	    // Add all the selected files to DB
 	    final PhotoInfo[] photos = new PhotoInfo[files.length];
 	    Thread importThread = new Thread() {
+                @Override
 		    public void run() {
 
 			for ( int n = 0; n < files.length; n++ ) {
@@ -582,7 +479,8 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
 	    pdlg.setVisible( true );
 	    
 	    // Show editor dialog for the added photos
-	    PhotoInfoDlg dlg = new PhotoInfoDlg( this, false, photos );
+	    // PhotoInfoDlg dlg = new PhotoInfoDlg( window, false, photos );
+	    PhotoInfoDlg dlg = null;
 	    dlg.showDialog();
 	}
     }
@@ -595,27 +493,10 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
     protected void indexDir() {
 	IndexerFileChooser fc = new IndexerFileChooser();
         fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
-        int retval = fc.showDialog( this, "Select directory to index" );
+        int retval = fc.showDialog( window, "Select directory to index" );
         if ( retval == JFileChooser.APPROVE_OPTION ) {
             File dir = fc.getSelectedFile();
-            
-            // First check that this directory has not been indexed previously
-            VolumeBase prevVolume = null;
-            try {
-                prevVolume = VolumeBase.getVolumeOfFile( dir );
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog( this, "Problem reading directory: " 
-                        + ex.getMessage(), "Photovault error", 
-                        JOptionPane.ERROR_MESSAGE );
-                return;                
-            }
-            if ( prevVolume != null ) {
-                JOptionPane.showMessageDialog( this, "Directory " + dir.getAbsolutePath() +
-                        "\n has already been indexed to Photovault.", "Already indexed", 
-                        JOptionPane.ERROR_MESSAGE );
-                return;
-            }
-            
+                                    
             // Generate a unique name for the new volume
             String extVolName = "extvol_" + dir.getName();
             if ( VolumeBase.getVolume( extVolName ) != null ) {
@@ -625,68 +506,52 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
                 }
                 extVolName += n;
             }
-            ExternalVolume v = new ExternalVolume( extVolName, 
-                    dir.getAbsolutePath() );
-            PhotovaultSettings settings = PhotovaultSettings.getSettings();
-            PVDatabase db = settings.getCurrentDatabase();
-            try {
-                db.addVolume( v );
-            } catch (PhotovaultException ex) {
-                // This should not happen since we just checked for it!!!
-            }
             
             // Set up the indexer
-            ExtVolIndexer indexer = new ExtVolIndexer( v );
             PhotoFolder parentFolder = fc.getExtvolParentFolder();
+            PhotoFolderDAO folderDAO = viewCtrl.getDAOFactory().getPhotoFolderDAO();
             if ( parentFolder == null ) {
-                parentFolder = PhotoFolder.getRoot();
+                parentFolder = folderDAO.findRootFolder();
             }
             String rootFolderName = "extvol_" + dir.getName();
             if ( rootFolderName.length() > PhotoFolder.NAME_LENGTH ) {
                 rootFolderName = rootFolderName.substring( 0, PhotoFolder.NAME_LENGTH );
             }
-            PhotoFolder topFolder = PhotoFolder.create( rootFolderName, 
-                    parentFolder );
-            topFolder.setDescription( "Indexed from " + dir.getAbsolutePath() );
-            indexer.setTopFolder( topFolder );
-
-            // Save the configuration of the new volume
-            settings.saveConfig();
             
-            // Show status dialog & index the directory
-            IndexerStatusDlg statusDlg = new IndexerStatusDlg( this, false );
-            statusDlg.setVisible( true );
-            statusDlg.runIndexer( indexer );
+            CreatePhotoFolderCommand folderCmd = 
+                    new CreatePhotoFolderCommand( parentFolder, 
+                    rootFolderName, "" );
+            CreateExternalVolume volCmd = null;
+            try {
+                viewCtrl.getCommandHandler().executeCommand( folderCmd );
+                volCmd = new CreateExternalVolume( 
+                        dir, rootFolderName,  folderCmd.getCreatedFolder() );
+                viewCtrl.getCommandHandler().executeCommand( volCmd );
+
+                // Start indexing
+                PhotoFolder topFolder = folderCmd.getCreatedFolder();
+                BackgroundIndexer indexer = new BackgroundIndexer( dir, volCmd.getCreatedVolume(),
+                        topFolder, true );
+                SwingWorkerTaskScheduler sched =
+                        (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
+                sched.registerTaskProducer( indexer,
+                        TaskPriority.INDEX_EXTVOL );
+
+            } catch ( CommandException ex ) {
+                JOptionPane.showMessageDialog( window, ex.getMessage(),
+                        "Error creating volume", JOptionPane.ERROR_MESSAGE );
+            }
         }
     }
-    
 
     /**
-     *Selection in Thumb view has changed. Is a single photo is selected, show 
-     * it in preview pane, otherwise set preview empty.
+     Set the title of this window.
+     @param title The new title.
      */
-    public void selectionChanged( SelectionChangeEvent e ) {
-       Collection selection = viewPane.getSelection();
-       if ( selection.size() == 1 ) {
-           Cursor oldCursor = getCursor();
-           setCursor( new Cursor( Cursor.WAIT_CURSOR ) );
-           PhotoInfo selected = (PhotoInfo) (selection.toArray())[0];
-            try {
-                previewPane.setPhoto( selected );
-            } catch (FileNotFoundException ex) {
-                JOptionPane.showMessageDialog( this, 
-                        "Image file for this photo was not found", "File not found",
-                        JOptionPane.ERROR_MESSAGE );
-            }
-           setCursor( oldCursor );
-       } else {
-            try {
-                previewPane.setPhoto( null );
-            } catch (FileNotFoundException ex) {
-                // No exception expected when calling with null
-            }
-       }
+    void setTitle(String title) {
+        window.setTitle( title );
     }
+    
     protected JTabbedPane tabPane = null;
     protected JTabbedPane collectionTabPane = null;
     protected JScrollPane viewScroll = null;
@@ -704,27 +569,7 @@ public class BrowserWindow extends JFrame implements SelectionChangeListener {
      Action that imports a new image to Photovault archive
      */
     AbstractAction importAction;
-    /**
-     Action that lets user to select a directory that is indexed as an external
-     volume.
-     */
-    AbstractAction indexDirAction;
-    /**
-     Action that updates all external volumes in current database.
-     */
-    UpdateIndexAction updateIndexAction;
-    /**
-     Action that sets the preview window on top of thumbnails
-     */
-    AbstractAction previewTopAction;
-    /**
-     Action that sets the preview window on right side of thumbnails
-     */
-    AbstractAction previewRightAction;
-     /**
-     Action that hides the preview window
-     */
-    AbstractAction previewNoneAction;
+    
     /**
      *Status bar for this window
      */

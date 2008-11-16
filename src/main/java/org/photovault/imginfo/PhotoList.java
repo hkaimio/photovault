@@ -22,6 +22,8 @@ package org.photovault.imginfo;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import org.hibernate.Session;
 
 /**
   Simple list of photos that implements the PhotoCollection interface.
@@ -117,5 +119,9 @@ public class PhotoList implements PhotoCollection {
         for ( PhotoCollectionChangeListener l : listeners ) {
             l.photoCollectionChanged( new PhotoCollectionChangeEvent( this ) );
         }
+    }
+
+    public List<PhotoInfo> queryPhotos( Session session ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
 }

@@ -22,12 +22,13 @@
 package org.photovault.swingui;
 
 import org.photovault.dcraw.ColorProfileDesc;
+import org.photovault.swingui.selection.PhotoSelectionView;
 
 /**
  * Extension of PhotoInfoView that supports also raw settings parameters.
  * @author Harri Kaimio
  */
-public interface RawPhotoView extends PhotoInfoView {
+public interface RawPhotoView extends PhotoSelectionView {
     void setRawBlack( int black );
     void setRawBlackMultivalued( boolean multivalued, Object[] values );    
     int getRawBlack();

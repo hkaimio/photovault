@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2007 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -21,35 +21,34 @@
 package org.photovault.imginfo;
 
 import java.util.*;
-import java.sql.*;
-import org.odmg.*;
-import org.apache.ojb.broker.query.*;
-import org.apache.ojb.broker.*;
-import org.apache.ojb.odmg.*;
-import org.photovault.dbhelper.ODMG;
-import org.photovault.dbhelper.ODMGXAWrapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
 import org.photovault.folder.PhotoFolder;
-import org.photovault.imginfo.FuzzyDate;
 
 /**
    PhotoQuery class can be used to search for photos using wide variety of criterias.
 */
 public class PhotoQuery implements PhotoCollection {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotoQuery.class.getName() );
+    static Log log = LogFactory.getLog( PhotoQuery.class.getName() );
 
 
     public PhotoQuery() {
 	photos = new Vector();
-	listeners = new Vector();
+	listeners = new ArrayList<PhotoCollectionChangeListener>();
 	queryModified = true;
 
 	criterias = new QueryFieldCriteria[fields.length];
     }
+    
+    Session session;
 
     /**
-       Restrict resultfs to photos that have the specified field in
-       the reange
+       Restrict results to photos that have the specified field in
+       given range
        @param fieldNum Code of the field used in the query
        @param lower Lower bound for the range. If null, the query will
        be regarded as "less than upper"
@@ -89,7 +88,7 @@ public class PhotoQuery implements PhotoCollection {
 	the date
 	@param date FuzzyTime describing the date range
 	@param strictness Strictness used when selecting objects into
-	results @see QueryFuzzyTimeCriteria.setStrictness for more info
+	results. See {@link QueryFuzzyTimeCriteria#setStrictness()} for more info
 	about possible values and their semantics.  */
 
     public void
@@ -112,13 +111,6 @@ public class PhotoQuery implements PhotoCollection {
     public void limitToFolder( PhotoFolder folder ) {
 	limitFolder = folder;
     }
-    
-    /**
-       Returns the type of criteria set for certain field
-    */
-    public int getCriteriaType( int field ) {
-	return 0;
-    }
 
     /**
        Clears all criterias from the query
@@ -139,68 +131,40 @@ public class PhotoQuery implements PhotoCollection {
     /** Executes the actual query to database. This method is not
      * called directly by clients but is executed on demand after the
      * query has been modified and results are needed.
+     @deprecated use queryPhotos instead
      */
+    @SuppressWarnings( "unchecked" )
     protected void query() {
-	log.debug( "Entry: PhotoQuery.query" );
-	photos.clear();
-	ODMGXAWrapper txw = new ODMGXAWrapper();
-	Implementation odmg = ODMG.getODMGImplementation();
+        throw new UnsupportedOperationException( "In Hibernate based Photovault, "+
+                "PhotoQuery is not tied to persistencecontext. Use queryPhotos()" +
+                " for access to query results." );
+    }
+    
 
-	Transaction tx = odmg.currentTransaction();
+    /**
+       Create a list of folderIds in a given folder hierarchy
+     @param folder root folder of the hierarchy
+     @return List of ids of all folders in the hierarchy
+    */
 
-	try {
-	    PersistenceBroker broker = ((HasBroker) tx).getBroker();
-	    
-	    Criteria crit = new Criteria();
-	    // Go through all the fields and create the criteria
-	    for ( int n = 0; n < criterias.length; n++ ) {
-		if ( criterias[n] != null ) {
-		    criterias[n].setupQuery( crit );
-		}
-	    }
-
-	    if ( limitFolder != null ) {
- 		Collection folderIds = getSubfolderIds( limitFolder );
-// 		crit.addEqualTo( "folders.folderId", new Integer( limitFolder.getFolderId() ) );
- 		crit.addIn( "folders.folderId", folderIds );
-	    }
-	    
-	    QueryByCriteria q = new QueryByCriteria( PhotoInfo.class, crit );
-	    Collection result = broker.getCollectionByQuery( q );
-	    photos.addAll( result );
-	    txw.commit();
-	} catch ( Exception e ) {
-	    log.warn( "Error executing query: " + e.getMessage() );
-	    e.printStackTrace( System.out );
-	    txw.abort();
-	}
-	    
-	queryModified = false;
-	log.debug( "Exit: PhotoQuery.query" );
-
+    private List<UUID> getSubfolderIds( PhotoFolder folder ) {
+        List<UUID> folders = new ArrayList<UUID>();
+        folders.add( folder.getUuid() );
+	appendSubfolderIds( folders, folder );
+	return folders;
     }
 
     /**
-       Returns a list of folderIds of all subfolders of a certain folder
-    */
-
-    private Collection getSubfolderIds( PhotoFolder folder ) {
-	Vector ids = new Vector();
-	ids.add( new Integer( folder.getFolderId() ) );
-	appendSubfolderIds( ids, folder );
-	return ids;
-    }
-
-    private void appendSubfolderIds( Collection ids, PhotoFolder folder ) {
-	for ( int n = 0; n < folder.getSubfolderCount(); n++ ) {
-	    PhotoFolder subfolder = folder.getSubfolder( n );
-	    ids.add( new Integer( subfolder.getFolderId() ) );
-	    appendSubfolderIds( ids, subfolder );
+     Append folder ids of given folder to a list
+     @param folders List to which the ids are added
+     @param folder Root folder for the hierarchy     
+     */
+    private void appendSubfolderIds( List<UUID> folders, PhotoFolder folder ) {
+	for ( PhotoFolder subfolder : folder.getSubfolders() ) {
+	    folders.add( subfolder.getUuid() );
+	    appendSubfolderIds( folders, subfolder );
 	}
     }
-    
-		 
-		 
 
     // Implementation of imginfo.PhotoCollection
 
@@ -208,6 +172,8 @@ public class PhotoQuery implements PhotoCollection {
      * Describe <code>getPhotoCount</code> method here.
      *
      * @return an <code>int</code> value
+     @deprecated In Hibernate based Photovault, use queryPhotos for accessing 
+     query results
      */
     public int getPhotoCount() {
 	if ( queryModified ) {
@@ -221,6 +187,8 @@ public class PhotoQuery implements PhotoCollection {
      *
      * @param n an <code>int</code> value
      * @return a <code>PhotoInfo</code> value
+     @deprecated In Hibernate based Photovault, use queryPhotos for accessing 
+     query results
      */
     public PhotoInfo getPhoto(int n) {
 	if ( queryModified ) {
@@ -265,9 +233,25 @@ public class PhotoQuery implements PhotoCollection {
 	}
     }
 
+    /**
+     True if the photos collection is dirty and must fe requeried from database
+     */
     boolean queryModified;
+    
+    /**
+     Photos found by the query
+     */
     Vector photos = null;
-    Vector listeners = null;
+    
+    /**
+     Listeners that will be notified about changes to this query
+     */
+    List<PhotoCollectionChangeListener> listeners = null;
+    
+    /**
+     If not null, limit query results to photos that belong to this folder or
+     any of its subfolders.
+     */
     PhotoFolder limitFolder = null;
 
     public static final int FIELD_SHOOTING_TIME          = 0;
@@ -289,19 +273,45 @@ public class PhotoQuery implements PhotoCollection {
     
     static {
 	fields = new QueryField[13];
-	fields[FIELD_SHOOTING_TIME] = new QueryField( "shootTime" );
-	fields[FIELD_SHOOTING_TIME_ACCURACY] = new QueryField( "timeAccuracy" );
+	fields[FIELD_SHOOTING_TIME] = new QueryField( "shootTime", "shoot_time" );
+	fields[FIELD_SHOOTING_TIME_ACCURACY] = new QueryField( "timeAccuracy", "time_accuracy" );
 	fields[FIELD_FULLTEXT] = new QueryField( "shooting_place,description" );
 	fields[FIELD_DESCRIPTION] = new QueryField( "description" );
-	fields[FIELD_SHOOTING_PLACE] = new QueryField( "shootingPlace" );
+	fields[FIELD_SHOOTING_PLACE] = new QueryField( "shootingPlace", "shooting_place" );
 	fields[FIELD_PHOTOGRAPHER] = new QueryField( "photographer" );
 	fields[FIELD_FSTOP] = new QueryField( "FStop" );
 	fields[FIELD_FOCAL_LENGTH] = new QueryField( "focalLength" );
-	fields[FIELD_SHUTTER_SPEED] = new QueryField( "shutterSpeed" );
+	fields[FIELD_SHUTTER_SPEED] = new QueryField( "shutterSpeed", "shutter_speed" );
 	fields[FIELD_CAMERA] = new QueryField( "camera" );
 	fields[FIELD_LENS] = new QueryField( "lens" );
 	fields[FIELD_FILM] = new QueryField( "film" );
-	fields[FIELD_FILM_SPEED] = new QueryField( "filmSpeed" );
+	fields[FIELD_FILM_SPEED] = new QueryField( "filmSpeed", "film_speed" );
     }
 
+    @SuppressWarnings( "unchecked" )
+    public List<PhotoInfo> queryPhotos( Session session ) {
+	log.debug( "Entry: PhotoQuery.queryPhotos" );
+        List<PhotoInfo> result = null;
+        try {
+	    Criteria crit = session.createCriteria( PhotoInfo.class );
+	    // Go through all the fields and create the criteria
+	    for ( int n = 0; n < criterias.length; n++ ) {
+		if ( criterias[n] != null ) {
+		    criterias[n].setupQuery( crit );
+		}
+	    }
+
+	    if ( limitFolder != null ) {
+ 		Collection folders = getSubfolderIds( limitFolder );
+ 		crit.createCriteria( "folderAssociations" ).add(
+                        Restrictions.in( "folder.uuid", folders ));
+	    }
+	    
+	    result = crit.list();
+	} catch ( Exception e ) {
+	    log.warn( "Error executing query: " + e.getMessage() );
+	    e.printStackTrace( System.out );
+	}
+        return result;
+    }
 }

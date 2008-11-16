@@ -29,6 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.color.ColorSettingsDlg;
+import org.photovault.swingui.color.ColorSettingsDlgController;
 
 /**
  This action displays ColorSettingsDlg for the currently selected photos.
@@ -48,9 +49,10 @@ public class EditSelectionColorsAction extends AbstractAction
     private JAIPhotoViewer preview = null;
     
     /**
-     The color settings dialog that is displayed when this action is fired
+     The controller for color settings dialog that is displayed when this 
+     action is fired
      */
-    private ColorSettingsDlg colorDlg = null;
+    private ColorSettingsDlgController colorDlgCtrl = null;
     
     /** Creates a new instance of EditSelectionColorsAction
      */
@@ -75,8 +77,8 @@ public class EditSelectionColorsAction extends AbstractAction
      */
     public void setPreviewCtrl( JAIPhotoViewer preview ) {
         this.preview = preview;
-        if ( colorDlg != null ) {
-            colorDlg.setPreviewControl( preview );
+        if ( colorDlgCtrl != null ) {
+//            colorDlgCtrl.setPreviewControl( preview );    
         }
     }
     
@@ -93,7 +95,7 @@ public class EditSelectionColorsAction extends AbstractAction
             selectedPhotos[i++] = (PhotoInfo) iter.next();
         }
         
-        if ( colorDlg == null ) {
+        if ( colorDlgCtrl == null ) {
             // Try to find the frame in which this component is in
             Frame frame = null;
             Container c = selectionView.getTopLevelAncestor();
@@ -101,13 +103,11 @@ public class EditSelectionColorsAction extends AbstractAction
                 frame = (Frame) c;
             }
             
-            colorDlg = new ColorSettingsDlg( frame, false, selectedPhotos );
-            colorDlg.setPreviewControl( preview );
-        } else {
-            colorDlg.setPhotos( selectedPhotos );
-        }
-        
-        colorDlg.showDialog();
+            colorDlgCtrl = new ColorSettingsDlgController( frame, selectionView.ctrl, selectionView.ctrl.getPersistenceContext() );
+            colorDlgCtrl.setPreviewControl( preview );
+        } 
+        colorDlgCtrl.setPhotos( selectedPhotos );        
+        colorDlgCtrl.showDialog();
     }
     
     
@@ -130,8 +130,8 @@ public class EditSelectionColorsAction extends AbstractAction
             
         }
         setEnabled( enabled );
-        if ( colorDlg != null && colorDlg.isVisible() ) {
-                colorDlg.setPhotos( photos );
+        if ( colorDlgCtrl != null /*&& colorDlg.isVisible() */) {
+                colorDlgCtrl.setPhotos( photos );
         }
     }
     
