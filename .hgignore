@@ -1,0 +1,7 @@
+syntax:glob
+*~
+lib/*.jar
+
+syntax:regexp
+^build/
+^dist/
