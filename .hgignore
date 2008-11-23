@@ -1,5 +1,9 @@
-lib/*
-dist/*
-reports/*
-build/*
-nbproject/*
+syntax:glob
+*~
+lib/*.jar
+
+syntax:regexp
+^build/
+^dist/
+^reports/
+^nbproject/
