@@ -20,15 +20,14 @@
 
 package org.photovault.replication;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.hibernate.Transaction;
 import org.hibernate.classic.Session;
@@ -42,7 +41,6 @@ import org.photovault.imginfo.PhotoEditor;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.PhotoInfoFields;
-import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
@@ -190,7 +188,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         p = photoDAO.findByUUID( h.getTargetUuid() );
         VersionedObjectEditor<PhotoInfo> ed = new VersionedObjectEditor<PhotoInfo>(  p,  rf );
         ed.addToHistory( h, cf );
-              
+        
         Map<UUID, Change<PhotoInfo>> changes = new HashMap<UUID, Change<PhotoInfo>>();
         tx = session.beginTransaction();
         for( Change<PhotoInfo> ch : p.getHistory().getChanges() ) {

@@ -20,18 +20,22 @@
 
 package org.photovault.replication;
 
-import java.io.ByteArrayOutputStream;
+import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  Data transfer object for transferring change between persistence contexts. This
@@ -39,6 +43,10 @@ import java.util.UUID;
  to other objects with theur global UUIDs.
  */
 public class ChangeDTO<T> implements Serializable {
+    
+    static final private Log log = LogFactory.getLog( ChangeDTO.class );
+    
+    private static XStream xstream = null;
     
     static final long serialVersionUID = 3937344080753904527l;
     
@@ -69,12 +77,13 @@ public class ChangeDTO<T> implements Serializable {
      */
     transient SortedMap<String, FieldChange> changedFields;
     
+    byte[] xmlData = null;
+    
     /**
      Construct a DTO from a change.
      @param change
      */
     public ChangeDTO( Change<T> change ) {
-        changeUuid = change.getUuid();
         targetUuid = change.getTargetHistory().getTargetUuid();
         historyClass = change.getTargetHistory().getClass();
         targetClassName = change.getTargetHistory().getTargetClassName();
@@ -84,9 +93,84 @@ public class ChangeDTO<T> implements Serializable {
         }
         Collections.sort( parentIds );
         changedFields = new TreeMap<String, FieldChange>( change.getChangedFields() );
+        try {
+            changeUuid = calcUuid();
+        } catch ( IOException ex ) {}
+    }
+
+
+    /**
+     Default constructor, for use by XStream
+     */
+    ChangeDTO() {
+        changedFields = new TreeMap<String, FieldChange>();
+        parentIds = new ArrayList<UUID>();    
+    }
+
+    /**
+     Create a new ChangeDTO instance from serialized XML form. The object is
+     first unmarshalled from the XML. After that change id is calculated from
+     SHA1 hash of the XML representation.
+     @param serialized XML representation of the change, encoded in UTF8. See
+     {@link ChangeDtoXmlConverter} for documentation of the format.
+     @return The unmarshalled object or <code>null</code> if there is an error
+     reading the stream.
+     @throws RuntimeException if XML parsing fails.
+     */
+    public static ChangeDTO createChange( byte[] serialized ) {
+        try {
+            String xml = new String( serialized, "utf-8" );
+            ChangeDTO dto = (ChangeDTO) getXStream().fromXML( xml );
+            dto.xmlData = Arrays.copyOf( serialized, serialized.length );
+            dto.changeUuid = dto.calcUuid();
+            return dto;
+        } catch ( UnsupportedEncodingException ex ) {
+            log.error( "Exception while creating change: ", ex );
+            return null;
+        } catch( IOException ex ) {
+            log.error( "Exception while creating change: ", ex );
+            return null;            
+        }   catch ( RuntimeException ex ) {
+            log.error( "Runtime exception while deserializing: ", ex );
+            throw ex;
+        }
     }
     
+    private static XStream getXStream() {
+        /*
+         This is intentionally unsynchronized: the worst thing that can happen 
+         is that the created instance will never be used.
+         */ 
+        if ( xstream == null ) {
+            XStream xs = new XStream();
+            xs.alias( "change", ChangeDTO.class );
+            xs.registerConverter( new ChangeDtoXmlConverter( xs.getMapper() ) );
+            xs.alias( "value-change", ValueChange.class );
+            xs.registerConverter( new ValueChangeXmlConverter( xs.getMapper() ) );
+            xs.alias( "set-change", SetChange.class );
+            xs.registerConverter( new SetChangeXmlConverter( xs.getMapper() ) );
+            xs.addImplicitCollection( SetChange.class, "addedItems" );
+            xs.addImplicitCollection( SetChange.class, "removedItems" );
+            xstream = xs;
+        }
+        return xstream;
+    }
     
+    /**
+     Get the canonical XML serialization of this change.
+     @return
+     */
+    byte[] getXmlData() {
+        if ( xmlData == null ) {
+            String xml = getXStream().toXML( this );
+            try {
+                xmlData = xml.getBytes( "utf-8" );
+            } catch ( Exception ex ) {
+                log.error( "Exception while serializing change: ", ex );
+            }
+        }
+        return xmlData;
+    }
     /**
      Serialize this object.
      <p>
@@ -139,17 +223,7 @@ public class ChangeDTO<T> implements Serializable {
     }
     
     public UUID calcUuid() throws IOException {
-        ByteArrayOutputStream s = new ByteArrayOutputStream();
-        ObjectOutputStream os = new ObjectOutputStream( s );
-        writeChangeMetadata( os );
-        /*
-         Reset the strea to ensure that field values of e.g. targetUuid are written
-         again and not as object references.
-         */         
-        os.reset();
-        writeChange( os );
-        byte[] serialized = s.toByteArray();
-        return UUID.nameUUIDFromBytes( serialized );
+        return UUID.nameUUIDFromBytes( getXmlData() );
     }
     
     public void verify() throws IOException {

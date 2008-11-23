@@ -20,12 +20,11 @@
 
 package org.photovault.replication;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -127,6 +124,13 @@ public class Change<T> {
     private Map<String, ValueFieldConflict> fieldConflicts = 
             new HashMap<String, ValueFieldConflict>();
     
+    /**
+     This change serialized to XML. This byte string is actually defining this 
+     change as UUID is calucated from it. The form is determined as part of 
+     freezing the change - if change is not freezed this is <code>null</code>
+     */
+    private byte[] serializedForm = null;
+    
     
     /**
      Default constructor, for construction by Hibernate or {@link ChangeFactory}.
@@ -172,7 +176,7 @@ public class Change<T> {
 
     /**
      Set field value. 
-     @param field The field to be changed
+     @param fieldName The field to be changed
      @param newValue New value for the field
      @throws IllegalStateException if the change has laready been frozen.
      */
@@ -212,28 +216,14 @@ public class Change<T> {
     @Column( name = "serialized", length = 1048576  )
     @Lob
     byte[] getSerializedChange() {
-        byte[] res = null;
-        try {
-            ByteArrayOutputStream s = new ByteArrayOutputStream();
-            ObjectOutputStream os = new ObjectOutputStream( s );
-            writeFieldChanges( os );
-            os.flush();
-            res = s.toByteArray();
-        } catch ( IOException ex ) {
-            log.debug( ex.getMessage(), ex );
-        }
-        return res;        
+        return serializedForm;       
     }
 
     void setSerializedChange( byte[] c ) {
-        try {
-            ByteArrayInputStream s = new ByteArrayInputStream( c );
-            ObjectInputStream is = new ObjectInputStream(  s );
-            readFieldChanges( is );
-        } catch ( IOException ex ) {
-            log.error( ex.getMessage(), ex );
-        } catch ( ClassNotFoundException ex ) {
-            log.error( ex.getMessage(), ex );
+        if ( c != null ) {
+            serializedForm = Arrays.copyOf( c, c.length );
+            ChangeDTO<T> dto = ChangeDTO.createChange( serializedForm );
+            changedFields = dto.changedFields;
         }
     }
     
@@ -274,6 +264,9 @@ public class Change<T> {
     
     /**
      Returns the previous change on top of which this change is applied
+     @return the first parent change
+     @deprecated As there can be many parents, use {@link #getParentChanges() }
+     instead.
      */
     @Transient
     public Change getPrevChange() {
@@ -492,6 +485,7 @@ public class Change<T> {
         ChangeDTO<T> data = new ChangeDTO<T>( this );
         try {
             uuid = data.calcUuid();
+            
         } catch ( IOException e ) {
             log.error( "Error calculating change UUID: " + e.getMessage() );
             log.error( e );
@@ -550,13 +544,12 @@ public class Change<T> {
             if ( targetVersion != null ) {
                 parentChanges.add( targetHistory.getVersion() );
             }
-            /* This is an initial change so we must populate all fields with 
-            their default values
-             */
-            // targetHistory.initFirstChange( this );
         }
 
-        calcUuid();
+        /* Construct serialized XML form and UUID */
+        ChangeDTO<T> dto = new ChangeDTO<T>( this );
+        serializedForm = dto.getXmlData();
+        uuid = dto.changeUuid;
         frozen = true;
         for ( Change<T> parent : parentChanges ) {
             parent.addChildChange( this );

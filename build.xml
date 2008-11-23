@@ -257,7 +257,7 @@
         </testng>
     </target>
     <target name="testng.debug.single" depends="dist" description="TestNG debug single file">
-        <taskdef  resource="testngtasks" classpath="lib/testng.jar"/>
+        <taskdef  resource="testngtasks" classpath="lib/testng-jdk15.jar"/>
         <nbjpdastart name="${classname}" addressproperty="jpda.address" transport="dt_socket">
             <classpath refid="project.class.path"/>
             <sourcepath refid="debug.sourcepath"/>
