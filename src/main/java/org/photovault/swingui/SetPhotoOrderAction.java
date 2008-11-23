@@ -35,19 +35,21 @@ public class SetPhotoOrderAction extends AbstractAction  {
 
     /**
        Constructor.
-       @param view The view this action object is associated with. The action gets
-       the selection to export from this view.
-     * @param c Comparator object that is used to sort the photos
-     * @param text Test to display in menus
-     * @param icon Icon that is displayed in menus etc.
+       @param ctrl The controller for the views this action is associated with.
+       The action gets the selection to export from this view.
+       @param c Comparator object that is used to sort the photos
+       @param text Test to display in menus
+       @param icon Icon that is displayed in menus etc.
+       @param desc Description of the action
+       @param mnemonic mnemonic used for executing this action
     */
-    public SetPhotoOrderAction( PhotoCollectionThumbView view, Comparator c, String text, ImageIcon icon,
-                      String desc, Integer mnemonic) {
-	super( text, icon );
-	this.view = view;
-        this.c =  new FullOrderPhotoComparator( c );
-	putValue(SHORT_DESCRIPTION, desc);
-        putValue(MNEMONIC_KEY, mnemonic);
+    public SetPhotoOrderAction( PhotoViewController ctrl, Comparator c,
+            String text, ImageIcon icon, String desc, Integer mnemonic ) {
+        super( text, icon );
+        this.ctrl = ctrl;
+        this.c = new FullOrderPhotoComparator( c );
+        putValue( SHORT_DESCRIPTION, desc );
+        putValue( MNEMONIC_KEY, mnemonic );
     }
 
     Comparator c;
@@ -78,11 +80,8 @@ public class SetPhotoOrderAction extends AbstractAction  {
     };
     
     public void actionPerformed( ActionEvent ev ) {
-	// Show the file chooser dialog
-        // TODO: change to do this in controller
-        // view.setPhotoOrderComparator( c );
-        // throw new UnsupportedOperationException( "Not migrated to Hibernate" ); 
+        ctrl.setPhotoComparator( c );
     }
 
-    PhotoCollectionThumbView view;
+    PhotoViewController ctrl;
 }

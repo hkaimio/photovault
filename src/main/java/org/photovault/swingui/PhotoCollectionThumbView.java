@@ -186,9 +186,8 @@ public class PhotoCollectionThumbView
 	    PhotoInfo photo = photos.get( n );
 	    photo.addChangeListener( this );
 	}
-    }	
-    
-    PhotoCollection collection;
+    }
+
     List<PhotoInfo> photos = new ArrayList<PhotoInfo>();
 
     

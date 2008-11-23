@@ -309,15 +309,15 @@ public class BrowserWindow extends AbstractController {
         JMenu sortMenu = new JMenu( "Sort by" );
         sortMenu.setMnemonic( KeyEvent.VK_S );
         sortMenu.setIcon( getIcon( "empty_icon.png" ) );
-        JMenuItem byDateItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
+        JMenuItem byDateItem = new JMenuItem( new SetPhotoOrderAction( viewCtrl,
                 new ShootingDateComparator(), "Date", null, 
                 "Order photos by date", KeyEvent.VK_D ));
         sortMenu.add( byDateItem );
-        JMenuItem byPlaceItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
+        JMenuItem byPlaceItem = new JMenuItem( new SetPhotoOrderAction( viewCtrl,
                 new ShootingPlaceComparator(), "Place", null, 
                 "Order photos by shooting place", KeyEvent.VK_P ));
         sortMenu.add( byPlaceItem );
-        JMenuItem byQualityItem = new JMenuItem( new SetPhotoOrderAction( viewPane, 
+        JMenuItem byQualityItem = new JMenuItem( new SetPhotoOrderAction( viewCtrl,
                 new QualityComparator(), "Quality", null, 
                 "Order photos by quality", KeyEvent.VK_Q ));
         sortMenu.add( byQualityItem );

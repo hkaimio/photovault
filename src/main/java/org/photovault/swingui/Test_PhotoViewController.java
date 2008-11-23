@@ -22,6 +22,8 @@ package org.photovault.swingui;
 
 import abbot.tester.ComponentTester;
 import java.awt.FlowLayout;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.swing.JFrame;
@@ -54,7 +56,8 @@ import org.testng.annotations.Test;
 public class Test_PhotoViewController extends PhotovaultTestCase {
     private PhotovaultCommandHandler commandHandler;
     private PhotoFolder folder;
-    private PhotoInfo photo;
+    private PhotoInfo photo1;
+    private PhotoInfo photo2;
     private Transaction tx;
     private PhotoInfoDAO photoDAO;
     private HibernateDAOFactory daoFactory;
@@ -116,10 +119,16 @@ public class Test_PhotoViewController extends PhotovaultTestCase {
                 new CreatePhotoFolderCommand(root, "Test_PhotoViewController", "" );
         commandHandler.executeCommand( cmd );
         folder = cmd.getCreatedFolder();
-        photo = photoDAO.create();
+        photo1 = photoDAO.create();
+        photo2 = photoDAO.create();
         session.flush();
-        ChangePhotoInfoCommand pcmd = new ChangePhotoInfoCommand( photo.getUuid() );
+        ChangePhotoInfoCommand pcmd = new ChangePhotoInfoCommand( photo1.getUuid() );
         pcmd.addToFolder( folder );
+        pcmd.setShootingPlace( "place1" );
+        commandHandler.executeCommand( pcmd );
+        pcmd = new ChangePhotoInfoCommand( photo2.getUuid() );
+        pcmd.addToFolder( folder );
+        pcmd.setShootingPlace( "place2" );
         commandHandler.executeCommand( pcmd );
     }
     
@@ -141,28 +150,46 @@ public class Test_PhotoViewController extends PhotovaultTestCase {
         assertTrue( ctrl.getCollection() == root );
         ctrl.setCollection( folder );
         assertTrue( ctrl.getCollection() == folder );
+        ctrl.setPhotoComparator( new Comparator() {
+
+            public int compare( Object o1, Object o2 ) {
+                PhotoInfo p1 = (PhotoInfo) o1;
+                PhotoInfo p2 = (PhotoInfo) o2;
+                return p1.getShootingPlace().compareTo( p2.getShootingPlace() );
+            }
+        } );
         List<PhotoInfo> photos = ctrl.getThumbPane().getPhotos();
-        assertEquals( 1, photos.size() );
-        assertEquals( photo.getUuid(), photos.iterator().next().getUuid() );
-        
+        assertEquals( 2, photos.size() );
+        assertEquals( photo1.getUuid(), photos.iterator().next().getUuid() );
+
+        ctrl.setPhotoComparator( new Comparator() {
+
+            public int compare( Object o1, Object o2 ) {
+                PhotoInfo p1 = (PhotoInfo) o1;
+                PhotoInfo p2 = (PhotoInfo) o2;
+                return -p1.getShootingPlace().compareTo( p2.getShootingPlace() );
+            }
+        } );
+        assertEquals( photo2.getUuid(), photos.iterator().next().getUuid() );
+
         // Test that the controller reacts when someone changes the collection
-        ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( photo.getUuid() );
+        ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( photo1.getUuid() );
         cmd.removeFromFolder( folder );
         commandHandler.executeCommand(cmd);
         photos = ctrl.getThumbPane().getPhotos();
-        assertEquals( 0, photos.size() );
+        assertEquals( 1, photos.size() );
 
-        cmd = new ChangePhotoInfoCommand( photo.getUuid() );
+        cmd = new ChangePhotoInfoCommand( photo1.getUuid() );
         cmd.addToFolder( folder );
         commandHandler.executeCommand(cmd);
         photos = ctrl.getThumbPane().getPhotos();
-        assertEquals( 1, photos.size() );
+        assertEquals( 2, photos.size() );
 
-        cmd = new ChangePhotoInfoCommand( photo.getUuid() );
+        cmd = new ChangePhotoInfoCommand( photo2.getUuid() );
         cmd.setShootingPlace( "testPlace" );
         commandHandler.executeCommand(cmd);
         photos = ctrl.getThumbPane().getPhotos();
-        assertEquals( 1, photos.size() );
+        assertEquals( 2, photos.size() );
         assertEquals( "testPlace", photos.get( 0 ).getShootingPlace() );
     }
 }

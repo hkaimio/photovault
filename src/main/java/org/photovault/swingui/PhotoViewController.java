@@ -30,6 +30,8 @@ import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -144,6 +146,39 @@ public class PhotoViewController extends PersistenceController {
     }
 
     /**
+     * Comparator used to sort photos visible in thumbnail view
+     */
+    Comparator photoComparator;
+
+    /**
+     * Set the comparator used to sort photos in thumbnail view
+     * @param c
+     */
+    void setPhotoComparator( Comparator c ) {
+        photoComparator = c;
+        updateThumbView();
+    }
+
+    /**
+     * Get the comparator used to sort photos in thumbnail view
+     * @return
+     */
+    Comparator getPhotoComparator() {
+        return photoComparator;
+    }
+
+    /**
+     * Update the thumb view to show photos is the {@link #photos} collections,
+     * sorted by {@link #photoComparator}
+     */
+    private void updateThumbView() {
+        if ( photoComparator != null && photos != null ) {
+            Collections.sort( photos, photoComparator );
+        }
+        thumbPane.setPhotos( photos );
+    }
+
+    /**
      This method is called after a {@link ChangePhotoInfoCommand} has been 
      executed somewhere in the application. It applies the modifications
      to current model.
@@ -155,12 +190,13 @@ public class PhotoViewController extends PersistenceController {
             switch ( cmd.getFolderState( (PhotoFolder) collection ) ) {
             case ADDED:
                 addPhotos( cmd.getChangedPhotos() );
+                updateThumbView();
                 break;
             case REMOVED:
                 removePhotos( cmd.getChangedPhotos() );
                 // None of the affected photos can belong to the model anymore
                 // so no need for further checks.
-                thumbPane.setPhotos( photos );
+                updateThumbView();
                 return;
             default:
                 // No impact to this folder
@@ -176,6 +212,7 @@ public class PhotoViewController extends PersistenceController {
         }
         thumbPane.setPhotos( photos );
     }
+
 
     private void imageCreated( CreateCopyImageCommand cmd ) {
         PhotoInfo p = cmd.getPhoto();
@@ -431,7 +468,7 @@ public class PhotoViewController extends PersistenceController {
         if ( c != null ) {
             photos = c.queryPhotos(getPersistenceContext());
         }
-        thumbPane.setPhotos( photos );
+        updateThumbView();
     }
     
     PhotoCollection getCollection() {
