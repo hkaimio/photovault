@@ -115,6 +115,11 @@ public class ImageFileDTO implements Serializable {
     @XStreamAlias( "images" )
     transient private Map<String, ImageDescriptorDTO> images;
 
+    /**
+     * Add a new image to the file. USer by {@link ImageFileXmlConverter}
+     * @param locator Location of the image in file
+     * @param img The image
+     */
     void addImage( String locator, ImageDescriptorDTO img ) {
         images.put( locator, img );
     }
@@ -190,6 +195,4 @@ public class ImageFileDTO implements Serializable {
             images.put( locator, dto );
         }
     }
-
-
 }
