@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo.dto;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import java.io.Serializable;
 import org.photovault.imginfo.*;
 import java.util.Map;
@@ -35,6 +36,7 @@ import java.util.UUID;
  @see OriginalImageDescriptor
  @see ImageDescriptorDTO
  */
+@XStreamAlias( "original" )
 public class OrigImageDescriptorDTO 
         extends ImageDescriptorDTO implements Serializable {
 

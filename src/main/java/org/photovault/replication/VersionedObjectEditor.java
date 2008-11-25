@@ -210,8 +210,8 @@ public class VersionedObjectEditor<T> {
         SetChange sc = (SetChange) change.getFieldChange( setFieldName );
         if ( sc == null ) {
             sc = new SetChange( setFieldName );
-            change.setFieldChange( setFieldName, sc );
         }
+            change.setFieldChange( setFieldName, sc );
         DTOResolver resolver = 
                     fieldResolver.getResolver( classDesc.getFieldResolverClass( setFieldName ) );
         sc.addItem( resolver.getDtoFromObject( value ) );

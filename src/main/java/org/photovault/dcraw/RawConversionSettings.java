@@ -514,6 +514,7 @@ public class RawConversionSettings implements Cloneable, Externalizable {
       <li>daylightBlueGreenRatio (double)</li>
       <li>redGreenRatio (double)</li>
       <li>blueGreenRatio (double)</li>
+      <li>whiteBalanceType (int)</li>
     </ul>
      
      */
@@ -527,6 +528,7 @@ public class RawConversionSettings implements Cloneable, Externalizable {
         oo.writeDouble( daylightBlueGreenRatio );
         oo.writeDouble( redGreenRatio );
         oo.writeDouble( blueGreenRatio );
+        oo.writeInt( whiteBalanceType );
     }
 
     public void readExternal( ObjectInput oi ) 
@@ -543,5 +545,6 @@ public class RawConversionSettings implements Cloneable, Externalizable {
         daylightBlueGreenRatio = oi.readDouble();
         redGreenRatio = oi.readDouble();
         blueGreenRatio = oi.readDouble();
+        whiteBalanceType = oi.readInt();
     }
 }

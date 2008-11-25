@@ -20,6 +20,9 @@
 
 package org.photovault.imginfo.dto;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -45,11 +48,16 @@ import java.util.UUID;
  @since 0.6.0
  @author Harri Kaimio
  */
+@XStreamAlias( "image-file" )
+@XStreamConverter( ImageFileXmlConverter.class )
 public class ImageFileDTO implements Serializable {
 
     static final long serialVersionUID = -1744409450144341619L;
 
-    private ImageFileDTO() {}
+    ImageFileDTO() {
+        images = new HashMap<String, ImageDescriptorDTO>();
+    }
+
     /**
      Constructs an ImageFileDTO based on ImageFile object
      @param f The ImageFile used.
@@ -84,30 +92,43 @@ public class ImageFileDTO implements Serializable {
      UUID of the image file
      @serialField 
      */
+    @XStreamAsAttribute
     private UUID uuid;
     
     /**
      MD5 hash of the image file
      @serialField 
      */
+    @XStreamAsAttribute
     private byte[] hash;
     
     /**
      Size of the image file (in bytes)
      @serialField 
      */
+    @XStreamAsAttribute
     private long size;
     
     /**
      Images belonging to the file
      */
+    @XStreamAlias( "images" )
     transient private Map<String, ImageDescriptorDTO> images;
+
+    void addImage( String locator, ImageDescriptorDTO img ) {
+        images.put( locator, img );
+    }
 
     /**
      Returns UUID of the described image file
      */
     public UUID getUuid() {
         return uuid;
+    }
+
+
+    void setUuid( UUID uuid ) {
+        this.uuid = uuid;
     }
 
     /**
@@ -118,10 +139,23 @@ public class ImageFileDTO implements Serializable {
     }
 
     /**
+     * @param hash the hash to set
+     */
+    void setHash( byte[] hash ) {
+        this.hash = hash;
+    }
+    /**
      Returns size of the described image file in bytes
      */
     public long getSize() {
         return size;
+    }
+
+    /**
+     * @param size the size to set
+     */
+    void setSize( long size ) {
+        this.size = size;
     }
 
     /**
@@ -156,4 +190,6 @@ public class ImageFileDTO implements Serializable {
             images.put( locator, dto );
         }
     }
+
+
 }

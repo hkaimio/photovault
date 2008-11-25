@@ -20,6 +20,8 @@
 
 package org.photovault.imginfo.dto;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.photovault.imginfo.*;
 
 /**
@@ -33,6 +35,7 @@ import org.photovault.imginfo.*;
  @see ImageDescriptorBase
  @see ImageFileDtoResolver
  */
+@XStreamAlias( "image" )
 public abstract class ImageDescriptorDTO {
 
     /**
@@ -51,16 +54,19 @@ public abstract class ImageDescriptorDTO {
     /**
      Width of the image (in pixels)
      */
+    @XStreamAsAttribute
     private int width;
     
     /**
      Height of the image (in pixels)
      */
+    @XStreamAsAttribute
     private int height;
     
     /**
      Location of the image in containing file
      */
+    @XStreamAsAttribute
     private String locator;
 
     /**

@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo.dto;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.Map;
@@ -41,6 +42,7 @@ import org.photovault.imginfo.OriginalImageDescriptor;
  @see CopyImageDescriptor
  @see ImageDescriptorDTO
  */
+@XStreamAlias( "copy" )
 public class CopyImageDescriptorDTO 
         extends ImageDescriptorDTO implements Serializable {
     
@@ -67,7 +69,7 @@ public class CopyImageDescriptorDTO
         } else {
             origImageFile = new ImageFileDTO( origFile, createdFiles );
         }
-        origLocator = img.getLocator();
+        origLocator = img.getOriginal().getLocator();
     }
 
     /**
