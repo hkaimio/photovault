@@ -40,4 +40,16 @@ public @interface Versioned {
      @return
      */
     Class editor();
+
+    /**
+     * {@link ChangeSerializer} that is used for serializing the chages related
+     * to this class. The default serializer uses XStream to generate XML with
+     * XStream's default conversion rules for everything else except the replication
+     * related classes themselves, which have custom converters.
+     * <p>
+     * This parameter can be used to select another method for serializing changes.
+     * e.g. default Java serialization method.
+     * @return
+     */
+    Class changeSerializer() default XStreamChangeSerializer.class;
 }

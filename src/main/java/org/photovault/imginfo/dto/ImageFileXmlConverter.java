@@ -50,7 +50,13 @@ public class ImageFileXmlConverter implements Converter {
         ImageFileDTO dto = (ImageFileDTO) obj;
         writer.addAttribute( "uuid", dto.getUuid().toString() );
         writer.addAttribute( "size", String.valueOf( dto.getSize() ) );
-        writer.addAttribute( "md5", Base64.encodeBytes( dto.getHash() ) );
+        byte[] md5 = dto.getHash();
+        if ( md5 != null ) {
+            writer.addAttribute( "md5", Base64.encodeBytes( dto.getHash() ) );
+        } else {
+            throw new IllegalStateException( "Hash of ImageFileDTO with uuid " +
+                    dto.getUuid() + " is null" );
+        }
         for ( Entry<String, ImageDescriptorDTO> e : dto.getImages().entrySet()) {
             ImageDescriptorDTO img = e.getValue();
             String clazz = mapper.serializedClass( img.getClass() );

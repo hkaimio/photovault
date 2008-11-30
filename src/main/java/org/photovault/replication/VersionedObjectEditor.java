@@ -21,27 +21,23 @@
 package org.photovault.replication;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.photovault.persistence.DAOFactory;
 
 /**
  VersionedObjectEditor is the main interface for accessing and changing state of
  versioned and replcable objects. It can be used to construct new changes as well 
  as for changing state of the working copy objects between different versions
  
- @author Harri Kaimio
+ * @author Harri Kaimio
  @since 0.6.0
- @param T Class of the target object
+ @param <T> Class of the target object
  
  */
 public class VersionedObjectEditor<T> {
@@ -372,9 +368,9 @@ public class VersionedObjectEditor<T> {
      @return Class descriptor of clazz. If it does not yet exist, analyzes class 
      and creates new one.
      */
-    VersionedClassDesc getClassDescriptor( Class clazz ) {
+    static VersionedClassDesc getClassDescriptor( Class clazz ) {
         VersionedClassDesc cd = analyzedClasses.get( clazz );
-        if ( cd == null ) {
+        if ( cd == null && clazz != null ) {
             cd = new VersionedClassDesc( clazz );
             analyzedClasses.put( clazz, cd );
         }

@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -113,14 +115,15 @@ public class ChangeDTO<T> implements Serializable {
      SHA1 hash of the XML representation.
      @param serialized XML representation of the change, encoded in UTF8. See
      {@link ChangeDtoXmlConverter} for documentation of the format.
-     @return The unmarshalled object or <code>null</code> if there is an error
+     * @param targetClass
+     * @return The unmarshalled object or <code>null</code> if there is an error
      reading the stream.
      @throws RuntimeException if XML parsing fails.
      */
-    public static ChangeDTO createChange( byte[] serialized ) {
+    public static ChangeDTO createChange( byte[] serialized, Class targetClass ) {
         try {
-            String xml = new String( serialized, "utf-8" );
-            ChangeDTO dto = (ChangeDTO) getXStream().fromXML( xml );
+            ChangeSerializer serializer = getSerializer( targetClass );
+            ChangeDTO dto = serializer.deserializeChange( serialized );
             dto.xmlData = Arrays.copyOf( serialized, serialized.length );
             dto.changeUuid = dto.calcUuid();
             return dto;
@@ -162,11 +165,12 @@ public class ChangeDTO<T> implements Serializable {
      */
     byte[] getXmlData() {
         if ( xmlData == null ) {
-            String xml = getXStream().toXML( this );
             try {
-                xmlData = xml.getBytes( "utf-8" );
-            } catch ( Exception ex ) {
-                log.error( "Exception while serializing change: ", ex );
+                Class targetClass = Class.forName( targetClassName );
+                ChangeSerializer serializer = getSerializer( targetClass );
+                xmlData = serializer.serializeChange( this );
+            } catch ( ClassNotFoundException ex ) {
+                log.error( "Could not find target class " + targetClassName, ex);
             }
         }
         return xmlData;
@@ -261,6 +265,19 @@ public class ChangeDTO<T> implements Serializable {
             changedFields.put(  (String) val.getName(), val);
         }
         verify();
+    }
+
+    static private ChangeSerializer defaultSerializer = new XStreamChangeSerializer();
+
+
+
+    private static ChangeSerializer getSerializer( Class targetClass ) {
+        VersionedClassDesc cd = VersionedObjectEditor.getClassDescriptor( targetClass );
+        ChangeSerializer cs = defaultSerializer;
+        if ( cd != null ) {
+            cs = cd.getChangeSerializer();
+        }
+        return cs;
     }
 
 }

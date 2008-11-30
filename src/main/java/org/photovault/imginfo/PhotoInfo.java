@@ -61,6 +61,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
+import org.photovault.imginfo.dto.PhotoChangeSerializer;
 import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
 import org.photovault.replication.ObjectHistory;
 import org.photovault.replication.DTOResolverFactory;
@@ -76,7 +77,7 @@ import org.photovault.replication.VersionedObjectEditor;
  */
 @Entity
 @Table( name = "pv_photos" )
-@Versioned( editor = PhotoEditor.class )
+@Versioned( editor = PhotoEditor.class, changeSerializer=PhotoChangeSerializer.class )
 public class PhotoInfo implements PhotoEditor {
     
     static Log log = LogFactory.getLog( PhotoInfo.class.getName() );

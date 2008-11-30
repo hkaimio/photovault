@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -113,10 +115,11 @@ public class Change<T> {
     private Set<Change<T>> parentChanges = new HashSet<Change<T>>();
     
     /**
-     Fields of {@link target} that have been changed by this change
+     Fields of {@link target} that have been changed by this change. If this field
+     * is <code>null</code>, it will be initialized from {@link #serializedForm}
+     * by calling {@link #initChangedFields()} before accessing it.
      */
-    private Map<String, FieldChange> changedFields = 
-            new HashMap<String,FieldChange>();
+    private Map<String, FieldChange> changedFields = null;
     
     /**
      If this is a merge change, conflicting fields
@@ -150,6 +153,7 @@ public class Change<T> {
      */
     Change( ObjectHistory<T> t ) {
         targetHistory = t;
+        changedFields = new HashMap<String, FieldChange>();
     }
     
     @Id
@@ -193,6 +197,9 @@ public class Change<T> {
      @todo What if this is a merge change and there is a conflict
      */
     public Object getField( String field ) {
+        if ( changedFields == null ) {
+            initChangedFields();
+        }
         if ( changedFields.containsKey( field ) ) {
             FieldChange lastChange = changedFields.get( field );
             if ( lastChange instanceof ValueChange ) {
@@ -205,6 +212,9 @@ public class Change<T> {
     }
     
     FieldChange getFieldChange( String field ) {
+        if ( changedFields == null ) {
+            initChangedFields();
+        }
         return changedFields.get( field );
     }
     
@@ -222,8 +232,6 @@ public class Change<T> {
     void setSerializedChange( byte[] c ) {
         if ( c != null ) {
             serializedForm = Arrays.copyOf( c, c.length );
-            ChangeDTO<T> dto = ChangeDTO.createChange( serializedForm );
-            changedFields = dto.changedFields;
         }
     }
     
@@ -234,13 +242,31 @@ public class Change<T> {
      */
     @Transient
     public Map<String,FieldChange> getChangedFields() {
+        if ( changedFields == null ) {
+            initChangedFields();
+        }
         return Collections.unmodifiableMap( changedFields );
     }
     
     void setChangedFields( Map<String,FieldChange> changes ) {
         changedFields = changes;
     }
-    
+
+    private void initChangedFields() {
+        if ( serializedForm == null || targetHistory == null ) {
+            throw new RuntimeException( "Cannot initialize changed fields yet" );
+        }
+        try {
+            Class targetClass = Class.forName( targetHistory.getTargetClassName() );
+            ChangeDTO<T> dto = ChangeDTO.createChange( serializedForm, targetClass );
+            changedFields = dto.changedFields;
+        } catch ( ClassNotFoundException ex ) {
+            throw new RuntimeException( "Cannot find class " + 
+                    targetHistory.getTargetClassName(), ex );
+        }
+        
+    }
+
     @ManyToMany( targetEntity=Change.class, cascade=CascadeType.ALL )
     @JoinTable(name = "change_relations",
         joinColumns = {@JoinColumn(name = "child_uuid")},
@@ -327,6 +353,9 @@ public class Change<T> {
      Returns <code>true</code> if this change has unresolved conflicts
      */
     public boolean hasConflicts() {
+        if ( changedFields == null ) {
+            initChangedFields();
+        }
         for ( FieldChange fc : changedFields.values() ) {
             if ( fc.getConflicts().size() > 0 ) {
                 return true;
@@ -341,6 +370,9 @@ public class Change<T> {
      */
     @Transient
     public Collection<FieldConflictBase> getFieldConficts() {
+        if ( changedFields == null ) {
+            initChangedFields();
+        }
         List<FieldConflictBase> conflicts = new ArrayList<FieldConflictBase>();
         for ( FieldChange fc : changedFields.values() ) {
             conflicts.addAll(  fc.getConflicts() );
@@ -362,7 +394,9 @@ public class Change<T> {
         if ( other.targetHistory != targetHistory ) {
             throw new IllegalArgumentException( "Cannot merge changes to separate objects" );
         }
-        
+        if ( changedFields == null ) {
+            initChangedFields();
+        }
         // Find the common ancestor version
         Set<Change> ancestors = new HashSet<Change>();
         for ( Change c = this ; c != null; c = c.getPrevChange() ) {
@@ -462,6 +496,9 @@ public class Change<T> {
      @return The change in which f was modified
      */
     private Change<T> findLastFieldChange( String field, Change<T> start ) {
+        if ( changedFields == null ) {
+            initChangedFields();
+        }
         Change<T> c = start;
         while( !c.changedFields.containsKey( field ) ) {
             c = c.prevChange;
@@ -497,6 +534,9 @@ public class Change<T> {
      @param s
      */
     private void writeFieldChanges( ObjectOutputStream s ) throws IOException {
+        if ( changedFields == null ) {
+            initChangedFields();
+        }
         s.writeInt( changedFields.size() );
         List<String> fieldsSorted = 
                 new ArrayList<String>( changedFields.keySet() );
@@ -509,7 +549,7 @@ public class Change<T> {
     
     private void readFieldChanges( ObjectInputStream s ) throws IOException, ClassNotFoundException {
         int count = s.readInt();
-        changedFields.clear();
+        changedFields = new HashMap<String, FieldChange>();
         for ( int n = 0; n < count; n++ ) {
             String field = (String) s.readObject();
             FieldChange val = (FieldChange) s.readObject();

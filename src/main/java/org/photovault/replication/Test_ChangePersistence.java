@@ -228,8 +228,10 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         ImageFile ifile = new ImageFile();
         ifile.setFileSize( 100000 );
         ifile.setId( UUID.randomUUID() );
+        ifile.setHash( new byte[] {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16});
         UUID ifileUuid = ifile.getId();
         OriginalImageDescriptor orig = new OriginalImageDescriptor( ifile, "image#0" );
+
         Transaction tx = session.beginTransaction();
         session.saveOrUpdate( ifile );
         DTOResolverFactory rf = new HibernateDtoResolverFactory( session );

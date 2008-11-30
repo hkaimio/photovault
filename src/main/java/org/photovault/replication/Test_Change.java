@@ -63,7 +63,11 @@ public class Test_Change {
         public ObjectHistory<TestObject> getHistory() { return cs; };
         
         UUID uuid = UUID.randomUUID();
-        
+
+        TestObject() {
+            cs.setTargetUuid( uuid );
+        }
+
         public Change getVersion() {
             return cs.getVersion();
         }

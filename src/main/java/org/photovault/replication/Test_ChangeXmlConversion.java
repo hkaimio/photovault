@@ -22,6 +22,7 @@ package org.photovault.replication;
 
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
+import org.photovault.imginfo.PhotoInfo;
 import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.*;
 
@@ -35,7 +36,7 @@ public class Test_ChangeXmlConversion {
     @Test
     public void testEmptyUnmarshal() throws UnsupportedEncodingException {
         String xml = "<change targetId=\"cd52f082-63d9-4822-9a71-3358ccd148a8\"  targetClass=\"org.photovault.inginfo.PhotoInfo\"    />";
-        ChangeDTO dto = ChangeDTO.createChange( xml.getBytes( "utf-8" ) );
+        ChangeDTO dto = ChangeDTO.createChange( xml.getBytes( "utf-8" ), null );
         assertEquals( UUID.fromString( "cd52f082-63d9-4822-9a71-3358ccd148a8"), dto.targetUuid );
         assertEquals( "org.photovault.inginfo.PhotoInfo", dto.targetClassName );
         assertEquals( xml.getBytes( "utf-8" ), dto.getXmlData() );
@@ -53,7 +54,7 @@ public class Test_ChangeXmlConversion {
                 +   "<null/>\n" 
                 + "</value-change>\n"
                 + "</change>";
-        ChangeDTO dto = ChangeDTO.createChange( xml.getBytes( "utf-8" ) );
+        ChangeDTO dto = ChangeDTO.createChange( xml.getBytes( "utf-8" ), PhotoInfo.class );
         assertEquals( UUID.fromString( "cd52f082-63d9-4822-9a71-3358ccd148a8"), dto.targetUuid );
         assertEquals( "org.photovault.inginfo.PhotoInfo", dto.targetClassName );
         assertEquals( 2, dto.parentIds.size() );

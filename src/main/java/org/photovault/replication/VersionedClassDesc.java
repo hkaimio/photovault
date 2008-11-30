@@ -27,8 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -52,6 +50,11 @@ public class VersionedClassDesc {
      Interface used for editing the class
      */    
     private Class editorIntf;
+
+    /**
+     * Serialization method used for changes of this class
+     */
+    private ChangeSerializer changeSerializer;
     
     /**
      Method that returns history of the target obejct
@@ -82,6 +85,10 @@ public class VersionedClassDesc {
     public Class getDescribedClass() {
         return clazz;
     }
+
+    public ChangeSerializer getChangeSerializer() {
+        return changeSerializer;
+    }
     
     /**
      Get the class that is used for converting given field between DTO format 
@@ -111,6 +118,14 @@ public class VersionedClassDesc {
         Versioned info = (Versioned) cl.getAnnotation( Versioned.class );
         if ( info != null ) {
             editorIntf = info.editor();
+            Class csClass = info.changeSerializer();
+            try {
+                changeSerializer = (ChangeSerializer) csClass.newInstance();
+            } catch ( IllegalAccessException ex ) {
+                throw new RuntimeException( ex );
+            } catch ( InstantiationException ex ) {
+                throw new RuntimeException( ex );
+            }
         }
         for ( Method m : cl.getDeclaredMethods() ) {
             if ( m.isAnnotationPresent( ValueField.class ) )  {
