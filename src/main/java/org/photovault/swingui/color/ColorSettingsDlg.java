@@ -167,16 +167,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     int currentColorCurve = 0;
     
     protected void applyChanges() {
-//        try {
-//            // TODO: Hibernate refactoring
-//            // ctrl.save();
-//            photoChanged = true;
-//        } catch (PhotovaultException ex) {
-//            JOptionPane.showMessageDialog( this, 
-//                    "Error while applying changes:\n" + ex.getMessage(),
-//                    "Error saving changes", JOptionPane.ERROR_MESSAGE );
-//            log.error( "Error while applying changes: " + ex.getMessage() );
-//        }
+        ctrl.save();
+        photoChanged = true;
     }
     
     /**
@@ -184,7 +176,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
      */
     protected void discardChanges() {
         // TODO: Hibernate refactoring
-        // ctrl.discard();
+        ctrl.discard();
     }
     
     static class ModelValueAnnotation extends JPanel {

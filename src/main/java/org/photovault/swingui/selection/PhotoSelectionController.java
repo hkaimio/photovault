@@ -211,9 +211,11 @@ public class PhotoSelectionController extends PersistenceController {
          persistence context before returning from this method.
          */
         CommandChangeListener l = new CommandChangeListener() {
-            public void entityChanged(Object entity) {
-                PhotoInfo changedPhoto = (PhotoInfo) entity;
-                getPersistenceContext().merge( changedPhoto );
+            public void entityChanged( Object entity ) {
+                if ( entity instanceof PhotoInfo ) {
+                    PhotoInfo changedPhoto = (PhotoInfo) entity;
+                    getPersistenceContext().merge( changedPhoto );
+                }
             }
         };
         CommandHandler cmdHandler = getCommandHandler();
