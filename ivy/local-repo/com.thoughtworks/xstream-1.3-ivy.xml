@@ -15,6 +15,7 @@
 
     <publications>
         <artifact name="xstream" ext="jar"/>
+        <artifact name="xpp3" ext="jar"/>
         <artifact name="xstream" type="javadoc" ext="zip"/>
     </publications>
 
