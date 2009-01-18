@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006-2007 Harri Kaimio
+  Copyright (c) 2006-2009 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -124,6 +124,9 @@ public class RawImage extends PhotovaultImage {
      */
     boolean rawIsHalfSized = true;
 
+    /**
+     Raw image with desired exposure & contrast conversion done
+     */
     RenderableOp rawConverter = null;
 
     /**
