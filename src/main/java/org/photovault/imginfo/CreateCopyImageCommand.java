@@ -285,6 +285,8 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
         } catch (PhotovaultException ex) {
             throw new CommandException( ex.getMessage() );
         }
+
+        img.dispose();
         
         /*
          Check if the resulting image file is already known & create a new one

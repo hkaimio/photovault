@@ -20,6 +20,7 @@
 
 package org.photovault.dcraw;
 
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
@@ -27,45 +28,37 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferUShort;
+import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import javax.media.jai.BorderExtender;
 import javax.media.jai.Histogram;
 import javax.media.jai.Interpolation;
 import javax.media.jai.JAI;
 import javax.media.jai.KernelJAI;
 import javax.media.jai.LookupTableJAI;
+import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
+import javax.media.jai.RasterFactory;
 import javax.media.jai.RenderableOp;
-import javax.media.jai.RenderedImageAdapter;
 import javax.media.jai.RenderedOp;
 import javax.media.jai.TiledImage;
 import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
 import javax.media.jai.operator.RenderableDescriptor;
-import javax.media.jai.operator.ScaleDescriptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
 import org.photovault.image.PhotovaultImage;
+import org.photovault.image.RawConvDescriptor;
 
 /**
  Class to represent a raw camera image and set the parameters related to
@@ -73,7 +66,8 @@ import org.photovault.image.PhotovaultImage;
  <p>
  <strong>Image processing steps</strong>
  <p>
- The actual raw image loading and processing up to demosaicing is done with dcraw.
+ The actual raw image loading and processing up to demosaicing is done with LibRaw,
+ which is based on dcraw.
  Since dcraw pipeline may have some nonlinear processing steps (at least when 
  camera ICC profile is used) that are done <em>after</em> color correction the
  resulting image can have color effects that depend in non-desirable way from actual 
@@ -87,14 +81,14 @@ import org.photovault.image.PhotovaultImage;
  <p>
  As a summary, the processing steps done for raw image are
  <ul>
- <li>dcraw loads raw data</li>
- <li>dcraw scales raw channels using daylight multipliers</li>
- <li>draw does demosaicing (using 2x2 box filter if small resolution is enough
+ <li>libraw loads raw data</li>
+ <li>libraw scales raw channels using daylight multipliers</li>
+ <li>libraw does demosaicing (using 2x2 box filter if small resolution is enough
  or AHD interpolation</li>
- <li>dcraw converts to linear sRGB color space using either camera specific color 
+ <li>libraw converts to linear sRGB color space using either camera specific color
  matrix or ICC profile</li>
- <li>This class loads image from dcraw and forms image mipmap for JAI renderable 
- pipeline</li>
+ <li>This class copies the iamge data to Raster, doing box filtering to reduce
+ image size if only low resolution image is needed</li>
  <li>This class finalizes color correction to desired white balance</li>
  <li>This class does exposure & contrast adjustments and converts the image from 
  linear to gamma corrected sRGB color space.</li>
@@ -114,11 +108,6 @@ public class RawImage extends PhotovaultImage {
     ColorProfileDesc colorProfile = null;
     
     /**
-     {@link DCRawProcessWrapper} used for raw conversions
-     */
-    DCRawProcessWrapper dcraw = null;
-    
-    /**
      16 bit linear image returned by dcraw or <code>null</code> if the image
      has not been read or the conversion settings have been changed after
      reading.
@@ -134,7 +123,9 @@ public class RawImage extends PhotovaultImage {
      Is the raw image loaded only half of the actual resolution?
      */
     boolean rawIsHalfSized = true;
-    
+
+    RenderableOp rawConverter = null;
+
     /**
      8 bit gamma corrected version of the image or <code>null</code> if the image
      has not been converted or the conversion settings have been changed after
@@ -341,7 +332,9 @@ public class RawImage extends PhotovaultImage {
      */
     public void setEvCorr( double evCorr ) {
         this.evCorr = evCorr;
-        applyGammaLut();
+        int white = (int) (this.white * Math.pow(  2, evCorr ) );
+        rawConverter.setParameter( white, 0 );
+        applyExposureSettings();
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
     
@@ -367,7 +360,8 @@ public class RawImage extends PhotovaultImage {
      */
     public void setHighlightCompression( double c ) {
         highlightCompression = c;
-        applyGammaLut();
+        rawConverter.setParameter( highlightCompression, 2 );
+        applyExposureSettings();
         fireChangeEvent( new RawImageChangeEvent( this ) );
     }
     
@@ -390,10 +384,12 @@ public class RawImage extends PhotovaultImage {
      */
     public RawImage( File f ) throws PhotovaultException {
         this.f = f;
-        readFileInfo();
+        openRaw();
+        closeRaw();
         // XXX debug
     }
-    
+
+
     /**
      List of {@linkto RawImageChangeListener}s that should be notified about
      changes to this image.
@@ -434,30 +430,57 @@ public class RawImage extends PhotovaultImage {
     }    
     
     /**
+     * Subsampling of the loaded original image
+     */
+    int subsample = 1;
+
+    /**
      *     Get a 8 bit gamma corrected version of the image.
+     * @param minWidth Minimum width for the image that will be rendered
+     * @param minHeight Minimum height for the image that will be rendered
+     * @param isLowQualityAcceptable If true, renderer may use optimizations that
+     * trade off image quality for speed.
      * @return The corrected image
      */
     public RenderableOp getCorrectedImage( int minWidth, int minHeight, 
             boolean isLowQualityAcceptable ) {
 
-        boolean isHalfSizeEnough = 
-                (minWidth * 2 <= width) && ( minHeight * 2 <= height );
-        if ( rawImage == null || ( rawIsHalfSized && !isHalfSizeEnough ) ) {
-            dcraw.setHalfSize( isHalfSizeEnough );
+
+        int maxSubsample = 1;
+        while ( width >= minWidth * 2 * maxSubsample &&
+                height >= minHeight * 2 * maxSubsample ) {
+            maxSubsample *= 2;
+        }
+
+        if ( rawImage == null || maxSubsample < subsample ) {
+            // dcraw.setHalfSize( isHalfSizeEnough );
+            subsample = maxSubsample;
             loadRawImage();
             correctedImage = null;
         }
         if ( correctedImage == null ) {
+            RenderingHints nonCachedHints = new RenderingHints( JAI.KEY_TILE_CACHE, null );
+
+            // TODO: Why setting color model as a rendering hint produces black image???
+            RawConvDescriptor.register();
+            ParameterBlock pb = new ParameterBlockJAI( "RawConv" );
+            pb.setSource( wbAdjustedRawImage, 0 );
+            pb.set( white, 0 );
+            pb.set( black, 1 );
+            pb.set( highlightCompression, 2 );
+            rawConverter = JAI.createRenderable( "RawConv", pb, nonCachedHints );
+            applyExposureSettings();
+
+            // Convert from linear to gamma corrected
             createGammaLut();
             LookupTableJAI jailut = new LookupTableJAI( gammaLut );
-            
-            // TODO: Why setting color model as a rendering hint produces black image???
-            correctedImage  = LookupDescriptor.createRenderable( wbAdjustedRawImage, jailut, null );
+            correctedImage = LookupDescriptor.createRenderable( rawConverter, jailut, null );
             
             // Store the color model of the image
             ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_sRGB );
             cm = new ComponentColorModel( cs, new int[]{8,8,8},
                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE );
+
         }
         return correctedImage;
     }
@@ -476,14 +499,14 @@ public class RawImage extends PhotovaultImage {
     public boolean setMinimumPreferredSize( int minWidth, int minHeight ) {
         boolean needsReload = ( correctedImage == null );
         if ( minWidth*2 > width || minHeight*2 > height ) {
-            dcraw.setHalfSize( false );
+            //dcraw.setHalfSize( false );
             if ( rawIsHalfSized ) {
                 needsReload = true;
                 rawImage = null;
                 correctedImage = null;
             }
         } else {
-            dcraw.setHalfSize( true );
+            //dcraw.setHalfSize( true );
         }
         return needsReload;
     }
@@ -512,50 +535,66 @@ public class RawImage extends PhotovaultImage {
     public ColorModel getCorrectedImageColorModel() {
         return cm;
     }    
-    
+
+
+
     /**
      * Load the raw image using dcraw. No processing is yet done for the image,
      * however, the histogram & white point is calculated.
      */
     private void loadRawImage() {
-        if ( dcraw == null ) {
-            dcraw = new DCRawProcessWrapper();
+        openRaw();
+        if ( lrd == null ) {
+            throw new IllegalStateException( "Called loadRawImage before opening file" );
         }
-        try {
-            if ( colorProfile != null ) {
-                dcraw.setIccProfile( colorProfile.getInstanceFile() );
-            } else {
-                dcraw.setIccProfile( null );
+        lr.libraw_unpack( lrd );
+
+        lr.libraw_dcraw_process( lrd );
+        this.width = lrd.sizes.width;
+        this.height = lrd.sizes.height;
+
+        /*
+         * Copy the raw image to Java raster, using box filter to subsample
+         */
+        int scaledW = width / subsample;
+        int scaledH = height / subsample;
+        short[] buf = new short[scaledW*scaledH*3];
+        int pos = 0;
+        for ( int row = 0 ; row < scaledH; row++ ) {
+            for ( int col = 0; col < scaledW; col++ ) {
+                int rsum = 0;
+                int gsum = 0;
+                int bsum = 0;
+                for ( int or = row * subsample ; or < (row+1)*subsample ; or++ ) {
+                    for ( int oc = col * subsample ; oc < (col+1)*subsample ; oc++ ) {
+                        int r = lrd.image.getShort( 8 * ( oc + width * or) );
+                        rsum += (r & 0xffff);
+                        int g = lrd.image.getShort( 8 * ( oc + width * or) + 2 );
+                        gsum += (g & 0xffff);
+                        int b = lrd.image.getShort( 8 * ( oc + width * or) + 4 );
+                        bsum += (b & 0xffff);
+                    }
+                }
+                buf[pos++] = (short) (rsum / (subsample * subsample));
+                buf[pos++] = (short) (gsum / (subsample * subsample));
+                buf[pos++] = (short) (bsum / (subsample * subsample));
             }
-            if ( this.chanMultipliers == null ) {
-                chanMultipliers = cameraMultipliers.clone();
-                calcCTemp();
-            }
-            /*
-             The actual raw conversion is done with the moltipliers recommended
-             by camera for daylight. This is done for 2 reasons:
-             - to ensure that the (potentially non-linear) camera ICC profile
-               will be applied in similar way regardless of white balance settings
-             - To speed up interactive color adjustment (no need to caal dcraw every
-               time wb is adjusted
-             */
-            double dl[] = new double[4];
-            dl[0] = daylightMultipliers[0];
-            dl[1] = daylightMultipliers[1];
-            dl[2] = daylightMultipliers[2];
-            dl[3] = daylightMultipliers[1];
-            dcraw.setWbCoeffs( dl );
-            
-            InputStream is = dcraw.getRawImageAsTiff( f );
-            Iterator readers = ImageIO.getImageReadersByFormatName( "TIFF" );
-            ImageReader reader = (ImageReader)readers.next();
-            log.debug( "Creating stream" );
-            ImageInputStream iis = ImageIO.createImageInputStream( is );
-            reader.setInput( iis, false, false );
-            BufferedImage img = reader.read( 0 );
-            
-            // Ensure that the image has the correct color space information
-            WritableRaster r = img.getRaster();
+        }
+        closeRaw();
+
+        DataBuffer db = new DataBufferUShort( buf, buf.length );
+         SampleModel sampleModel =
+                RasterFactory.createPixelInterleavedSampleModel(
+                DataBuffer.TYPE_USHORT,
+                scaledW, scaledH,
+                3, 3 * scaledW, new int[]{0, 1, 2} );
+         WritableRaster r = Raster.createWritableRaster( sampleModel, db, new Point( 0, 0 )  );
+
+        if ( this.chanMultipliers == null ) {
+            chanMultipliers = cameraMultipliers.clone();
+            calcCTemp();
+        }
+
             ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_LINEAR_RGB );
             ColorModel targetCM = new ComponentColorModel( cs, new int[]{16,16,16},
                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_USHORT );
@@ -602,22 +641,23 @@ public class RawImage extends PhotovaultImage {
                 {0.0, colorCorr[1], 0.0, 0.0 },
                 {0.0, 0.0, colorCorr[2], 0.0 }
             };
-            
+
+            RenderingHints nonCachedHints = new RenderingHints( JAI.KEY_TILE_CACHE, null );
             wbAdjustedRawImage = 
                     BandCombineDescriptor.createRenderable( rawImageRenderable, 
-                    colorCorrMat, null );
+                    colorCorrMat, nonCachedHints );
             
-            reader.getImageMetadata( 0 );
-            rawIsHalfSized = dcraw.ishalfSize();
-            
-            createHistogram();
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (PhotovaultException ex) {
-            ex.printStackTrace();
-        }
+//            reader.getImageMetadata( 0 );
+//            rawIsHalfSized = dcraw.ishalfSize();
+//
+//            createHistogram();
+//        } catch (FileNotFoundException ex) {
+//            ex.printStackTrace();
+//        } catch (IOException ex) {
+//            ex.printStackTrace();
+//        } catch (PhotovaultException ex) {
+//            ex.printStackTrace();
+//        }
         
         if ( autoExposeRequested ) {
             doAutoExpose();
@@ -678,7 +718,8 @@ public class RawImage extends PhotovaultImage {
         autoExposeRequested = false;
         // Create a histogram if image luminance
         double lumMat[][] = {{ 0.27, 0.67, 0.06, 0.0 }};
-        RenderedOp lumImg = BandCombineDescriptor.create( rawImage, lumMat, null );
+        RenderingHints nonCachedHints = new RenderingHints( JAI.KEY_TILE_CACHE, null );
+        RenderedOp lumImg = BandCombineDescriptor.create( rawImage, lumMat, nonCachedHints );
         
         int numBins[] = {65536};
         double lowVal[] = {0.};
@@ -717,176 +758,51 @@ public class RawImage extends PhotovaultImage {
         highlightCompression = Math.min( MAX_AUTO_HLIGHT_COMP, 
                 Math.max( MIN_AUTO_HLIGHT_COMP, highlightCompression ) );
     }
-    
-    
-    /**
-     * Read the metadata of the raw file (using dcraw) and set fields of
-     * this objecta based on that.
-     @throws PhotovaultException if dcraw is not initialized properly.
-     */
-    private void readFileInfo() throws PhotovaultException {
-        if ( dcraw == null ) {
-            dcraw = new DCRawProcessWrapper();
+
+    LibRawData lrd;
+    LibRaw lr = LibRaw.INSTANCE;
+
+    private void openRaw() {
+        lrd = lr.libraw_init( 0 );
+        if ( lr.libraw_open_file( lrd, f.getAbsolutePath() ) != 0 ) {
+            this.validRawFile = false;
+            return;
         }
-        Map values = null;
-        try {
-            values = dcraw.getFileInfo(f);
-        } catch (IOException ex) {
-            throw new PhotovaultException( ex.getMessage(), ex );
+        validRawFile = true;
+        this.aperture = lrd.other.getAperture();
+        camera = lrd.idata.getMake() + " " + lrd.idata.getModel();
+        filmSpeed = (int) lrd.other.getIsoSpeed();
+        shutterSpeed = lrd.other.getShutterSpeed();
+        width = lrd.sizes.width;
+        height = lrd.sizes.height;
+        timestamp = lrd.other.getTimestamp();
+        focalLength = lrd.other.getFocalLen();
+        daylightMultipliers = new double[4];
+        for ( int n = 0; n< 4; n++ ) {
+            daylightMultipliers[n] = lrd.color.pre_mul[n];
+        }
+        cameraMultipliers = new double[4];
+        for ( int n = 0; n< 4; n++ ) {
+            cameraMultipliers[n] = lrd.color.cam_mul[n];
         }
         
-        if ( values.containsKey( "Decodable with dcraw" ) ) {
-            if ( values.get( "Decodable with dcraw" ).equals( "yes" ) ) {
-                validRawFile = true;
-            } else {
-                // This is not a raw file, don't bother to parse other info
-                return;
-            }
-        }
-        
-        if ( values.containsKey( "Camera" ) ) {
-            camera = (String) values.get( "Camera" );
-        }
-        if ( values.containsKey( "ISO speed") ) {
-            String isoStr = (String) values.get( "ISO speed" );
-            try {
-                filmSpeed = Integer.parseInt( isoStr.trim() );
-            } catch (NumberFormatException ex) {
-                ex.printStackTrace();
-            }
-        }
-        if ( values.containsKey( "Shutter" ) ) {
-            String shutterStr = (String) values.get( "Shutter" );
-            shutterStr = shutterStr.replaceAll( "sec", "" );
-            String fraction[] = shutterStr.split( "/" );
-            try {
-                if ( fraction.length == 1 ) {
-                    shutterSpeed = Double.parseDouble( fraction[0].trim() );
-                } else {
-                    shutterSpeed =
-                            Double.parseDouble( fraction[0].trim() ) /
-                            Double.parseDouble( fraction[1].trim() );
-                }
-            } catch (NumberFormatException ex) {
-                ex.printStackTrace();
-            }
-        }
-        if ( values.containsKey( "Output size" ) ) {
-            String value = (String) values.get( "Output size" );
-            String dims[] = value.split( "x" );
-            if ( dims.length == 2 ) {
-                try {
-                    width = Integer.parseInt( dims[0].trim() );
-                    height = Integer.parseInt( dims[1].trim() );
-                } catch (NumberFormatException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        if ( values.containsKey( "Timestamp" ) ) {
-            String tsStr = (String) values.get( "Timestamp" );
-            DateFormat df = new SimpleDateFormat( "EEE MMM d HH:mm:ss yyyy", Locale.US );
-            try {
-                timestamp = df.parse( tsStr );
-            } catch (ParseException ex) {
-                log.error( ex.getMessage() );
-                ex.printStackTrace();
-            }
-        }
-        if ( values.containsKey( "Embedded ICC profile" ) ) {
-            String str = (String) values.get( "Embedded ICC profile" );
-            this.hasICCProfile = str.trim().equals( "yes" );
-        }
-        if ( values.containsKey( "Aperture" ) ) {
-                /*
-                 Aperture is stored like "f/1.8"
-                 */
-            String str = (String) values.get( "Aperture" );
-            int apertureStart = str.indexOf( "f/" ) + 2;
-            if ( apertureStart >= 2 && apertureStart < str.length() ) {
-                try {
-                    aperture = Double.parseDouble( str.substring( apertureStart ) );
-                } catch (NumberFormatException ex) {
-                    log.error( ex.getMessage() );
-                    ex.printStackTrace();
-                }
-            }
-        }
-        if ( values.containsKey( "Focal Length" ) ) {
-                /*
-                 Focal length is stored like "85 mm" so lets strip the mm off...
-                 */
-            String value = (String) values.get( "Focal Length" );
-            int numberEnd = value.indexOf( "mm" );
-            if ( numberEnd >= 0 ) {
-                value = value.substring( 0, numberEnd ).trim();
-                try {
-                    focalLength = Double.parseDouble( value );
-                } catch (NumberFormatException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        if ( values.containsKey("Daylight multipliers" ) ) {
-                /*
-                 daylight multipliers are 3 floats separated by spaces
-                 */
-            String value = (String) values.get( "Daylight multipliers" );
-            String mstr[] = value.split( " " );
-            daylightMultipliers = new double[mstr.length];
-            for ( int n = 0; n < mstr.length ; n++ ) {
-                try {
-                    daylightMultipliers[n] = Double.parseDouble( mstr[n] );
-                } catch (NumberFormatException ex) {
-                    log.error( ex.getMessage() );
-                    ex.printStackTrace();
-                }
-            }
-        }
-        if ( values.containsKey("Camera multipliers" ) ) {
-                /*
-                 Camera multipliers are 4 floats separated by spaces
-                 */
-            String value = (String) values.get( "Camera multipliers" );
-            String mstr[] = value.split( " " );
-            cameraMultipliers = new double[mstr.length];
-            for ( int n = 0; n < mstr.length ; n++ ) {
-                try {
-                    cameraMultipliers[n] = Double.parseDouble( mstr[n] );
-                } catch (NumberFormatException ex) {
-                    log.error( ex.getMessage() );
-                    ex.printStackTrace();
-                }
-            }
-        } else if ( daylightMultipliers != null ) {
-            /*
-             No camera multipliers in raw file -> use daylight settings as 
-             default color balance 
-             */
-            cameraMultipliers = new double[4];
-            cameraMultipliers[0] = daylightMultipliers[0];
-            cameraMultipliers[1] = daylightMultipliers[1];
-            cameraMultipliers[2] = daylightMultipliers[2];
-            cameraMultipliers[3] = daylightMultipliers[1];
-        } else {
-            /*
-             If there is no daylight balance in the file we cannot set color
-             temperature.
-             */
-            validRawFile = false;
-        }        
     }
-    
+
+    private void closeRaw() {
+        lr.libraw_close( lrd );
+        lrd = null;
+    }
+
     /**
      Calculate the gamma correction lookup table using current exposure & white
      point settings.
      */
     private void createGammaLut() {
-        double dw = white;
-        double exposureMult = Math.pow( 2, evCorr );
+        double dw = 65535;
+        double exposureMult = Math.pow( 2, 0 );
         for ( int n = 0; n < gammaLut.length; n++ ) {
             double r = exposureMult*((double)(n-black))/dw;
-            double whiteLum = Math.pow( 2, highlightCompression );
+            double whiteLum = Math.pow( 2, 0 );
             // compress highlights
             r = (r*(1+(r/(whiteLum*whiteLum))))/(1+r);
             double val = (r <= 0.018) ? r*4.5 : Math.pow(r,0.45)*1.099-0.099;
@@ -902,12 +818,18 @@ public class RawImage extends PhotovaultImage {
             gammaLut[n] = (byte)(intVal);
         }
     }
-    
-    private void applyGammaLut() {
-        createGammaLut();
-        LookupTableJAI jailut = new LookupTableJAI( gammaLut );
-        if ( correctedImage != null ) {
-            correctedImage.setParameter( jailut, 0 );
+
+    /**
+     * Apply the exposure settings (black level, white level, highlight
+     * compression to rawConverter
+     */
+    private void applyExposureSettings() {
+
+        if ( rawConverter != null ) {
+            int w = (int)(white * Math.pow( 2, -evCorr ) );
+            rawConverter.setParameter( w, 0 );
+            rawConverter.setParameter( black, 1 );
+            rawConverter.setParameter( highlightCompression, 2 );
         }
     }
     
@@ -1089,6 +1011,7 @@ public class RawImage extends PhotovaultImage {
      */
     public RawConversionSettings getRawSettings() {
         if ( rawImage == null ) {
+            subsample = 4;
             loadRawImage();
             doAutoExpose();
         }
@@ -1157,7 +1080,7 @@ public class RawImage extends PhotovaultImage {
         highlightCompression = s.getHighlightCompression();
         white = s.getWhite();
         black = s.getBlack();
-        applyGammaLut();
+        applyExposureSettings();
         hasICCProfile = s.getUseEmbeddedICCProfile();
         colorProfile = s.getColorProfile();        
         

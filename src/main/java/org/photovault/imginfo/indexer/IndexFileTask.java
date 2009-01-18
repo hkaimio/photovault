@@ -288,6 +288,7 @@ public class IndexFileTask extends BackgroundTask {
             return;
         }
 
+        img.dispose();
         currentEvent.setPhoto( null );        
         log.debug( "exit: indexFile " + f.getAbsolutePath() );
         ifile = cmd.getImageFile();

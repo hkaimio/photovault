@@ -201,9 +201,14 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
         PhotovaultCommandHandler cmdHandler = new PhotovaultCommandHandler( session );
         cmdHandler.addCommandListener( this );
         try {
+            log.debug( "Executing task " + task.toString() );
             task.executeTask( session, cmdHandler );
+            log.debug( "Finished executing task " + task.toString() );
         } catch ( Exception e ) {
-            log.warn( e.getMessage() );
+            log.warn( "Exception while executing task " + task.toString(), e );
+            throw e;
+        } catch (Error e ) {
+            log.warn( "Error executing task " + task.toString(), e );
             throw e;
         } finally {
             session.close(  );

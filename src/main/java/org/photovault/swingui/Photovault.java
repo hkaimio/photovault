@@ -21,6 +21,7 @@
 package org.photovault.swingui;
 
 import com.sun.media.jai.util.SunTileCache;
+import com.sun.media.jai.util.SunTileScheduler;
 import java.awt.Dimension;
 import java.util.Collection;
 import javax.media.jai.JAI;
@@ -36,6 +37,7 @@ import org.photovault.common.SchemaUpdateAction;
 import org.photovault.common.SchemaUpdateEvent;
 import org.photovault.common.SchemaUpdateListener;
 import java.net.URL;
+import javax.media.jai.TileScheduler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PVDatabase;
@@ -162,13 +164,15 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
          If <code>true</code> open the TileCacheTool window. This can be set by the
          -d command line argument.
          */
-        public static boolean debugTileCache = false;
+        public static boolean debugTileCache = true;
         /**
          Initialize Java Advanced Imaging.
          */
         public static void initJAI() {
             JAI jaiInstance = JAI.getDefaultInstance();
             jaiInstance.setTileCache( new SunTileCache( 100*1024*1024 ) );
+            TileScheduler sched = new SunTileScheduler( 4, 0, 4, 0 );
+            jaiInstance.setTileScheduler( sched );
             JAI.setDefaultTileSize( new Dimension( 256, 256 ) );
         /*
          Not sure how much this helps in practice - Photovault still seems to use
