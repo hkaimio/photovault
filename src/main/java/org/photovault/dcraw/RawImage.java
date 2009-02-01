@@ -450,11 +450,12 @@ public class RawImage extends PhotovaultImage {
 
 
         int maxSubsample = 1;
-        while ( width >= minWidth * 2 * maxSubsample &&
-                height >= minHeight * 2 * maxSubsample ) {
-            maxSubsample *= 2;
+        if ( minWidth > 0 && minHeight > 0 ) {
+            while ( width >= minWidth * 2 * maxSubsample &&
+                    height >= minHeight * 2 * maxSubsample ) {
+                maxSubsample *= 2;
+            }
         }
-
         if ( rawImage == null || maxSubsample < subsample ) {
             // dcraw.setHalfSize( isHalfSizeEnough );
             subsample = maxSubsample;

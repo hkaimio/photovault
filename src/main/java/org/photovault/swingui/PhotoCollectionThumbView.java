@@ -615,6 +615,10 @@ public class PhotoCollectionThumbView
         log.debug( "starting to draw" );
         // Find the position for the thumbnail
         BufferedImage img = thumbnail.getImage();
+        if ( img == null ) {
+            thumbnail = Thumbnail.getDefaultThumbnail();
+            img = thumbnail.getImage();
+        }
         if ( img.getWidth() > columnWidth || img.getHeight() > rowHeight ) {
             /*
              If the image is too large for the space reserved for thumbnail, crop
