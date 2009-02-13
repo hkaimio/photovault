@@ -52,7 +52,7 @@ public class CurrentFolderIndexer implements TaskProducer {
     /**
      State of the indexing
      */
-    enum IndexingPhase {
+    public enum IndexingPhase {
         /**
          No folder is being indexed
          */
@@ -139,6 +139,40 @@ public class CurrentFolderIndexer implements TaskProducer {
         }
         
         return ret;
+    }
+
+
+    public IndexingPhase getState() {
+        return phase;
+    }
+
+    /**
+     * Get the folder that is currently being indexed
+     * @return The folder that is currently being indexed. If state is
+     * {@link IndexingPhase.INACTIVE} or {@link IndexingPhase.COMPLETE} return
+     * value is undefined.
+     */
+    public PhotoFolder getCurrentFolder() {
+        return currentFolder;
+    }
+
+    /**
+     * Get the progress of indexing current directory
+     * @return How many percents of the files in the current directory have been
+     * indexed (0..100)
+     */
+    public int getPercentComplete() {
+        switch ( phase ) {
+            case INACTIVE:
+            case NOT_STARTED:
+            case TREE_INDEX:
+                return 0;
+            case FILE_INDEX:
+                return currentIndexer.getPercentComplete();
+            case COMPLETE:
+                return 100;
+        }
+        return 0;
     }
 
 }

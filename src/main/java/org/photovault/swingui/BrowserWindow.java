@@ -46,8 +46,11 @@ import org.photovault.swingui.indexer.BackgroundIndexer;
 import org.photovault.swingui.indexer.CurrentFolderIndexer;
 import org.photovault.swingui.indexer.IndexerFileChooser;
 import org.photovault.swingui.indexer.UpdateIndexAction;
+import org.photovault.swingui.taskscheduler.BackgroundTaskListener;
 import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
 import org.photovault.swingui.taskscheduler.TaskPriority;
+import org.photovault.taskscheduler.BackgroundTask;
+import org.photovault.taskscheduler.TaskProducer;
 
 public class BrowserWindow extends AbstractController {
 
@@ -74,10 +77,38 @@ public class BrowserWindow extends AbstractController {
     public BrowserWindow( AbstractController parent, final List<PhotoInfo> initialPhotos ) {
         super( parent );
         window = new JFrame( "Photovault Browser");
+        SwingWorkerTaskScheduler taskScheduler = 
+                (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
         folderIndexer = new CurrentFolderIndexer(
-                Photovault.getInstance().getTaskScheduler(), 
-                (PhotovaultCommandHandler) getCommandHandler() );
+                taskScheduler, (PhotovaultCommandHandler) getCommandHandler() );
         createUI( null );
+
+        taskScheduler.addTaskListener( folderIndexer, new BackgroundTaskListener() {
+
+            public void taskExecuted( TaskProducer producer, BackgroundTask task ) {
+                StringBuffer msgBuf = new StringBuffer();
+                CurrentFolderIndexer indexer = (CurrentFolderIndexer) producer;
+                if ( indexer.getState() == CurrentFolderIndexer.IndexingPhase.FILE_INDEX ) {
+                    PhotoFolder f = indexer.getCurrentFolder();
+                    msgBuf.append( "Indexing " ).append( f.getName() ).append( "... " );
+                    msgBuf.append( indexer.getPercentComplete() ).append( "% complete" );
+                }
+                statusBar.statusChanged(
+                        new StatusChangeEvent( indexer, msgBuf.toString() ) );
+            }
+
+            public void taskProducerFinished( TaskProducer producer ) {
+                StringBuffer msgBuf = new StringBuffer();
+                CurrentFolderIndexer indexer = (CurrentFolderIndexer) producer;
+                if ( indexer.getState() == CurrentFolderIndexer.IndexingPhase.FILE_INDEX ) {
+                    PhotoFolder f = indexer.getCurrentFolder();
+                    msgBuf.append( "Indexed " ).append( f.getName() );
+                }
+                statusBar.statusChanged(
+                        new StatusChangeEvent( indexer, msgBuf.toString() ) );
+            }
+        } );
+
         if ( initialPhotos != null ) {
             viewPane.setPhotos( initialPhotos );
             SwingUtilities.invokeLater(new java.lang.Runnable() {
