@@ -42,6 +42,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import org.jdesktop.jxlayer.JXLayer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandExecutedEvent;
@@ -83,6 +84,10 @@ public class PhotoViewController extends PersistenceController {
     private JScrollPane thumbScroll;
 
     private JPanel collectionPane;
+
+    private JXLayer<JScrollPane> scrollLayer;
+
+    private ProgressIndicatorLayer progressLayer;
     
     /**
      Photos currently in model.
@@ -123,9 +128,13 @@ public class PhotoViewController extends PersistenceController {
         thumbScroll = new JScrollPane( thumbPane );
         thumbPane.setBackground( Color.WHITE );
         thumbScroll.getViewport().setBackground( Color.WHITE );
-        
+
+        scrollLayer = new JXLayer<JScrollPane>( thumbScroll );
+        progressLayer = new ProgressIndicatorLayer();
+        scrollLayer.setUI( progressLayer );
+
         collectionPane = new JPanel();
-        collectionPane.add( thumbScroll );
+        collectionPane.add( scrollLayer );
         collectionPane.add( previewPane );
         setupLayoutPreviewWithHorizontalIcons();
         
@@ -149,6 +158,8 @@ public class PhotoViewController extends PersistenceController {
      * Comparator used to sort photos visible in thumbnail view
      */
     Comparator photoComparator;
+
+
 
     /**
      * Set the comparator used to sort photos in thumbnail view
@@ -321,12 +332,12 @@ public class PhotoViewController extends PersistenceController {
         c.gridx = 0;
 
         // Minimum size is the size of one thumbnail
-        thumbScroll.setMinimumSize( new Dimension( 170, 150 ));
-        thumbScroll.setPreferredSize( new Dimension( 170, 150 ));
+        scrollLayer.setMinimumSize( new Dimension( 170, 150 ));
+        scrollLayer.setPreferredSize( new Dimension( 170, 150 ));
         thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
-        thumbScroll.setVisible( true );
-        layout.setConstraints( thumbScroll, c );
+        scrollLayer.setVisible( true );
+        layout.setConstraints( scrollLayer, c );
         thumbPane.setColumnCount( 1 );
         
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -355,10 +366,10 @@ public class PhotoViewController extends PersistenceController {
         // Minimum size is the size of one thumbnail
         thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
-        thumbScroll.setMinimumSize( new Dimension( 150, 180 ));
-        thumbScroll.setPreferredSize( new Dimension( 150, 180 ));
-        thumbScroll.setVisible( true );
-        layout.setConstraints( thumbScroll, c );
+        scrollLayer.setMinimumSize( new Dimension( 150, 180 ));
+        scrollLayer.setPreferredSize( new Dimension( 150, 180 ));
+        scrollLayer.setVisible( true );
+        layout.setConstraints( scrollLayer, c );
         thumbPane.setRowCount( 1 );
         
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -386,9 +397,9 @@ public class PhotoViewController extends PersistenceController {
         // Minimum size is the size of one thumbnail
         thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
-        thumbScroll.setMinimumSize( new Dimension( 150, 200 ));
-        thumbScroll.setVisible( true );
-        layout.setConstraints( thumbScroll, c );
+        scrollLayer.setMinimumSize( new Dimension( 150, 200 ));
+        scrollLayer.setVisible( true );
+        layout.setConstraints( scrollLayer, c );
         thumbPane.setRowCount( -1 );
         thumbPane.setColumnCount( -1 );
         
@@ -431,7 +442,14 @@ public class PhotoViewController extends PersistenceController {
     public SwingWorkerTaskScheduler getBackgroundTaskScheduler() {
         return (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
     }
-    
+
+    void setIndexingOngoing( boolean isOngoing ) {
+        progressLayer.setInProgress( isOngoing );
+    }
+
+    void setIndexingPercentComplete( int percentComplete ) {
+        progressLayer.setPercentComplete( percentComplete );
+    }
     /**
      Get the component showing thumbnails
      */

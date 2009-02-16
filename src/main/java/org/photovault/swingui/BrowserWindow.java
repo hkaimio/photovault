@@ -92,9 +92,11 @@ public class BrowserWindow extends AbstractController {
                     PhotoFolder f = indexer.getCurrentFolder();
                     msgBuf.append( "Indexing " ).append( f.getName() ).append( "... " );
                     msgBuf.append( indexer.getPercentComplete() ).append( "% complete" );
+                    viewCtrl.setIndexingPercentComplete( indexer.getPercentComplete() );
                 }
                 statusBar.statusChanged(
                         new StatusChangeEvent( indexer, msgBuf.toString() ) );
+                
             }
 
             public void taskProducerFinished( TaskProducer producer ) {
@@ -106,6 +108,7 @@ public class BrowserWindow extends AbstractController {
                 }
                 statusBar.statusChanged(
                         new StatusChangeEvent( indexer, msgBuf.toString() ) );
+                viewCtrl.setIndexingOngoing( false );
             }
         } );
 
@@ -172,6 +175,7 @@ public class BrowserWindow extends AbstractController {
                     viewCtrl.setCollection( f );
                     if ( f.getExternalDir() != null ) {
                         folderIndexer.updateFolder( f );
+                        viewCtrl.setIndexingOngoing( true );
                     }
                 }
             }            
