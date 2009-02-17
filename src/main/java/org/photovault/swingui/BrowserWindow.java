@@ -135,67 +135,69 @@ public class BrowserWindow extends AbstractController {
     
     protected void createUI( PhotoCollection collection ) {
         window.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	tabPane = new JTabbedPane();
-	queryPane = new QueryPane();
+        tabPane = new JTabbedPane();
+        queryPane = new QueryPane();
         PhotoFolderTreeController treeCtrl = new PhotoFolderTreeController( window, this );
         viewCtrl = new PhotoViewController( window, this );
-	treePane = treeCtrl.folderTree;
+        treePane = treeCtrl.folderTree;
         viewPane = viewCtrl.getThumbPane();
         previewPane = viewCtrl.getPreviewPane();
-	tabPane.addTab( "Query", queryPane );
-	tabPane.addTab( "Folders", treePane );
-	//	viewPane = new TableCollectionView();
-        
+        tabPane.addTab( "Query", queryPane );
+        tabPane.addTab( "Folders", treePane );
+        //	viewPane = new TableCollectionView();
+
         // TODO: get rid of this!!!!
-        EditSelectionColorsAction colorAction = 
+        EditSelectionColorsAction colorAction =
                 (EditSelectionColorsAction) viewPane.getEditSelectionColorsAction();
         colorAction.setPreviewCtrl( previewPane );
 
-	// Set listeners to both query and folder tree panes
+        // Set listeners to both query and folder tree panes
 
-	/*
-	  If an actionEvent comes from query pane, swich to query results.
-	*/
-        queryPane.addActionListener( new ActionListener(  ) {
+        /*
+        If an actionEvent comes from query pane, swich to query results.
+         */
+        queryPane.addActionListener( new ActionListener() {
 
             public void actionPerformed( ActionEvent e ) {
-                viewCtrl.setCollection( queryPane.getResultCollection(  ) );
+                viewCtrl.setCollection( queryPane.getResultCollection() );
             }
         } );
-        
+
         /*
-          If the selected folder is changed in treePane, switch to that immediately
+        If the selected folder is changed in treePane, switch to that immediately
          */
-        
+
         treeCtrl.registerEventListener( PhotoFolderTreeEvent.class,
-                new DefaultEventListener<PhotoFolder>(){
-            public void handleEvent(DefaultEvent<PhotoFolder> event) {
-                PhotoFolder f = event.getPayload();
-                if ( f != null ) {
-                    viewCtrl.setCollection( f );
-                    if ( f.getExternalDir() != null ) {
-                        folderIndexer.updateFolder( f );
-                        viewCtrl.setIndexingOngoing( true );
+                new DefaultEventListener<PhotoFolder>() {
+
+                    public void handleEvent( DefaultEvent<PhotoFolder> event ) {
+                        PhotoFolder f = event.getPayload();
+                        if ( f != null ) {
+                            viewCtrl.setCollection( f );
+                            if ( f.getExternalDir() != null ) {
+                                folderIndexer.updateFolder( f );
+                                viewCtrl.setIndexingOngoing( true );
+                            }
+                        }
                     }
-                }
-            }            
-        });
-        
+                } );
+
         collectionPane = viewCtrl.getCollectionPane();
-                
-	JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );
+
+        JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );
         split.putClientProperty( JSplitPane.ONE_TOUCH_EXPANDABLE_PROPERTY, new Boolean( true ) );
         Container cp = window.getContentPane();
-	cp.setLayout( new BorderLayout() );
-	cp.add( split, BorderLayout.CENTER );
+        cp.setLayout( new BorderLayout() );
+        cp.add( split, BorderLayout.CENTER );
 
         statusBar = new StatusBar();
         cp.add( statusBar, BorderLayout.SOUTH );
-        
+
         // Create actions for BrowserWindow UI
 
         ImageIcon indexDirIcon = getIcon( "index_dir.png" );
         DefaultAction indexDirAction = new DefaultAction( "Index directory...", indexDirIcon ) {
+
             public void actionPerformed( ActionEvent e ) {
                 indexDir();
             }
@@ -204,24 +206,25 @@ public class BrowserWindow extends AbstractController {
         indexDirAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Index all images in a directory" );
         this.registerAction( "new_ext_vol", indexDirAction );
-        
-        
+
+
         ImageIcon importIcon = getIcon( "import.png" );
         importAction = new AbstractAction( "Import image...", importIcon ) {
+
             public void actionPerformed( ActionEvent e ) {
                 importFile();
             }
         };
         importAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_O );
-        importAction.putValue( AbstractAction.ACCELERATOR_KEY, 
-                KeyStroke.getKeyStroke( KeyEvent.VK_O, 
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ));
-        
+        importAction.putValue( AbstractAction.ACCELERATOR_KEY,
+                KeyStroke.getKeyStroke( KeyEvent.VK_O,
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ) );
+
         importAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Import new image into database" );
-        
+
         ImageIcon updateIcon = getIcon( "update_indexed_dirs.png" );
-        UpdateIndexAction updateIndexAction = new UpdateIndexAction( viewCtrl, 
+        UpdateIndexAction updateIndexAction = new UpdateIndexAction( viewCtrl,
                 "Update indexed dirs",
                 updateIcon, "Check for changes in previously indexed directories",
                 KeyEvent.VK_U );
@@ -230,19 +233,21 @@ public class BrowserWindow extends AbstractController {
 
         ImageIcon previewTopIcon = getIcon( "view_preview_top.png" );
         DefaultAction previewTopAction = new DefaultAction( "Preview on top", previewTopIcon ) {
+
             public void actionPerformed( ActionEvent e ) {
-                viewCtrl.setupLayoutPreviewWithHorizontalIcons();
+                viewCtrl.setLayout( PhotoViewController.Layout.PREVIEW_HORIZONTAL_THUMBS );
             }
         };
         previewTopAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show preview on top of thumbnails" );
         previewTopAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_T );
         this.registerAction( "view_preview_top", previewTopAction );
-        
+
         ImageIcon previewRightIcon = getIcon( "view_preview_right.png" );
         DefaultAction previewRightAction = new DefaultAction( "Preview on right", previewRightIcon ) {
+
             public void actionPerformed( ActionEvent e ) {
-                viewCtrl.setupLayoutPreviewWithVerticalIcons();
+                viewCtrl.setLayout( PhotoViewController.Layout.PREVIEW_VERTICAL_THUMBS );
             }
         };
         previewRightAction.putValue( AbstractAction.SHORT_DESCRIPTION,
@@ -252,135 +257,155 @@ public class BrowserWindow extends AbstractController {
 
         ImageIcon previewNoneIcon = getIcon( "view_no_preview.png" );
         DefaultAction previewNoneAction = new DefaultAction( "No preview", previewNoneIcon ) {
+
             public void actionPerformed( ActionEvent e ) {
-                viewCtrl.setupLayoutNoPreview();
+                viewCtrl.setLayout( PhotoViewController.Layout.ONLY_THUMBS );
             }
         };
         previewNoneAction.putValue( AbstractAction.SHORT_DESCRIPTION,
                 "Show no preview image" );
         previewNoneAction.putValue( AbstractAction.MNEMONIC_KEY, KeyEvent.VK_O );
         this.registerAction( "view_no_preview", previewNoneAction );
-        
+
+        DefaultAction previewLargeAction = new DefaultAction( "Large", null ) {
+
+            public void actionPerformed( ActionEvent e ) {
+                viewCtrl.setPreviewSize( 200 );
+            }
+        };
+        DefaultAction previewSmallAction = new DefaultAction( "Small", null ) {
+
+            public void actionPerformed( ActionEvent e ) {
+                viewCtrl.setPreviewSize( 100 );
+            }
+        };
+
         JToolBar tb = createToolbar();
         cp.add( tb, BorderLayout.NORTH );
-        
-	// Create the menu bar & menus
-	JMenuBar menuBar = new JMenuBar();
-	window.setJMenuBar( menuBar );
-	// File menu
-	JMenu fileMenu = new JMenu( "File" );
-	fileMenu.setMnemonic(KeyEvent.VK_F);
-	menuBar.add( fileMenu );
-	
-	JMenuItem newWindowItem = new JMenuItem( "New window", KeyEvent.VK_N );
+
+        // Create the menu bar & menus
+        JMenuBar menuBar = new JMenuBar();
+        window.setJMenuBar( menuBar );
+        // File menu
+        JMenu fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
+        menuBar.add( fileMenu );
+
+        JMenuItem newWindowItem = new JMenuItem( "New window", KeyEvent.VK_N );
         newWindowItem.setIcon( getIcon( "window_new.png" ) );
-	newWindowItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    BrowserWindow br = new BrowserWindow( getParentController(), null );
-		    //		    br.setVisible( true );
-		}
-	    });
-	fileMenu.add( newWindowItem );
+        newWindowItem.addActionListener( new ActionListener() {
 
-	JMenuItem importItem = new JMenuItem( importAction );
-	fileMenu.add( importItem );
+            public void actionPerformed( ActionEvent e ) {
+                BrowserWindow br = new BrowserWindow( getParentController(), null );
+            //		    br.setVisible( true );
+            }
+        } );
+        fileMenu.add( newWindowItem );
 
-	JMenuItem indexDirItem = new JMenuItem( indexDirAction );
+        JMenuItem importItem = new JMenuItem( importAction );
+        fileMenu.add( importItem );
+
+        JMenuItem indexDirItem = new JMenuItem( indexDirAction );
         fileMenu.add( indexDirItem );
-        
+
         fileMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "update_indexed_dirs" ) ) );
-        
-        ExportSelectedAction exportAction = 
+
+        ExportSelectedAction exportAction =
                 (ExportSelectedAction) viewPane.getExportSelectedAction();
-	JMenuItem exportItem = new JMenuItem( exportAction );
+        JMenuItem exportItem = new JMenuItem( exportAction );
         exportAction.addStatusChangeListener( statusBar );
-	fileMenu.add( exportItem );
+        fileMenu.add( exportItem );
 
         JMenu dbMenu = new JMenu( "Database" );
         dbMenu.setMnemonic( KeyEvent.VK_B );
         dbMenu.setIcon( getIcon( "empty_icon.png" ) );
-        
-        ExportMetadataAction exportMetadata = 
-                new ExportMetadataAction( "Export as XML...", null, 
+
+        ExportMetadataAction exportMetadata =
+                new ExportMetadataAction( "Export as XML...", null,
                 "Export whole database as XML file", KeyEvent.VK_E );
         dbMenu.add( new JMenuItem( exportMetadata ) );
-        
-        ImportXMLAction importMetadata = 
-                new ImportXMLAction( "Import XML data...", null, 
+
+        ImportXMLAction importMetadata =
+                new ImportXMLAction( "Import XML data...", null,
                 "Import data from other Photovault database as XML", KeyEvent.VK_I );
         importMetadata.addStatusChangeListener( statusBar );
         dbMenu.add( new JMenuItem( importMetadata ) );
-        
+
         fileMenu.add( dbMenu );
-        
-	JMenuItem exitItem = new JMenuItem( "Exit", KeyEvent.VK_X );
+
+        JMenuItem exitItem = new JMenuItem( "Exit", KeyEvent.VK_X );
         exitItem.setIcon( getIcon( "exit.png" ) );
-	exitItem.addActionListener( new ActionListener() {
-		public void actionPerformed( ActionEvent e ) {
-		    System.exit( 0 );
-		}
-	    });	
-	fileMenu.add( exitItem );
+        exitItem.addActionListener( new ActionListener() {
+
+            public void actionPerformed( ActionEvent e ) {
+                System.exit( 0 );
+            }
+        } );
+        fileMenu.add( exitItem );
 
         JMenu viewMenu = new JMenu( "View" );
         viewMenu.setMnemonic( KeyEvent.VK_V );
         menuBar.add( viewMenu );
-        
-	JMenuItem vertIconsItem = new JMenuItem( previewRightAction );
-	viewMenu.add( vertIconsItem );
-        
-	JMenuItem horzIconsItem = new JMenuItem( previewTopAction );
-	viewMenu.add( horzIconsItem );
-        
-	JMenuItem noPreviewItem = new JMenuItem( previewNoneAction );
-	viewMenu.add( noPreviewItem );
-        
+
+        JMenuItem vertIconsItem = new JMenuItem( previewRightAction );
+        viewMenu.add( vertIconsItem );
+
+        JMenuItem horzIconsItem = new JMenuItem( previewTopAction );
+        viewMenu.add( horzIconsItem );
+
+        JMenuItem noPreviewItem = new JMenuItem( previewNoneAction );
+        viewMenu.add( noPreviewItem );
+
         JMenuItem nextPhotoItem = new JMenuItem( viewPane.getSelectNextAction() );
-	viewMenu.add( nextPhotoItem );
-        
+        viewMenu.add( nextPhotoItem );
+
         JMenuItem prevPhotoItem = new JMenuItem( viewPane.getSelectPreviousAction() );
-	viewMenu.add( prevPhotoItem );
-        
+        viewMenu.add( prevPhotoItem );
+
+
+        viewMenu.add( new JMenuItem( previewSmallAction ) );
+        viewMenu.add( new JMenuItem( previewLargeAction ) );
+
         JMenu sortMenu = new JMenu( "Sort by" );
         sortMenu.setMnemonic( KeyEvent.VK_S );
         sortMenu.setIcon( getIcon( "empty_icon.png" ) );
         JMenuItem byDateItem = new JMenuItem( new SetPhotoOrderAction( viewCtrl,
-                new ShootingDateComparator(), "Date", null, 
-                "Order photos by date", KeyEvent.VK_D ));
+                new ShootingDateComparator(), "Date", null,
+                "Order photos by date", KeyEvent.VK_D ) );
         sortMenu.add( byDateItem );
         JMenuItem byPlaceItem = new JMenuItem( new SetPhotoOrderAction( viewCtrl,
-                new ShootingPlaceComparator(), "Place", null, 
-                "Order photos by shooting place", KeyEvent.VK_P ));
+                new ShootingPlaceComparator(), "Place", null,
+                "Order photos by shooting place", KeyEvent.VK_P ) );
         sortMenu.add( byPlaceItem );
         JMenuItem byQualityItem = new JMenuItem( new SetPhotoOrderAction( viewCtrl,
-                new QualityComparator(), "Quality", null, 
-                "Order photos by quality", KeyEvent.VK_Q ));
+                new QualityComparator(), "Quality", null,
+                "Order photos by quality", KeyEvent.VK_Q ) );
         sortMenu.add( byQualityItem );
         viewMenu.add( sortMenu );
-        
+
         // Set default ordering by date
         byDateItem.getAction().actionPerformed( new ActionEvent( this, 0, "Setting default" ) );
-	JMenu imageMenu = new JMenu( "Image" );
-	imageMenu.setMnemonic(KeyEvent.VK_I);
-	menuBar.add( imageMenu );
+        JMenu imageMenu = new JMenu( "Image" );
+        imageMenu.setMnemonic( KeyEvent.VK_I );
+        menuBar.add( imageMenu );
 
-	imageMenu.add( new JMenuItem( viewPane.getEditSelectionPropsAction() ) );
-	imageMenu.add( new JMenuItem( viewPane.getShowSelectedPhotoAction() ) );
-	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_cw" ) ) );
-	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_ccw" ) ) );
-	imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_180" ) ) );
+        imageMenu.add( new JMenuItem( viewPane.getEditSelectionPropsAction() ) );
+        imageMenu.add( new JMenuItem( viewPane.getShowSelectedPhotoAction() ) );
+        imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_cw" ) ) );
+        imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_ccw" ) ) );
+        imageMenu.add( new JMenuItem( viewCtrl.getActionAdapter( "rotate_180" ) ) );
         imageMenu.add( new JMenuItem( previewPane.getCropAction() ) );
         imageMenu.add( new JMenuItem( viewPane.getEditSelectionColorsAction() ) );
         imageMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
-        
+
         JMenu aboutMenu = new JMenu( "About" );
         aboutMenu.setMnemonic( KeyEvent.VK_A );
         aboutMenu.add( new JMenuItem( new ShowAboutDlgAction( "About Photovault...", null, "", null ) ) );
-        
+
         menuBar.add( Box.createHorizontalGlue() );
         menuBar.add( aboutMenu );
-	window.pack();
-	window.setVisible( true );
+        window.pack();
+        window.setVisible( true );
     }
     
     /**

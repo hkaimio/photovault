@@ -136,7 +136,7 @@ public class PhotoViewController extends PersistenceController {
         collectionPane = new JPanel();
         collectionPane.add( scrollLayer );
         collectionPane.add( previewPane );
-        setupLayoutPreviewWithHorizontalIcons();
+        setLayout( Layout.PREVIEW_HORIZONTAL_THUMBS );
         
         /*
          Register action so that we are notified of changes to currently 
@@ -177,6 +177,8 @@ public class PhotoViewController extends PersistenceController {
     Comparator getPhotoComparator() {
         return photoComparator;
     }
+
+
 
     /**
      * Update the thumb view to show photos is the {@link #photos} collections,
@@ -316,12 +318,44 @@ public class PhotoViewController extends PersistenceController {
     public Collection getSelection() {
         return thumbPane.getSelection();
     }
-    
+
+
+    public enum Layout {
+        PREVIEW_VERTICAL_THUMBS,
+        PREVIEW_HORIZONTAL_THUMBS,
+        ONLY_PREVIEW,
+        ONLY_THUMBS
+    };
+
+    private Layout layout;
+
+    public void setLayout( Layout layout ) {
+        this.layout = layout;
+        switch( layout ) {
+            case ONLY_PREVIEW:
+                setupLayoutNoThumbs();
+                break;
+            case ONLY_THUMBS:
+                setupLayoutNoPreview();
+                break;
+            case PREVIEW_HORIZONTAL_THUMBS:
+                setupLayoutPreviewWithHorizontalIcons();
+                break;
+            case PREVIEW_VERTICAL_THUMBS:
+                setupLayoutPreviewWithVerticalIcons();
+                break;
+        }
+    }
+
+    public Layout getLayout() {
+        return layout;
+    }
+
     /**
      * Sets up the window layout so that the collection is displayed as one vertical
      * column with preview image on right
      */
-    protected void setupLayoutPreviewWithVerticalIcons() {
+    private void setupLayoutPreviewWithVerticalIcons() {
         GridBagLayout layout = new GridBagLayout();
         collectionPane.setLayout( layout );
 
@@ -332,8 +366,12 @@ public class PhotoViewController extends PersistenceController {
         c.gridx = 0;
 
         // Minimum size is the size of one thumbnail
-        scrollLayer.setMinimumSize( new Dimension( 170, 150 ));
-        scrollLayer.setPreferredSize( new Dimension( 170, 150 ));
+        int thumbColWidth = thumbPane.getColumnWidth();
+        int thumbRowHeight = thumbPane.getRowHeight();
+        scrollLayer.setMinimumSize( 
+                new Dimension( thumbColWidth + 20, thumbRowHeight ));
+        scrollLayer.setPreferredSize( 
+                new Dimension( thumbColWidth + 20, thumbRowHeight ));
         thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
         scrollLayer.setVisible( true );
@@ -353,7 +391,7 @@ public class PhotoViewController extends PersistenceController {
      * Sets up the window layout so that the collection is displayed as one horizontal
      * row with preview image above it.
      */
-    protected void setupLayoutPreviewWithHorizontalIcons() {
+    private void setupLayoutPreviewWithHorizontalIcons() {
         GridBagLayout layout = new GridBagLayout();
         collectionPane.setLayout( layout );
         
@@ -364,10 +402,14 @@ public class PhotoViewController extends PersistenceController {
         c.gridy = 1;
 
         // Minimum size is the size of one thumbnail
+        int thumbColWidth = thumbPane.getColumnWidth();
+        int thumbRowHeight = thumbPane.getRowHeight();
         thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
-        scrollLayer.setMinimumSize( new Dimension( 150, 180 ));
-        scrollLayer.setPreferredSize( new Dimension( 150, 180 ));
+        scrollLayer.setMinimumSize( 
+                new Dimension( thumbColWidth, thumbRowHeight+30 ));
+        scrollLayer.setPreferredSize( 
+                new Dimension( thumbColWidth, thumbRowHeight+30 ));
         scrollLayer.setVisible( true );
         layout.setConstraints( scrollLayer, c );
         thumbPane.setRowCount( 1 );
@@ -384,7 +426,7 @@ public class PhotoViewController extends PersistenceController {
     /**
      Hide the preview pane
      */
-    public void setupLayoutNoPreview() {
+    private void setupLayoutNoPreview() {
         GridBagLayout layout = new GridBagLayout();
         collectionPane.setLayout( layout );
 
@@ -397,7 +439,10 @@ public class PhotoViewController extends PersistenceController {
         // Minimum size is the size of one thumbnail
         thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
-        scrollLayer.setMinimumSize( new Dimension( 150, 200 ));
+        int thumbColWidth = thumbPane.getColumnWidth();
+        int thumbRowHeight = thumbPane.getRowHeight();
+        scrollLayer.setMinimumSize(
+                new Dimension( thumbColWidth, thumbRowHeight+50));
         scrollLayer.setVisible( true );
         layout.setConstraints( scrollLayer, c );
         thumbPane.setRowCount( -1 );
@@ -410,7 +455,7 @@ public class PhotoViewController extends PersistenceController {
     /**
      Show only preview image, no thumbnail pane.
      */
-    public void setupLayoutNoThumbs() {
+    private void setupLayoutNoThumbs() {
         GridBagLayout layout = new GridBagLayout();
         collectionPane.setLayout( layout );
         
@@ -438,6 +483,10 @@ public class PhotoViewController extends PersistenceController {
         getView().validate();
     }
     
+    void setPreviewSize( int width ) {
+        thumbPane.setThumbWidth( width );
+        setLayout( layout );
+    }
     
     public SwingWorkerTaskScheduler getBackgroundTaskScheduler() {
         return (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();

@@ -166,7 +166,8 @@ public class PhotoCollectionThumbView
     public List<PhotoInfo> getPhotos() {
         return Collections.unmodifiableList( photos );
     }
-    
+
+
     /**
        Removes all change listeners this photo has added, repopulates the photos array
        from current photoCollection and adds change listeners to all photos in it.
@@ -249,7 +250,19 @@ public class PhotoCollectionThumbView
             new ArrayList<SelectionChangeListener>();
     
     int columnWidth = 150;
+
+    public int getColumnWidth() {
+        return columnWidth;
+    }
+
     int rowHeight = 150;
+
+    public int getRowHeight() {
+        return rowHeight;
+    }
+
+    int thumbWidth = 100;
+    int thumbHeight = 100;
     int columnCount = 1;
     int rowCount = -1;
     int columnsToPaint = 1;
@@ -455,6 +468,15 @@ public class PhotoCollectionThumbView
     public int getRowCount() {
         return rowCount;
     }
+
+    public void setThumbWidth( int width ) {
+        thumbWidth = width;
+        thumbHeight = width;
+        columnWidth = thumbWidth + 50;
+        rowHeight = thumbHeight + 50;
+        revalidate();
+        repaint();
+    }
     
     // Popup menu actions
     private static final String PHOTO_ADD_TO_FOLDER_CMD = "addToFolder";
@@ -619,25 +641,22 @@ public class PhotoCollectionThumbView
             thumbnail = Thumbnail.getDefaultThumbnail();
             img = thumbnail.getImage();
         }
-        if ( img.getWidth() > columnWidth || img.getHeight() > rowHeight ) {
-            /*
-             If the image is too large for the space reserved for thumbnail, crop
-             (yes, this should not be possible but many kinds of miracles do 
-             happen. Also this has happened in some weird test cases!!!
-             */
-            img = img.getSubimage( 0, 0, 
-                    Math.min( img.getWidth(), columnWidth ),
-                    Math.min( img.getHeight(), rowHeight ) );
-        }
-        int x = startx + (columnWidth - img.getWidth())/(int)2;
-        int y = starty + (rowHeight -  img.getHeight())/(int)2;
+
+        float scaleX = ((float) thumbWidth) / ((float) img.getWidth());
+        float scaleY = ((float) thumbHeight) / ((float) img.getHeight());
+        float scale = Math.min(  scaleX, scaleY);
+        int w = (int) (img.getWidth() * scale);
+        int h = (int) (img.getHeight() * scale);
+
+        int x = startx + (columnWidth - w)/(int)2;
+        int y = starty + (rowHeight -  h)/(int)2;
         
         log.debug( "drawing thumbnail" );
 
         // Draw shadow
         int offset = isSelected? 2 : 0;
-        int shadowX[] = { x+3-offset, x+img.getWidth()+1+offset, x+img.getWidth()+1+offset };
-        int shadowY[] = { y+img.getHeight()+1+offset, y+img.getHeight()+1+offset, y+3-offset };
+        int shadowX[] = { x+3-offset, x+w+1+offset, x+w+1+offset };
+        int shadowY[] = { y+h+1+offset, y+h+1+offset, y+3-offset };
         GeneralPath polyline =
                 new GeneralPath(GeneralPath.WIND_EVEN_ODD, shadowX.length);
         polyline.moveTo(shadowX[0], shadowY[0]);
@@ -654,7 +673,7 @@ public class PhotoCollectionThumbView
         g2.setStroke( oldStroke );
 
         // Paint thumbnail
-        g2.drawImage( img, new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
+        g2.drawImage( img, new AffineTransform( scale, 0f, 0f, scale, x, y ), null );
         if ( useOldThumbnail ) {
             creatingThumbIcon.paintIcon( this, g2, 
                         startx + (columnWidth - creatingThumbIcon.getIconWidth())/(int)2,
@@ -666,15 +685,14 @@ public class PhotoCollectionThumbView
             Color prevColor = g2.getColor();
             g2.setStroke( new BasicStroke( 3.0f) );
             g2.setColor( Color.BLUE );
-            g2.drawRect( x, y, img.getWidth(), img.getHeight() );
+            g2.drawRect( x, y, w, h );
             g2.setColor( prevColor );
             g2.setStroke( prevStroke );
         }
         
         thumbDrawnTime = System.currentTimeMillis();
         // Increase ypos so that attributes are drawn under the image
-        ypos += ((int)img.getHeight())/2 + 9;
-        
+        ypos += ((int)h)/2 + 9;
         
         // Draw the attributes
         
@@ -683,18 +701,18 @@ public class PhotoCollectionThumbView
         if ( showQuality && quality != PhotoInfo.QUALITY_UNDEFINED ) {
             ImageIcon qualityIcon = qualityIcons[quality];
             int qx = startx 
-                    + (columnWidth-img.getWidth()-qualityIcon.getIconWidth())/(int)2;
+                    + (columnWidth-w-qualityIcon.getIconWidth())/(int)2;
             int qy = starty
-                    + (rowHeight-img.getHeight()-qualityIcon.getIconHeight())/(int)2;
+                    + (rowHeight-h-qualityIcon.getIconHeight())/(int)2;
             qualityIcon.paintIcon( this, g2, qx, qy );
         }
         
         if ( photo.getRawSettings() != null ) {
             // Draw the "RAW" icon
             int rx = startx 
-                    + (columnWidth+img.getWidth()-rawIcon.getIconWidth())/(int)2 - 5;
+                    + (columnWidth+w-rawIcon.getIconWidth())/(int)2 - 5;
             int ry = starty 
-                    + (columnWidth-img.getHeight()-rawIcon.getIconHeight())/(int)2 + 5;
+                    + (columnWidth-h-rawIcon.getIconHeight())/(int)2 + 5;
             rawIcon.paintIcon( this, g2, rx, ry );
         }
         Color prevBkg = g2.getBackground();
@@ -740,6 +758,7 @@ public class PhotoCollectionThumbView
     }
 
 
+    @Override
     public Dimension getPreferredSize() {
         int prefWidth = 0;
         int prefHeight = 0;
@@ -861,25 +880,28 @@ public class PhotoCollectionThumbView
             log.debug( "Checking bounds" );
 
             // Get thumbnail dimensions or use defaults if no thumbnail available
-            int width = 100;
-            int height = 75;
+            int width = thumbWidth;
+            int height = thumbHeight;
             Thumbnail thumb = null;
-	    if ( photoCandidate.hasThumbnail() ) {
-		thumb = photoCandidate.getThumbnail();
-	    }
+            if ( photoCandidate.hasThumbnail() ) {
+                thumb = photoCandidate.getThumbnail();
+            }
             if ( thumb != null ) {
                 BufferedImage img = thumb.getImage();
-                width = img.getWidth();
-                height = img.getHeight();
+                double scaleW = ((double)thumbWidth) / img.getWidth();
+                double scaleH = ((double)thumbHeight) / img.getHeight();
+                double scale = Math.min( scaleW, scaleH );
+                width = (int) (img.getWidth() * scale);
+                height = (int) (img.getHeight() * scale);
             }
-	    int row = photoNum / columnsToPaint;
-	    int col = photoNum - row*columnsToPaint;
-            int imgX = col * columnWidth + (columnWidth - width)/2;
-            int imgY = row * rowHeight + (rowHeight -  height)/2;
+            int row = photoNum / columnsToPaint;
+            int col = photoNum - row * columnsToPaint;
+            int imgX = col * columnWidth + (columnWidth - width) / 2;
+            int imgY = row * rowHeight + (rowHeight - height) / 2;
             Rectangle imgRect = new Rectangle( imgX, imgY, width, height );
-	    return imgRect;
-	}
-	return null;
+            return imgRect;
+        }
+        return null;
     }
 
     /**
@@ -1413,7 +1435,7 @@ public class PhotoCollectionThumbView
             VolumeDAO volDAO = ctrl.getDAOFactory().getVolumeDAO();
             Volume vol = volDAO.getDefaultVolume();
             final CreateCopyImageCommand cmd = 
-                    new CreateCopyImageCommand( nextPhoto, vol, 100, 100 );
+                    new CreateCopyImageCommand( nextPhoto, vol, 200, 200 );
             return new BackgroundTask() {
                 
                 public void run( ) {

@@ -581,7 +581,7 @@ public class PhotoInfo implements PhotoEditor {
             ImageDescriptorBase img = getPreferredImage(
                     EnumSet.allOf( ImageOperations.class),
                     EnumSet.allOf( ImageOperations.class),
-                    0, 0, 100, 100 );
+                    0, 0, 200, 200 );
             if ( img != null ) {
                 log.debug( "Found thumbnail from database" );
                 // TODO: This must take also locator.

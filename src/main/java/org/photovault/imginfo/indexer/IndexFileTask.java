@@ -301,7 +301,7 @@ public class IndexFileTask extends BackgroundTask {
      */
     private void createPreviewInstances(PhotovaultImage img, PhotoInfo p, DAOFactory f ) throws CommandException {        
         Volume vol = f.getVolumeDAO().getDefaultVolume();
-        CreateCopyImageCommand cmd = new CreateCopyImageCommand( img, p, vol, 100, 100 );
+        CreateCopyImageCommand cmd = new CreateCopyImageCommand( img, p, vol, 200, 200 );
         cmd.setLowQualityAllowed( true );
         cmdHandler.executeCommand( cmd );
     }    
