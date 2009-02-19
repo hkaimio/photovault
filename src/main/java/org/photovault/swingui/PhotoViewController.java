@@ -20,12 +20,15 @@
 
 package org.photovault.swingui;
 
+import abbot.tester.JSpinnerTester;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -37,10 +40,12 @@ import java.util.ListIterator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
 import org.jdesktop.jxlayer.JXLayer;
 import org.apache.commons.logging.Log;
@@ -85,6 +90,8 @@ public class PhotoViewController extends PersistenceController {
 
     private JPanel collectionPane;
 
+    private JSplitPane splitPane;
+
     private JXLayer<JScrollPane> scrollLayer;
 
     private ProgressIndicatorLayer progressLayer;
@@ -104,62 +111,78 @@ public class PhotoViewController extends PersistenceController {
         ImageIcon rotate180DegIcon = getIcon( "rotate_180.png" );
 
 
-        registerAction( "rotate_cw", new RotateSelectedPhotoAction( this, 90, 
-                "Rotate CW",  rotateCWIcon, 
-                "Rotates the selected photo 90 degrees clockwise", KeyEvent.VK_R ) );        
+        registerAction( "rotate_cw", new RotateSelectedPhotoAction( this, 90,
+                "Rotate CW", rotateCWIcon,
+                "Rotates the selected photo 90 degrees clockwise", KeyEvent.VK_R ) );
         registerAction( "rotate_ccw", new RotateSelectedPhotoAction( this, 270,
-                "Rotate CCW",  rotateCCWIcon, 
+                "Rotate CCW", rotateCCWIcon,
                 "Rotates the selected photo 90 degrees counterclockwise", KeyEvent.VK_L ) );
         registerAction( "rotate_180", new RotateSelectedPhotoAction( this, 180,
-                "Rotate 180 degrees",  rotate180DegIcon, 
-                "Rotates the selected photo 180 degrees counterclockwise", KeyEvent.VK_T  ) );
-        
+                "Rotate 180 degrees", rotate180DegIcon,
+                "Rotates the selected photo 180 degrees counterclockwise", KeyEvent.VK_T ) );
+
         // Create the UI controls
-	thumbPane = new PhotoCollectionThumbView( this, null );
+        thumbPane = new PhotoCollectionThumbView( this, null );
         thumbPane.addSelectionChangeListener( new SelectionChangeListener() {
-            public void selectionChanged(SelectionChangeEvent e) {
+
+            public void selectionChanged( SelectionChangeEvent e ) {
                 thumbSelectionChanged( e );
-            }            
-        });
+            }
+        } );
         previewPane = new JAIPhotoViewer( this );
-        
+
         // Create the split pane to display both of these components
-        
+
         thumbScroll = new JScrollPane( thumbPane );
         thumbPane.setBackground( Color.WHITE );
         thumbScroll.getViewport().setBackground( Color.WHITE );
+        thumbScroll.addComponentListener( new ComponentAdapter() {
+            @Override
+            public void componentResized( ComponentEvent e ) {
+                handleThumbAreaResize();
+            }
+        } );
 
         scrollLayer = new JXLayer<JScrollPane>( thumbScroll );
         progressLayer = new ProgressIndicatorLayer();
         scrollLayer.setUI( progressLayer );
 
         collectionPane = new JPanel();
-        collectionPane.add( scrollLayer );
-        collectionPane.add( previewPane );
+        splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
+        collectionPane.add( splitPane );
+        GridBagLayout layout = new GridBagLayout();
+        collectionPane.setLayout( layout );
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 1.0;
+        c.weightx = 1.0;
+        c.gridy = 0;
+        // collectionPane.add( scrollLayer );
+        layout.setConstraints( splitPane, c);
+//        collectionPane.add( previewPane );
         setLayout( Layout.PREVIEW_HORIZONTAL_THUMBS );
-        
+
         /*
-         Register action so that we are notified of changes to currently 
-         displayed folder
+        Register action so that we are notified of changes to currently
+        displayed folder
          */
         registerEventListener( CommandExecutedEvent.class, new DefaultEventListener<DataAccessCommand>() {
-            public void handleEvent(DefaultEvent<DataAccessCommand> event) {
+
+            public void handleEvent( DefaultEvent<DataAccessCommand> event ) {
                 DataAccessCommand cmd = event.getPayload();
                 if ( cmd instanceof ChangePhotoInfoCommand ) {
-                    photoChangeCommandExecuted( (ChangePhotoInfoCommand)cmd );
+                    photoChangeCommandExecuted( (ChangePhotoInfoCommand) cmd );
                 } else if ( cmd instanceof CreateCopyImageCommand ) {
-                    imageCreated( (CreateCopyImageCommand)cmd );
+                    imageCreated( (CreateCopyImageCommand) cmd );
                 }
             }
-        });
+        } );
     }
-
     /**
      * Comparator used to sort photos visible in thumbnail view
      */
     Comparator photoComparator;
-
-
 
     /**
      * Set the comparator used to sort photos in thumbnail view
@@ -177,8 +200,6 @@ public class PhotoViewController extends PersistenceController {
     Comparator getPhotoComparator() {
         return photoComparator;
     }
-
-
 
     /**
      * Update the thumb view to show photos is the {@link #photos} collections,
@@ -356,15 +377,6 @@ public class PhotoViewController extends PersistenceController {
      * column with preview image on right
      */
     private void setupLayoutPreviewWithVerticalIcons() {
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0;
-        c.weightx = 0.0;
-        c.gridx = 0;
-
         // Minimum size is the size of one thumbnail
         int thumbColWidth = thumbPane.getColumnWidth();
         int thumbRowHeight = thumbPane.getRowHeight();
@@ -375,15 +387,22 @@ public class PhotoViewController extends PersistenceController {
         thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
         scrollLayer.setVisible( true );
-        layout.setConstraints( scrollLayer, c );
         thumbPane.setColumnCount( 1 );
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        // c.gridheight = GridBagConstraints.REMAINDER;
-        c.gridx = 1;
-        c.weightx = 1.0;
-        layout.setConstraints( previewPane, c );
         previewPane.setVisible( true );
+        splitPane.remove( previewPane );
+        splitPane.remove( scrollLayer );
+        splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
+        splitPane.setLeftComponent( scrollLayer );
+        splitPane.setRightComponent( previewPane );
+        // Left component should not be resized 
+        splitPane.setResizeWeight( 0.0 );
+        Dimension minThumbDim = thumbPane.getMinimumSize();
+        scrollLayer.setMinimumSize( new Dimension( (int) minThumbDim.getWidth(), 0 ) );
+        previewPane.setMinimumSize( new Dimension(
+                splitPane.getWidth() - 250 - splitPane.getInsets().left,
+                0 ) );
+        splitPane.validate();
+
         getView().validate();
     }
     
@@ -392,15 +411,6 @@ public class PhotoViewController extends PersistenceController {
      * row with preview image above it.
      */
     private void setupLayoutPreviewWithHorizontalIcons() {
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-        
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 0.0;
-        c.weightx = 1.0;
-        c.gridy = 1;
-
         // Minimum size is the size of one thumbnail
         int thumbColWidth = thumbPane.getColumnWidth();
         int thumbRowHeight = thumbPane.getRowHeight();
@@ -411,15 +421,20 @@ public class PhotoViewController extends PersistenceController {
         scrollLayer.setPreferredSize( 
                 new Dimension( thumbColWidth, thumbRowHeight+30 ));
         scrollLayer.setVisible( true );
-        layout.setConstraints( scrollLayer, c );
         thumbPane.setRowCount( 1 );
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        // c.gridheight = GridBagConstraints.REMAINDER;
-        c.gridy = 0;
-        c.weighty = 1.0;
-        layout.setConstraints( previewPane, c );
         previewPane.setVisible( true );
+        splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
+        splitPane.remove( previewPane );
+        splitPane.remove( scrollLayer );
+        splitPane.setTopComponent( previewPane );
+        splitPane.setBottomComponent( scrollLayer );
+        // Bottom component should not be resized
+        splitPane.setResizeWeight( 1.0 );
+        Dimension minThumbDim = thumbPane.getMinimumSize();
+        scrollLayer.setMinimumSize( new Dimension( 0, minThumbDim.height ) );
+        previewPane.setMinimumSize( new Dimension( 0,
+                splitPane.getHeight() - 250 - splitPane.getInsets().top ) );
+        splitPane.validate();
         getView().validate();
     }   
     
@@ -427,15 +442,6 @@ public class PhotoViewController extends PersistenceController {
      Hide the preview pane
      */
     private void setupLayoutNoPreview() {
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0;
-        c.weightx = 1.0;
-        c.gridy = 0;
-
         // Minimum size is the size of one thumbnail
         thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
@@ -444,10 +450,13 @@ public class PhotoViewController extends PersistenceController {
         scrollLayer.setMinimumSize(
                 new Dimension( thumbColWidth, thumbRowHeight+50));
         scrollLayer.setVisible( true );
-        layout.setConstraints( scrollLayer, c );
+//        layout.setConstraints( scrollLayer, c );
         thumbPane.setRowCount( -1 );
         thumbPane.setColumnCount( -1 );
-        
+        splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
+        splitPane.remove( previewPane );
+        splitPane.remove( scrollLayer );
+        splitPane.setTopComponent( scrollLayer );
         previewPane.setVisible( false );
         getView().validate();        
     }
@@ -456,29 +465,13 @@ public class PhotoViewController extends PersistenceController {
      Show only preview image, no thumbnail pane.
      */
     private void setupLayoutNoThumbs() {
-        GridBagLayout layout = new GridBagLayout();
-        collectionPane.setLayout( layout );
-        
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 0.0;
-        c.weightx = 0.0;
-        c.gridy = 1;
-
-        // Minimum size is the size of one thumbnail
-//        thumbScroll.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
-//        thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
-//        thumbScroll.setMinimumSize( new Dimension( 150, 180 ));
-        layout.setConstraints( thumbScroll, c );
         thumbPane.setRowCount( 1 );
+        splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
+        splitPane.remove( previewPane );
+        splitPane.remove( scrollLayer );
+        splitPane.setTopComponent( previewPane );
+
         thumbScroll.setVisible( false );
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        // c.gridheight = GridBagConstraints.REMAINDER;
-        c.gridy = 0;
-        c.weighty = 1.0;
-        c.weightx = 1.0;
-        layout.setConstraints( previewPane, c );
         previewPane.setVisible( true );
         getView().validate();
     }
@@ -486,6 +479,16 @@ public class PhotoViewController extends PersistenceController {
     void setPreviewSize( int width ) {
         thumbPane.setThumbWidth( width );
         setLayout( layout );
+    }
+
+    void handleThumbAreaResize() {
+        if ( layout == Layout.PREVIEW_HORIZONTAL_THUMBS ) {
+            int newHeight = thumbScroll.getViewport().getHeight();
+            thumbPane.setRowHeight( newHeight-10 );
+        } else if ( layout == Layout.PREVIEW_VERTICAL_THUMBS ) {
+            int newWidth = thumbScroll.getViewport().getWidth();
+            thumbPane.setRowHeight( newWidth );
+        }
     }
     
     public SwingWorkerTaskScheduler getBackgroundTaskScheduler() {

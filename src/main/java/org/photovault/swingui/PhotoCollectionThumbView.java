@@ -30,8 +30,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.Toolkit;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +49,8 @@ import org.photovault.imginfo.PhotoInfoChangeListener;
 import org.photovault.imginfo.Thumbnail;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -477,6 +481,26 @@ public class PhotoCollectionThumbView
         revalidate();
         repaint();
     }
+
+    /**
+     * Set the heith of one row of photos. Maximum size of thumbnails is
+     * determined based on this.
+     * @param newHeight Height of row in pixels
+     */
+    public void setRowHeight( int newHeight ) {
+        rowHeight = newHeight;
+        columnWidth = newHeight;
+        if ( newHeight > 150 ) {
+            thumbWidth = thumbHeight = newHeight - 50;
+        } else if ( newHeight > 100 ) {
+            thumbWidth = thumbHeight = 100;
+        } else {
+            thumbWidth = thumbHeight = Math.max( 1, newHeight-8 );
+        }
+        revalidate();
+        repaint();
+    }
+
     
     // Popup menu actions
     private static final String PHOTO_ADD_TO_FOLDER_CMD = "addToFolder";
@@ -673,6 +697,7 @@ public class PhotoCollectionThumbView
         g2.setStroke( oldStroke );
 
         // Paint thumbnail
+        g2.setRenderingHint( RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC );
         g2.drawImage( img, new AffineTransform( scale, 0f, 0f, scale, x, y ), null );
         if ( useOldThumbnail ) {
             creatingThumbIcon.paintIcon( this, g2, 
@@ -691,64 +716,64 @@ public class PhotoCollectionThumbView
         }
         
         thumbDrawnTime = System.currentTimeMillis();
-        // Increase ypos so that attributes are drawn under the image
-        ypos += ((int)h)/2 + 9;
-        
-        // Draw the attributes
-        
-        // Draw the qualoity icon to the upper left corner of the thumbnail            
-        int quality = photo.getQuality();
-        if ( showQuality && quality != PhotoInfo.QUALITY_UNDEFINED ) {
-            ImageIcon qualityIcon = qualityIcons[quality];
-            int qx = startx 
-                    + (columnWidth-w-qualityIcon.getIconWidth())/(int)2;
-            int qy = starty
-                    + (rowHeight-h-qualityIcon.getIconHeight())/(int)2;
-            qualityIcon.paintIcon( this, g2, qx, qy );
+
+        boolean drawAttrs = ( thumbWidth >= 100 );
+        if ( drawAttrs ) {
+            // Increase ypos so that attributes are drawn under the image
+            ypos += ((int) h) / 2 + 9;
+
+            // Draw the attributes
+
+            // Draw the qualoity icon to the upper left corner of the thumbnail
+            int quality = photo.getQuality();
+            if ( showQuality && quality != PhotoInfo.QUALITY_UNDEFINED ) {
+                ImageIcon qualityIcon = qualityIcons[quality];
+                int qx = startx + (columnWidth - w - qualityIcon.getIconWidth()) / (int) 2;
+                int qy = starty + (rowHeight - h - qualityIcon.getIconHeight()) / (int) 2;
+                qualityIcon.paintIcon( this, g2, qx, qy );
+            }
+
+            if ( photo.getRawSettings() != null ) {
+                // Draw the "RAW" icon
+                int rx = startx + (columnWidth + w - rawIcon.getIconWidth()) / (int) 2 - 5;
+                int ry = starty + (columnWidth - h - rawIcon.getIconHeight()) / (int) 2 + 5;
+                rawIcon.paintIcon( this, g2, rx, ry );
+            }
+            Color prevBkg = g2.getBackground();
+            if ( isSelected ) {
+                g2.setBackground( Color.BLUE );
+            } else {
+                g2.setBackground( this.getBackground() );
+            }
+            Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
+            FontRenderContext frc = g2.getFontRenderContext();
+            if ( showDate && photo.getShootTime() != null ) {
+                FuzzyDate fd = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
+
+                String dateStr = fd.format();
+                TextLayout txt = new TextLayout( dateStr, attrFont, frc );
+                // Calculate the position for the text
+                Rectangle2D bounds = txt.getBounds();
+                int xpos = startx + ((int) (columnWidth - bounds.getWidth())) / 2 - (int) bounds.getMinX();
+                g2.clearRect( xpos - 2, ypos - 2,
+                        (int) bounds.getWidth() + 4, (int) bounds.getHeight() + 4 );
+                txt.draw( g2, xpos, (int) (ypos + bounds.getHeight()) );
+                ypos += bounds.getHeight() + 4;
+            }
+            String shootPlace = photo.getShootingPlace();
+            if ( showPlace && shootPlace != null && shootPlace.length() > 0 ) {
+                TextLayout txt = new TextLayout( photo.getShootingPlace(), attrFont, frc );
+                // Calculate the position for the text
+                Rectangle2D bounds = txt.getBounds();
+                int xpos = startx + ((int) (columnWidth - bounds.getWidth())) / 2 - (int) bounds.getMinX();
+
+                g2.clearRect( xpos - 2, ypos - 2,
+                        (int) bounds.getWidth() + 4, (int) bounds.getHeight() + 4 );
+                txt.draw( g2, xpos, (int) (ypos + bounds.getHeight()) );
+                ypos += bounds.getHeight() + 4;
+            }
+            g2.setBackground( prevBkg );
         }
-        
-        if ( photo.getRawSettings() != null ) {
-            // Draw the "RAW" icon
-            int rx = startx 
-                    + (columnWidth+w-rawIcon.getIconWidth())/(int)2 - 5;
-            int ry = starty 
-                    + (columnWidth-h-rawIcon.getIconHeight())/(int)2 + 5;
-            rawIcon.paintIcon( this, g2, rx, ry );
-        }
-        Color prevBkg = g2.getBackground();
-        if ( isSelected ) {
-            g2.setBackground( Color.BLUE );
-        } else {
-            g2.setBackground( this.getBackground() );
-        }
-        Font attrFont = new Font( "Arial", Font.PLAIN, 10 );
-        FontRenderContext frc = g2.getFontRenderContext();
-        if ( showDate && photo.getShootTime() != null ) {
-            FuzzyDate fd = new FuzzyDate( photo.getShootTime(), photo.getTimeAccuracy() );
-            
-            String dateStr = fd.format();
-            TextLayout txt = new TextLayout( dateStr, attrFont, frc );
-            // Calculate the position for the text
-            Rectangle2D bounds = txt.getBounds();
-            int xpos = startx + ((int)(columnWidth - bounds.getWidth()))/2 - (int)bounds.getMinX();
-            g2.clearRect( xpos-2, ypos-2,
-                    (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
-            txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
-            ypos += bounds.getHeight() + 4;
-        }
-        String shootPlace = photo.getShootingPlace();
-        if ( showPlace && shootPlace != null && shootPlace.length() > 0  ) {
-            TextLayout txt = new TextLayout( photo.getShootingPlace(), attrFont, frc );
-            // Calculate the position for the text
-            Rectangle2D bounds = txt.getBounds();
-            int xpos = startx + ((int)(columnWidth-bounds.getWidth()))/2 - (int)bounds.getMinX();
-            
-            g2.clearRect( xpos-2, ypos-2,
-                    (int)bounds.getWidth()+4, (int)bounds.getHeight()+4 );
-            txt.draw( g2, xpos, (int)(ypos + bounds.getHeight()) );
-            ypos += bounds.getHeight() + 4;
-        }
-        g2.setBackground( prevBkg );
         endTime = System.currentTimeMillis();
         log.debug( "paintThumbnail: exit " + photo.getUuid() );
         log.debug( "Thumb fetch " + (thumbReadyTime - startTime ) + " ms" );
@@ -784,10 +809,60 @@ public class PhotoCollectionThumbView
                 prefHeight += rowHeight * (int)(photos.size() / columns );
             }            
         }
-        prefHeight += 10;
+        // prefHeight += 10;
         return new Dimension( prefWidth, prefHeight );
 
     }
+
+    final static int MIN_CELL_WIDTH = 20;
+    final static int MAX_CELL_WIDTH = 250;
+
+    @Override
+    public Dimension getMinimumSize() {
+        int minWidth = 0;
+        int minHeight = 0;
+
+        if ( columnCount > 0 ) {
+            minWidth = MIN_CELL_WIDTH * columnCount;
+            minHeight = MIN_CELL_WIDTH;
+            if ( photos != null ) {
+                minHeight += MIN_CELL_WIDTH * (int)(photos.size()/ columnCount );
+            }
+        } else if ( rowCount > 0 ) {
+            minHeight = MIN_CELL_WIDTH * rowCount;
+            minWidth = MIN_CELL_WIDTH;
+            if ( photos != null ) {
+                minWidth += MIN_CELL_WIDTH * (int)( photos.size() / rowCount );
+            }
+        } else {
+            return getPreferredSize();
+        }
+        return new Dimension( minWidth, minHeight );
+    }
+
+    @Override
+    public Dimension getMaximumSize() {
+        int minWidth = 0;
+        int minHeight = 0;
+
+        if ( columnCount > 0 ) {
+            minWidth = MAX_CELL_WIDTH * columnCount;
+            minHeight = MAX_CELL_WIDTH;
+            if ( photos != null ) {
+                minHeight += MAX_CELL_WIDTH * (int)(photos.size()/ columnCount );
+            }
+        } else if ( rowCount > 0 ) {
+            minHeight = MAX_CELL_WIDTH * rowCount;
+            minWidth = MAX_CELL_WIDTH;
+            if ( photos != null ) {
+                minWidth += MAX_CELL_WIDTH * (int)( photos.size() / rowCount );
+            }
+        } else {
+            return getPreferredSize();
+        }
+        return new Dimension( minWidth, minHeight );
+    }
+
 
     // implementation of java.awt.event.ActionListener interface
 
