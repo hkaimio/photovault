@@ -35,35 +35,7 @@ public class HibernateUtil {
     static public void init( String user, String passwd, PVDatabase dbDesc )
     throws PhotovaultException {
         try {
-            cfg = new AnnotationConfiguration();
-            cfg.configure();
-            if ( dbDesc.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
-                cfg.setProperty( "hibernate.connection.driver_class", 
-                        "org.apache.derby.jdbc.EmbeddedDriver" );
-                cfg.setProperty( "hibernate.dialect", 
-                        "org.hibernate.dialect.DerbyDialect" );
-                cfg.setProperty( "hibernate.connection.url", 
-                        "jdbc:derby:photovault;create=true" );
-                File derbyDir = new File( dbDesc.getDataDirectory(), "derby" );
-                System.setProperty( "derby.system.home", derbyDir.getAbsolutePath()  );
-                if ( ( user != null && user.length() != 0 ) ||
-                        ( passwd != null && passwd.length() != 0 ) )  {
-                    throw new PhotovaultException( "No username or password allowed for Derby database" );
-                }
-            } else {
-                // This is a MySQL database
-                String dbhost = dbDesc.getHost();
-                String dbname = dbDesc.getDbName();
-                cfg.setProperty( "hibernate.connection.driver_class", 
-                        "com.mysql.jdbc.Driver" );
-                cfg.setProperty( "hibernate.dialect", 
-                        "org.hibernate.dialect.MySQLDialect" );
-                cfg.setProperty( "hibernate.connection.url", 
-                        "jdbc:mysql://" + dbhost + "/" + dbname );
-                cfg.setProperty( "hibernate.connection.username", user );
-                cfg.setProperty( "hibernate.connection.password", passwd );
-            }
-            
+            cfg = dbDesc.getDbDescriptor().initHibernate( user, passwd );
             sessionFactory = cfg.buildSessionFactory();
         } catch (Throwable ex) {
             throw new ExceptionInInitializerError(ex);

@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import  org.photovault.imginfo.Volume;
 import java.util.Random;
 import org.photovault.imginfo.VolumeBase;
@@ -171,6 +169,23 @@ public class PVDatabase {
 
     public void setDbName(String dbName) {
         this.dbName = dbName;
+    }
+
+    HibernateInitializer dbDescriptor;
+
+    public HibernateInitializer getDbDescriptor() {
+        if ( dbDescriptor == null ) {
+            if ( instanceType.equals( TYPE_EMBEDDED ) ) {
+                DerbyDescriptor dd = new DerbyDescriptor();
+                dd.setDirectory( new File( dataDirectory, "derby" ) );
+                dbDescriptor = dd;
+            } else {
+                MysqlDescriptor md = new MysqlDescriptor();
+                md.setDbname( dbName );
+                md.setHost( dbHost );
+            }
+        }
+        return dbDescriptor;
     }
     
     /**
