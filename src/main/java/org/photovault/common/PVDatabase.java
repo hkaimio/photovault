@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import  org.photovault.imginfo.Volume;
 import java.util.Random;
 import org.photovault.imginfo.VolumeBase;
@@ -40,6 +42,7 @@ import org.hibernate.Transaction;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.imginfo.VolumeManager;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
@@ -396,6 +399,16 @@ public class PVDatabase {
         defVol.setName( "default_volume" );
         s.save( defVol );
         
+        File defVolMount = dataDirectory;
+        if ( instanceType != TYPE_SERVER ) {
+            defVolMount = new File( dataDirectory, "photos" );
+        }
+        try {
+            VolumeManager.instance().initVolume( defVol, defVolMount );
+        } catch ( PhotovaultException ex ) {
+            log.error( ex );
+        }
+        addMountPoint( defVolMount.getAbsolutePath() );
         DbInfo dbInfo = new DbInfo();
         dbInfo.setCreateTime( new Date() );
         dbInfo.setId( idStr );
