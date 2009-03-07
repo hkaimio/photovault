@@ -21,46 +21,22 @@
 
 package org.photovault.common;
 
-import junit.framework.*;
-import java.util.List;
-import java.io.StringWriter;
 import java.io.IOException;
-import java.io.BufferedWriter;
-import java.io.BufferedReader;
-import java.io.FileWriter;
-import java.io.FileReader;
 import java.io.File;
-import org.photovault.imginfo.ExternalVolume;
 
-import org.photovault.imginfo.Volume;
-import org.photovault.imginfo.VolumeBase;
-
+import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 /**
  *
  * @author harri
  */
-public class Test_PVDatabase extends TestCase {
+public class Test_PVDatabase {
     
     /** Creates a new instance of Test_PVDatabase */
     public Test_PVDatabase() {
     }
-    
-    public void testVolumeAddition() {
-        PVDatabase db = new PVDatabase();
-        db.setHost( "" );
-        db.setDbName( "test" );
-        
-        Volume v = new Volume( "test", "c:/temp" );
-        try {
-            db.addVolume( v );
-        } catch (PhotovaultException ex) {
-            fail( ex.getMessage() );
-        }
-        List volumes = db.getVolumes();
-        assertTrue( volumes.get( 0 ) == v );
-        assertTrue( volumes.size() == 1 );
-    }
 
+    @Test
     public void testDatabaseCollection() {
         PhotovaultDatabases pvd = new PhotovaultDatabases();
         
@@ -91,7 +67,8 @@ public class Test_PVDatabase extends TestCase {
         }
         
     }
-    
+
+    @Test
     public void testEmbeddedDatabaseCreation() {
         File dbDir = null;
         try {
@@ -105,12 +82,30 @@ public class Test_PVDatabase extends TestCase {
         pvd.setDataDirectory( dbDir );
         pvd.createDatabase( "", "" );
     }
-    
-    public static void main( String[] args ) {
-	junit.textui.TestRunner.run( suite() );
+
+    @Test
+    public void testFileSave() throws IOException {
+        File dbDir = null;
+        try {
+            dbDir = File.createTempFile("pv_derby_instance", "");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        dbDir.delete();
+        PVDatabase pvd = new PVDatabase();
+        pvd.setInstanceType( PVDatabase.TYPE_EMBEDDED );
+        pvd.setName( "photos" );
+        pvd.setDataDirectory( dbDir );
+        pvd.addMountPoint( new File( dbDir, "photos" ).getAbsolutePath() );
+        pvd.getDbDescriptor();
+
+        PhotovaultSettings s = PhotovaultSettings.getSettings();
+        File f = File.createTempFile( "pvdb_testconfig", ".pvd" );
+        s.saveDbConfig( pvd, f );
+        PVDatabase pvd2 = s.readDbConfig( f );
+        assertEquals( pvd.getName(), pvd2.getName() );
+        assertEquals( pvd.getMountPoints(), pvd2.getMountPoints() );
+        assertEquals( pvd.getDbDescriptor(), pvd2.getDbDescriptor() );
     }
     
-    public static Test suite() {
-	return new TestSuite( Test_PVDatabase.class );
-    }    
 }

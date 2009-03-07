@@ -87,7 +87,7 @@ public class Test_PhotovaultSettings {
     }
     
     @Test
-    public void testNoSettingsFile() {
+    public void testNoSettingsFile() throws IOException {
         try {
             File f = File.createTempFile( "photovault_settings", ".xml" );
             f.delete();
@@ -107,7 +107,7 @@ public class Test_PhotovaultSettings {
         } catch (PhotovaultException ex) {
             fail( "Exception while creating database: " + ex.getMessage() );
         }
-        settings.saveConfig();
+        settings.saveDbConfig( db );
         
         PhotovaultSettings.settings = null;
         
@@ -128,7 +128,7 @@ public class Test_PhotovaultSettings {
      * Test creation of a new database
      */ 
     @Test
-    public void testCreateDB() {
+    public void testCreateDB() throws IOException {
         File confFile = null;
         File dbDir = null;
         // Create an empty configuration file & volume directory
@@ -158,7 +158,7 @@ public class Test_PhotovaultSettings {
         } catch (PhotovaultException ex) {
             fail( "Exception while creating database: " + ex.getMessage() );
         }
-        settings.saveConfig();
+        settings.saveDbConfig( db );
         PhotovaultSettings.settings = null;
         settings = PhotovaultSettings.getSettings();
         settings.setConfiguration( "testing" );     

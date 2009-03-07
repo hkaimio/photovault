@@ -86,4 +86,21 @@ public class DerbyDescriptor implements HibernateInitializer {
         return cfg;
     }
 
+    @Override
+    public boolean equals( Object o ) {
+        if ( o == null || ! (o instanceof DerbyDescriptor) ) {
+            return false;
+        }
+        DerbyDescriptor db = (DerbyDescriptor) o;
+        return ( dbDir == db.dbDir ) ||
+                ( dbDir != null && dbDir.equals( db.dbDir ) );
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + (this.dbDir != null ? this.dbDir.hashCode() : 0);
+        return hash;
+    }
+
 }

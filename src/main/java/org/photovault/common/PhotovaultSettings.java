@@ -20,7 +20,10 @@
 
 package org.photovault.common;
 
+import com.thoughtworks.xstream.XStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,12 +34,11 @@ import java.util.Collection;
 import java.io.InputStream;
 import java.net.URL;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.photovault.imginfo.ExternalVolume;
-import org.photovault.imginfo.Volume;
 import org.photovault.imginfo.VolumeManager;
 import org.xml.sax.SAXException;
 
@@ -64,11 +66,41 @@ public class PhotovaultSettings {
     }
     
     File configFile;
+    File configDir;
     PhotovaultDatabases databases;
     
     static final String defaultPropFname = "photovault.properties";
+
+
     protected PhotovaultSettings() {
-        // Load XML configuration file
+
+        // Find the location of configuration directory
+        String configDirName = System.getProperty( "photovault.configdir" );
+        configDir = null;
+        if ( configDirName != null ) {
+            configDir = new File( configDirName );
+        } else {
+            File homeDir = new File( System.getProperty( "user.home", "" ) );
+            configDir = new File( homeDir, ".photovault" );
+        }
+        if ( !configDir.exists() ) {
+            configDir.mkdir();
+        }
+        databases = new PhotovaultDatabases();
+        readDbConfigs( configDir );
+        if ( databases.getDatabases().size() == 0 ) {
+            // Check if there is legacy configuration file that can be loaded
+            importLegacyConfigFile();
+        }
+            
+    }
+
+    /**
+     * Import legacy configuration file (used by versions up to 0.5.0) and
+     * store it in the new configuration file format, i.e. separate file for
+     * each database.
+     */
+    void importLegacyConfigFile() {
         String confFileName = System.getProperty( "photovault.configfile" );
         File oldConfigFile = null;
         if ( confFileName != null ) {
@@ -76,37 +108,24 @@ public class PhotovaultSettings {
             configFile = new File( confFileName );
             log.debug( configFile );
         } else {
-            // If the photovault.configfile property is not set, use file photovault.xml 
-            // in directory .photovault in user's home directory
-            File homeDir = new File( System.getProperty( "user.home", "" ) );
-            File photovaultDir = new File( homeDir, ".photovault" );
-            if ( !photovaultDir.exists() ) {
-                photovaultDir.mkdir();
-            }
-            configFile = new File( photovaultDir, "photovault_config.xml" );
+            configFile = new File( configDir, "photovault_config.xml" );
             if ( !configFile.exists() ) {
-                // check if there is a config file in the old (pre-0.4.0) format 
+                // check if there is a config file in the old (pre-0.4.0) format
                 // and read it if it exists.
-                oldConfigFile = new File( photovaultDir, "photovault.xml" );
+                oldConfigFile = new File( configDir, "photovault.xml" );
             }
         }
         if ( configFile.exists() ) {
             log.debug( "Using config file " + configFile.getAbsolutePath() );
             loadConfig( configFile );
-//            databases = PhotovaultDatabases.loadDatabases( configFile );
         } else if ( oldConfigFile != null && oldConfigFile.exists() ) {
             loadConfig( oldConfigFile );
-            saveConfig();
-//            try {
-//                configFile.createNewFile();
-//            } catch (IOException ex) {
-//                ex.printStackTrace();
-//            }
         }
-        if ( databases == null ) {
-            databases = new PhotovaultDatabases();
+        try {
+            saveDbConfigs( configDir );
+        } catch ( IOException ex ) {
+            log.error( ex );
         }
-            
     }
 
     /**
@@ -124,45 +143,98 @@ public class PhotovaultSettings {
     public PVDatabase getDatabase( String dbName ) {
         return databases.getDatabase( dbName );
     }
-    
+
     /**
-     * Saves the configuration to the current configuration file.
+     * Reads all database configuration files in given directory and store the
+     * {@link PVDatabase} objects in {@link #databases} structure. All files 
+     * ending in .pvd are considered potential database configuration files.
+     * @param dir The directory that is searched for configuration files.
      */
-    public void saveConfig() {
-        URL buildPropertyURL = PhotovaultSettings.class.getClassLoader().getResource( "buildinfo.properties");
-        String version = "unknown";
-        try {
-            InputStream is = buildPropertyURL.openStream();
-            Properties prop = new Properties();
-            prop.load( is );
-            version = prop.getProperty( "build.version", "unknown" );
-        } catch (IOException e ) {
-        }
-        
-        try {
-            BufferedWriter outputWriter = new BufferedWriter( new FileWriter( configFile ));
-            outputWriter.write("<?xml version='1.0' ?>\n");
-            outputWriter.write( "<!--\n" +
-                    "This is configuration file for Photovault image organizing application\n" +
-                    "-->\n");
-            outputWriter.write( "<photovault-config version=\"" + version + "\">\n" );
-            String indent = "  ";
-            outputWriter.write( indent + "<!-- Installation specific properties -->\n" );
-            Iterator iter = properties.entrySet().iterator();
-            while ( iter.hasNext() ) {
-                Map.Entry e = (Entry) iter.next();
-                outputWriter.write( indent + "<property name=\"" + e.getKey() +
-                        "\" value=\"" + e.getValue() + "\"/>\n" );
+    void readDbConfigs( File dir ) {
+        for ( File f: dir.listFiles() ) {
+            if ( f.getName().endsWith( ".pvd" ) ) {
+                try {
+                    PVDatabase db = readDbConfig( f );
+                    if ( db != null ) {
+                        databases.addDatabase( db );
+                    }
+                } catch ( FileNotFoundException ex ) {
+                    log.error( ex );
+                } catch ( IOException ex ) {
+                    log.error( ex );
+                } catch( PhotovaultException ex ) {
+                    log.error( ex );
+                }
             }
-            databases.save( outputWriter );
-            outputWriter.write( "</photovault-config>\n" );
-        outputWriter.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 
-    
+    /**
+     * Save configuration files for all known databases in given directory
+     * @param dir The directory used
+     * @throws java.io.IOException If saving of configuration files fails.
+     */
+    void saveDbConfigs( File dir ) throws IOException {
+        for ( PVDatabase db : databases.getDatabases() ) {
+            String name = db.getName();
+            File f = new File( dir, name+".pvd" );
+            if ( !f.exists() ) {
+                saveDbConfig( db, f );
+            }
+        }
+    }
+
+    /**
+     * Save configuration info for this database in file
+     * @param f The file
+     * @throws java.io.IOException If an error occurs during writing
+     */
+    public void saveDbConfig( PVDatabase db, File f ) throws IOException {
+        BufferedWriter w = new BufferedWriter( new FileWriter( f ) );
+            w.write("<?xml version='1.0' ?>\n");
+            w.write( "<!--\n" +
+                    "This is configuration file for Photovault database\n" +
+                    "See http://www.photovault.org for details\n" +
+                    "-->\n");
+        XStream xs = new XStream();
+        xs.processAnnotations( PVDatabase.class );
+        xs.alias( "photovault-database", PVDatabase.class );
+        // This is needed to ensure that the db descriptor is really instantianted
+        db.getDbDescriptor();
+        xs.toXML( db, w);
+        w.close();
+    }
+
+    /**
+     * Save database's configuration file to default configuration directory
+     * @param db The database that will be saved.
+     * @throws java.io.IOException
+     */
+    public void saveDbConfig( PVDatabase db ) throws IOException {
+        File f = new File( configDir, db.getName() + ".pvd" );
+        saveDbConfig( db, f );
+    }
+
+    /**
+     * Read a database configuration file
+     * @param f The file to read
+     * @return Database configuration for the database
+     * @throws java.io.FileNotFoundException If f does not exist
+     * @throws java.io.IOException If f cannot be read
+     */
+    PVDatabase readDbConfig( File f ) throws FileNotFoundException, IOException {
+        XStream xs = new XStream();
+        xs.processAnnotations( PVDatabase.class );
+        xs.alias( "photovault-database", PVDatabase.class );
+        BufferedReader rd = new BufferedReader( new FileReader( f ) );
+        PVDatabase db = (PVDatabase) xs.fromXML( rd );
+        rd.close();
+        return db;
+    }
+
+    /**
+     * Load legacy (pre-0.6.0) configuration file
+     */
     private void loadConfig( File f ) {
         Digester digester = new Digester();
         digester.push(this); // Push controller servlet onto the stack

@@ -20,8 +20,15 @@
 
 package org.photovault.common;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import com.thoughtworks.xstream.annotations.XStreamImplicitCollection;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,6 +58,7 @@ import org.photovault.persistence.HibernateUtil;
  * for storing the actual photos
  * @author Harri Kaimio
  */
+@XStreamAlias( "photovault-database" )
 public class PVDatabase {
     
     static private Log log = LogFactory.getLog( PVDatabase.class.getName() );
@@ -133,26 +141,26 @@ public class PVDatabase {
         volumes = new ArrayList<VolumeBase>();
     }
     
+    @XStreamAsAttribute
     private String name;
+    @XStreamOmitField
     private String dbHost = "";
+    @XStreamOmitField
     private String dbName = "";
+    @XStreamOmitField
     private ArrayList<VolumeBase> volumes;
 
     /**
      UUID of the default volume.
      */
     private UUID defaultVolumeId;
-    
+
     public void setName( String name ) {
         this.name = name;
     }
     
     public String getName() {
         return this.name;
-    }
-    
-    public String getHost() {
-        return dbHost;
     }
 
     public void setHost(String dbHost) {
@@ -163,14 +171,11 @@ public class PVDatabase {
         }
     }
 
-    public String getDbName() {
-        return dbName;
-    }
-
     public void setDbName(String dbName) {
         this.dbName = dbName;
     }
 
+    @XStreamAlias( "database" )
     HibernateInitializer dbDescriptor;
 
     public HibernateInitializer getDbDescriptor() {
@@ -186,6 +191,10 @@ public class PVDatabase {
             }
         }
         return dbDescriptor;
+    }
+
+    public void setDbDescriptor( HibernateInitializer db ) {
+        dbDescriptor = db;
     }
     
     /**
@@ -216,7 +225,8 @@ public class PVDatabase {
     public void removeVolume(Volume volume) {
         volumes.remove( volume );
     }
-    
+
+    @XStreamImplicit( itemFieldName="legacy-volume" )
     List<LegacyVolume> legacyVolumes = new ArrayList<LegacyVolume>();
     
     public void addLegacyVolume( LegacyVolume v ) {
@@ -230,6 +240,7 @@ public class PVDatabase {
     /**
      Mount points in which volumes for this database can be mounted.
      */
+    @XStreamImplicit( itemFieldName="mountpoint" )
     Set<File> mountPoints = new HashSet<File>();
     
     /**
@@ -250,14 +261,6 @@ public class PVDatabase {
     public Set<File> getMountPoints() {
         return mountPoints;
     }
-    
-    /**
-     Get a list of volumes for this database.
-     @deprecated Use VolumeDAO intead
-     */       
-    public List getVolumes( ) {
-        return  volumes;
-    }
 
     /**
      Get default volume
@@ -271,7 +274,7 @@ public class PVDatabase {
         return vol;
     }
         
-    
+    @XStreamOmitField
     private String instanceType = TYPE_SERVER;
 
     /**
@@ -295,6 +298,7 @@ public class PVDatabase {
      Path to the directory where data for this database is stored
      
      */
+    @XStreamOmitField
     private File dataDirectory = null;
     
     /**
@@ -442,6 +446,25 @@ public class PVDatabase {
     public int getSchemaVersion() {
         DbInfo info = DbInfo.getDbInfo();
         return info.getVersion();
+    }
+
+    /**
+     * Save configuration info for this database in file
+     * @param f The file
+     * @throws java.io.IOException If an error occurs during writing
+     */
+    public void saveConfig( File f ) throws IOException {
+        BufferedWriter w = new BufferedWriter( new FileWriter( f ) );
+            w.write("<?xml version='1.0' ?>\n");
+            w.write( "<!--\n" +
+                    "This is configuration file for Photovault database\n" +
+                    "See http://www.photovault.org for details\n" +
+                    "-->\n");
+        XStream xs = new XStream();
+        xs.processAnnotations( PVDatabase.class );
+        xs.alias( "photovault-database", PVDatabase.class );
+        xs.toXML( this, w);
+        w.close();
     }
 
     /**

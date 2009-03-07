@@ -38,16 +38,16 @@ import org.photovault.imginfo.Volume;
 public class PhotovaultDatabases {
     static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( PhotovaultDatabases.class.getName() );
 
-    HashMap databases;
+    HashMap<String, PVDatabase> databases;
     
     /** Creates a new instance of PhotovaultDatabases */
     public PhotovaultDatabases() {
-        databases = new HashMap();
+        databases = new HashMap<String, PVDatabase>();
     }
     
     public void addDatabase( PVDatabase db ) throws PhotovaultException {
         if ( databases.containsKey( db.getName() ) ) {
-            throw new PhotovaultException( "Database " + db.getDbName() + " already exists!" );
+            throw new PhotovaultException( "Database " + db.getName() + " already exists!" );
         }
         databases.put( db.getName(), db );
     }
@@ -56,7 +56,7 @@ public class PhotovaultDatabases {
         return (PVDatabase) databases.get( dbName );
     }
     
-    public Collection getDatabases() {
+    public Collection<PVDatabase> getDatabases() {
         return databases.values();
     }
 

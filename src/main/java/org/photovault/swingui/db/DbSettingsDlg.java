@@ -28,6 +28,7 @@ import org.photovault.imginfo.Volume;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.IOException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import org.photovault.common.PVDatabase;
@@ -394,14 +395,21 @@ public class DbSettingsDlg extends javax.swing.JDialog {
                 db.setInstanceType( PVDatabase.TYPE_EMBEDDED );
             }
             db.createDatabase( user, passwd );
-            settings.saveConfig();
+            settings.saveDbConfig( db );
         } catch (PhotovaultException ex) {
             JOptionPane.showMessageDialog( this, ex.getMessage(),
                     "Error creating database", JOptionPane.ERROR_MESSAGE );
             return false;
+        } catch ( IOException ex ) {
+            JOptionPane.showMessageDialog( this, ex.getMessage(),
+                    "Error saving database configuration",
+                    JOptionPane.ERROR_MESSAGE );
+            return false;
+
         }
         
-        JOptionPane.showMessageDialog( this, "Database " + nameFld.getText() + " created successfully",
+        JOptionPane.showMessageDialog( this,
+                "Database " + nameFld.getText() + " created successfully",
                 "Database created", JOptionPane.INFORMATION_MESSAGE );
         return true;
     }

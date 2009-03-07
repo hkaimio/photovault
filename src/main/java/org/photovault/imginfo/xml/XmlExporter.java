@@ -233,7 +233,6 @@ public class XmlExporter {
         writer.newLine();
         indent += 2;
         PhotovaultSettings settings = PhotovaultSettings.getSettings();
-        settings.getCurrentDatabase().getDbName();
         writer.write( getIndent() + "<originator export-time=\"" + new Date().getTime() + "\"/>" );
         writer.newLine();
         writeFolders( new HashSet() );

@@ -97,30 +97,25 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
     Session currentSession  = null;
 
     private void login( LoginDlg ld ) throws PhotovaultException {
-	boolean success = false;
+        boolean success = false;
         String user = ld.getUsername();
-	String passwd = ld.getPassword();
-	String dbName = ld.getDb();
-	log.debug( "Using configuration " + dbName );
-	settings.setConfiguration( dbName );
+        String passwd = ld.getPassword();
+        String dbName = ld.getDb();
+        log.debug( "Using configuration " + dbName );
+        settings.setConfiguration( dbName );
         PVDatabase db = settings.getDatabase( dbName );
-        String sqldbName = db.getDbName();
-        log.debug( "Mysql DB name: " + sqldbName );
-        if ( sqldbName == null ) {
-            JOptionPane.showMessageDialog( ld, "Could not find dbname for configuration " + db, "Configuration error", JOptionPane.ERROR_MESSAGE );
-            throw new PhotovaultException( "Could not find dbname for configuration " + db );
-        }
-        
+
         HibernateUtil.init( user, passwd, db );
-        
+
         // TODO: Hack...
         currentSession = HibernateUtil.getSessionFactory().openSession();
-        ManagedSessionContext.bind( (org.hibernate.classic.Session) currentSession );
+        ManagedSessionContext.bind(
+                (org.hibernate.classic.Session) currentSession );
         log.debug( "Connection succesful!!!" );
         // Login is succesfull
         // ld.setVisible( false );
         success = true;
-        
+
         int schemaVersion = db.getSchemaVersion();
         if ( schemaVersion < PVDatabase.CURRENT_SCHEMA_VERSION ) {
             String options[] = {"Proceed", "Exit Photovault"};
@@ -134,9 +129,11 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
                     options,
                     null ) ) {
                 final SchemaUpdateAction updater = new SchemaUpdateAction( db );
-                SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg( null, true );
+                SchemaUpdateStatusDlg statusDlg = new SchemaUpdateStatusDlg(
+                        null, true );
                 updater.addSchemaUpdateListener( statusDlg );
                 Thread upgradeThread = new Thread() {
+
                     @Override
                     public void run() {
                         updater.upgradeDatabase();

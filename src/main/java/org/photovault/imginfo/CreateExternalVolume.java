@@ -24,10 +24,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
+import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
 import org.photovault.folder.PhotoFolder;
@@ -114,17 +117,23 @@ public class CreateExternalVolume extends DataAccessCommand {
                 volume.setFolder( folderDAO.findById( topFolder.getUuid(), false ) );
             }
             
-            // Ensure that this directory will be looked for volumes
-            PhotovaultSettings.getSettings().
-                    getCurrentDatabase().addMountPoint( basedir.getAbsolutePath() );
-            PhotovaultSettings.getSettings().saveConfig();
         } catch ( FileNotFoundException e ) {
             log.error( "Cannot open volume identification file", e );
             throw new CommandException( "Cannot open volume identification file" );
         } catch ( IOException e ) {
             log.error( "Cannot read volume identification file", e );
             throw new CommandException( "Cannot read volume identification file" );            
-        } 
+        }
+        // Ensure that this directory will be looked for volumes
+        PVDatabase db = PhotovaultSettings.getSettings().
+                getCurrentDatabase();
+        db.addMountPoint( basedir.getAbsolutePath() );
+        try {
+            PhotovaultSettings.getSettings().saveDbConfig( db );
+        } catch ( IOException ex ) {
+            log.error( "Error saving database configuration", ex );
+            throw new CommandException( "Error saving database configuration" );
+        }
     }
 
 }
