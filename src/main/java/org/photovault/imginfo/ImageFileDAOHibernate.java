@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 
+import java.util.List;
 import java.util.UUID;
 import org.hibernate.Query;
 import org.photovault.persistence.GenericHibernateDAO;
@@ -47,8 +48,8 @@ public class ImageFileDAOHibernate
     public ImageFile findImageFileWithHash( byte[] hash ) {
         Query q = getSession().createQuery( "from ImageFile where hash = :hash" );
         q.setBinary( "hash", hash );
-        return (ImageFile) q.uniqueResult();
-        
+        List<ImageFile> images = q.list();
+        return images.isEmpty() ? null : images.get( 0 );
     }
 
     public ImageFile findFileInLocation(ExternalVolume volume, String string) {
