@@ -48,6 +48,7 @@
 	<dependency org="org.jdesktop" name="swing-layout" rev="1.0.3"/>
 	<dependency org="org.jdesktop" name="swingworker" rev="1.2"/>
 	<dependency org="org.apache.derby" name="derby" rev="10.4.2.0"/>
+	<dependency org="com.mysql" name="mysql-connector-java" rev="5.1.7"/>
 	<dependency org="com.drewnoakes" name="metadata-extractor" rev="2.4.0-beta-1"/>
     </dependencies>
 </ivy-module>
