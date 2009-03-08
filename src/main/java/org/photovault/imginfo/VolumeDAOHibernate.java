@@ -49,5 +49,11 @@ public class VolumeDAOHibernate
     public VolumeBase getVolumeOfFile(File f) throws PhotovaultException, IOException {
         return VolumeManager.instance().getVolumeOfFile( f, this );
     }
+
+    public VolumeBase getVolume( UUID id ) {
+        Query q = getSession().createQuery( "from VolumeBase where id = :id" );
+        q.setParameter( "id", id );
+        return (VolumeBase) q.uniqueResult();
+    }
     
 }

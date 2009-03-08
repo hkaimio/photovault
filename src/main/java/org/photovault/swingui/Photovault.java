@@ -44,6 +44,10 @@ import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
 import org.photovault.command.CommandListener;
+import org.photovault.imginfo.VolumeDAO;
+import org.photovault.imginfo.VolumeManager;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.swingui.db.DbSettingsDlg;
 import org.photovault.swingui.framework.AbstractController;
@@ -203,12 +207,12 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
                 System.exit( 0 );
             }
         }
-     
-	LoginDlg login = new LoginDlg( this );
+
+        LoginDlg login = new LoginDlg( this );
         boolean loginOK = false;
         while ( !loginOK ) {
-	int retval = login.showDialog();
-            switch( retval ) {
+            int retval = login.showDialog();
+            switch ( retval ) {
                 case LoginDlg.RETURN_REASON_CANCEL:
                     System.exit( 0 );
                     break;
@@ -220,19 +224,21 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
                     break;
                 case LoginDlg.RETURN_REASON_APPROVE:
                     try {
-                        login( login ); 
+                        login( login );
                         loginOK = true;
                         BrowserWindow wnd = new BrowserWindow( this, null );
                         wnd.setTitle( "Photovault - " + login.getDb() );
-                    } catch( PhotovaultException e ) {
-                        JOptionPane.showMessageDialog( null, e.getMessage(), 
+                    } catch ( PhotovaultException e ) {
+                        JOptionPane.showMessageDialog( null, e.getMessage(),
                                 "Login error", JOptionPane.ERROR_MESSAGE );
                     }
                     SwingUtilities.invokeLater( new Runnable() {
+
                         public void run() {
-                            ManagedSessionContext.bind( (org.hibernate.classic.Session) currentSession);
+                            ManagedSessionContext.bind( (org.hibernate.classic.Session) currentSession );
+                            initEnvironmnet();
                         }
-                    });
+                    } );
                     break;
                 default:
                     log.error( "Unknown return code form LoginDlg.showDialog(): " + retval );
@@ -241,6 +247,16 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
         }
     }
 
+
+    private void initEnvironmnet() {
+        /*
+         * Check what volumes we have available
+         */
+        DAOFactory df = DAOFactory.instance( HibernateDAOFactory.class );
+        VolumeDAO volDao = df.getVolumeDAO();
+        VolumeManager vm = VolumeManager.instance();
+        vm.updateVolumeMounts( volDao );
+    }
 
     protected void checkJAI() throws PhotovaultException {
         try {

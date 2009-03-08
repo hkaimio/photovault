@@ -160,7 +160,7 @@ public class VolumeManager {
                     if ( strId != null ) {
                         UUID id = UUID.fromString( strId );
                         if ( volDAO != null )  {
-                            vol = volDAO.findById( id, false );
+                            vol = volDAO.getVolume( id );
                         }
                         if ( vol == null ) {
                             /*
@@ -182,6 +182,7 @@ public class VolumeManager {
                             vol.setName(volName);
                             if ( volDAO != null ) {
                                 volDAO.makePersistent( vol );
+                                volDAO.flush();
                             }
                         }        
                     }
@@ -323,16 +324,20 @@ public class VolumeManager {
     }
     
     public void updateVolumeMounts() {
+        updateVolumeMounts( null );
+    }
+
+    public void updateVolumeMounts( VolumeDAO volDao ) {
         Set<UUID> oldVolumes = new HashSet<UUID>( availableVolumes.keySet() );
         for ( File dir : mountPoints ) {
             try {
-            VolumeBase v = getVolumeAt( dir, null );
-            oldVolumes.remove( v.getId() );
+                VolumeBase v = getVolumeAt( dir, volDao );
+                oldVolumes.remove( v.getId() );
             } catch ( Exception e ) {
                 log.warn( "Exception in updateVolumeMounts: " + e.getMessage() );
             }
         }
-        
+
         // Unregister volumes that were not seen
         for ( UUID volId : oldVolumes ) {
             unregisterVolumeMount( volId );

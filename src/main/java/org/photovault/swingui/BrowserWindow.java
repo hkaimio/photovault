@@ -559,13 +559,13 @@ public class BrowserWindow extends AbstractController {
                                     
             // Generate a unique name for the new volume
             String extVolName = "extvol_" + dir.getName();
-            if ( VolumeBase.getVolume( extVolName ) != null ) {
-                int n = 2;
-                while ( VolumeBase.getVolume( extVolName + n ) != null ) {
-                    n++;
-                }
-                extVolName += n;
-            }
+//            if ( VolumeBase.getVolume( extVolName ) != null ) {
+//                int n = 2;
+//                while ( VolumeBase.getVolume( extVolName + n ) != null ) {
+//                    n++;
+//                }
+//                extVolName += n;
+//            }
             
             // Set up the indexer
             PhotoFolder parentFolder = fc.getExtvolParentFolder();
