@@ -30,6 +30,7 @@ import java.awt.*;
 import java.awt.event.*;
 import org.photovault.imginfo.*;
 import java.io.*;
+import org.photovault.common.MysqlDescriptor;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 
@@ -200,7 +201,7 @@ public class LoginDlg extends JDialog {
                     PVDatabase db = settings.getDatabase( dbName );
                     if ( db != null ) {
                         setCredentialsEnabled( 
-                                db.getInstanceType() == PVDatabase.TYPE_SERVER );
+                                db.getDbDescriptor() instanceof MysqlDescriptor );
                     }
                 }
             }

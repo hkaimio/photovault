@@ -234,6 +234,9 @@ public class PVDatabase {
     }
     
     List<LegacyVolume> getLegacyVolumes() {
+        if ( legacyVolumes == null ) {
+            legacyVolumes = new ArrayList<LegacyVolume>();
+        }
         return legacyVolumes;
     }
     
@@ -280,6 +283,7 @@ public class PVDatabase {
     /**
      * Get the instacne type of the database This can be either 
      * TYPE_EMBEDDED or TYPE_SERVER
+     * @deprecated Use the type of dbDescriptor instead
      */
     public String getInstanceType() {
         return instanceType;

@@ -84,9 +84,9 @@ public class Test_NewSchemaMigration extends PhotovaultTestCase {
         Session session = HibernateUtil.getSessionFactory().openSession();
 
         Platform platform = null;
-        if ( db.getInstanceType() == PVDatabase.TYPE_EMBEDDED ) {
+        if ( db.getDbDescriptor() instanceof DerbyDescriptor ) {
             platform = PlatformFactory.createNewPlatformInstance( "derby" );            
-        } else if ( db.getInstanceType() == PVDatabase.TYPE_SERVER ) {
+        } else if ( db.getDbDescriptor() instanceof MysqlDescriptor ) {
             platform = PlatformFactory.createNewPlatformInstance( "mysql" );
         }
         platform.getPlatformInfo().setDelimiterToken( "" );
