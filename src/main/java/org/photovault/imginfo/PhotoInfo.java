@@ -1549,7 +1549,7 @@ public class PhotoInfo implements PhotoEditor {
     /**
      Get the XML data for color channel mapping that is stored into database field.
      */
-    @Column( name = "channel_map" )
+    @Column( name = "channel_map", length = 0x1000000 )
     protected byte[] getColorChannelMappingXmlData() {
         byte [] data = null;
         if ( channelMap != null ) {
