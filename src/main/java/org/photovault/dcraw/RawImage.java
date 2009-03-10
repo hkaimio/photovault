@@ -54,6 +54,8 @@ import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.HistogramDescriptor;
 import javax.media.jai.operator.LookupDescriptor;
 import javax.media.jai.operator.RenderableDescriptor;
+import javax.media.jai.operator.TransposeDescriptor;
+import javax.media.jai.operator.TransposeType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
@@ -237,6 +239,37 @@ public class RawImage extends PhotovaultImage {
     
     private int histBins[][];
 
+    /**
+     * Earler dcraw based implementation rotated the raw images according to
+     * camera recommendation during the conversion. These enums adapt the dcraw
+     * rotation to Photovault & JAI data structures.
+     */
+    private static enum PreRotation {
+        NONE( false, null ),
+        ROTATE_90( true, TransposeDescriptor.ROTATE_90 ),
+        ROTATE_180( false, TransposeDescriptor.ROTATE_180 ),
+        ROTATE_270( true, TransposeDescriptor.ROTATE_270 );
+
+
+        private final boolean swithcAxes;
+        private final TransposeType jaiTranspose;
+
+        PreRotation( boolean doSwitch, TransposeType jaiTranspose ) {
+            this.swithcAxes = doSwitch;
+            this.jaiTranspose = jaiTranspose;
+        }
+
+        boolean doSwitchAxes() {
+            return swithcAxes;
+        }
+
+        TransposeType getJaiTransposeType() {
+            return jaiTranspose;
+        }
+
+    };
+
+    PreRotation preRotation = PreRotation.NONE;
     /**
      Returns true if this file is really a raw image file that can be decoded.
      */
@@ -541,7 +574,6 @@ public class RawImage extends PhotovaultImage {
     }    
 
 
-
     /**
      * Load the raw image using dcraw. No processing is yet done for the image,
      * however, the histogram & white point is calculated.
@@ -552,7 +584,6 @@ public class RawImage extends PhotovaultImage {
             throw new IllegalStateException( "Called loadRawImage before opening file" );
         }
         lr.libraw_unpack( lrd );
-
         lr.libraw_dcraw_process( lrd );
         this.width = lrd.sizes.width;
         this.height = lrd.sizes.height;
@@ -604,6 +635,11 @@ public class RawImage extends PhotovaultImage {
                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_USHORT );
             rawImage = new TiledImage( new BufferedImage( targetCM, r, 
                     true, null ), 256, 256 );
+            
+            if ( preRotation.getJaiTransposeType() != null ) {
+                rawImage = TransposeDescriptor.create(
+                        rawImage, preRotation.getJaiTransposeType(), null );
+            }
 
             
             final float[] DEFAULT_KERNEL_1D = {0.25f,0.5f,0.25f};
@@ -789,7 +825,23 @@ public class RawImage extends PhotovaultImage {
         for ( int n = 0; n< 4; n++ ) {
             cameraMultipliers[n] = lrd.color.cam_mul[n];
         }
-        
+        switch( lrd.sizes.flip ) {
+            case 0:
+                preRotation = PreRotation.NONE;
+                break;
+            case 3:
+                preRotation = PreRotation.ROTATE_180;
+                break;
+            case 5:
+                preRotation = PreRotation.ROTATE_270;
+                break;
+            case 6:
+                preRotation = PreRotation.ROTATE_90;
+                break;
+            default:
+                log.error( "Unknown flip value " + lrd.sizes.flip );
+                break;
+        }
     }
 
     private void closeRaw() {
@@ -842,7 +894,7 @@ public class RawImage extends PhotovaultImage {
      * @return Width in pixels
      */
     public int getWidth() {
-        return width;
+        return preRotation.doSwitchAxes() ? height : width;
     }
     
     /**
@@ -850,7 +902,7 @@ public class RawImage extends PhotovaultImage {
      * @return Height in pixels
      */
     public int getHeight() {
-        return height;
+        return preRotation.doSwitchAxes() ? width:  height;
     }
     
     public byte[] getGammaLut() {
