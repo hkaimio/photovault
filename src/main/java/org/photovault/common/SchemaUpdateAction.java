@@ -552,7 +552,7 @@ public class SchemaUpdateAction {
                             ChannelMapOperationFactory.createFromXmlData(
                             rs.getBytes( "i_channel_map" ) );
                     cimg.setColorChannelMapping( cm );
-                    Rectangle2D crop = readCropArea( rs, "i_" );
+                    Rectangle2D crop = readCropArea( rs, "i_crop_" );
                     cimg.setCropArea( crop );
                     cimg.setHeight( rs.getInt( "i_height" ) );
                     cimg.setWidth( rs.getInt( "i_width" ) );
@@ -695,9 +695,9 @@ public class SchemaUpdateAction {
         e.setCamera( rs.getString( "p_camera" ) );
         ChannelMapOperation cm = 
                 ChannelMapOperationFactory.createFromXmlData( 
-                rs.getBytes( "i_channel_map" ) );
-        // e.setColorChannelMapping( cm );
-        e.setCropBounds( readCropArea( rs, "p_" ) );
+                rs.getBytes( "p_channel_map" ) );
+        e.setColorChannelMapping( cm );
+        e.setCropBounds( readCropArea( rs, "p_clip_" ) );
         e.setDescription( rs.getString( "p_description" ) );
         e.setFStop( rs.getDouble( "p_f_stop" ) );
         e.setFilm( rs.getString( "p_film" ) );
@@ -731,10 +731,10 @@ public class SchemaUpdateAction {
     private Rectangle2D readCropArea( ResultSet rs, String prefix ) 
             throws SQLException {
         log.debug(  "entry: readCropArea " + prefix );
-        double xmin = rs.getDouble( "i_crop_xmin" );
-        double xmax = rs.getDouble( "i_crop_xmax" );
-        double ymin = rs.getDouble( "i_crop_ymin" );
-        double ymax = rs.getDouble( "i_crop_ymax" );
+        double xmin = rs.getDouble( prefix + "xmin" );
+        double xmax = rs.getDouble( prefix + "xmax" );
+        double ymin = rs.getDouble( prefix + "ymin" );
+        double ymax = rs.getDouble( prefix + "ymax" );
         Rectangle2D crop = 
                 new Rectangle2D.Double( xmin, ymin, xmax - xmin, ymax - ymin );
         log.debug(  "crop area " + crop );
