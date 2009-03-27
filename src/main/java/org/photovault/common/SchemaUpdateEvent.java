@@ -31,12 +31,12 @@ public class SchemaUpdateEvent {
      @param phase The current phase of schema update
      @param percentComplete How fas we are in the current phase (0-100)
      */
-    public SchemaUpdateEvent( int phase, int percentComplete ) {
+    public SchemaUpdateEvent( SchemaUpdateOperation phase, int percentComplete ) {
         this.phase = phase;
         this.percentComplete = percentComplete;
     }
     
-    int phase = -1;
+    SchemaUpdateOperation phase = null;
     int percentComplete = -1;
     
     /**
@@ -46,7 +46,7 @@ public class SchemaUpdateEvent {
      {@link SchemaUpdateAction#PHASE_COMPLETE}.
      @see SchemaUpdateAction
      */
-    public int getPhase() {
+    public SchemaUpdateOperation getPhase() {
         return phase;
     }
     

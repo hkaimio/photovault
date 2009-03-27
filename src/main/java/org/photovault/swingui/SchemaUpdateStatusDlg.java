@@ -26,6 +26,7 @@ import javax.swing.SwingUtilities;
 import org.photovault.common.SchemaUpdateAction;
 import org.photovault.common.SchemaUpdateEvent;
 import org.photovault.common.SchemaUpdateListener;
+import org.photovault.common.SchemaUpdateOperation;
 
 /**
   Simple dialog to display status of schema update operation
@@ -113,16 +114,13 @@ public class SchemaUpdateStatusDlg extends javax.swing.JDialog
     public void schemaUpdateStatusChanged(SchemaUpdateEvent e) {
         String statusText = "";
         boolean isComplete = false;
-        switch( e.getPhase() ) {
-            case SchemaUpdateAction.PHASE_ALTERING_SCHEMA:
-                statusText = "Altering database schema";
-                break;
-            case SchemaUpdateAction.PHASE_CREATING_HASHES:
-                statusText = "Indexing existing photos";
-                break;
-            case SchemaUpdateAction.PHASE_COMPLETE:
-                isComplete = true;
-        } 
+        SchemaUpdateOperation phase = e.getPhase();
+        if ( phase != null ) {
+            statusText = phase.getDescription();
+        }
+        if ( phase == SchemaUpdateOperation.UPDATE_COMPLETE ) {
+            isComplete = true;
+        }
         final String finalStatusText = statusText;
         final int percentComplete = e.getPercentComplete();
         final boolean finalIsComplete = isComplete;

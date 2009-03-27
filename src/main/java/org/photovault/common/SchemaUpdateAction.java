@@ -92,17 +92,14 @@ public class SchemaUpdateAction {
         this.db = db;
     }
     
-    public static final int PHASE_ALTERING_SCHEMA = 1;
-    public static final int PHASE_CREATING_HASHES = 2;
-    public static final int PHASE_COMPLETE = 3;
-    
     
     /**
      Upgrades database schema and content to be compatible with the current 
      version of Photovault
      */
     public void upgradeDatabase() {
-        fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_ALTERING_SCHEMA, 0 ) );
+        fireStatusChangeEvent( new SchemaUpdateEvent( 
+                new SchemaUpdateOperation( "Altering daptabase schema" ), 0 ) );
         
         int oldVersion = db.getSchemaVersion();
         
@@ -190,7 +187,8 @@ public class SchemaUpdateAction {
         tx.commit();
         session.close();
         
-        fireStatusChangeEvent( new SchemaUpdateEvent( PHASE_COMPLETE, 100 ) ); 
+        fireStatusChangeEvent( new SchemaUpdateEvent( 
+                SchemaUpdateOperation.UPDATE_COMPLETE, 100 ) );
     
     }
     
@@ -219,6 +217,7 @@ public class SchemaUpdateAction {
      Convert volumes to new schema
      */
     private void convertVolumes() {
+        SchemaUpdateOperation oper = new SchemaUpdateOperation( "Converting volumes" );
         Session s = HibernateUtil.getSessionFactory().openSession();
 
         HibernateDAOFactory df =
@@ -226,10 +225,14 @@ public class SchemaUpdateAction {
         df.setSession( s );
         VolumeManager vm = VolumeManager.instance();
         VolumeDAO volDao = df.getVolumeDAO();
-                List < PVDatabase.LegacyVolume > vols = db.getLegacyVolumes();
+        List<PVDatabase.LegacyVolume> vols = db.getLegacyVolumes();
+        int volCount = vols.size();
+        int convertedCount = 0;
         for ( PVDatabase.LegacyVolume lvol : vols ) {
             log.debug(  "Converting" + lvol.getClass().getName() + " " + 
                     lvol.getName() + " at " + lvol.getBaseDir() );
+            fireStatusChangeEvent(
+                    new SchemaUpdateEvent( oper, convertedCount * 100 / volCount ) );
             File basedir = new File( lvol.getBaseDir() );
             if ( !basedir.exists() ) {
                 // The volume was not found
@@ -264,15 +267,21 @@ public class SchemaUpdateAction {
             } catch ( PhotovaultException ex ) {
                 log.error( "Could not initialize volume:", ex );
             }
+            convertedCount++;
         }
         s.flush();
         s.close();
-    }   
+        if ( volCount > 0 ) {
+            fireStatusChangeEvent(
+                    new SchemaUpdateEvent( oper, convertedCount * 100 / volCount ) );
+        }
+    }
     
     /**
      Convert folder hiearchy from old schema to the new one
      */
     private void convertFolders() throws SQLException {
+        SchemaUpdateOperation oper = new SchemaUpdateOperation( "COnverting folders" );
         log.debug( "Starting to convert folders to new schema" );
         Session s = HibernateUtil.getSessionFactory().openSession();
         Session sqlSess = HibernateUtil.getSessionFactory().openSession();
@@ -292,6 +301,17 @@ public class SchemaUpdateAction {
             topFolder.setName( "Top" );
         }
         foldersById.put(  1, topFolder );
+
+        Statement countStmt = conn.createStatement();
+        ResultSet countRs = countStmt.executeQuery( "select count(*) from photo_collections" );
+        int folderCount = -1;
+        if ( countRs.next() ) {
+            folderCount = countRs.getInt( 1 );
+        }
+        countRs.close();
+        countStmt.close();
+
+        int convertedCount = 0;
         PreparedStatement stmt = conn.prepareStatement( 
                 "select * from photo_collections where parent = ?" );
         while ( !waiting.isEmpty() ) {
@@ -308,7 +328,8 @@ public class SchemaUpdateAction {
                  Or better, how to ensure that UUIDs for folders that are part
                  of external volume will always be the same?
                  */
-                
+                fireStatusChangeEvent(
+                        new SchemaUpdateEvent( oper, convertedCount * 100 / folderCount ));
                 String uuidStr = rs.getString( "collection_uuid" );
                 int id = rs.getInt( "collection_id" );
                 log.debug( "Creating folder with old id " + id + ", uuid " + uuidStr );
@@ -333,6 +354,7 @@ public class SchemaUpdateAction {
                 foldersById.put( id, f );
                 folderUuids.put(  id, uuid );
                 waiting.add( id );
+                convertedCount++;
             }
             try {
                 rs.close();
@@ -343,9 +365,13 @@ public class SchemaUpdateAction {
         s.flush();
         sqlSess.close();
         s.close();
+        fireStatusChangeEvent(
+                new SchemaUpdateEvent( oper, convertedCount * 100 / folderCount ) );
     }
     
     private void convertFolderAssociations() {
+        SchemaUpdateOperation oper =
+                new SchemaUpdateOperation( "Adding photos to folders" );
         Session s = HibernateUtil.getSessionFactory().openSession();
         HibernateDAOFactory daoFactory = 
                 (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
@@ -355,15 +381,29 @@ public class SchemaUpdateAction {
         FolderPhotoAssocDAO assocDAO = daoFactory.getFolderPhotoAssocDAO();
         final String sql =
                 "select * from collection_photos";
+        String sqlCount = "select count(*) from collection_photos";
         Session sqlSess = HibernateUtil.getSessionFactory().openSession();
         Connection conn = sqlSess.connection();
         Statement stmt = null;
         ResultSet rs = null;
         int assocCount = 0;
+        int percentDone = -1;
         try {
             stmt = conn.createStatement();
+            rs = stmt.executeQuery( sqlCount );
+            int totalAssocCount = -1;
+            if ( rs.next() ) {
+                totalAssocCount = rs.getInt( 1 );
+            }
+            rs.close();
             rs = stmt.executeQuery( sql );
             while ( rs.next() ) {
+                int newPercentDone = assocCount * 100 / totalAssocCount;
+                if ( newPercentDone != percentDone ) {
+                    percentDone = newPercentDone;
+                    fireStatusChangeEvent(
+                            new SchemaUpdateEvent( oper, percentDone ));
+                }
                 int folderId = rs.getInt( "collection_id" );
                 int photoId = rs.getInt( "photo_id" );
                 UUID folderUuid = folderUuids.get( folderId );
@@ -486,7 +526,8 @@ public class SchemaUpdateAction {
             "order by p.photo_id, i_is_original desc ";
 
     private void convertPhotos() throws SQLException {
-
+        SchemaUpdateOperation oper =
+                new SchemaUpdateOperation( "Converting photos" );
         Session s = HibernateUtil.getSessionFactory().openSession();
         HibernateDAOFactory daoFactory =
                 (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
@@ -504,10 +545,17 @@ public class SchemaUpdateAction {
         Session sqlSess = HibernateUtil.getSessionFactory().openSession();
         Connection conn = sqlSess.connection();
         Statement stmt = conn.createStatement();
+        ResultSet countRs = stmt.executeQuery( "select count(*) from photos" );
+        int photoCount = -1;
+        if ( countRs.next() ) {
+            photoCount = countRs.getInt( 1 );
+        }
+        countRs.close();
         ResultSet rs = stmt.executeQuery( oldPhotoQuerySql );
         int currentPhotoId = -1;
         OriginalImageDescriptor currentOriginal = null;
         long photoStartTime = -1;
+        int convertedCount = -1;
 
         while ( rs.next() ) {
             int photoId = rs.getInt( "p_photo_id" );
@@ -516,6 +564,9 @@ public class SchemaUpdateAction {
                 isNewPhoto = true;
                 currentPhotoId = photoId;
                 s.flush();
+                convertedCount++;
+                fireStatusChangeEvent(
+                    new SchemaUpdateEvent( oper, convertedCount * 100 / photoCount ));
                 /*
                 Photos are not dependent from each other, so clear the session 
                 cache to improve performance and memory usage.
