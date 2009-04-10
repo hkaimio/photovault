@@ -454,6 +454,14 @@ public class PVDatabase {
         return DbInfo.querySchemaVersion();
     }
 
+    /**
+     * Read resolver is needed due to a problem with XStreamer implicit
+     * collections. If there are no elements in the collection, XStreamer leaves
+     * it as <code>null</code>, not as an empty collection. I am not
+     * sure whether this is really a bug, but it definitely is an compatibility
+     * problem.
+     * @return
+     */
     private Object readResolve() {
         if ( mountPoints == null ) {
             mountPoints = new HashSet<File>();
