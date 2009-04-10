@@ -540,6 +540,7 @@
             <jvmarg value="-Xnoagent"/>
             <jvmarg value="-Djna.dump_memory=true"/>
             <jvmarg value="-Djava.compiler=none"/>
+            <jvmarg value="-Dphotovault.configdir=/home/harri/tmp/pv_migrationtest"/>
             <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
             <classpath refid="project.class.path"/>
         </java>

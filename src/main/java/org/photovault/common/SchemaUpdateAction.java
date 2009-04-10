@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2009 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -38,11 +38,8 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
