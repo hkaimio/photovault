@@ -281,6 +281,7 @@ public class SchemaUpdateAction {
             volIds.put( vol.getName(), vol.getId() );
             try {
                 vm.initVolume( vol, basedir );
+                vm.addMountPoint( basedir );
                 db.addMountPoint( basedir.getAbsolutePath() );
             } catch ( PhotovaultException ex ) {
                 log.error( "Could not initialize volume:", ex );
@@ -298,6 +299,7 @@ public class SchemaUpdateAction {
         s.flush();
         s.close();
         db.getLegacyVolumes().clear();
+        vm.updateVolumeMounts();
         try {
             PhotovaultSettings.getSettings().saveDbConfig( db );
         } catch ( IOException ex ) {
