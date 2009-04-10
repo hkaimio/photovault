@@ -37,6 +37,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -1550,6 +1551,7 @@ public class PhotoInfo implements PhotoEditor {
      Get the XML data for color channel mapping that is stored into database field.
      */
     @Column( name = "channel_map", length = 0x1000000 )
+    @Lob
     protected byte[] getColorChannelMappingXmlData() {
         byte [] data = null;
         if ( channelMap != null ) {
