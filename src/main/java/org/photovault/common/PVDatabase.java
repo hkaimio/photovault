@@ -24,7 +24,6 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
-import com.thoughtworks.xstream.annotations.XStreamImplicitCollection;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -449,9 +448,24 @@ public class PVDatabase {
      */ 
     public int getSchemaVersion() {
         DbInfo info = DbInfo.getDbInfo();
-        return info.getVersion();
+        if ( info != null ) {
+            return info.getVersion();
+        }
+        return DbInfo.querySchemaVersion();
     }
 
+    private Object readResolve() {
+        if ( mountPoints == null ) {
+            mountPoints = new HashSet<File>();
+        }
+        if ( volumes == null ) {
+            volumes = new ArrayList<VolumeBase>();
+        }
+        if ( legacyVolumes == null ) {
+            legacyVolumes = new ArrayList<LegacyVolume>();
+        }
+        return this;
+    }
     /**
      * Save configuration info for this database in file
      * @param f The file

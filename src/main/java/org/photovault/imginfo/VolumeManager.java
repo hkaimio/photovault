@@ -37,6 +37,7 @@ import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
+import org.photovault.imginfo.VolumeBase;
 
 /**
  <p>
@@ -318,10 +319,7 @@ public class VolumeManager {
     public File getVolumeMountPoint( VolumeBase vol ) {
         return availableVolumes.get( vol.getId() );
     }
-    
-    public Set<VolumeBase> getAvailableVolumes() {
-        throw new UnsupportedOperationException( "Not yet implemented" );
-    }
+
     
     public void updateVolumeMounts() {
         updateVolumeMounts( null );

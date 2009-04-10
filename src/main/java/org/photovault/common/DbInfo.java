@@ -27,6 +27,7 @@ import org.hibernate.Session;
 import javax.persistence.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SQLQuery;
 import org.hibernate.Transaction;
 import org.photovault.persistence.HibernateUtil;
 
@@ -54,35 +55,58 @@ public class DbInfo {
     /**
      Returns the current database infor structure of the currently open
      database.
+     @deprecated Use {@link #getDbInfo(org.hibernate.Session) } instead.
      */
     static public DbInfo getDbInfo() {
         if ( info == null ) {
             String query = "select info from " + DbInfo.class.getName();
-            
+
             Session session =
                     HibernateUtil.getSessionFactory().openSession();
             Transaction tx = session.beginTransaction();
 
-            try {
-            List infos = null;
-            infos = session.createQuery( "from DbInfo i" ).list();
-            
-            if ( infos.size() > 0 ) {
-                info = (DbInfo) infos.get(0);
-            }
-            } catch ( Exception e ) {
-                /*
-                 Could not get the database info, most likely because the 
-                 schema is of too old version
-                 */
-                log.warn( e );
-            }
+            info = getDbInfo( session );
             tx.commit();
             session.close();
         }
         return info;
     }
-    
+
+    static public DbInfo getDbInfo( Session s ) {
+        DbInfo i = null;
+        try {
+            List infos = null;
+            infos = s.createQuery( "from DbInfo i" ).list();
+
+            if ( infos.size() > 0 ) {
+                i = (DbInfo) infos.get( 0 );
+            }
+        } catch ( Exception e ) {
+            /*
+            Could not get the database info, most likely because the
+            schema is of too old version
+             */
+            log.warn( e );
+        }
+        return i;
+    }
+
+    /**
+     * Get the schema version of current database using SQL query. This is
+     * useful in cases in which schema has not been upgraded to latest version,
+     * and {@link #getDbInfo() } method cannot construct the DbInfo object.
+     * @return Current schema version.
+     */
+    static int querySchemaVersion() {
+            Session session =
+                    HibernateUtil.getSessionFactory().openSession();
+            SQLQuery q = session.createSQLQuery(
+                    "select schema_version from database_info" );
+            int v = (Integer) q.uniqueResult();
+            session.close();
+            return v;
+    }
+
     /**
      Set the revision of database schema.
      @param version the version number.

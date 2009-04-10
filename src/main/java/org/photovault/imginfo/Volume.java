@@ -152,9 +152,9 @@ public class Volume extends VolumeBase {
     }
 
     /**
-     *       Maps a file name to a path in this volume. File names in a volume are 
-     *       unique but for performance reasons they are divided to several directories 
-     *       based on year and month of shooting
+     * Maps a file name to a path in this volume. File names in a volume are 
+     * unique but for performance reasons they are divided to several directories 
+     * based on year and month of shooting
      * @return Path to the actual file
      * @param fname The file name to be mapped
      * @throws java.io.FileNotFoundException 

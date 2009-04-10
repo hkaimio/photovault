@@ -37,8 +37,12 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
@@ -113,7 +117,19 @@ public class SchemaUpdateAction {
         Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         Connection con = session.connection();
-        
+        DbInfo info = DbInfo.getDbInfo( session );
+        if ( info == null ) {
+            info = new DbInfo();
+            info.setCreateTime( new Date() );
+            info.setId( UUID.randomUUID().toString() );
+            VolumeManager vm = VolumeManager.instance();
+        }
+        session.saveOrUpdate( info );
+        session.flush();
+        tx.commit();
+        session.clear();
+        tx = session.beginTransaction();
+
         /*
          TODO: Schema changes should be done using Hibernate tools. But how to 
          handle the oledd schemas?
@@ -180,8 +196,7 @@ public class SchemaUpdateAction {
             migrateToVersionedSchema();
         }
         
-        DbInfo info = DbInfo.getDbInfo();
-        info = (DbInfo) session.merge( info );
+        info = DbInfo.getDbInfo( session );
         info.setVersion( db.CURRENT_SCHEMA_VERSION );
         session.flush();
         tx.commit();
@@ -226,6 +241,7 @@ public class SchemaUpdateAction {
         VolumeManager vm = VolumeManager.instance();
         VolumeDAO volDao = df.getVolumeDAO();
         List<PVDatabase.LegacyVolume> vols = db.getLegacyVolumes();
+        Volume defVol = null;
         int volCount = vols.size();
         int convertedCount = 0;
         for ( PVDatabase.LegacyVolume lvol : vols ) {
@@ -258,19 +274,35 @@ public class SchemaUpdateAction {
                 vol = new ExternalVolume();                
             } else {
                 vol = new Volume();
+                defVol = (Volume) vol;
             }
             vol.setName( lvol.getName() );
             volDao.makePersistent( vol );
             volIds.put( vol.getName(), vol.getId() );
             try {
                 vm.initVolume( vol, basedir );
+                db.addMountPoint( basedir.getAbsolutePath() );
             } catch ( PhotovaultException ex ) {
                 log.error( "Could not initialize volume:", ex );
             }
             convertedCount++;
         }
+        DbInfo info = DbInfo.getDbInfo( s );
+        if ( defVol != null ) {
+            /**
+             * Note that infor is not saved here, as it is global singleton.
+             * I know. This is dirty...
+             */
+            info.setDefaultVolumeId( defVol.getId() );
+        }
         s.flush();
         s.close();
+        db.getLegacyVolumes().clear();
+        try {
+            PhotovaultSettings.getSettings().saveDbConfig( db );
+        } catch ( IOException ex ) {
+            log.error( ex );
+        }
         if ( volCount > 0 ) {
             fireStatusChangeEvent(
                     new SchemaUpdateEvent( oper, convertedCount * 100 / volCount ) );
