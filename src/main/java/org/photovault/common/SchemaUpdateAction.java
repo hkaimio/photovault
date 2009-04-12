@@ -594,7 +594,6 @@ public class SchemaUpdateAction {
             if ( photoId != currentPhotoId ) {
                 isNewPhoto = true;
                 currentPhotoId = photoId;
-                s.flush();
                 convertedCount++;
                 fireStatusChangeEvent(
                     new SchemaUpdateEvent( oper, convertedCount * 100 / photoCount ));
@@ -704,10 +703,8 @@ public class SchemaUpdateAction {
             if ( isNewPhoto ) {
                 convertPhotoInfo( rs, rf, currentOriginal, photoDao );
             }
+            s.flush();
         }
-
-        s.flush();
-
         s.close();
         try {
             rs.close();
