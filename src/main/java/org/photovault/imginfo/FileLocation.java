@@ -92,7 +92,7 @@ public class FileLocation {
         this.volume = volume;
     }
 
-    @Column( name = "fname" )
+    @Column( name = "fname", nullable = false, updatable = false )
     public String getFname() {
         return fname;
     }
