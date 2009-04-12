@@ -187,6 +187,7 @@ public class PVDatabase {
                 MysqlDescriptor md = new MysqlDescriptor();
                 md.setDbname( dbName );
                 md.setHost( dbHost );
+                dbDescriptor = md;
             }
         }
         return dbDescriptor;
@@ -199,7 +200,7 @@ public class PVDatabase {
     /**
      Add a new volume to this database.
      @param volume The new volume
-     @throws @see PhotovaultException if another volume with the same name is already present
+     @throws PhotovaultException if another volume with the same name is already present
      @deprecated For configuration file parsing backward compatibility only.
      */
     public void addVolume( VolumeBase volume ) throws PhotovaultException {
