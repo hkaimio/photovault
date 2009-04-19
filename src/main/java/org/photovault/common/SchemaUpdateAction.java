@@ -45,6 +45,7 @@ import org.hibernate.Transaction;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
+import org.photovault.folder.ExternalDir;
 import org.photovault.folder.FolderEditor;
 import org.photovault.folder.FolderPhotoAssocDAO;
 import org.photovault.folder.FolderPhotoAssociation;
@@ -210,8 +211,8 @@ public class SchemaUpdateAction {
      */
     private void migrateToVersionedSchema() {
         try {
-            convertVolumes();
             convertFolders();
+            convertVolumes();
             convertPhotos();
             convertFolderAssociations();
             
@@ -237,6 +238,7 @@ public class SchemaUpdateAction {
         df.setSession( s );
         VolumeManager vm = VolumeManager.instance();
         VolumeDAO volDao = df.getVolumeDAO();
+        PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
         List<PVDatabase.LegacyVolume> vols = db.getLegacyVolumes();
         Volume defVol = null;
         int volCount = vols.size();
@@ -260,29 +262,36 @@ public class SchemaUpdateAction {
             } catch ( FileNotFoundException ex ) {
                 log.error( "Could not open volume config file", ex );
             } catch ( IOException ex ) {
-                log.error(  "Error reading volume config file", ex );
+                log.error( "Error reading volume config file", ex );
             }
-            if ( vol != null ) {
-                // The volume is already converted, no need for actions
-                log.info( "Volume " + vol.getId() + " found at " + basedir.getAbsolutePath() );
-                continue;
+
+            if ( vol == null ) {
+                vol = (lvol instanceof PVDatabase.LegacyExtVolume) ?
+                    new ExternalVolume() : new Volume();
+                vol.setName( lvol.getName() );
+                volDao.makePersistent( vol );
+                try {
+                    vm.initVolume( vol, basedir );
+                } catch ( PhotovaultException ex ) {
+                    log.error( "Could not initialize volume:", ex );
+                }
             }
+
             if ( lvol instanceof PVDatabase.LegacyExtVolume ) {
-                vol = new ExternalVolume();                
+                UUID folderId = folderUuids.get(
+                        ((PVDatabase.LegacyExtVolume) lvol).getFolderId() );
+                if ( folderId != null ) {
+                    PhotoFolder f = folderDao.findByUUID( folderId );
+                    ((ExternalVolume) vol).setFolder(
+                            folderDao.findByUUID( folderId ) );
+                    addExtVolReferences( f,(ExternalVolume) vol, "" );
+                }
             } else {
-                vol = new Volume();
                 defVol = (Volume) vol;
             }
-            vol.setName( lvol.getName() );
-            volDao.makePersistent( vol );
             volIds.put( vol.getName(), vol.getId() );
-            try {
-                vm.initVolume( vol, basedir );
-                vm.addMountPoint( basedir );
-                db.addMountPoint( basedir.getAbsolutePath() );
-            } catch ( PhotovaultException ex ) {
-                log.error( "Could not initialize volume:", ex );
-            }
+            vm.addMountPoint( basedir );
+            db.addMountPoint( basedir.getAbsolutePath() );
             convertedCount++;
         }
         DbInfo info = DbInfo.getDbInfo( s );
@@ -307,7 +316,23 @@ public class SchemaUpdateAction {
                     new SchemaUpdateEvent( oper, convertedCount * 100 / volCount ) );
         }
     }
-    
+
+    /**
+     * Update the {@link PhotoFolder#extDir} fields for folders that describe
+     * the structure of an external volume. The function is called recusrively
+     * by {@link #convertVolumes() }.
+     * @param f The folder to be updated (all subfolders are updated recursively
+     * @param vol Volume f is associated with
+     * @param path Path to this folder
+     */
+    private void addExtVolReferences( PhotoFolder f, ExternalVolume vol, String path ) {
+        f.setExternalDir( new ExternalDir( vol, path ) );
+        for ( PhotoFolder sub : f.getSubfolders() ) {
+            String subFolderPrefix = path + "/" + sub.getName();
+            addExtVolReferences( sub, vol, subFolderPrefix );
+        }
+    }
+
     /**
      Convert folder hiearchy from old schema to the new one
      */
