@@ -588,11 +588,13 @@ public class RawImage extends PhotovaultImage {
         this.width = lrd.sizes.width;
         this.height = lrd.sizes.height;
 
+        int postSubsample = (lrd.output_params.half_size > 0 ) ? 
+            subsample/2 : subsample;
         /*
          * Copy the raw image to Java raster, using box filter to subsample
          */
-        int scaledW = width / subsample;
-        int scaledH = height / subsample;
+        int scaledW = width / postSubsample;
+        int scaledH = height / postSubsample;
         short[] buf = new short[scaledW*scaledH*3];
         int pos = 0;
         for ( int row = 0 ; row < scaledH; row++ ) {
@@ -600,8 +602,8 @@ public class RawImage extends PhotovaultImage {
                 int rsum = 0;
                 int gsum = 0;
                 int bsum = 0;
-                for ( int or = row * subsample ; or < (row+1)*subsample ; or++ ) {
-                    for ( int oc = col * subsample ; oc < (col+1)*subsample ; oc++ ) {
+                for ( int or = row * postSubsample ; or < (row+1)*postSubsample ; or++ ) {
+                    for ( int oc = col * postSubsample ; oc < (col+1)*postSubsample ; oc++ ) {
                         int r = lrd.image.getShort( 8 * ( oc + width * or) );
                         rsum += (r & 0xffff);
                         int g = lrd.image.getShort( 8 * ( oc + width * or) + 2 );
@@ -610,9 +612,9 @@ public class RawImage extends PhotovaultImage {
                         bsum += (b & 0xffff);
                     }
                 }
-                buf[pos++] = (short) (rsum / (subsample * subsample));
-                buf[pos++] = (short) (gsum / (subsample * subsample));
-                buf[pos++] = (short) (bsum / (subsample * subsample));
+                buf[pos++] = (short) (rsum / (postSubsample * postSubsample));
+                buf[pos++] = (short) (gsum / (postSubsample * postSubsample));
+                buf[pos++] = (short) (bsum / (postSubsample * postSubsample));
             }
         }
         closeRaw();
@@ -804,6 +806,12 @@ public class RawImage extends PhotovaultImage {
 
     private void openRaw() {
         lrd = lr.libraw_init( 0 );
+        if ( subsample > 1 ) {
+            lrd.output_params.half_size = 1;
+        }
+        if ( subsample == 2 ) {
+            log.debug( "subsample 2" );
+        }
         if ( lr.libraw_open_file( lrd, f.getAbsolutePath() ) != 0 ) {
             this.validRawFile = false;
             return;
