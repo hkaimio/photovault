@@ -103,10 +103,39 @@ public class RawConvOpImage extends PointOpImage {
                 long sb = r.getSample( c, l, 2 );
                 long avg = (sr + sg + sb) / 3;
                 long m = contrastLut[(int) avg];
+                long[] pixel = new long[3];
+                pixel[0] = (sr*m) >> 16;
+                pixel[1] = (sg*m) >> 16;
+                pixel[2] = (sb*m) >> 16;
+                long clippedSum = 0;
+                long unclippedSum = 0;
+                boolean clipped[] = new boolean[3];
+                int channelsClipped = 0;
+                for ( int n = 0; n < 3; n++ ) {
+                    if ( pixel[n] > 65535 ) {
+                        channelsClipped++;
+                        clipped[n] = true;
+                        clippedSum += pixel[n] - 65535;
+                    } else {
+                        clipped[n] = false;
+                        unclippedSum += pixel[n];
+                    }
+                }
+                if ( channelsClipped > 0 ) {
+                    for ( int n = 0; n < 3 ; n++ ) {
+                        if ( !clipped[n] ) {
+                            if ( unclippedSum == 0 ) {
+                                pixel[n] += clippedSum;
+                            } else {
+                                pixel[n] += (clippedSum*pixel[n])/unclippedSum;
+                            }
+                        }
+                    }
+                }
                 try {
-                    w.setSample( c, l, 0, Math.min( 65535, (sr * m) >> 16 ) );
-                    w.setSample( c, l, 1, Math.min( 65535, (sg * m) >> 16 ) );
-                    w.setSample( c, l, 2, Math.min( 65535, (sb * m) >> 16 ) );
+                    w.setSample( c, l, 0, Math.min( 65535, pixel[0] ) );
+                    w.setSample( c, l, 1, Math.min( 65535, pixel[1] ) );
+                    w.setSample( c, l, 2, Math.min( 65535, pixel[2] ) );
                 } catch ( ArrayIndexOutOfBoundsException e ) {
                     log.error( e );
                 }
