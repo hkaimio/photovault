@@ -67,10 +67,23 @@ public class ChangeFactory<T> {
 
     public void addObjectHistory( ObjectHistoryDTO<T> h ) 
             throws ClassNotFoundException, IOException {
+        UUID targetUuid = h.getTargetUuid();
+        ObjectHistory<T> targetHistory = dao.findObjectHistory( h.getTargetUuid() );
+        if ( targetHistory == null ) {
+            /*
+            The target object was not known to local database.
+            Create local copy
+             */
+            targetHistory = createTarget( h.getTargetClassName(), h.getTargetUuid() );
+        }
         for ( ChangeDTO<T> ch : h.getChanges() ) {
-            createChange( ch );
+            if ( !targetUuid.equals( ch.targetUuid) ) {
+                // TODO: handle error!!!
+            }
+            addChange( targetHistory, ch );
         }
     }
+
     
     /**
      Creates a local persistent change based on a DTO, if the change is not yet 
@@ -100,42 +113,72 @@ public class ChangeFactory<T> {
             The target object was not known to local database.
             Create local copy
              */
-            try {
-                Class targetClass = Class.forName( data.targetClassName );
-                DAOFactory df;
-                VersionedObjectEditor<T> e = 
-                        new VersionedObjectEditor<T>( 
-                        targetClass, data.targetUuid, null );
-                T target = e.getTarget();
-                dao.makePersistent( target );
-                dao.flush();
-                targetHistory = e.history;
-                change = targetHistory.getVersion();
-            } catch ( InstantiationException ex ) {
-                throw new IOException( "Cannot instantiate history of class " 
-                        + data.historyClass + " for object " + data.targetUuid, ex );
-            } catch ( IllegalAccessException ex ) {
-                throw new IOException( "Cannot instantiate history of class " 
-                        + data.historyClass + " for object " + data.targetUuid, ex );
-            }
+            targetHistory = createTarget( data.targetClassName, data.targetUuid );
+            change = targetHistory.getVersion();
         } else {
-            change = new Change<T>();
-            change.setTargetHistory( targetHistory );
-            change.setUuid( data.changeUuid );
-            // Try to find parents of this change
-            Set<Change<T>> parents = new HashSet<Change<T>>();
-            for ( UUID parentId : data.parentIds ) {
-                Change<T> parent = dao.findById( parentId, false );
-                parents.add( parent );
-                parent.addChildChange( change );
-            }
-            change.setParentChanges( parents );
-            change.setChangedFields( data.changedFields );
-            dao.makePersistent( change );
-            dao.flush();
-            targetHistory.addChange( change );
+            change = addChange( targetHistory, data );
         }
         return change;
     }
 
+    /**
+     * Creates the target object of a change
+     * @param ch The change dto
+     * @return History of the created object.
+     * @throws java.lang.ClassNotFoundException if target class is not found
+     * @throws java.io.IOException if the target class cannot be instantiated
+     */
+    private ObjectHistory<T> createTarget( String className, UUID uuid )
+            throws ClassNotFoundException, IOException {
+        ObjectHistory<T> targetHistory;
+
+        try {
+            Class targetClass = Class.forName( className );
+            DAOFactory df;
+            VersionedObjectEditor<T> e =
+                    new VersionedObjectEditor<T>( targetClass, uuid, null );
+            T target = e.getTarget();
+            dao.makePersistent( target );
+            dao.flush();
+            targetHistory = e.history;
+        } catch ( InstantiationException ex ) {
+            throw new IOException( "Cannot instantiate history of class " +
+                    className + " for object " + uuid, ex );
+        } catch ( IllegalAccessException ex ) {
+            throw new IOException( "Cannot instantiate history of class " +
+                    className + " for object " + uuid, ex );
+        }
+        return targetHistory;
+    }
+
+    /**
+     * Add change based on change DTO to existing object's history.
+     * @param targetHistory History of the object
+     * @param data Change DTO describing the change
+     * @return Added change
+     */
+    private Change<T> addChange( ObjectHistory<T> targetHistory, ChangeDTO<T> data ) {
+
+        Change<T> change = dao.findChange( data.changeUuid );
+        if ( change != null ) {
+            return change;
+        }
+        change = new Change<T>();
+        change.setTargetHistory( targetHistory );
+        change.setUuid( data.changeUuid );
+        change.setSerializedChange( data.xmlData );
+        // Try to find parents of this change
+        Set<Change<T>> parents = new HashSet<Change<T>>();
+        for ( UUID parentId : data.parentIds ) {
+            Change<T> parent = dao.findById( parentId, false );
+            parents.add( parent );
+            parent.addChildChange( change );
+        }
+        change.setParentChanges( parents );
+        change.setChangedFields( data.changedFields );
+        dao.makePersistent( change );
+        dao.flush();
+        targetHistory.addChange( change );
+        return change;
+    }
 }

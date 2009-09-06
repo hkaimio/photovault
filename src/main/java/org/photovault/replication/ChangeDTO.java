@@ -89,6 +89,7 @@ public class ChangeDTO<T> implements Serializable {
         targetUuid = change.getTargetHistory().getTargetUuid();
         historyClass = change.getTargetHistory().getClass();
         targetClassName = change.getTargetHistory().getTargetClassName();
+        xmlData = change.getSerializedChange();
         parentIds = new ArrayList<UUID>();
         for ( Change<T> parent : change.getParentChanges() ) {
             parentIds.add(  parent.getUuid() );
@@ -126,6 +127,9 @@ public class ChangeDTO<T> implements Serializable {
             ChangeDTO dto = serializer.deserializeChange( serialized );
             dto.xmlData = Arrays.copyOf( serialized, serialized.length );
             dto.changeUuid = dto.calcUuid();
+            if ( dto.changedFields == null ) {
+                dto.changedFields = new TreeMap<String, FieldChange>();
+            }
             return dto;
         } catch ( UnsupportedEncodingException ex ) {
             log.error( "Exception while creating change: ", ex );

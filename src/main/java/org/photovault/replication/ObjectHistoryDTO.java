@@ -130,7 +130,9 @@ public class ObjectHistoryDTO<T> implements Serializable {
         os.defaultWriteObject();
         os.writeInt( changes.size() );
         for ( ChangeDTO<T> ch : changes ) {
-            os.writeObject( ch );
+            byte[] data = ch.getXmlData();
+            os.writeInt( data.length );
+            os.write( data );
         }
     }
 
@@ -147,8 +149,14 @@ public class ObjectHistoryDTO<T> implements Serializable {
         is.defaultReadObject();
         int changeCount = is.readInt();
         changes = new ArrayList( changeCount );
+        Class targetClass = Class.forName( targetClassName );
         for ( int n = 0 ; n < changeCount ; n++ ) {
-            changes.add( (ChangeDTO) is.readObject() );
+            int dataSize = is.readInt();
+
+            byte[] data = new byte[dataSize];
+            is.readFully( data );
+            ChangeDTO ch = ChangeDTO.createChange( data, targetClass );
+            changes.add( ch );
         }
         
     }

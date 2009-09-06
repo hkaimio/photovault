@@ -47,6 +47,7 @@ import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 
 /**
  Test cases for change persistence
@@ -67,7 +68,7 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         session = HibernateUtil.getSessionFactory().openSession();
     }
 
-    @Override
+
     @AfterMethod
     public void tearDown() {
         session.close();
@@ -164,6 +165,9 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         e3.setField( "photographer", "Harri" );
         e3.apply();
         Change<PhotoInfo> c3 = e3.change;
+
+
+        // Create en empty change
         
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream( os );
@@ -204,6 +208,9 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         assertEquals( 2, s2c1.getChildChanges().size() );
         assertEquals( 3, s2c1.getTargetHistory().getChanges().size() );
         assertEquals( 2, s2c1.getTargetHistory().getHeads().size() );
+        assertEquals( c1.getUuid(), UUID.nameUUIDFromBytes( serc1.getSerializedChange() ) );
+        assertEquals( c2.getUuid(), UUID.nameUUIDFromBytes( serc2.getSerializedChange() ) );
+        assertEquals( c3.getUuid(), UUID.nameUUIDFromBytes( serc3.getSerializedChange() ) );
         p = photoDAO.findByUUID( s2c1.getTargetHistory().getTargetUuid() );
         
         VersionedObjectEditor<PhotoInfo> pe = p.editor( rf );
@@ -288,6 +295,9 @@ public class Test_ChangePersistence extends PhotovaultTestCase {
         photoDao.makePersistent( p );
         photoDao.flush();
         ed.addToHistory( h, cf );
+
+        // Ensure that the deserialized changes are not corrupted
+        ObjectHistoryDTO dto = new ObjectHistoryDTO( p.getHistory() );
 
         Map<UUID, Change<PhotoInfo>> changes = new HashMap<UUID, Change<PhotoInfo>>();
         tx = session.beginTransaction();
