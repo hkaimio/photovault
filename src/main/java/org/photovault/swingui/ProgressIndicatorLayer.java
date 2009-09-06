@@ -142,8 +142,11 @@ public class ProgressIndicatorLayer extends AbstractLayerUI<JScrollPane>
      * @param g2
      * @param l
      */
+    /*
+     * TODO: For some season I cannot paramerize l to JXLayer<JScrollPane>
+     */
     @Override
-    protected void paintLayer( Graphics2D g2, JXLayer<JScrollPane> l ) {
+    protected void paintLayer( Graphics2D g2, JXLayer l ) {
         super.paintLayer( g2, l );
 
         long currentTime = System.currentTimeMillis();
@@ -171,7 +174,7 @@ public class ProgressIndicatorLayer extends AbstractLayerUI<JScrollPane>
         if ( state == IndicatorState.INVISIBLE ) {
             return;
         }
-        JViewport vp = l.getView().getViewport();
+        JViewport vp = ((JScrollPane)l.getView()).getViewport();
         int w = l.getWidth();
         GradientPaint backgroundPaint = new GradientPaint(
                 new Point( 0, gradientY + vp.getY() ), new Color( 201, 221, 242, 128 ),
