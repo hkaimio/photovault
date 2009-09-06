@@ -38,4 +38,6 @@ public class LibRawImageSizes extends Structure {
     public short iwidth;
     public double pixel_aspect;
     public int flip;
+    public short right_margin;
+    public short bottom_margin;
 }

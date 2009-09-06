@@ -38,7 +38,7 @@ public class LibRawColorData extends Structure {
     public float[] cmatrix = new float[12];
     public float[] rgb_cam = new float[12];
     public float[] cam_xyz = new float[12];
-    public short[] curve = new short[0x4001];
+    public short[] curve = new short[0x10000];
     public int black;
     public int maximum;
 

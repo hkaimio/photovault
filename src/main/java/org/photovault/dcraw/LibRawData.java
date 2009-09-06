@@ -36,5 +36,6 @@ public class LibRawData extends Structure {
     public LibRawColorData color;
     public LibRawMetadata other;
     public LibRawThumbnail thumbnail;
+    public LibRawMaskedArea masked;
     public Pointer image;
 }

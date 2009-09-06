@@ -30,7 +30,7 @@ import com.sun.jna.Native;
  */
 public interface LibRaw extends Library {
 
-    public LibRaw INSTANCE = (LibRaw) Native.loadLibrary( "raw", LibRaw.class );
+    public LibRaw INSTANCE = (LibRaw) Native.loadLibrary( "pvraw", LibRaw.class );
 
     /**
      * Initializes a new LibRaw processor
