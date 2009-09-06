@@ -50,12 +50,6 @@ import org.photovault.image.DCRawOp;
 import org.photovault.image.ImageOpChain;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.VersionedObjectEditor;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSSerializer;
 
 /**
   Command for changing the properties of {@link PhotoInfo}. This command provides 
@@ -513,74 +507,5 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             pe.apply();
 
         }
-    }
-    String xml = null;
-
-    
-    public String getAsXml() {
-        if ( xml == null ) {
-            DOMImplementationRegistry registry = null;
-            try {
-                 registry = DOMImplementationRegistry.newInstance();
-            } catch ( Exception e ) {
-                log.error( "Error instantiating DOM implementation");
-            }
-
-            DOMImplementation domImpl =
-                    (DOMImplementation) registry.getDOMImplementation( "LS" );
-
-
-            Document doc = domImpl.createDocument( null, "object-history", null );
-            Element root = doc.getDocumentElement();
-
-            Element changeEnvelope = doc.createElement( "change" );
-            root.appendChild( changeEnvelope );
-            Element changeDesc = doc.createElement( "change-desc" );
-            changeEnvelope.appendChild( changeDesc );
-            changeDesc.setAttribute( "target", "uuid-placehoder" );
-            Element chClass = doc.createElement( "change-class" );
-            chClass.setAttribute( "class", this.getClass().getName() );
-            changeDesc.appendChild( chClass );
-
-            Element predecessors = doc.createElement( "predecessors" );
-            changeDesc.appendChild( predecessors );
-
-            Element pred = doc.createElement( "change-ref" );
-            predecessors.appendChild( pred );
-            pred.setAttribute( "uuid", "uuild-placehoder" );
-
-            Element fields = doc.createElement( "fields" );
-            changeDesc.appendChild( fields );
-
-            for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
-                Element field = doc.createElement( "field" );
-                fields.appendChild( field );
-                field.setAttribute( "name", e.getKey().getName() );
-                field.appendChild( doc.createTextNode( e.getValue().toString() ) );
-            }
-
-            if ( addedToFolders.size() > 0 ) {
-                Element addedFolders = doc.createElement( "folders-added" );
-                changeDesc.appendChild( addedFolders );
-                for ( UUID id : addedToFolders ) {
-                    Element f = doc.createElement( "folder" );
-                    f.setAttribute( "uuid", id.toString() );
-                    addedFolders.appendChild( f );
-                }
-            }
-            if ( removedFromFolders.size() > 0 ) {
-                Element removedFolders = doc.createElement( "folders-removed" );
-                changeDesc.appendChild( removedFolders );
-                for ( UUID id : removedFromFolders ) {
-                    Element f = doc.createElement( "folder" );
-                    f.setAttribute( "uuid", id.toString() );
-                    removedFolders.appendChild( f );
-                }
-            }
-            LSSerializer writer = ((DOMImplementationLS)domImpl).createLSSerializer();
-            xml = writer.writeToString(doc);            
-        }
-        
-        return xml;
     }
 }
