@@ -38,4 +38,5 @@ public class LibRawData extends Structure {
     public LibRawThumbnail thumbnail;
     public LibRawMaskedArea masked;
     public Pointer image;
+    public LibRawOutputParams output_params;
 }
