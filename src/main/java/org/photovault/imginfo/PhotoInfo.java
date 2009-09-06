@@ -60,6 +60,8 @@ import org.photovault.image.PhotovaultImageFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.image.DCRawMapOp;
+import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.dto.PhotoChangeSerializer;
@@ -714,6 +716,7 @@ public class PhotoInfo implements PhotoEditor {
                 return false;
             }
         }
+        RawConversionSettings rawSettings = getProcessing().getRawConvSettings();
         if ( applied.contains( ImageOperations.RAW_CONVERSION ) &&
                 !( rawSettings == null || rawSettings.equals( img.getRawSettings() ) ) ) {
             return false;
@@ -818,7 +821,7 @@ public class PhotoInfo implements PhotoEditor {
             }
             if ( img instanceof RawImage ) {
                 RawImage ri = (RawImage) img;
-                ri.setRawSettings( rawSettings );
+                ri.setRawSettings( getProcessing().getRawConvSettings() );
             }
             if ( createPreview ) {
                 // Calculate preview image size
@@ -874,7 +877,7 @@ public class PhotoInfo implements PhotoEditor {
             thumbImageDesc.setRotation( prefRotation );
             thumbImageDesc.setCropArea( getCropBounds() );
             thumbImageDesc.setColorChannelMapping( channelMap );
-            thumbImageDesc.setRawSettings( rawSettings );
+            thumbImageDesc.setRawSettings( getProcessing().getRawConvSettings() );
             thumbFile.addLocation( new FileLocation( volume,
                     volume.mapFileToVolumeRelativeName( thumbnailFile ) ) );
         } catch ( Exception ex ) {
@@ -1049,6 +1052,7 @@ public class PhotoInfo implements PhotoEditor {
             }
             if ( img instanceof RawImage ) {
                 RawImage ri = (RawImage) img;
+                RawConversionSettings rawSettings = getProcessing().getRawConvSettings();
                 if ( rawSettings != null ) {
                     ri.setRawSettings( rawSettings );
                 } else if ( rawSettings == null ) {
@@ -1413,9 +1417,9 @@ public class PhotoInfo implements PhotoEditor {
      @return value of prefRotation.
      */
     @ValueField
-    @Column( name = "pref_rotation" )
+    @Transient
     public double getPrefRotation() {
-        return prefRotation;
+        return getProcessing().getRotation();
     }
     
     /**
@@ -1432,12 +1436,13 @@ public class PhotoInfo implements PhotoEditor {
             v -= 360.0;
         }
         
-        if ( v != prefRotation ) {
+        if ( v != getProcessing().getRotation() ) {
             // Rotation changes, invalidate the thumbnail
             invalidateThumbnail();
+            getProcessing().applyRotation( v );
             // purgeInvalidInstances();
         }
-        this.prefRotation = v;
+        
         modified();
     }
     
@@ -1464,19 +1469,10 @@ public class PhotoInfo implements PhotoEditor {
      Get the preferred crop bounds of the original image
      */
     @ValueField
-    @org.hibernate.annotations.Type( type = "org.photovault.persistence.CropRectUserType" )
-    @org.hibernate.annotations.Columns( 
-        columns = {
-            @Column( name = "clip_xmin" ),
-            @Column( name = "clip_xmax" ),
-            @Column( name = "clip_ymin" ),
-            @Column( name = "clip_ymax", length = 4 )
-        } 
-    )
+    @Transient
     public Rectangle2D getCropBounds() {
-        checkCropBounds();
-        return new Rectangle2D.Double( cropMinX, cropMinY,
-                cropMaxX-cropMinX, cropMaxY-cropMinY );
+        // checkCropBounds();
+        return getProcessing().getCropping();
     }
     
     
@@ -1485,20 +1481,7 @@ public class PhotoInfo implements PhotoEditor {
      @param cropBounds New crop bounds
      */
     public void setCropBounds( Rectangle2D cropBounds ) {
-        if ( cropBounds == null ) {
-            cropBounds = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
-        }
-        if ( !cropBounds.equals( getCropBounds() ) ) {
-            // Rotation changes, invalidate the thumbnail
-            invalidateThumbnail();
-            // purgeInvalidInstances();            
-        }
-        cropMinX = cropBounds.getMinX();
-        cropMinY = cropBounds.getMinY();
-        cropMaxX = cropBounds.getMaxX();
-        cropMaxY = cropBounds.getMaxY();
-        checkCropBounds();
-        modified();
+        getProcessing().applyCropping( cropBounds );
     }
     
     
@@ -1526,13 +1509,13 @@ public class PhotoInfo implements PhotoEditor {
      */
     public void setColorChannelMapping( ChannelMapOperation cm ) {
         if ( cm != null ) {
-            if ( !cm.equals( channelMap ) ) {
+            if ( !cm.equals( getColorChannelMapping() ) ) {
                 // Rotation changes, invalidate the thumbnail
                 invalidateThumbnail();
                 // purgeInvalidInstances();
             }
         }
-        channelMap = cm;
+        getProcessing().applyChanMap( cm );
         modified();
     }
 
@@ -1544,14 +1527,15 @@ public class PhotoInfo implements PhotoEditor {
     @ValueField
     @Transient
     public ChannelMapOperation getColorChannelMapping() {
-        return channelMap;
+        return getProcessing().getChanMap();
     }
     
     /**
      Get the XML data for color channel mapping that is stored into database field.
      */
-    @Column( name = "channel_map", length = 0x1000000 )
-    @Lob
+//    @Column( name = "channel_map", length = 0x1000000 )
+//    @Lob
+    @Transient
     protected byte[] getColorChannelMappingXmlData() {
         byte [] data = null;
         if ( channelMap != null ) {
@@ -1577,18 +1561,37 @@ public class PhotoInfo implements PhotoEditor {
         }
     }
     
-    /**
-     Raw conversion settings or <code>null</code> if no raw image is available
-     */
-    RawConversionSettings rawSettings = null;
+    ImageOpChain processing = new ImageOpChain();
+    
+    @ValueField
+    @Transient
+    public ImageOpChain getProcessing() {
+        return processing;
+    }
+    
+    public void setProcessing( ImageOpChain proc ) {
+        processing = proc;
+    }
+    
+    @Column( name="processing", length=1000000 )
+    @Lob
+    protected String getProcessingXml() {
+        String xml = processing.getAsXml();
+        return xml;
+    }
+
+    protected void setProcessingXml( String xml ) {
+        processing = ImageOpChain.fromXml( xml );
+    }
     
     /**
      Get the current raw conversion settings.
      @return Current settings or <code>null</code> if this is not a raw image.     
      */
     @ValueField
+    @Transient
     public RawConversionSettings getRawSettings() {
-        return (rawSettings != null ) ? rawSettings.clone() : null;
+        return getProcessing().getRawConvSettings();
     }
     
     /**
@@ -1599,19 +1602,20 @@ public class PhotoInfo implements PhotoEditor {
     @Embedded
     public void setRawSettings( RawConversionSettings s ) {
         log.debug( "entry: setRawSettings()" );
+        RawConversionSettings oldRawSettings = getProcessing().getRawConvSettings();
         if ( s != null ) {
-            if ( !s.equals( rawSettings ) ) {
+            if ( !s.equals( oldRawSettings ) ) {
                 invalidateThumbnail();
             }
         } else {
             // s is null so this should not be raw image
-            if ( rawSettings != null ) {
+            if ( oldRawSettings != null ) {
                 log.error( "Setting raw conversion settings of an raw image to null!!!" );
                 invalidateThumbnail();
                 // purgeInvalidInstances();                
             }
         }
-        rawSettings = (s==null) ? null : s.clone();
+        getProcessing().applyRawConvSetting( s );
         modified();
         log.debug( "exit: setRawSettings()" );
     }
@@ -1785,27 +1789,32 @@ public class PhotoInfo implements PhotoEditor {
     
     @Transient
     public Integer getRawBlack() {
-        return rawSettings != null ? rawSettings.getBlack() : null;
+        DCRawMapOp m = (DCRawMapOp) getProcessing().getOperation( "raw_map" );
+        return ( m != null ) ? m.getBlack() : null;
     }
     
     @Transient
     public Integer getRawWhite() {
-        return rawSettings != null ? rawSettings.getWhite() : null;
+        DCRawMapOp m = (DCRawMapOp) getProcessing().getOperation( "raw_map" );
+        return ( m != null ) ? m.getWhite() : null;
     }
     
     @Transient
     public Double getRawEvCorr() {
-        return rawSettings != null ? rawSettings.getEvCorr() : null;
+        DCRawMapOp m = (DCRawMapOp) getProcessing().getOperation( "raw_map" );
+        return ( m != null ) ? m.getEvCorr() : null;
     }
 
     @Transient
     public Double getRawHlightComp() {
-        return rawSettings != null ? rawSettings.getHighlightCompression() : null;
+        DCRawMapOp m = (DCRawMapOp) getProcessing().getOperation( "raw_map" );
+        return ( m != null ) ? m.getHlightCompr() : null;
     }
     
     @Transient
     public Double getRawColorTemp() {
-        return rawSettings != null ? rawSettings.getColorTemp(): null;
+        DCRawMapOp m = (DCRawMapOp) getProcessing().getOperation( "raw_map" );
+        return null;
     }
     
     
@@ -1926,8 +1935,7 @@ public class PhotoInfo implements PhotoEditor {
                 && p.focalLength == this.focalLength
                 && p.FStop == this.FStop
                 && p.quality == this.quality
-                && (( p.rawSettings == null && this.rawSettings == null ) || 
-                    ( p.rawSettings != null && p.rawSettings.equals( this.rawSettings ) )));
+                && p.getProcessing().equals( getProcessing() ));
     }
     
     @Override

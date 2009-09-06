@@ -21,6 +21,7 @@
 package org.photovault.imginfo;
 
 import java.awt.geom.Rectangle2D;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
@@ -33,8 +34,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
-import org.photovault.common.PhotovaultException;
-import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.folder.FolderEditor;
@@ -42,8 +41,13 @@ import org.photovault.folder.FolderPhotoAssocDAO;
 import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.image.ChanMapOp;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
+import org.photovault.image.CropOp;
+import org.photovault.image.DCRawMapOp;
+import org.photovault.image.DCRawOp;
+import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.xml.ChangeDesc;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.VersionedObjectEditor;
@@ -244,6 +248,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
     public void setUUID( UUID newValue ) {
         setField( PhotoInfoFields.UUID, newValue );
     }
+
     
     public enum FolderStates {
         UNMODIFIED,
@@ -279,38 +284,65 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         return FolderStates.UNMODIFIED;
     }    
         
-    private void setRawField( RawSettingsFactory settings, PhotoInfoFields field, Object newValue ) {
+    private void setRawField( ProcGraphEditorHelper rawConvHelper,
+            ProcGraphEditorHelper mapHelper,
+            PhotoInfoFields field, Object newValue ) 
+            throws IllegalAccessException, InvocationTargetException,
+            NoSuchMethodException {
         switch ( field ) {
             case RAW_BLACK_LEVEL:
-                settings.setBlack( (Integer)newValue );
+                mapHelper.setProperty( "black", (Integer)newValue );
                 break;
             case RAW_WHITE_LEVEL:
-                settings.setWhite( (Integer) newValue );
+                mapHelper.setProperty( "white", (Integer)newValue );
                 break;
             case RAW_CTEMP:
-                settings.setColorTemp( (Double) newValue );
+                rawConvHelper.setProperty( "colorTemp", (Double) newValue );
                 break;
             case RAW_EV_CORR:
-                settings.setEvCorr( (Double) newValue );
+                mapHelper.setProperty("evCorr", (Double) newValue );
                 break;
             case RAW_GREEN:
-                settings.setGreenGain( (Double) newValue );
+                rawConvHelper.setProperty( "greenGain", (Double) newValue );
                 break;
             case RAW_HLIGHT_COMP:
-                settings.setHlightComp( (Double) newValue );
+                mapHelper.setProperty( "hlightCompr", newValue);
                 break;
             case RAW_HLIGHT_RECOVERY:
-                settings.setHlightRecovery( (Integer) newValue );
+                rawConvHelper.setProperty("hlightRecovery", (Integer) newValue );
                 break;
             case RAW_WAVELET_DENOISE_THRESHOLD:
-                settings.setWaveletThreshold((Float) newValue);
-                break;
-            case RAW_COLOR_PROFILE:
-                settings.setColorProfile( (ColorProfileDesc) newValue);
+                rawConvHelper.setProperty("waveletThreshold", (Float) newValue);
                 break;
         }
     }
     
+    private void setColorMapField( ProcGraphEditorHelper chanMapHelper,
+            PhotoInfoFields field, Object value ) throws NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException {
+        switch ( field ) {
+            case COLOR_CURVE_VALUE:
+                chanMapHelper.setProperty( "channelCurve(value)",
+                        (ColorCurve) value );
+                break;
+            case COLOR_CURVE_RED:
+                chanMapHelper.setProperty( "channelCurve(red)",
+                        (ColorCurve) value );
+                break;
+            case COLOR_CURVE_BLUE:
+                chanMapHelper.setProperty( "channelCurve(blue)",
+                        (ColorCurve) value );
+                break;
+            case COLOR_CURVE_GREEN:
+                chanMapHelper.setProperty( "channelCurve(green)",
+                        (ColorCurve) value );
+                break;
+            case COLOR_CURVE_SATURATION:
+                chanMapHelper.setProperty( "channelCurve(saturation)",
+                        (ColorCurve) value );
+                break;
+        }
+    }
     
     /**
      Execute the command.
@@ -350,6 +382,8 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 EnumSet.range( PhotoInfoFields.RAW_BLACK_LEVEL, PhotoInfoFields.RAW_COLOR_PROFILE);
         Set<PhotoInfoFields> colorCurveFields = 
                 EnumSet.range( PhotoInfoFields.COLOR_CURVE_VALUE, PhotoInfoFields.COLOR_CURVE_SATURATION );
+        Set<PhotoInfoFields> cropFields = EnumSet.of(
+                PhotoInfoFields.CROP_BOUNDS, PhotoInfoFields.PREF_ROTATION );
         
         DTOResolverFactory resolverFactory = daoFactory.getDTOResolverFactory();
         for ( PhotoInfo photo : photos ) {
@@ -363,114 +397,98 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             PhotoEditor pep = (PhotoEditor) pe.getProxy();
             RawSettingsFactory rawSettingsFactory = null;
             ChannelMapOperationFactory channelMapFactory = null;
-            for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
+
+            // New processing operations
+            ImageOpChain procChain = photo.getProcessing();
+            ProcGraphEditorHelper rawConvHelper = null;
+            ProcGraphEditorHelper rawMapHelper = null;
+            ProcGraphEditorHelper chanMapHelper = null;
+            ProcGraphEditorHelper cropHelper = null;
+
+            try {
+            rawConvHelper =
+                    new ProcGraphEditorHelper( pe, "dcraw", DCRawOp.class );
+            rawMapHelper =
+                    new ProcGraphEditorHelper( pe, "raw-map", DCRawMapOp.class );
+            chanMapHelper =
+                    new ProcGraphEditorHelper( pe, "chan-map", ChanMapOp.class );
+            cropHelper =
+                    new ProcGraphEditorHelper( pe, "crop", CropOp.class );
+            } catch( IllegalAccessException ex ) {
+                // Should not happen
+                log.error( ex );
+                throw new CommandException( 
+                        "Unexpected problem instantiating processing grap helpers",
+                        ex );
+            } catch ( InstantiationException ex ) {
+                // Should not happen
+                log.error( ex );
+                throw new CommandException(
+                        "Unexpected problem instantiating processing grap helpers",
+                        ex );
+            }
+
+            for ( Map.Entry<PhotoInfoFields, Object> e :
+                    changedFields.entrySet() ) {
                 PhotoInfoFields field = e.getKey();
                 Object value = e.getValue();
-                if ( rawSettingsFields.contains( field ) ) {
-                    // This is a raw setting field, we must use factory for changing it
-                    if ( rawSettingsFactory == null ) {
-                        rawSettingsFactory = new RawSettingsFactory(
-                                photo.getRawSettings() );
-                    }
-                    this.setRawField( rawSettingsFactory, field, value );
-                } else if ( colorCurveFields.contains( field ) ) {
-                    if ( channelMapFactory == null ) {
-                        channelMapFactory = new ChannelMapOperationFactory(
-                                photo.getColorChannelMapping() );
-                    }
-                    switch ( field ) {
-                        case COLOR_CURVE_VALUE:
-                            channelMapFactory.setChannelCurve( "value",
-                                    (ColorCurve) value );
-                            break;
-                        case COLOR_CURVE_RED:
-                            channelMapFactory.setChannelCurve( "red",
-                                    (ColorCurve) value );
-                            break;
-                        case COLOR_CURVE_BLUE:
-                            channelMapFactory.setChannelCurve( "blue",
-                                    (ColorCurve) value );
-                            break;
-                        case COLOR_CURVE_GREEN:
-                            channelMapFactory.setChannelCurve( "green",
-                                    (ColorCurve) value );
-                            break;
-                        case COLOR_CURVE_SATURATION:
-                            channelMapFactory.setChannelCurve( "saturation",
-                                    (ColorCurve) value );
-                            break;
-                    }
-                } else {
-                    pe.setField( e.getKey().getName(), e.getValue() );
-                }
-            }
-            if ( rawSettingsFactory != null ) {
                 try {
-                    pe.setField( "rawSettings", rawSettingsFactory.create() );
-                } catch ( PhotovaultException ex ) {
-                    throw new CommandException( "Cannot set raw settings:" + ex.getMessage() );
+                    if ( rawSettingsFields.contains( field ) ) {
+                        this.setRawField( rawConvHelper, rawMapHelper, field,
+                                value );
+                    } else if ( colorCurveFields.contains( field ) ) {
+                        setColorMapField( chanMapHelper, field, value );
+                    } else if ( field == PhotoInfoFields.CROP_BOUNDS ) {
+                        Rectangle2D cropRect = (Rectangle2D) e.getValue();
+                        cropHelper.setProperty( "minX", cropRect.getMinX() );
+                        cropHelper.setProperty( "maxX", cropRect.getMaxX() );
+                        cropHelper.setProperty( "minY", cropRect.getMinY() );
+                        cropHelper.setProperty( "maxY", cropRect.getMaxY() );
+                    } else if ( field == PhotoInfoFields.PREF_ROTATION ) {
+                        Double rot = (Double) e.getValue();
+                        cropHelper.setProperty( "rot", rot );
+                    } else {
+                        pe.setField( e.getKey().getName(), e.getValue() );
+                    }
+                } catch ( IllegalAccessException ex ) {
+                    log.error( "exception while setting field " + field, ex );
+                    throw new CommandException(
+                            "Illegal access while setting field " + field, ex );
+                } catch ( InvocationTargetException ex ) {
+                    log.error( "exception while setting field " + field, ex );
+                    throw new CommandException(
+                            "Invocation target exception while setting field " +
+                            field, ex );
+                } catch ( NoSuchMethodException ex ) {
+                    log.error( "exception while setting field " + field, ex );
+                    throw new CommandException(
+                            "Non-existing method called while setting field " +
+                            field, ex );
                 }
             }
-            if ( channelMapFactory != null ) {
-                pe.setField( "colorChannelMapping", channelMapFactory.create() );
+
+            ProcGraphEditorHelper[] chain = new ProcGraphEditorHelper[] {
+                rawConvHelper, rawMapHelper, chanMapHelper, cropHelper
+            };
+            
+            String nextNodeInput = null;
+            for ( int n = chain.length-1 ; n >= 0 ; n-- ) {
+                String sourcePort = null;
+                // Find the node that should be connected to input of current node
+                for ( int m = n-1 ; m >= 0 ; m-- ) {
+                    if ( chain[m].isNodeAlreadyPresent() ) {
+                        sourcePort = chain[m].getNodeName() + ".out";
+                        break;
+                    }
+                }
+                ProcGraphEditorHelper node = chain[n];
+                if ( node.isNodeAlreadyPresent() || 
+                        node.addNewNode( sourcePort, nextNodeInput ) ) {
+                    nextNodeInput = node.getNodeName() + ".in";
+                }
             }
-            
-//            RawSettingsFactory rawSettingsFactory = null;
-//            ChannelMapOperationFactory channelMapFactory = null;
-//            for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
-//                PhotoInfoFields field = e.getKey();
-//                Object value = e.getValue();
-//                if ( rawSettingsFields.contains( field ) ) {
-//                    // This is a raw setting field, we must use factory for changing it
-//                    if ( rawSettingsFactory == null ) {
-//                        rawSettingsFactory = new RawSettingsFactory( photo.getRawSettings() );
-//                    }
-//                    this.setRawField( rawSettingsFactory, field, value );
-//                } else if ( colorCurveFields.contains( field ) ) {
-//                    if ( channelMapFactory == null ) {
-//                        channelMapFactory = new ChannelMapOperationFactory( photo.getColorChannelMapping() );
-//                    }
-//                    switch ( field ) {
-//                        case COLOR_CURVE_VALUE:
-//                            channelMapFactory.setChannelCurve( "value", (ColorCurve) value);
-//                            break;
-//                        case COLOR_CURVE_RED:
-//                            channelMapFactory.setChannelCurve( "red", (ColorCurve) value);
-//                            break;
-//                        case COLOR_CURVE_BLUE:
-//                            channelMapFactory.setChannelCurve( "blue", (ColorCurve) value);
-//                            break;
-//                        case COLOR_CURVE_GREEN:
-//                            channelMapFactory.setChannelCurve( "green", (ColorCurve) value);
-//                            break;
-//                        case COLOR_CURVE_SATURATION:
-//                            channelMapFactory.setChannelCurve( "saturation", (ColorCurve) value);
-//                            break;
-//                    }
-//                } else {
-//                    try {
-//                        PropertyUtils.setProperty( photo, field.getName(), value );
-//                    } catch ( Exception ex) {
-//                        log.error( "Exception while executing command", ex );
-//                        throw new CommandException( 
-//                                "Error while executing command: " 
-//                                + ex.getMessage() );
-//                    }
-//                }                
-//            }
-//            if ( rawSettingsFactory != null ) {
-//                try {
-//                    photo.setRawSettings( rawSettingsFactory.create() );
-//                } catch (PhotovaultException ex) {
-//                    log.error( "Exception while executing command", ex );
-//                    ex.printStackTrace();
-//                }
-//            }
-//            if ( channelMapFactory != null ) {
-//                photo.setColorChannelMapping( channelMapFactory.create() );
-//                
-//            }
-            
+
+
             PhotoFolderDAO folderDAO = daoFactory.getPhotoFolderDAO();
             FolderPhotoAssocDAO assocDAO = daoFactory.getFolderPhotoAssocDAO();
             Set<PhotoFolder> af = new HashSet<PhotoFolder>();
@@ -500,11 +518,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 fe.apply();
             }
             pe.apply();
-            
-//            PhotoInfoChangeDesc change = new PhotoInfoChangeDesc( 
-//                    photo, changedFields, af, rf );
-//            changes.add( change );
-//            photo.setVersion( change );
+
         }
     }
     String xml = null;

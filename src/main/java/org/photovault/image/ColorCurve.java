@@ -20,6 +20,8 @@
 
 package org.photovault.image;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 import java.awt.geom.CubicCurve2D;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -43,6 +45,8 @@ import java.io.Serializable;
  and next control points, with the exception that in first and last CP the derivative 
  is noncontiguous.
  */
+@XStreamAlias( "curve" )
+@XStreamConverter( ColorCurveXmlConverter.class )
 public class ColorCurve implements Serializable {
     
     static final long serialVersionUID = -4691331290177499814L;
