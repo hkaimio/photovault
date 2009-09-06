@@ -172,6 +172,12 @@ public class VersionedClassDesc {
      reflection.
      */
     public void setFieldValue( Object target, String fieldName, Object value ) {
+        String subfield = null;
+        int subFieldStart = fieldName.indexOf( "." );
+        if ( subFieldStart > 0 ) {
+            subfield = fieldName.substring( subFieldStart );
+            fieldName = fieldName.substring( 0, subFieldStart );
+        }
         FieldDesc fd = fields.get( fieldName );
         if ( fd == null ) {
             throw new IllegalArgumentException( 

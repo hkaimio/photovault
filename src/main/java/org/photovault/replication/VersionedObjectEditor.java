@@ -197,9 +197,21 @@ public class VersionedObjectEditor<T> {
      @param value New value for field
      */
     public void setField( String field, Object value ) {
-        DTOResolver resolver = 
-                    fieldResolver.getResolver( classDesc.getFieldResolverClass( field ) );
-        change.setField( field, resolver.getDtoFromObject( value ) );
+        String subfield = null;
+        int subFieldStart = field.indexOf( "." );
+        if ( subFieldStart > 0 ) {
+            subfield = field.substring( subFieldStart+1 );
+            field = field.substring( 0, subFieldStart );
+        }
+
+        if ( subfield == null ) {
+            DTOResolver resolver =
+                    fieldResolver.getResolver( classDesc.getFieldResolverClass(
+                    field ) );
+            change.setField( field, resolver.getDtoFromObject( value ) );
+        } else {
+            change.setFieldProperty( field, subfield, value );
+        }
     }
     
     public void addToSet( String setFieldName, Object value ) {

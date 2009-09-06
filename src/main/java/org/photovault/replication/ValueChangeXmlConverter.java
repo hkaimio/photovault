@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008 Harri Kaimio
+  Copyright (c) 2008-2009 Harri Kaimio
 
   This file is part of Photovault.
 
@@ -26,6 +26,7 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
+import java.util.Map;
 
 /**
  XStream converter for (un)marshalling {@link ValueChange} instances
@@ -47,25 +48,53 @@ public class ValueChangeXmlConverter implements Converter {
     public void marshal( Object obj, HierarchicalStreamWriter writer, MarshallingContext ctx ) {
         ValueChange ch = (ValueChange) obj;
         writer.addAttribute( "field", ch.getName() );
-        Object val = ch.getValue();
-        if ( val != null ) {
-            writer.startNode( mapper.serializedClass( val.getClass() ) );
-            ctx.convertAnother( val );
-            writer.endNode();
-        } else {
-            writer.startNode( "null" );
+        for ( Map.Entry<String, Object> pc : ch.getPropChanges().entrySet() ) {
+            String propName = ch.getPropName( pc.getKey() );
+            writer.startNode( "prop" );
+            writer.addAttribute( "name", propName );
+            Object val = pc.getValue();
+            if ( val != null ) {
+                writer.startNode( mapper.serializedClass( val.getClass() ) );
+                ctx.convertAnother( val );
+                writer.endNode();
+            } else {
+                writer.startNode( "null" );
+                writer.endNode();
+            }
             writer.endNode();
         }
     }
 
-    public Object unmarshal( HierarchicalStreamReader reader, UnmarshallingContext ctx ) {
+
+    public Object unmarshal( HierarchicalStreamReader reader,
+            UnmarshallingContext ctx ) {
         String field = reader.getAttribute( "field" );
+        ValueChange ret = new ValueChange();
+        ret.name = field;
         reader.moveDown();
-        String className = reader.getNodeName();
-        Class clazz = mapper.realClass( className );
-        Object val = ctx.convertAnother( ctx, clazz );
-        reader.moveUp();
-        return new ValueChange( field, val );
+        while ( reader.hasMoreChildren() ) {
+            String nodeName = reader.getNodeName();
+            if ( "prop".equals( nodeName ) ) {
+                String propName = reader.getAttribute( "name" );
+                reader.moveDown();
+                String className = reader.getNodeName();
+                Class clazz = mapper.realClass( className );
+                Object val = ctx.convertAnother( ctx, clazz );
+                ret.addPropChange( propName, val );
+                reader.moveUp();
+            } else {
+                /*
+                 * If the change contains nodes not named "prop" use them as value
+                 * of the change for backward compatibility
+                 */
+                String className = reader.getNodeName();
+                Class clazz = mapper.realClass( className );
+                Object val = ctx.convertAnother( ctx, clazz );
+                ret.setValue( val );
+            }
+            reader.moveUp();
+        }
+        return ret;
     }
 
 

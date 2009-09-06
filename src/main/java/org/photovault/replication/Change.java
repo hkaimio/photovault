@@ -189,6 +189,23 @@ public class Change<T> {
         changedFields.put( fieldName, new ValueChange( fieldName, newValue ) );
     }
 
+
+    /**
+     * Change a property of a field that is a Java bean
+     * @param fieldName Name of the field
+     * @param subfield property to be changed
+     * @param newValue New value for the property
+     */
+    public void setFieldProperty( String fieldName, String property, Object newValue ) {
+        assertNotFrozen();
+        ValueChange existingChange = (ValueChange) changedFields.get( fieldName );
+        if ( existingChange == null ) {
+            changedFields.put( fieldName, new ValueChange( fieldName, property, newValue ) );
+        } else {
+            existingChange.addPropChange( property, newValue );
+        }
+    }
+
     /**
      Get field value. The If the field is not modified by this change, return 
      the value of the field after previous change.

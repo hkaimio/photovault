@@ -22,6 +22,8 @@ package org.photovault.replication;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
+import org.apache.commons.beanutils.PropertyUtils;
 
 /**
  Description of a versioned field with single value (i.e. no sub-state)
@@ -110,19 +112,48 @@ class ValueFieldDesc extends FieldDesc {
      @param ch The change wih new value for the field
      @param resolverFactory Resolver factory to be used
      */
+    @Override
     void applyChange( Object target, FieldChange ch,
             DTOResolverFactory resolverFactory ) {
-        DTOResolver resolver = resolverFactory.getResolver( dtoResolverClass );
-        Object fieldVal =
-                resolver.getObjectFromDto( ((ValueChange) ch).getValue() );
-        try {
-            setter.invoke( target, fieldVal );
-        } catch ( IllegalAccessException ex ) {
-            throw new IllegalStateException( "Cannot access setter", ex );
-        } catch ( InvocationTargetException ex ) {
-            throw new IllegalStateException( "InvocationTargetException while setting field",
-                    ex );
+        for ( Map.Entry<String, Object> e :
+            ((ValueChange) ch).getPropChanges().entrySet() ) {
+                String propName = e.getKey();
+            try {
+                if ( propName.equals(  ch.getName() ) ) {
+                    DTOResolver resolver = resolverFactory.getResolver(
+                            dtoResolverClass );
+                    Object fieldVal =
+                            resolver.getObjectFromDto( e.getValue() );
+                    setter.invoke( target, fieldVal );
+                } else {
+                    applyPropertyChange( target, propName, e.getValue() );
+                }
+            } catch ( IllegalAccessException ex ) {
+                throw new IllegalStateException( "Cannot access setter", ex );
+            } catch ( InvocationTargetException ex ) {
+                throw new IllegalStateException(
+                        "InvocationTargetException while setting field", ex );
+            } catch ( NoSuchMethodException ex ) {
+                throw new IllegalStateException(
+                        "No suitable method for setting " + propName, ex );
+            }
         }
+
+    }
+
+    /**
+     * Change a certain property of the target obejct
+     * @param target Object that will be changed
+     * @param propName Property to change
+     * @param newValue New value for the property
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
+    void applyPropertyChange( Object target, String propName, Object newValue )
+            throws IllegalAccessException,
+            InvocationTargetException,
+            NoSuchMethodException {
+        PropertyUtils.setProperty( target, propName, newValue);
     }
 
 }

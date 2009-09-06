@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008 Harri Kaimio
+  Copyright (c) 2008-2009 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -28,7 +28,8 @@ import java.util.List;
  field
  */
 public final class ValueFieldConflict extends FieldConflictBase {
-    
+
+    String property;
     List values;
         
     /**
@@ -39,6 +40,26 @@ public final class ValueFieldConflict extends FieldConflictBase {
     ValueFieldConflict( FieldChange fc, List values ) {
         super( fc );
         this.values = values;
+    }
+
+    /**
+     * Constructor.
+     * @param fc Name of the field
+     * @param property Name of the conflicting property
+     * @param values List of values for the property
+     */
+    ValueFieldConflict( FieldChange fc, String property, List values ) {
+        super( fc );
+        this.property = property;
+        this.values = values;
+    }
+
+    /**
+     * Get the conflicting property.
+     * @return
+     */
+    public String getProperty() {
+        return property;
     }
     
     /**
@@ -56,10 +77,34 @@ public final class ValueFieldConflict extends FieldConflictBase {
      by getConflictingValues
      */
     public void resolve( int winningValue ) {
-        Object value = values.get(  winningValue );
-        ((ValueChange)change).setValue( value );
+        Object value = values.get( winningValue );
+        if ( property == null ) {
+            ((ValueChange) change).setValue( value );
+        } else {
+            ((ValueChange) change).addPropChange( property, value );
+        }
         change.conflictResolved( this );
-                
+    }
+
+    public String toString() {
+        StringBuffer b = new StringBuffer();
+        b.append( getFieldName() );
+        if ( property != null ) {
+            b.append( "." );
+            b.append( property );
+        }
+        b.append( ": [" );
+        boolean isFirst = true;
+        for ( Object v : values ) {
+            if ( !isFirst ) {
+                b.append( ", " );                
+            } else {
+                isFirst = false;
+            }
+            b.append( v );
+        }
+        b.append( "]" );
+        return b.toString();
     }
 
 }
