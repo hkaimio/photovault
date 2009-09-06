@@ -41,6 +41,15 @@ public class CropOp extends ImageOp {
         addOutputPort( "out" );
     }
 
+    public CropOp( CropOp op ) {
+        super( op );
+        initPorts();
+        minx = op.minx;
+        miny = op.miny;
+        maxx = op.maxx;
+        maxy = op.maxy;
+        rot = op.rot;
+    }
     /**
      * Constructor
      * @param chain Chain in which the operation belongs
@@ -155,6 +164,11 @@ public class CropOp extends ImageOp {
      */
     public void setMaxY( double ymax ) {
         this.maxy = ymax;
+    }
+
+    @Override
+    public ImageOp createCopy() {
+        return new CropOp( this );
     }
 
 }

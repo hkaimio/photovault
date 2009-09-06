@@ -54,6 +54,11 @@ public class Test_ImageOp {
             addInputPort( "in" );
             addOutputPort( "out" );
         }
+
+        @Override
+        public ImageOp createCopy() {
+            throw new UnsupportedOperationException( "Not supported yet." );
+        }
     }
 
     @Test

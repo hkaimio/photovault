@@ -322,23 +322,23 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             IllegalAccessException, InvocationTargetException {
         switch ( field ) {
             case COLOR_CURVE_VALUE:
-                chanMapHelper.setProperty( "channelCurve(value)",
+                chanMapHelper.setProperty( "channel(value)",
                         (ColorCurve) value );
                 break;
             case COLOR_CURVE_RED:
-                chanMapHelper.setProperty( "channelCurve(red)",
+                chanMapHelper.setProperty( "channel(red)",
                         (ColorCurve) value );
                 break;
             case COLOR_CURVE_BLUE:
-                chanMapHelper.setProperty( "channelCurve(blue)",
+                chanMapHelper.setProperty( "channel(blue)",
                         (ColorCurve) value );
                 break;
             case COLOR_CURVE_GREEN:
-                chanMapHelper.setProperty( "channelCurve(green)",
+                chanMapHelper.setProperty( "channel(green)",
                         (ColorCurve) value );
                 break;
             case COLOR_CURVE_SATURATION:
-                chanMapHelper.setProperty( "channelCurve(saturation)",
+                chanMapHelper.setProperty( "channel(saturation)",
                         (ColorCurve) value );
                 break;
         }

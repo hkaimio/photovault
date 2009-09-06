@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008 Harri Kaimio
+  Copyright (c) 2008-2009 Harri Kaimio
 
   This file is part of Photovault.
 
@@ -22,6 +22,7 @@
 package org.photovault.imginfo.dto;
 
 import com.thoughtworks.xstream.XStream;
+import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.replication.XStreamChangeSerializer;
 
@@ -43,6 +44,7 @@ public class PhotoChangeSerializer extends XStreamChangeSerializer {
         xstream.processAnnotations( OrigImageDescriptorDTO.class );
         xstream.processAnnotations( CopyImageDescriptorDTO.class );
         xstream.processAnnotations( OrigImageRefDTO.class );
+        ImageOpChain.initXStream( xstream );
     }
 
 }

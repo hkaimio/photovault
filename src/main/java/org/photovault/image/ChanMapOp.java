@@ -40,11 +40,28 @@ public class ChanMapOp extends ImageOp {
         initPorts();
     }
 
+    protected ChanMapOp( ChanMapOp op ) {
+        super( op );
+        initPorts();
+        for ( Map.Entry<String, ColorCurve> e : channels.entrySet() ) {
+            ColorCurve opc = e.getValue();
+            ColorCurve c = new ColorCurve();
+            for ( int n = 0 ; n < opc.getPointCount() ; n++ ) {
+                c.addPoint( opc.getX( n), opc.getY( n ) );
+            }
+            channels.put( e.getKey(), c );
+        }
+    }
+
     public ChanMapOp( ImageOpChain chain, String name ) {
         super();
         initPorts();
         setName( name );
         chain.addOperation( this );
+    }
+
+    public ImageOp createCopy() {
+        return new ChanMapOp( this );
     }
 
     @Override

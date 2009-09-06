@@ -40,11 +40,33 @@ public class DCRawOp extends ImageOp {
         addOutputPort( "out" );
     }
 
+    protected DCRawOp( DCRawOp op ) {
+        super( op );
+        initPorts();
+        aberCorr = ( op.aberCorr == null ) ? null : op.aberCorr.clone();
+        black = op.black;
+        blueGreenRatio = op.blueGreenRatio;
+        redGreenRatio = op.redGreenRatio;
+        ctemp = op.ctemp;
+        daylightBlueGreenRatio = op.daylightBlueGreenRatio;
+        daylightRedGreenRatio = op.daylightRedGreenRatio;
+        greenGain = op.greenGain;
+        hlightRecovery = op.hlightRecovery;
+        medianFilterPassCount = op.medianFilterPassCount;
+        redGreenRatio = op.redGreenRatio;
+        waveletThreshold = op.waveletThreshold;
+        white = op.white;
+    }
+
     public DCRawOp( ImageOpChain chain, String name ) {
         super();
         setName( name );
         setChain( chain );
         initPorts();
+    }
+
+    public ImageOp createCopy() {
+        return new DCRawOp( this );
     }
 
     @XStreamAsAttribute
@@ -71,7 +93,7 @@ public class DCRawOp extends ImageOp {
     private double greenGain;
     
     @XStreamAsAttribute
-    private int highlightRecovery;
+    private int hlightRecovery;
 
     @XStreamAsAttribute
     private int medianFilterPassCount;
@@ -226,8 +248,8 @@ public class DCRawOp extends ImageOp {
      * Get the amount ofhighlight recovery done
      * @return the highlightRecovery
      */
-    public int getHighlightRecovery() {
-        return highlightRecovery;
+    public int getHlightRecovery() {
+        return hlightRecovery;
     }
 
     /**
@@ -235,8 +257,8 @@ public class DCRawOp extends ImageOp {
      * larger area will be used for estimating color of highlights.
      * @param highlightRecovery the highlightRecovery to set
      */
-    public void setHighlightRecovery( int highlightRecovery ) {
-        this.highlightRecovery = highlightRecovery;
+    public void setHlightRecovery( int highlightRecovery ) {
+        this.hlightRecovery = highlightRecovery;
     }
 
     /**

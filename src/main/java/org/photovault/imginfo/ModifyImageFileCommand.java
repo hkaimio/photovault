@@ -180,7 +180,7 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                 // photoDAO.makePersistent( photo );
                 createdPhotos.add( photo );
             } catch ( Exception e ) {
-                log.error( "Error in creating image file: " + e.getMessage() );
+                log.error( "Error in creating image file: " + e.getMessage(), e );
                 throw new CommandException( e.getMessage() );
             }
         }

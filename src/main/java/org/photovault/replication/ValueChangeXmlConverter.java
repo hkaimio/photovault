@@ -71,8 +71,8 @@ public class ValueChangeXmlConverter implements Converter {
         String field = reader.getAttribute( "field" );
         ValueChange ret = new ValueChange();
         ret.name = field;
-        reader.moveDown();
         while ( reader.hasMoreChildren() ) {
+            reader.moveDown();
             String nodeName = reader.getNodeName();
             if ( "prop".equals( nodeName ) ) {
                 String propName = reader.getAttribute( "name" );

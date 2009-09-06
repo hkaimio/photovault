@@ -20,7 +20,9 @@
 
 package org.photovault.replication;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import org.photovault.imginfo.PhotoInfo;
 import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.*;
 
@@ -117,4 +119,47 @@ public class Test_ValueChange {
         assertEquals( 1, conflicts.size() );
     }
 
+    @Test
+    public void testXmlUnmarshall() throws UnsupportedEncodingException {
+        String xml = "<change targetId=\"1ada2ec9-5c72-4f8d-a686-da9d9816429a\" targetClass=\"org.photovault.imginfo.PhotoInfo\">" +
+                "<parent idref=\"8e25f7b3-f025-3b18-8b67-ebbbc1a46e18\"/>" +
+                "<value-change field=\"processing\">" +
+                "    <prop name=\"connection(crop.in)\">" +
+                "      <string>raw-map.out</string>" +
+                "    </prop>" +
+                "    <prop name=\"head\">" +
+                "      <string>crop.out</string>" +
+                "    </prop>" +
+                "    <prop name=\"operation(crop)\">" +
+                "      <org.photovault.image.CropOp>" +
+                "        <inputPorts>" +
+                "          <entry>" +
+                "            <string>in</string>" +
+                "            <org.photovault.image.ImageOp_-Sink>" +
+                "              <op class=\"org.photovault.image.CropOp\" reference=\"../../../..\"/>" +
+                "              <name>in</name>" +
+                "            </org.photovault.image.ImageOp_-Sink>" +
+                "          </entry>" +
+                "        </inputPorts>" +
+                "        <outputPorts>" +
+                "          <entry>" +
+                "            <string>out</string>" +
+                "            <org.photovault.image.ImageOp_-Source>" +
+                "              <op class=\"org.photovault.image.CropOp\" reference=\"../../../..\"/>" +
+                "              <name>out</name>" +
+                "            </org.photovault.image.ImageOp_-Source>" +
+                "          </entry>" +
+                "        </outputPorts>" +
+                "        <rot>-0.6847775070091451</rot>" +
+                "        <minx>0.0878772801792451</minx>" +
+                "        <maxx>0.9042857436256849</maxx>" +
+                "        <miny>0.025577266850996164</miny>" +
+                "        <maxy>0.7756266332931306</maxy>" +
+                "      </org.photovault.image.CropOp>" +
+                "    </prop>" +
+                "  </value-change>" +
+                "</change>";
+        ChangeDTO dto = ChangeDTO.createChange( xml.getBytes( "utf-8"), PhotoInfo.class );
+
+    }
 }

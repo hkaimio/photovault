@@ -125,10 +125,22 @@ public abstract class ImageOp {
         }
     }
 
+    public ImageOp() {}
+
+    /**
+     * Copy constructor intended to be called by copy constructors of derived
+     * classes. It copies only {@link #name} field of the object - other fields
+     * are left uncopied as they are set by the associated {@link ImageOpChain}.
+     * @param op
+     */
+    protected ImageOp( ImageOp op ) {
+        this.name = op.name;
+    }
+
     /**
      * Name of the operation
      */
-    @XStreamAsAttribute
+    @XStreamOmitField
     private String name;
 
     /**
@@ -196,6 +208,12 @@ public abstract class ImageOp {
         inputPorts = new HashMap<String, Sink>();
         initPorts();
     }
+
+    /**
+     * Derived classes need to provide a method for creating a copy of themselves
+     * @return
+     */
+    public abstract ImageOp createCopy();
 
     protected abstract void initPorts();
 }

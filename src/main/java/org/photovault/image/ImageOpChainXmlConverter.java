@@ -56,6 +56,7 @@ public class ImageOpChainXmlConverter extends AbstractCollectionConverter {
             writer.startNode( "op" );
             writer.addAttribute(
                     "class", mapper().serializedClass( op.getClass() ) );
+            writer.addAttribute( "name", op.getName() );
             ctx.convertAnother( op );
             writer.endNode();
         }
@@ -90,9 +91,10 @@ public class ImageOpChainXmlConverter extends AbstractCollectionConverter {
                     throw new IllegalStateException(
                             clazz.getCanonicalName() + " is not an ImageOp" );
                 }
+                String name = reader.getAttribute( "name" );
                 ImageOp op = (ImageOp) ctx.convertAnother( ctx, clazz );
                 op.initPortMaps();
-                chain.addOperation( op );
+                chain.setOperation( name, op );
             } else if ( "connection".equals( nodeName ) ) {
                 String source = reader.getAttribute( "source" );
                 String sinkName = reader.getAttribute( "sink" );

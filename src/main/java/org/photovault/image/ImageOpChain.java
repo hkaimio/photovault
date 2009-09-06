@@ -33,7 +33,7 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
 
 /**
- * ImageOpChain describes the iamge processing operations that are applied to
+ * ImageOpChain describes the image processing operations that are applied to
  * original iamge to achieve desired result.
  * @author Harri Kaimio
  * @since 0.6.0
@@ -42,6 +42,22 @@ import org.photovault.dcraw.RawSettingsFactory;
 public class ImageOpChain {
 
     public ImageOpChain() {
+    }
+
+    /**
+     * Copy constructor. Makes deep copy of the given chain
+     * @param chain
+     */
+    public ImageOpChain( ImageOpChain chain ) {
+        // Copy operations
+        for ( Map.Entry<String, ImageOp> e : chain.operations.entrySet() ) {
+            ImageOp op = e.getValue().createCopy();
+            setOperation( e.getKey(), op );
+        }
+        head = chain.head;
+        for ( Map.Entry<String,String> e : chain.sources.entrySet() ) {
+            setConnection( e.getKey(), e.getValue() );
+        }
     }
 
     /**
@@ -204,16 +220,25 @@ public class ImageOpChain {
     private synchronized static XStream getXStream() {
         if ( xs == null ) {
             xs = new XStream();
-            xs.processAnnotations( ImageOp.class );
-            xs.processAnnotations( DCRawOp.class );
-            xs.processAnnotations( DCRawMapOp.class );
-            xs.processAnnotations( CropOp.class );
-            xs.processAnnotations( ImageOpChain.class );
-            xs.processAnnotations( ChanMapOp.class );
-            xs.processAnnotations( ColorCurve.class );
-            xs.registerConverter( new ImageOpChainXmlConverter( xs.getMapper() ) );
+            initXStream( xs );
       }
         return xs;
+    }
+
+    /**
+     * Initialize an XStream XML converter to recognize element types & conerters
+     * associated with ImageOpChain.
+     * @param xstream
+     */
+    public static void initXStream( XStream xstream ) {
+        xstream.processAnnotations( ImageOp.class );
+        xstream.processAnnotations( DCRawOp.class );
+        xstream.processAnnotations( DCRawMapOp.class );
+        xstream.processAnnotations( CropOp.class );
+        xstream.processAnnotations( ImageOpChain.class );
+        xstream.processAnnotations( ChanMapOp.class );
+        xstream.processAnnotations( ColorCurve.class );
+        xstream.registerConverter( new ImageOpChainXmlConverter( xstream.getMapper() ) );
     }
 
     public String getAsXml() {
@@ -241,7 +266,7 @@ public class ImageOpChain {
                     getDaylightBlueGreenRatio() );
             rawConv.setDaylightRedGreenRatio( rawSettings.
                     getDaylightRedGreenRatio() );
-            rawConv.setHighlightRecovery( rawSettings.getHlightRecovery() );
+            rawConv.setHlightRecovery( rawSettings.getHlightRecovery() );
             rawConv.setMedianFilterPassCount( rawSettings.getMedianPassCount() );
             rawConv.setRedGreenRatio( rawSettings.getRedGreenRatio() );
             rawConv.setWaveletThreshold( rawSettings.getWaveletThreshold() );
@@ -297,7 +322,7 @@ public class ImageOpChain {
         rf.setBlueGreenRatio( dcraw.getBlueGreenRatio() );
         rf.setEvCorr( mapping.getEvCorr() );
         rf.setHlightComp( mapping.getHlightCompr() );
-        rf.setHlightRecovery( dcraw.getHighlightRecovery() );
+        rf.setHlightRecovery( dcraw.getHlightRecovery() );
         rf.setMedianPassCount( dcraw.getMedianFilterPassCount() );
         rf.setRedGreenRation( dcraw.getRedGreenRatio() );
         rf.setWaveletThreshold( (float) dcraw.getWaveletThreshold() );
@@ -366,6 +391,9 @@ public class ImageOpChain {
      * @param map
      */
     public void applyChanMap( ChannelMapOperation map ) {
+        if ( map == null ) {
+            return;
+        }
         ChannelMapOperationFactory cf = new ChannelMapOperationFactory();
         ChanMapOp mapOp = (ChanMapOp) getOperation( "chan-map" );
         if ( mapOp != null ) {

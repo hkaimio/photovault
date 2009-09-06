@@ -48,7 +48,6 @@ public class ChanMapOpXmlConverter extends AbstractCollectionConverter {
     public void marshal( Object obj, HierarchicalStreamWriter writer,
             MarshallingContext ctx ) {
         ChanMapOp map = (ChanMapOp) obj;
-        writer.addAttribute( "name", map.getName() );
         for( Map.Entry<String, ColorCurve> e : map.channels.entrySet() ) {
             writer.startNode( "channel" );
             writer.addAttribute( "name", e.getKey() );
@@ -61,8 +60,6 @@ public class ChanMapOpXmlConverter extends AbstractCollectionConverter {
     public Object unmarshal( HierarchicalStreamReader reader,
             UnmarshallingContext ctx ) {
         ChanMapOp map = new ChanMapOp();
-        String name = reader.getAttribute( "name" );
-        map.setName( name );
         while ( reader.hasMoreChildren() ) {
             reader.moveDown();
             if ( "channel".equals( reader.getNodeName() ) ) {

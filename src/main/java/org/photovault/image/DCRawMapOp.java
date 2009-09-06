@@ -40,6 +40,16 @@ public class DCRawMapOp extends ImageOp {
         addOutputPort( "out" );
     }
 
+
+    protected DCRawMapOp( DCRawMapOp op ) {
+        super( op );
+        initPorts();
+        black = op.black;
+        white = op.white;
+        evCorr = op.evCorr;
+        hlightCompr = op.hlightCompr;
+    }
+
     public DCRawMapOp( ImageOpChain chain, String name ) {
         super();
         initPorts();
@@ -129,6 +139,11 @@ public class DCRawMapOp extends ImageOp {
      */
     public void setHlightCompr( double hlightCompr ) {
         this.hlightCompr = hlightCompr;
+    }
+
+    @Override
+    public ImageOp createCopy() {
+        return new DCRawMapOp( this );
     }
 
 }

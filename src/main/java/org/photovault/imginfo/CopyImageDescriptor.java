@@ -25,15 +25,14 @@ import java.util.EnumSet;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
+import org.hibernate.annotations.Type;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
-import org.photovault.image.ChannelMapOperationFactory;
+import org.photovault.image.ImageOpChain;
 
 /**
  * CopyImageDescriptor describes the properties a a single image that is stored in an
@@ -56,80 +55,64 @@ public class CopyImageDescriptor extends ImageDescriptorBase {
         this.original = orig;
         orig.copies.add( this );
     }
-    
-    private Rectangle2D cropArea = new Rectangle2D.Double( 0.0, 0.0, 1.0, 1.0 );
-    private double rotation = 0.0;
-    private RawConversionSettings rawSettings = null;
-    private ChannelMapOperation colorChannelMapping = null;    
+
+    /**
+     * Image processing chain used to obtain this image from original
+     */
+    private ImageOpChain processing = new ImageOpChain();
+
     private OriginalImageDescriptor original;
 
-    @org.hibernate.annotations.Type( type = "org.photovault.persistence.CropRectUserType" )
-    @org.hibernate.annotations.Columns(
-        columns = {
-            @Column( name = "crop_xmin" ),
-            @Column( name = "crop_xmax" ),
-            @Column( name = "crop_ymin" ),
-            @Column( name = "crop_ymax", length = 4 )
-        }
-    )
+    @Column( name="processing", length=1000000 )
+    @Type(type="org.photovault.persistence.ImageOpChainUserType")
+    public ImageOpChain getProcessing() {
+        return processing;
+    }
+
+    public void setProcessing( ImageOpChain chain ) {
+        processing = chain;
+    }
+
+
+
+    @Transient
     public Rectangle2D getCropArea() {
-        return cropArea;
+        return processing.getCropping();
     }
 
     public void setCropArea(Rectangle2D cropArea) {
-        this.cropArea = cropArea;
+        processing.applyCropping( cropArea );
     }
 
-    @Column( name = "rotation" )
+    @Transient
     public double getRotation() {
-        return rotation;
+        return processing.getRotation();
     }
 
     public void setRotation(double rotation) {
-        this.rotation = rotation;
+        processing.applyRotation( rotation );
     }
 
-    @Embedded
+    @Transient
     public RawConversionSettings getRawSettings() {
-        return rawSettings;
+        return processing.getRawConvSettings();
     }
 
     public void setRawSettings(RawConversionSettings rawSettings) {
-        this.rawSettings = rawSettings;
+        processing.applyRawConvSetting( rawSettings );
     }
 
     @Transient
     public ChannelMapOperation getColorChannelMapping() {
-        return colorChannelMapping;
+        return processing.getChanMap();
     }
 
     public void setColorChannelMapping(ChannelMapOperation colorChannelMapping) {
-        this.colorChannelMapping = colorChannelMapping;
+        processing.applyChanMap( colorChannelMapping );
     }
     
-    /**
-     Get the XML data for color channel mapping that is stored into database field.
-     */    
-    @Column( name = "channel_map", length = 0x1000000 )
-    @Lob
-    protected byte[] getColorChannelMappingXmlData() {
-        byte[] data = null;
-        if ( colorChannelMapping != null ) {
-            String xmlStr = colorChannelMapping.getAsXml();
-            data = xmlStr.getBytes();
-        }
-        return data;
-    }
-    
-    /**
-     Set the color channel mapping based on XML data read from database field. For
-     Hibernate use.
-     @param data The data read from database.
-     */
-    protected void setColorChannelMappingXmlData( byte[] data ) {
-        colorChannelMapping = ChannelMapOperationFactory.createFromXmlData( data );
-    }
-    
+
+
     @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
     @org.hibernate.annotations.Cascade( {org.hibernate.annotations.CascadeType.SAVE_UPDATE } )
     @JoinColumn( name = "original_id", nullable = true )
@@ -151,17 +134,16 @@ public class CopyImageDescriptor extends ImageDescriptorBase {
     public EnumSet<ImageOperations> getAppliedOperations() {
         EnumSet<ImageOperations> applied = EnumSet.noneOf( ImageOperations.class );
         
-        if ( !getCropArea().contains( 0.0, 0.0, 1.0, 1.0 ) ||
-                this.getRotation() != 0.0 ) {
+        if ( processing.getOperation( "crop" ) != null ) {
             applied.add( ImageOperations.CROP );
         }
         // Check for raw conversion
-        if ( getRawSettings() != null ) {
+        if ( processing.getOperation( "dcraw" ) != null ) {
             applied.add( ImageOperations.RAW_CONVERSION );
         }
         // Check for color mapping
         ChannelMapOperation colorMap = getColorChannelMapping();
-        if ( colorMap != null ) {
+        if ( processing.getOperation( "chan-map" ) != null ) {
             applied.add( ImageOperations.COLOR_MAP );
         }
         return applied;
