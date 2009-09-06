@@ -260,7 +260,9 @@
         <taskdef  resource="testngtasks" classpath="lib/testng-jdk15.jar"/>
         <nbjpdastart name="${classname}" addressproperty="jpda.address" transport="dt_socket">
             <classpath refid="project.class.path"/>
-            <sourcepath refid="debug.sourcepath"/>
+            <sourcepath>
+                <path refid="debug.sourcepath"/>
+            </sourcepath>
         </nbjpdastart>
         <echo message="selected_file: ${selected_file}"/>
         <testng outputDir="${reports.test}/testresults"
@@ -530,7 +532,9 @@
     <target name="debug" depends="compile" if="netbeans.home" description="Debug in Netbeans">
         <nbjpdastart name="Photovault" addressproperty="jpda.address" transport="dt_socket">
             <classpath refid="project.class.path"/>
-            <sourcepath refid="debug.sourcepath"/>
+            <sourcepath>
+                <path refid="debug.sourcepath"/>
+            </sourcepath>
         </nbjpdastart>
         <java fork="true" classname="org.photovault.swingui.Photovault">
             <jvmarg value="-Xmx${heap.max_size}M"/>
@@ -549,7 +553,9 @@
         </fail>
         <nbjpdastart name="${classname}" addressproperty="jpda.address" transport="dt_socket">
             <classpath refid="project.class.path"/>
-            <sourcepath refid="debug.sourcepath"/>
+            <sourcepath>
+                <path refid="debug.sourcepath"/>
+            </sourcepath>
         </nbjpdastart>
         <java classname="${classname}" fork="true">
             <jvmarg value="${run.jvmargs}"/>
