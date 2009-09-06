@@ -285,7 +285,7 @@ public class Change<T> {
     }
 
     @ManyToMany( targetEntity=Change.class, cascade=CascadeType.ALL )
-    @JoinTable(name = "change_relations",
+    @JoinTable(name = "pv_change_relations",
         joinColumns = {@JoinColumn(name = "child_uuid")},
         inverseJoinColumns = {@JoinColumn(name = "parent_uuid")})
     public Set<Change<T>> getParentChanges() {

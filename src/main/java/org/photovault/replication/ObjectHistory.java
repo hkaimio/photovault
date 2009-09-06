@@ -166,7 +166,7 @@ public class ObjectHistory<T> {
      Returns the set of head changes, i.e. changes that do not have a child.
      */
     @OneToMany( targetEntity=Change.class )
-    @JoinTable( name="change_unmerged_branches", 
+    @JoinTable( name="pv_change_unmerged_branches",
                 joinColumns=@JoinColumn( name="target_uuid" ), 
                 inverseJoinColumns=@JoinColumn( name = "change_uuid" ) )
     public Set<Change<T>> getHeads() {

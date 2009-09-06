@@ -48,7 +48,6 @@ import org.photovault.image.CropOp;
 import org.photovault.image.DCRawMapOp;
 import org.photovault.image.DCRawOp;
 import org.photovault.image.ImageOpChain;
-import org.photovault.imginfo.xml.ChangeDesc;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.VersionedObjectEditor;
 import org.w3c.dom.DOMImplementation;
@@ -134,18 +133,12 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      */
     Set<PhotoInfo> changedPhotos = null;
     
-    Set<ChangeDesc> changes = new HashSet<ChangeDesc>();
-    
     /**
      Get photo instance with the changes applied (in command handler's persistence 
      context or later detached)
      */
     public Set<PhotoInfo> getChangedPhotos() {
         return changedPhotos;
-    }
-
-    public Set<ChangeDesc> getChanges() {
-        return changes;
     }
     
     /**

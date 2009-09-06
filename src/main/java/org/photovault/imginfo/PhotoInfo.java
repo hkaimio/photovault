@@ -65,7 +65,6 @@ import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.dto.PhotoChangeSerializer;
-import org.photovault.imginfo.xml.PhotoInfoChangeDesc;
 import org.photovault.replication.ObjectHistory;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.History;
@@ -240,31 +239,6 @@ public class PhotoInfo implements PhotoEditor {
         modified();
     }
     
-    /**
-     Last change that vas applied to this photo
-     */
-    PhotoInfoChangeDesc version;
-    
-    /**
-     Get the last change that was made to this photo
-     
-     @return ChangeDesc describing the last change
-     */
-    
-    @OneToOne( cascade = CascadeType.ALL )
-    @JoinColumn( name="version_uuid" )
-    public PhotoInfoChangeDesc getVersion() {
-        return version;
-    }
-    
-    /**
-     Set the version of this photo
-     
-     @param v Description of the change that was last made to this photo.
-     */
-    public void setVersion( PhotoInfoChangeDesc v ) {
-        version = v;
-    }
 
     /**
      This method reads the metadata from image file and updates the PhotoInfo record from it

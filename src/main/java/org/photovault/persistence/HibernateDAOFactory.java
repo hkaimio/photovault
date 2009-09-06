@@ -21,8 +21,6 @@
 package org.photovault.persistence;
 
 import org.hibernate.Session;
-import org.photovault.change.ChangeDescDAO;
-import org.photovault.change.ChangeDescDAOHibernate;
 import org.photovault.folder.FolderPhotoAssocDAO;
 import org.photovault.folder.FolderPhotoAssocDAOHibernate;
 import org.photovault.folder.PhotoFolderDAO;
@@ -102,11 +100,6 @@ public class HibernateDAOFactory extends DAOFactory {
         ChangeDAOHibernate dao = new ChangeDAOHibernate();
         dao.setSession( session );
         return dao;
-    }
-
-    @Override
-    public ChangeDescDAO getChangeDescDAO() {
-        return (ChangeDescDAO) instantiateDAO( ChangeDescDAOHibernate.class );        
     }
 
     @Override
