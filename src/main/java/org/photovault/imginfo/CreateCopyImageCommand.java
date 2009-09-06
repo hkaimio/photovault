@@ -435,9 +435,8 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
             }
         });
         ImageWriteParam params = imgwriter.getDefaultWriteParam();
-        ImageTypeSpecifier its = new ImageTypeSpecifier( img );
-        its =
-            ImageTypeSpecifier.createFromBufferedImageType(BufferedImage.TYPE_INT_RGB);
+        ImageTypeSpecifier its =
+            ImageTypeSpecifier.createFromRenderedImage(img);
         IIOMetadata metadata = imgwriter.getDefaultImageMetadata( its, null );
 
         IIOMetadataNode metatop =
