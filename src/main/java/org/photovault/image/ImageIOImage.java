@@ -370,7 +370,7 @@ public class ImageIOImage extends PhotovaultImage {
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }
-                    } else if ( data[28] == 0 ) {
+                    } else if ( data.length > 28 && data[28] == 0 ) {
                         String id = null;
                         try {
                             id = new String( data, 0, 28, "utf-8" );
