@@ -37,6 +37,7 @@ import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.ColorProfileDesc;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
+import org.photovault.folder.FolderEditor;
 import org.photovault.folder.FolderPhotoAssocDAO;
 import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
@@ -353,6 +354,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             changedPhotos.add( photo );
             VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor(
                     photo, resolverFactory );
+            PhotoEditor pep = (PhotoEditor) pe.getProxy();
             RawSettingsFactory rawSettingsFactory = null;
             ChannelMapOperationFactory channelMapFactory = null;
             for ( Map.Entry<PhotoInfoFields, Object> e : changedFields.entrySet() ) {
@@ -407,7 +409,6 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 pe.setField( "colorChannelMapping", channelMapFactory.create() );
             }
             
-            pe.apply();
 //            RawSettingsFactory rawSettingsFactory = null;
 //            ChannelMapOperationFactory channelMapFactory = null;
 //            for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
@@ -470,20 +471,29 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             for ( UUID folderId : addedToFolders ) {
                 log.debug( "Adding photo " + photo.getUuid() + " to folder " + folderId );
                 PhotoFolder folder = folderDAO.findById( folderId, false );
+                VersionedObjectEditor<PhotoFolder> fe =
+                        new VersionedObjectEditor<PhotoFolder>( folder, resolverFactory );
+                FolderEditor fep = (FolderEditor) fe.getProxy();
                 FolderPhotoAssociation a = assocDAO.getAssociation( folder, photo );
-                photo.addFolderAssociation( a );
-                folder.addPhotoAssociation( a );
+                pep.addFolderAssociation( a );
+                fep.addPhotoAssociation( a );
+                fe.apply();
                 af.add(folder);
             }
             Set<PhotoFolder> rf = new HashSet<PhotoFolder>();
             for ( UUID folderId : removedFromFolders ) {
                 log.debug( "Removing photo " + photo.getUuid() + " from folder " + folderId );
                 PhotoFolder folder = folderDAO.findById( folderId, false );
+                VersionedObjectEditor<PhotoFolder> fe =
+                        new VersionedObjectEditor<PhotoFolder>( folder, resolverFactory );
+                FolderEditor fep = (FolderEditor) fe.getProxy();
                 FolderPhotoAssociation a = assocDAO.getAssociation( folder, photo );
-                folder.removePhotoAssociation( a );
-                photo.removeFolderAssociation( a );
+                fep.removePhotoAssociation( a );
+                pep.removeFolderAssociation( a );
                 assocDAO.makeTransient( a );
+                fe.apply();
             }
+            pe.apply();
             
 //            PhotoInfoChangeDesc change = new PhotoInfoChangeDesc( 
 //                    photo, changedFields, af, rf );
