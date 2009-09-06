@@ -145,11 +145,11 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                 if ( imgDesc == null ) {
                     throw new CommandException( file.getPath() + " is not an image" );
                 }
-                PhotoInfo photo = PhotoInfo.create();
-                photoDAO.makePersistent( photo );
+                UUID uuid = UUID.randomUUID();
                 VersionedObjectEditor<PhotoInfo> e = 
-                        new VersionedObjectEditor<PhotoInfo>( photo, 
-                        daoFactory.getDTOResolverFactory() );
+                        new VersionedObjectEditor<PhotoInfo>( PhotoInfo.class,
+                        uuid, daoFactory.getDTOResolverFactory() );
+                PhotoInfo photo = e.getTarget();
                 PhotoEditor photoEditor = (PhotoEditor) e.getProxy();
                 e.setField( "original", imgDesc );
                 if ( img != null ) {

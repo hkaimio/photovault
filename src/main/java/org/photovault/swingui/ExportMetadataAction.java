@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 200 Harri Kaimio
+  Copyright (c) 2009 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -21,28 +21,22 @@
 package org.photovault.swingui;
 
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.IllegalFormatException;
-import java.util.TreeSet;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.io.File;
-import java.util.Collection;
-import java.util.Iterator;
-import org.photovault.imginfo.*;
-import org.photovault.imginfo.PhotoInfo;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import org.hibernate.Session;
+import org.photovault.imginfo.DataExporter;
 import org.photovault.imginfo.xml.XmlExportListener;
 import org.photovault.imginfo.xml.XmlExporter;
-import org.photovault.swingui.export.ExportDlg;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 
 /**
  */
@@ -70,15 +64,36 @@ class ExportMetadataAction extends AbstractAction implements XmlExportListener {
             progressDlg.setProgressPercent( 0 );
             final ExportMetadataAction tthis = this;
             Thread exportThread = new Thread() {
+                @Override
                 public void run() {
+                    Session s = null;
+                    ObjectOutputStream os = null;
                     try {
-                        BufferedWriter writer = new BufferedWriter( new FileWriter( f ) );
-                        XmlExporter exporter = new XmlExporter( writer );
-                        exporter.addListener( tthis );
-                        exporter.write();
-                        writer.close();
+                        s = HibernateUtil.getSessionFactory().openSession();
+                        HibernateDAOFactory df =
+                                (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+                        df.setSession( s );
+
+                        os = new ObjectOutputStream( new FileOutputStream( f ) );
+                        DataExporter exporter = new DataExporter();
+                        xmlExportStatus( null, XmlExporter.EXPORTER_STATE_EXPORTING_FOLDERS );
+                        exporter.exportFolders( os, df );
+                        xmlExportStatus( null, XmlExporter.EXPORTER_STATE_EXPORTING_PHOTOS );
+                        exporter.exportPhotos( os, df );
+                        xmlExportStatus( null, XmlExporter.EXPORTER_STATE_COMPLETED );
+
                     } catch (IOException ex) {
                         ex.printStackTrace();
+                    } finally {
+                        if ( s != null ) {
+                            s.close();
+                        }
+                        if ( os != null ) {
+                            try {
+                                os.close();
+                            } catch ( IOException ex ) {
+                            }
+                        }
                     }
                     
                 }
