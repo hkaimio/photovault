@@ -120,6 +120,21 @@ public class RawConversionSettings implements Cloneable, Externalizable {
      */
     double daylightBlueGreenRatio;
 
+    /**
+     * Highlight recovery method
+     */
+    int hlightRecovery;
+
+    /**
+     * Wavelet denoising threshold
+     */
+    float waveletThreshold;
+
+    /**
+     * Number of median filter passes
+     */
+    int medianPassCount;
+
     /** Creates a new instance of RawConversionSettings */
     public RawConversionSettings() {
     }
@@ -374,6 +389,40 @@ public class RawConversionSettings implements Cloneable, Externalizable {
         double ct[] = rgbToColorTemp( rgb );
         return ct[1];        
     }
+    /**
+     * @return The highlight recovery method
+     */
+    @Column( name = "raw_hlight_recovery" )
+    public int getHlightRecovery() {
+        return hlightRecovery;
+    }
+
+    void setHlightRecovery( int recovery ) {
+        hlightRecovery = recovery;
+    }
+    /**
+     * @return Threshold for wavelet denoising
+     */
+    @Column( name = "raw_wavelet_denoise_thr")
+    public float getWaveletThreshold() {
+        return waveletThreshold;
+    }
+
+    void setWaveletThreshold( float threshold ) {
+        waveletThreshold = threshold;
+    }
+
+    /**
+     * @return Number of passes median filter is applied to reduce artifacts
+     */
+    @Column( name = "raw_median_pass_count" )
+    public int getMedianPassCount() {
+        return medianPassCount;
+    }
+
+    void setMedianPassCount( int count ) {
+        medianPassCount = count;
+    }
     
     /**
      * Creates a new RawConversionSettings object
@@ -478,6 +527,10 @@ public class RawConversionSettings implements Cloneable, Externalizable {
                     s.colorProfile == this.colorProfile && 
                     s.whiteBalanceType == this.whiteBalanceType &&
                     s.black == this.black &&
+                    s.waveletThreshold == this.waveletThreshold &&
+                    s.hlightRecovery == this.hlightRecovery &&
+                    s.medianPassCount == this.medianPassCount &&
+                    equalsDouble(s.waveletThreshold, waveletThreshold, 0.001 ) &&
                     equalsDouble( s.blueGreenRatio, this.blueGreenRatio, 0.0001 ) &&
                     equalsDouble( s.redGreenRatio, this.redGreenRatio, 0.0001 ) &&
                     equalsDouble( s.daylightBlueGreenRatio, this.daylightBlueGreenRatio, 0.0001 ) &&

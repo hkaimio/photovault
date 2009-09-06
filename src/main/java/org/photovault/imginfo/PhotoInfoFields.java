@@ -58,7 +58,9 @@ public enum PhotoInfoFields {
     RAW_EV_CORR( "rawEvCorr", Double.class ),         
     RAW_HLIGHT_COMP( "hlightComp", Double.class ),         
     RAW_CTEMP( "rawColorTemp", Double.class ),         
-    RAW_GREEN( "rawGreenGain", Double.class ),         
+    RAW_GREEN( "rawGreenGain", Double.class ),
+    RAW_HLIGHT_RECOVERY( "rawHlightRecovery", Integer.class ),
+    RAW_WAVELET_DENOISE_THRESHOLD( "rawWaveletDenoiseThreshold", Float.class ),
     RAW_COLOR_PROFILE( "rawColorProfile", Double.class ),         
     COLOR_CURVE_VALUE( "masterCurve", ColorCurve.class ),         
     COLOR_CURVE_RED( "redColorCurve", ColorCurve.class ),         
@@ -102,7 +104,11 @@ public enum PhotoInfoFields {
             case RAW_HLIGHT_COMP:
                 return s.getHighlightCompression();
             case RAW_WHITE_LEVEL:
-                return s.getWhite();                
+                return s.getWhite();
+            case RAW_HLIGHT_RECOVERY:
+                return s.getHlightRecovery();
+            case RAW_WAVELET_DENOISE_THRESHOLD:
+                return s.getWaveletThreshold();
         }
         throw new IllegalArgumentException( "Unknown raw setting field " + field );
     }

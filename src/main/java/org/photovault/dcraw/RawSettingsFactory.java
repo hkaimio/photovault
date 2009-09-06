@@ -46,6 +46,9 @@ public class RawSettingsFactory {
             hlightComp = settings.getHighlightCompression();
             useEmbeddedProfile = settings.getUseEmbeddedICCProfile();
             colorProfile = settings.getColorProfile();
+            medianPassCount = settings.getMedianPassCount();
+            waveletThreshold = settings.getWaveletThreshold();
+            hlightRecovery = settings.getHlightRecovery();
             colorBalanceSet = true;
             dlMultSet = true;
         }
@@ -68,6 +71,9 @@ public class RawSettingsFactory {
     int black = 0;
     int white = 0x10000;
     double hlightComp = 0.0;
+    int hlightRecovery = 0;
+    float waveletThreshold = 0.0f;
+    int medianPassCount = 0;
     boolean useEmbeddedProfile = false;
     ColorProfileDesc colorProfile = null;
     boolean colorBalanceSet = false;
@@ -179,7 +185,28 @@ public class RawSettingsFactory {
     public void setUseEmbeddedProfile( boolean useEmbedded ) {
         this.useEmbeddedProfile = useEmbedded;
     }
-    
+
+    /**
+     * @param hlightRecovery the hlightRecovery to set
+     */
+    public void setHlightRecovery(int hlightRecovery) {
+        this.hlightRecovery = hlightRecovery;
+    }
+
+    /**
+     * @param waveletThreshold the waveletThreshold to set
+     */
+    public void setWaveletThreshold(float waveletThreshold) {
+        this.waveletThreshold = waveletThreshold;
+    }
+
+    /**
+     * @param medianPassCount the medianPassCount to set
+     */
+    public void setMedianPassCount(int medianPassCount) {
+        this.medianPassCount = medianPassCount;
+    }
+
     /**
      * Create a new {@link RawConversionSettings} object and initialize it with the
      * values set for this factory.
@@ -207,7 +234,10 @@ public class RawSettingsFactory {
         s.whiteBalanceType = RawConversionSettings.WB_MANUAL;
         s.useEmbeddedICCProfile = this.useEmbeddedProfile;
         s.colorProfile = this.colorProfile;
-        
+        s.hlightRecovery = hlightRecovery;
+        s.waveletThreshold = waveletThreshold;
+        s.medianPassCount = medianPassCount;
+
         return s;        
     }
 
@@ -233,5 +263,6 @@ public class RawSettingsFactory {
         ctemp = ct[0];
         greenGain = ct[1];
     }
-    
+
+
 }

@@ -499,31 +499,37 @@ public class JAIPhotoViewer extends JPanel implements
             }
         }
         RawConversionSettings s = imageView.getRawSettings();
-        RawSettingsFactory f = new RawSettingsFactory( s );
-        switch ( field ) {
-        case RAW_BLACK_LEVEL:
-            f.setBlack( (Integer) value );
-            break;
-        case RAW_COLOR_PROFILE:
-            f.setColorProfile( (ColorProfileDesc) value );
-            break;
-        case RAW_CTEMP:
-            f.setColorTemp( (Double) value );
-            break;
-        case RAW_EV_CORR:
-            f.setEvCorr( (Double) value );
-            break;
-        case RAW_GREEN:
-            f.setGreenGain( (Double) value );
-            break;
-        case RAW_HLIGHT_COMP:
-            f.setHlightComp( (Double) value );
-            break;
-        case RAW_WHITE_LEVEL:
-            f.setWhite( (Integer) value );
-            break;
-        default:
-            log.error( "Unknown raw setting parameter: " + field );
+        RawSettingsFactory f = new RawSettingsFactory(s);
+        switch (field) {
+            case RAW_BLACK_LEVEL:
+                f.setBlack((Integer) value);
+                break;
+            case RAW_COLOR_PROFILE:
+                f.setColorProfile((ColorProfileDesc) value);
+                break;
+            case RAW_CTEMP:
+                f.setColorTemp((Double) value);
+                break;
+            case RAW_EV_CORR:
+                f.setEvCorr((Double) value);
+                break;
+            case RAW_GREEN:
+                f.setGreenGain((Double) value);
+                break;
+            case RAW_HLIGHT_COMP:
+                f.setHlightComp((Double) value);
+                break;
+            case RAW_HLIGHT_RECOVERY:
+                f.setHlightRecovery((Integer) value);
+                break;
+            case RAW_WAVELET_DENOISE_THRESHOLD:
+                f.setWaveletThreshold((Float) value);
+                break;
+            case RAW_WHITE_LEVEL:
+                f.setWhite((Integer) value);
+                break;
+            default:
+                log.error("Unknown raw setting parameter: " + field);
         }
         try {
             localRawSettings = f.create();

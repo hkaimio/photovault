@@ -299,6 +299,12 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             case RAW_HLIGHT_COMP:
                 settings.setHlightComp( (Double) newValue );
                 break;
+            case RAW_HLIGHT_RECOVERY:
+                settings.setHlightRecovery( (Integer) newValue );
+                break;
+            case RAW_WAVELET_DENOISE_THRESHOLD:
+                settings.setWaveletThreshold((Float) newValue);
+                break;
             case RAW_COLOR_PROFILE:
                 settings.setColorProfile( (ColorProfileDesc) newValue);
                 break;

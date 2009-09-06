@@ -408,7 +408,12 @@ public class RawImage extends PhotovaultImage {
     public double getHighlightCompression() {
         return highlightCompression;
     }
-    
+
+    float waveletThreshold = 0.0f;
+
+    int medianPassCount = 0;
+
+    int hlightRecovery = 0;
     
     public int[][] getHistogramBins() {
         return (histBins!=null) ? histBins.clone() : null;
@@ -809,6 +814,10 @@ public class RawImage extends PhotovaultImage {
         if ( subsample > 1 ) {
             lrd.output_params.half_size = 1;
         }
+        lrd.output_params.highlight = hlightRecovery == 0 ? 0 : hlightRecovery+2;
+        lrd.output_params.thereshold = waveletThreshold;
+        lrd.output_params.med_passes = medianPassCount;
+        
         if ( subsample == 2 ) {
             log.debug( "subsample 2" );
         }
@@ -1090,6 +1099,9 @@ public class RawImage extends PhotovaultImage {
         rsf.setHlightComp( highlightCompression );
         rsf.setUseEmbeddedProfile( hasICCProfile );
         rsf.setColorProfile( colorProfile );
+        rsf.setHlightRecovery(hlightRecovery);
+        rsf.setWaveletThreshold(waveletThreshold);
+        rsf.setMedianPassCount(medianPassCount);
         RawConversionSettings s = null;
         try {
             s = rsf.create();
@@ -1119,7 +1131,23 @@ public class RawImage extends PhotovaultImage {
             return;
         }
         rawSettings = s;
-        
+
+        if ( hlightRecovery != s.getHlightRecovery() ) {
+             hlightRecovery = s.getHlightRecovery();
+            correctedImage = null;
+            rawImage = null;
+            wbAdjustedRawImage = null;
+            rawConverter = null;
+        }
+
+        if ( waveletThreshold != s.getWaveletThreshold() ) {
+            waveletThreshold = s.getWaveletThreshold();
+            correctedImage = null;
+            rawImage = null;
+            wbAdjustedRawImage = null;
+            rawConverter = null;
+        }
+
         if ( chanMultipliers == null ||
                 Math.abs( daylightMultipliers[0] - s.getDaylightRedGreenRatio() ) > 0.001 ||
                 Math.abs( daylightMultipliers[2] - s.getDaylightBlueGreenRatio() ) > 0.001 ) {
