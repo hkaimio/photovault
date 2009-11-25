@@ -618,10 +618,7 @@ public class RawImage extends PhotovaultImage {
 
         int oldFlags = lrd.progress_flags;
         int oldFilters = lrd.idata.filters;
-        int rawImageSize = lrd.sizes.width * lrd.sizes.height;
-        if ( lrd.output_params.half_size == 0 ) {
-            rawImageSize *= 4;
-        }
+        int rawImageSize = lrd.sizes.iwidth * lrd.sizes.iheight * 4;
         short rawWidth = lrd.sizes.width;
         short rawHeight = lrd.sizes.height;
         this.width = lrd.sizes.width;
