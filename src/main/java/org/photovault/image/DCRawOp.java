@@ -22,6 +22,8 @@ package org.photovault.image;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.dcraw.RawConversionSettings;
 
 /**
@@ -34,6 +36,8 @@ import org.photovault.dcraw.RawConversionSettings;
  */
 @XStreamAlias( "dcraw" )
 public class DCRawOp extends ImageOp {
+
+    static final private Log log = LogFactory.getLog( DCRawOp.class );
 
     public DCRawOp() {
         super();
@@ -91,6 +95,9 @@ public class DCRawOp extends ImageOp {
 
     @XStreamOmitField
     private double greenGain;
+
+    @XStreamOmitField
+    private boolean ctempInitialized = false;
     
     @XStreamAsAttribute
     private int hlightRecovery;
@@ -219,6 +226,9 @@ public class DCRawOp extends ImageOp {
      * @param ctemp Color temperature in Kelvins
      */
     public void setColorTemp( double ctemp ) {
+        if ( !ctempInitialized ) {
+            calcColorTemp();
+        }
         this.ctemp = ctemp;
         calcColorMultipliers();
     }
@@ -228,6 +238,9 @@ public class DCRawOp extends ImageOp {
      * @return Color temperature in Kelvins
      */
     public double getColorTemp() {
+        if ( !ctempInitialized ) {
+            calcColorTemp();
+        }
         return ctemp;
     }
 
@@ -236,11 +249,17 @@ public class DCRawOp extends ImageOp {
      * @param greenGain
      */
     public void setGreenGain( double greenGain ) {
+        if ( !ctempInitialized ) {
+            calcColorTemp();
+        }
         this.greenGain = greenGain;
         calcColorMultipliers();
     }
 
     public double getGreenGain() {
+        if ( !ctempInitialized ) {
+            calcColorTemp();
+        }
         return greenGain;
     }
 
@@ -310,12 +329,18 @@ public class DCRawOp extends ImageOp {
      * Calculate color channel multipliers form color temperature.
      */
     private void calcColorMultipliers() {
+        if ( !ctempInitialized ) {
+            calcColorTemp();
+        }
         if ( greenGain == 0.0 ) {
             return;
         }
         double[] rgb = RawConversionSettings.colorTempToRGB( ctemp );
         redGreenRatio = (daylightRedGreenRatio*rgb[1]) / (rgb[0]*greenGain);
         blueGreenRatio = (daylightBlueGreenRatio*rgb[1]) / (rgb[2]*greenGain);
+        if ( Double.isNaN( redGreenRatio ) || Double.isNaN( blueGreenRatio ) ) {
+            log.error( "ERROR" );
+        }
     }
 
     /**
@@ -333,5 +358,6 @@ public class DCRawOp extends ImageOp {
         double ct[] = RawConversionSettings.rgbToColorTemp( rgb );
         ctemp = ct[0];
         greenGain = ct[1];
+        ctempInitialized = true;
     }
 }
