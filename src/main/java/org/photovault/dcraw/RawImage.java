@@ -624,20 +624,22 @@ public class RawImage extends PhotovaultImage {
         }
         short rawWidth = lrd.sizes.width;
         short rawHeight = lrd.sizes.height;
+        this.width = lrd.sizes.width;
+        this.height = lrd.sizes.height;
         short[] rawData = lrd.image.getShortArray( 0, rawImageSize );
 
         lr.libraw_dcraw_process( lrd );
         log.debug(  "processed " + (System.currentTimeMillis()-startTime) );
-        this.width = lrd.sizes.width;
-        this.height = lrd.sizes.height;
+        int procWidth = lrd.sizes.width;
+        int procHeight = lrd.sizes.height;
 
         int postSubsample = (lrd.output_params.half_size > 0 ) ? 
             subsample/2 : subsample;
         /*
          * Copy the raw image to Java raster, using box filter to subsample
          */
-        int scaledW = width / postSubsample;
-        int scaledH = height / postSubsample;
+        int scaledW = procWidth / postSubsample;
+        int scaledH = procHeight / postSubsample;
         short[] buf = new short[scaledW*scaledH*3];
         int pos = 0;
         for ( int row = 0 ; row < scaledH; row++ ) {
@@ -647,11 +649,11 @@ public class RawImage extends PhotovaultImage {
                 int bsum = 0;
                 for ( int or = row * postSubsample ; or < (row+1)*postSubsample ; or++ ) {
                     for ( int oc = col * postSubsample ; oc < (col+1)*postSubsample ; oc++ ) {
-                        int r = lrd.image.getShort( 8 * ( oc + width * or) );
+                        int r = lrd.image.getShort( 8 * ( oc + procWidth * or) );
                         rsum += (r & 0xffff);
-                        int g = lrd.image.getShort( 8 * ( oc + width * or) + 2 );
+                        int g = lrd.image.getShort( 8 * ( oc + procWidth * or) + 2 );
                         gsum += (g & 0xffff);
-                        int b = lrd.image.getShort( 8 * ( oc + width * or) + 4 );
+                        int b = lrd.image.getShort( 8 * ( oc + procWidth * or) + 4 );
                         bsum += (b & 0xffff);
                     }
                 }

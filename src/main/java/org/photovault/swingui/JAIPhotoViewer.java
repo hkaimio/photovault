@@ -85,6 +85,7 @@ public class JAIPhotoViewer extends JPanel implements
     float rawConvScaling = 1.0f;
     
     public void setScale( float scale ) {
+        isFit = false;
         imageView.setScale(scale);
     }
 
@@ -93,6 +94,7 @@ public class JAIPhotoViewer extends JPanel implements
     }
 
     public void fit() {
+        isFit = true;
 	Dimension displaySize = scrollPane.getSize();
         log.debug( "fit to " + displaySize.getWidth() + ", " + displaySize.getHeight() );
 	imageView.fitToRect( displaySize.getWidth()-4, displaySize.getHeight()-4 );
