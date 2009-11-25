@@ -43,7 +43,7 @@ public class ChanMapOp extends ImageOp {
     protected ChanMapOp( ChanMapOp op ) {
         super( op );
         initPorts();
-        for ( Map.Entry<String, ColorCurve> e : channels.entrySet() ) {
+        for ( Map.Entry<String, ColorCurve> e : op.channels.entrySet() ) {
             ColorCurve opc = e.getValue();
             ColorCurve c = new ColorCurve();
             for ( int n = 0 ; n < opc.getPointCount() ; n++ ) {
