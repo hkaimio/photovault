@@ -59,6 +59,7 @@ import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.replication.ChangeDTO;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
@@ -237,7 +238,7 @@ public class PhotoViewController extends PersistenceController {
                 break;
             }
         }
-        
+
         // Update photos that belong to this collection
         for ( PhotoInfo p: cmd.getChangedPhotos() ) {
             if ( containsPhoto( p ) ) {
@@ -300,14 +301,19 @@ public class PhotoViewController extends PersistenceController {
      otherwise.
      */
     private boolean containsPhoto( PhotoInfo photo ) {
+        return containsPhoto( photo.getUuid() );
+    }
+
+    private boolean containsPhoto( UUID photoUuid ) {
         for ( PhotoInfo p : photos ) {
-            if ( p.getUuid().equals( photo.getUuid() ) ) {
+            if ( p.getUuid().equals( photoUuid ) ) {
                 return true;
             }
         }
         return false;
+
     }
-    
+
     /**
      This method is called when selection in the thumbnail view changes.
      @param e The selection event

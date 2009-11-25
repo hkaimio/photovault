@@ -22,11 +22,13 @@ package org.photovault.imginfo;
 
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -48,6 +50,8 @@ import org.photovault.image.CropOp;
 import org.photovault.image.DCRawMapOp;
 import org.photovault.image.DCRawOp;
 import org.photovault.image.ImageOpChain;
+import org.photovault.replication.Change;
+import org.photovault.replication.ChangeDTO;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.VersionedObjectEditor;
 
@@ -126,13 +130,19 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      context or later detached)
      */
     Set<PhotoInfo> changedPhotos = null;
-    
+
+    List<ChangeDTO> changes = new ArrayList();
+
     /**
      Get photo instance with the changes applied (in command handler's persistence 
      context or later detached)
      */
     public Set<PhotoInfo> getChangedPhotos() {
         return changedPhotos;
+    }
+
+    public List<ChangeDTO> getChanges() {
+        return changes;
     }
     
     /**
@@ -488,7 +498,8 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 FolderPhotoAssociation a = assocDAO.getAssociation( folder, photo );
                 pep.addFolderAssociation( a );
                 fep.addPhotoAssociation( a );
-                fe.apply();
+                Change<PhotoFolder> ch = fe.apply();
+                changes.add( new ChangeDTO<PhotoFolder>( ch )) ;
                 af.add(folder);
             }
             Set<PhotoFolder> rf = new HashSet<PhotoFolder>();
@@ -502,10 +513,11 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 fep.removePhotoAssociation( a );
                 pep.removeFolderAssociation( a );
                 assocDAO.makeTransient( a );
-                fe.apply();
+                Change<PhotoFolder> ch = fe.apply();
+                changes.add( new ChangeDTO<PhotoFolder>( ch )) ;
             }
-            pe.apply();
-
+            Change<PhotoInfo> ch = pe.apply();
+            changes.add( new ChangeDTO<PhotoInfo>( ch ) );
         }
     }
 }

@@ -33,11 +33,9 @@ import com.drew.metadata.exif.*;
 import com.drew.imaging.jpeg.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -52,7 +50,6 @@ import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
 import org.photovault.folder.*;
 import org.photovault.image.ChannelMapOperation;
-import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.image.ImageIOImage;
 import org.photovault.image.PhotovaultImage;
@@ -60,6 +57,7 @@ import org.photovault.image.PhotovaultImageFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.annotations.Type;
 import org.photovault.image.DCRawMapOp;
 import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.dto.FolderRefResolver;
@@ -1504,32 +1502,26 @@ public class PhotoInfo implements PhotoEditor {
     ImageOpChain processing = new ImageOpChain();
     
     @ValueField
-    @Transient
+    @Column( name="processing", length=1000000 )
+    @Type(type="org.photovault.persistence.ImageOpChainUserType")
     public ImageOpChain getProcessing() {
         return processing;
     }
     
     public void setProcessing( ImageOpChain proc ) {
         processing = proc;
-    }
-    
-    @Column( name="processing", length=1000000 )
-    @Lob
-    protected String getProcessingXml() {
-        String xml = processing.getAsXml();
-        return xml;
-    }
-
-    protected void setProcessingXml( String xml ) {
-        processing = ImageOpChain.fromXml( xml );
+        invalidateThumbnail();
+        modified();
     }
     
     /**
-     Get the current raw conversion settings.
-     @return Current settings or <code>null</code> if this is not a raw image.     
+     * Get the current raw conversion settings.
+     * @return Current settings or <code>null</code> if this is not a raw image.
+     * @deprecated Use {@link #getProcessing() } instead.
      */
     @ValueField
     @Transient
+    @Deprecated
     public RawConversionSettings getRawSettings() {
         return getProcessing().getRawConvSettings();
     }
@@ -1537,9 +1529,10 @@ public class PhotoInfo implements PhotoEditor {
     /**
      Set the raw conversion settings for this photo
      @param s The new raw conversion settings to use. The method makes a clone of 
-     the object.     
+     the object.
+     * @deprecated User {@link #getProcessing() } instead
      */
-    @Embedded
+    @Deprecated
     public void setRawSettings( RawConversionSettings s ) {
         log.debug( "entry: setRawSettings()" );
         RawConversionSettings oldRawSettings = getProcessing().getRawConvSettings();
