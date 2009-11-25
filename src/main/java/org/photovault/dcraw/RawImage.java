@@ -584,12 +584,17 @@ public class RawImage extends PhotovaultImage {
      * however, the histogram & white point is calculated.
      */
     private void loadRawImage() {
+        long startTime = System.currentTimeMillis();
+        log.debug( "begin:loadRawImage" );
         openRaw();
+        log.debug(  "openRaw() " + (System.currentTimeMillis()-startTime) );
         if ( lrd == null ) {
             throw new IllegalStateException( "Called loadRawImage before opening file" );
         }
         lr.libraw_unpack( lrd );
+        log.debug(  "unpacked " + (System.currentTimeMillis()-startTime) );
         lr.libraw_dcraw_process( lrd );
+        log.debug(  "processed " + (System.currentTimeMillis()-startTime) );
         this.width = lrd.sizes.width;
         this.height = lrd.sizes.height;
 
@@ -622,6 +627,8 @@ public class RawImage extends PhotovaultImage {
                 buf[pos++] = (short) (bsum / (postSubsample * postSubsample));
             }
         }
+        log.debug(  "subsampled " + (System.currentTimeMillis()-startTime) );
+
         closeRaw();
 
         DataBuffer db = new DataBufferUShort( buf, buf.length );
@@ -631,6 +638,7 @@ public class RawImage extends PhotovaultImage {
                 scaledW, scaledH,
                 3, 3 * scaledW, new int[]{0, 1, 2} );
          WritableRaster r = Raster.createWritableRaster( sampleModel, db, new Point( 0, 0 )  );
+        log.debug(  "raster created " + (System.currentTimeMillis()-startTime) );
 
         if ( this.chanMultipliers == null ) {
             chanMultipliers = cameraMultipliers.clone();
@@ -705,10 +713,13 @@ public class RawImage extends PhotovaultImage {
 //        } catch (PhotovaultException ex) {
 //            ex.printStackTrace();
 //        }
+        log.debug(  "image ready " + (System.currentTimeMillis()-startTime) );
         
         if ( autoExposeRequested ) {
             doAutoExpose();
         }
+        log.debug(  "exit: loadRawImage " + (System.currentTimeMillis()-startTime) );
+
     }
     
     /**
