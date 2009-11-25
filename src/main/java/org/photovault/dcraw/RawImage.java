@@ -430,6 +430,16 @@ public class RawImage extends PhotovaultImage {
         // XXX debug
     }
 
+    /**
+     * Free any native meory reserved by this object.
+     */
+    @Override
+    public void dispose() {
+        if ( lrd != null ) {
+            closeRaw();
+        }
+        super.dispose();
+    }
 
     /**
      List of {@linkto RawImageChangeListener}s that should be notified about
@@ -496,6 +506,11 @@ public class RawImage extends PhotovaultImage {
         }
         if ( rawImage == null || maxSubsample < subsample ) {
             // dcraw.setHalfSize( isHalfSizeEnough );
+            if ( maxSubsample == 1 && subsample > 1 ) {
+                // The image has been loaded with 1/2 resolution so reloading
+                // cannot be avoided
+                closeRaw();
+            }
             subsample = maxSubsample;
             loadRawImage();
             correctedImage = null;
@@ -586,13 +601,31 @@ public class RawImage extends PhotovaultImage {
     private void loadRawImage() {
         long startTime = System.currentTimeMillis();
         log.debug( "begin:loadRawImage" );
-        openRaw();
-        log.debug(  "openRaw() " + (System.currentTimeMillis()-startTime) );
         if ( lrd == null ) {
-            throw new IllegalStateException( "Called loadRawImage before opening file" );
+            openRaw();
+            log.debug( "openRaw() " + (System.currentTimeMillis() - startTime) );
+            if ( lrd == null ) {
+                throw new IllegalStateException(
+                        "Called loadRawImage before opening file" );
+            }
+            lr.libraw_unpack( lrd );
+            log.debug( "unpacked " + (System.currentTimeMillis() - startTime) );
         }
-        lr.libraw_unpack( lrd );
-        log.debug(  "unpacked " + (System.currentTimeMillis()-startTime) );
+        /*
+         * Copy the unprocessed data to temporary array so that we can restore 
+         * lrd to the state it had after unpack()
+         */
+
+        int oldFlags = lrd.progress_flags;
+        int oldFilters = lrd.idata.filters;
+        int rawImageSize = lrd.sizes.width * lrd.sizes.height;
+        if ( lrd.output_params.half_size == 0 ) {
+            rawImageSize *= 4;
+        }
+        short rawWidth = lrd.sizes.width;
+        short rawHeight = lrd.sizes.height;
+        short[] rawData = lrd.image.getShortArray( 0, rawImageSize );
+
         lr.libraw_dcraw_process( lrd );
         log.debug(  "processed " + (System.currentTimeMillis()-startTime) );
         this.width = lrd.sizes.width;
@@ -629,7 +662,15 @@ public class RawImage extends PhotovaultImage {
         }
         log.debug(  "subsampled " + (System.currentTimeMillis()-startTime) );
 
-        closeRaw();
+        // Restore LibRaw state to what it was before dcraw_process
+        lrd.image.write( 0, rawData, 0, rawImageSize );
+        lrd.progress_flags = oldFlags;
+        lrd.sizes.width = rawWidth;
+        lrd.sizes.height = rawHeight;
+        lrd.idata.filters = oldFilters;
+        rawData = null;
+        
+        // closeRaw();
 
         DataBuffer db = new DataBufferUShort( buf, buf.length );
          SampleModel sampleModel =
@@ -1192,4 +1233,16 @@ public class RawImage extends PhotovaultImage {
     }
 
 
+    private void printLibRawDebugInfo() {
+        System.out.println( "Colors: " + lrd.idata.colors );
+        System.out.println( "Filter pattern :" );
+        char[] colors = new String( lrd.idata.cdesc ).toCharArray();
+        for ( int n = 0 ; n < 16 ; n++ ) {
+            int color = (lrd.idata.filters >> (2*n)) & 0x3;
+            System.out.print( colors[color] );
+            if ( n % 2 != 0 ) {
+                System.out.println();
+            }
+        }
+    }
 }

@@ -531,13 +531,12 @@ public class JAIPhotoView extends JPanel
 
     /**
      Sets the image displayed in the component
-     2param img The image
+     @param img The image
      */
     public void setImage( PhotovaultImage img ) {
-	boolean isFirst = (origImage == null ) ? true : false;
-//        if ( origImage != null ) {
-//            origImage.dispose();
-//        }
+        if ( origImage != null ) {
+            origImage.dispose();
+        }
 	origImage = img;
 	xformImage = null;
         fireImageChangedEvent( new PhotoViewEvent( this ) );

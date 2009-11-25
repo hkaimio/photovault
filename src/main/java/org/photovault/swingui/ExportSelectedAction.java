@@ -219,70 +219,6 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         }
 
         /**
-         TODO: Ensure that out of memory error handling is done in 
-         CreateCopyImageCommand in a robust way.
-         @deprecated
-         */
-        public void run() {
-            for ( int n = 0; n < exportPhotos.length; n++  ) {
-                try {
-                    String fname;
-                    try {
-                        fname = String.format(format, new Integer(n + 1));
-                    } catch (IllegalFormatException e ) {
-                        owner.exportError( "Cannot format file name: \n" + e.getMessage() );
-                        break;
-                    }
-                    int percent = (n) * 100 / exportPhotos.length;
-                    // owner.exportingPhoto( this, fname, percent );
-                    File f = new File( fname );
-                    PhotoInfo photo = exportPhotos[n];
-                    int triesLeft = 1;
-                    boolean succeeded = false;
-                    while ( !succeeded && triesLeft > 0 ) {
-                        try {
-                            photo.exportPhoto( f, exportWidth, exportHeight );
-                            succeeded = true;
-                        } catch ( PhotovaultException e ) {
-                            owner.exportError( e.getMessage() );
-                        } catch ( OutOfMemoryError e ) {
-                            /*
-                             Often we end here because minor GC did not succeed 
-                             to free enough memory from young generations. Let's 
-                             try again, second time Java will do major gc round 
-                             and this might be succesful.
-                             */
-                            if ( triesLeft > 0 ) {
-                                Runtime rt = Runtime.getRuntime();
-                                long freeMem = rt.freeMemory();
-                                long totMem = rt.totalMemory();
-                                log.error( "Out of memory while exporting " + 
-                                        fname + ", trying again" );
-                                System.gc();
-                                long freeMemAfter = rt.freeMemory();
-                                long totMemAfter = rt.totalMemory();
-                                log.error( "Free memory " + freeMem + "->" + 
-                                        freeMemAfter + ", freed " + 
-                                        ((totMem-freeMem) - (totMemAfter-freeMemAfter)) + 
-                                        " bytes" );
-                            } else {
-                                owner.exportError( "Out of memory while exporting " + 
-                                        fname + 
-                                        "\nTry closing some windows or increasing heap size");
-                            }
-                        }
-                        triesLeft--;
-                    }
-                } catch ( Throwable t ) {
-                    
-                    owner.exportError( t.getMessage() );
-                    t.printStackTrace();
-                }
-            }
-            owner.exportDone( this );
-        }   
-
-        /**
          Called by {@link TaskScheduler} to export the next photo
          @return Task that creates the next unexported image or <code>null</code>
          if all photos have been exported.
@@ -294,9 +230,8 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
             while ( iter.hasNext() ) {
                 ExportPhotoTask t = iter.next();
                 if ( !t.isRunning() ) {
-                    if ( t.isSuccess() ) {
-                        iter.remove();
-                    } else {
+                    iter.remove();
+                    if ( !t.isSuccess() ) {
                         pendingTasks.add( t );
                     }
                 }
