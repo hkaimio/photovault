@@ -542,6 +542,7 @@
             <jvmarg value="${run.jvmargs}"/>
             <jvmarg value="-Xdebug"/>
             <jvmarg value="-Xnoagent"/>
+            <jvmarg value="-Dswing.defaultlaf=com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel"/>
             <jvmarg value="-Djna.dump_memory=true"/>
             <jvmarg value="-Djava.compiler=none"/>
             <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
