@@ -30,13 +30,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.IllegalFormatException;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -110,7 +110,7 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
                 if ( selection.size(  ) > 1 ) {
                     // Ensure that the numbering order is the same is in current view
                     // TODO: sort the exported photos
-                    Comparator comp = null; /*view.getPhotoOrderComparator();*/
+                    Comparator comp = view.ctrl.getPhotoComparator();
                     if ( comp != null ) {
                         Arrays.sort( exportPhotos, comp );
                     }
@@ -144,12 +144,22 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
      executes.
      */
     static class ExportProducer implements TaskProducer {
-        
+
         /**
          Photos to export, in correct order
          */
         private PhotoInfo exportPhotos[];
         
+        private List<ExportPhotoTask> pendingTasks = 
+                new ArrayList<ExportPhotoTask>();
+
+        private List<ExportPhotoTask> runningTasks =
+                new ArrayList<ExportPhotoTask>();
+
+        private int exportCount;
+
+
+
         /**
          Format string for the file names
          */
@@ -190,9 +200,24 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
             this.format = fnameFormat;
             this.exportWidth = width;
             this.exportHeight = height;
+            exportCount = exportPhotos.length;
             this.owner = owner;
+            for ( int n = 0 ; n < exportPhotos.length ; n++ ) {
+                PhotoInfo p = exportPhotos[n];
+                String fname;
+                try {
+                    fname = String.format( format, new Integer( n + 1 ) );
+                } catch ( IllegalFormatException e ) {
+                    owner.exportError( "Cannot format file name: \n" + e.
+                            getMessage() );
+                    break;
+                }
+                ExportPhotoTask task = new ExportPhotoTask( p, new File( fname ),
+                        width, height );
+                pendingTasks.add( task );
+            }
         }
-        
+
         /**
          TODO: Ensure that out of memory error handling is done in 
          CreateCopyImageCommand in a robust way.
@@ -263,21 +288,28 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
          if all photos have been exported.
          */
         public synchronized BackgroundTask requestTask( ) {
-            BackgroundTask task = null;
-            if ( nextExport < exportPhotos.length ) {
-                String fname;
-                try {
-                    fname = String.format( format,
-                            new Integer( nextExport + 1 ) );
-                } catch ( IllegalFormatException e ) {
-                    owner.exportError( "Cannot format file name: \n" +
-                            e.getMessage(  ) );
-                    return null;
+            ExportPhotoTask task = null;
+            // Check if there are completed tasks taht need to be rerun
+            Iterator<ExportPhotoTask> iter = runningTasks.iterator();
+            while ( iter.hasNext() ) {
+                ExportPhotoTask t = iter.next();
+                if ( !t.isRunning() ) {
+                    if ( t.isSuccess() ) {
+                        iter.remove();
+                    } else {
+                        pendingTasks.add( t );
+                    }
                 }
-                File f = new File( fname );
-                PhotoInfo photo = exportPhotos[nextExport];
-                task =  new ExportPhotoTask( photo, f, exportWidth, exportHeight );
-                nextExport++;
+            }
+
+            if ( !pendingTasks.isEmpty() ) {
+                task = pendingTasks.remove( 0 );
+                runningTasks.add( task );
+                int tasksCompleted = exportCount - pendingTasks.size() - runningTasks.size();
+                owner.exportingPhoto( this, task.getFile().toString(),
+                        (tasksCompleted * 100 ) / exportCount );
+            } else {
+                owner.exportDone( this );
             }
             return task;
         }
@@ -293,6 +325,9 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         private File exportFile;
         private int maxWidth;
         private int maxHeight;
+        private boolean running = false;
+        private boolean success = false;
+        Exception exportException = null;
 
         private ExportPhotoTask( PhotoInfo photo, File f, int maxWidth,
                 int maxHeight ) {
@@ -303,17 +338,39 @@ class ExportSelectedAction extends AbstractAction implements SelectionChangeList
         }
 
         public void run( ) {
+            running = true;
             try {
                 CreateCopyImageCommand cmd =
                         new CreateCopyImageCommand( photo, exportFile, maxWidth,
                         maxHeight );
                 cmdHandler.executeCommand( cmd );
+                success = true;
             } catch ( CommandException ex ) {
-                Logger.getLogger( ExportSelectedAction.class.getName() ).
-                        log( Level.SEVERE, null, ex );
+                log.error( ex );
+                exportException = ex;
+            } finally {
+                running = false;
             }
         }
+
+        boolean isRunning() {
+            return running;
+        }
+
+        boolean isSuccess() {
+            return success;
+        }
+
+        Exception getException() {
+            return exportException;
+        }
+
+        File getFile() {
+            return exportFile;
+        }
     }
+
+
 
     /**
      Returns a proper filename in a numbered sequence. Examples:

@@ -188,9 +188,11 @@ public abstract class PhotovaultImage {
      Get the image, adjusted according to current parameters and scaled to a 
      specified resolution.
      @param maxWidth Maximum width of the image in pixels. Image aspect ratio is
-     preserved so actual width can be smaller than this.
+     preserved so actual width can be smaller than this. If maxWidth < 0, use
+     actual width of original image instead.
      @param maxHeight Maximum height of the image in pixels. Image aspect ratio is
-     preserved so actual height can be smaller than this.
+     preserved so actual height can be smaller than this. If maxHeight < 0, use
+     actual height of original image instead.
      @param isLowQualityAllowed Specifies whether image quality can be traded off 
      for speed/memory consumpltion optimizations.
      @return The image as RenderedImage
@@ -210,7 +212,13 @@ public abstract class PhotovaultImage {
         double rotH = rotSin * getWidth() + rotCos * getHeight();
         // Size if full image was cropped
         double cropW = rotW * (cropMaxX-cropMinX);
-        double cropH = rotH * (cropMaxY-cropMinY);    
+        double cropH = rotH * (cropMaxY-cropMinY);
+        if ( maxWidth < 0 ) {
+            maxWidth = (int) cropW;
+        }
+        if ( maxHeight < 0 ) {
+            maxHeight = (int) cropH;
+        }
         double scaleW = maxWidth / cropW;
         double scaleH = maxHeight / cropH;
         // We are fitting cropped area to max{width x height} so we must use the 
