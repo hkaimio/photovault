@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008 Harri Kaimio
+  Copyright (c) 2008-2009 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -142,7 +142,31 @@ public class ChangeDTO<T> implements Serializable {
             throw ex;
         }
     }
-    
+
+    /**
+     * Get name of the class of the object this cange was applied to.
+     * @return
+     */
+    public String getTargetClassName() {
+        return targetClassName;
+    }
+
+    /**
+     * Return UUID of the object affected by this change
+     * @return
+     */
+    public UUID getTargetUuid() {
+        return targetUuid;
+    }
+
+    /**
+     * Returns UUID of this change.
+     * @return
+     */
+    public UUID getChangeUuid() {
+        return changeUuid;
+    }
+
     private static XStream getXStream() {
         /*
          This is intentionally unsynchronized: the worst thing that can happen 
