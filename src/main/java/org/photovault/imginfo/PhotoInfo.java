@@ -677,12 +677,13 @@ public class PhotoInfo implements PhotoEditor {
     private boolean isConsistentWithCurrentSettings( CopyImageDescriptor img ) {
         EnumSet<ImageOperations> applied = img.getAppliedOperations();
         if ( applied.contains( ImageOperations.CROP ) && 
-                !(Math.abs(img.getRotation() - prefRotation) < 0.0001
+                !(Math.abs(img.getRotation() - getPrefRotation( ) ) < 0.0001
                 && img.getCropArea().equals( getCropBounds() ) ) ) {
             return false;
         }
         if ( applied.contains( ImageOperations.COLOR_MAP ) ) {
             ChannelMapOperation imgCm = img.getColorChannelMapping();
+            ChannelMapOperation channelMap = getColorChannelMapping();
             if ( channelMap != null && !channelMap.isAlmostEqual( imgCm, 0.005 ) ) {
                 return false;
             }
@@ -790,6 +791,7 @@ public class PhotoInfo implements PhotoEditor {
             File imageFile = srcImage.getFile().findAvailableCopy();
             PhotovaultImageFactory imgFactory = new PhotovaultImageFactory();
             PhotovaultImage img = imgFactory.create( imageFile, false, false );
+            ChannelMapOperation channelMap = getColorChannelMapping();
             if ( channelMap != null ) {
                 img.setColorAdjustment( channelMap );
             }
@@ -812,7 +814,7 @@ public class PhotoInfo implements PhotoEditor {
             if ( srcImage instanceof CopyImageDescriptor ) {
                 srcRotation = ((CopyImageDescriptor)srcImage).getRotation();
             }
-            img.setRotation( prefRotation - srcRotation );
+            img.setRotation( getPrefRotation() - srcRotation );
             thumbImage = img.getRenderedImage( maxThumbWidth, maxThumbHeight, true );
         } catch ( Exception e ) {
             log.warn( "Error reading image: " + e.getMessage() );
@@ -848,9 +850,9 @@ public class PhotoInfo implements PhotoEditor {
             ImageFile thumbFile;
             thumbFile = new ImageFile(thumbnailFile);
             CopyImageDescriptor thumbImageDesc = new CopyImageDescriptor( thumbFile, "image#0", original );
-            thumbImageDesc.setRotation( prefRotation );
+            thumbImageDesc.setRotation( getPrefRotation() );
             thumbImageDesc.setCropArea( getCropBounds() );
-            thumbImageDesc.setColorChannelMapping( channelMap );
+            thumbImageDesc.setColorChannelMapping( getColorChannelMapping() );
             thumbImageDesc.setRawSettings( getProcessing().getRawConvSettings() );
             thumbFile.addLocation( new FileLocation( volume,
                     volume.mapFileToVolumeRelativeName( thumbnailFile ) ) );
@@ -1020,7 +1022,8 @@ public class PhotoInfo implements PhotoEditor {
             img = imageFactory.create( imageFile, false, false );
 
             img.setCropBounds( this.getCropBounds() );
-            img.setRotation( prefRotation );
+            img.setRotation( getPrefRotation() );
+            ChannelMapOperation channelMap = getColorChannelMapping();
             if ( channelMap != null ) {
                 img.setColorAdjustment( channelMap );
             }
@@ -1383,8 +1386,6 @@ public class PhotoInfo implements PhotoEditor {
         modified();
     }
     
-    double prefRotation;
-    
     /**
      Get the preferred rotation for this image in degrees. Positive values 
      indicate that the image should be rotated clockwise.
@@ -1392,6 +1393,7 @@ public class PhotoInfo implements PhotoEditor {
      */
     @ValueField
     @Transient
+    @Deprecated
     public double getPrefRotation() {
         return getProcessing().getRotation();
     }
@@ -1471,11 +1473,6 @@ public class PhotoInfo implements PhotoEditor {
     double cropMaxX;
     double cropMinY;
     double cropMaxY;
-
-    /**
-     Mapping of the original color channels to preferred ones.
-     */
-    ChannelMapOperation channelMap = null;
     
     /**
      Set the preferred color channel mapping
@@ -1502,37 +1499,6 @@ public class PhotoInfo implements PhotoEditor {
     @Transient
     public ChannelMapOperation getColorChannelMapping() {
         return getProcessing().getChanMap();
-    }
-    
-    /**
-     Get the XML data for color channel mapping that is stored into database field.
-     */
-//    @Column( name = "channel_map", length = 0x1000000 )
-//    @Lob
-    @Transient
-    protected byte[] getColorChannelMappingXmlData() {
-        byte [] data = null;
-        if ( channelMap != null ) {
-            String xmlStr = this.channelMap.getAsXml();
-            data = xmlStr.getBytes();
-        }
-        return data;
-    }
-
-    /**
-     Set the color channel mapping based on XML data read from database field. For
-     Hibernate use.
-     @param data The data read from database.
-     */
-    protected void setColorChannelMappingXmlData( byte[] data ) {
-        ChannelMapOperation oldMap = channelMap;
-                channelMap = ChannelMapOperationFactory.createFromXmlData( data );
-        if ( ( channelMap == null && oldMap != null ) || 
-                (channelMap != null && !channelMap.equals( oldMap ))  ) {
-            invalidateThumbnail();
-            // purgeInvalidInstances();
-            modified();
-        }
     }
     
     ImageOpChain processing = new ImageOpChain();
@@ -1722,6 +1688,7 @@ public class PhotoInfo implements PhotoEditor {
      */
     @Transient
     public ColorCurve getRedColorCurve() {
+        ChannelMapOperation channelMap = getColorChannelMapping();
         return channelMap != null ? channelMap.getChannelCurve( "red" ) : null;
     }
     
@@ -1731,6 +1698,7 @@ public class PhotoInfo implements PhotoEditor {
      */
     @Transient
     public ColorCurve getGreenColorCurve() {
+        ChannelMapOperation channelMap = getColorChannelMapping();
         return channelMap != null ? channelMap.getChannelCurve( "green" ) : null;
     }
     
@@ -1740,6 +1708,7 @@ public class PhotoInfo implements PhotoEditor {
      */
     @Transient
     public ColorCurve getBlueColorCurve() {
+        ChannelMapOperation channelMap = getColorChannelMapping();
         return channelMap != null ? channelMap.getChannelCurve( "blue" ) : null;
     }
     
@@ -1749,6 +1718,7 @@ public class PhotoInfo implements PhotoEditor {
      */
     @Transient
     public ColorCurve getSaturationCurve() {
+        ChannelMapOperation channelMap = getColorChannelMapping();
         return channelMap != null ? channelMap.getChannelCurve( "saturation" ) : null;
     }
     
@@ -1758,6 +1728,7 @@ public class PhotoInfo implements PhotoEditor {
      */
     @Transient
     public ColorCurve getMasterCurve() {
+        ChannelMapOperation channelMap = getColorChannelMapping();
         return channelMap != null ? channelMap.getChannelCurve( "value" ) : null;
     }
     
@@ -1902,7 +1873,6 @@ public class PhotoInfo implements PhotoEditor {
         && isEqual( p.film, this.film )
         && isEqual( p.techNotes, this.techNotes )
         && isEqual( p.origFname, this.origFname )
-        && isEqual( p.channelMap, this.channelMap )
         && isEqual( p.getUuid(), this.getUuid() )
         && p.shutterSpeed == this.shutterSpeed
                 && p.filmSpeed == this.filmSpeed
