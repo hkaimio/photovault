@@ -37,6 +37,7 @@ import org.photovault.imginfo.indexer.IndexFileTask;
 import org.photovault.imginfo.indexer.IndexingResult;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.swingui.PhotoViewController;
 import org.photovault.swingui.Photovault;
 import org.photovault.swingui.StatusChangeEvent;
 import org.photovault.swingui.StatusChangeListener;
@@ -61,7 +62,7 @@ import org.photovault.taskscheduler.TaskProducer;
 public class UpdateIndexAction extends DefaultAction implements BackgroundTaskListener {
     
     /** Creates a new instance of UpdateIndexAction */
-    public UpdateIndexAction( AbstractController ctrl, String text, ImageIcon icon, String desc, 
+    public UpdateIndexAction( PhotoViewController ctrl, String text, ImageIcon icon, String desc,
             int mnemonic) {
         super( text, icon );
         this.ctrl = ctrl;
@@ -72,7 +73,7 @@ public class UpdateIndexAction extends DefaultAction implements BackgroundTaskLi
     /**
      Controller owning this action
      */
-    AbstractController ctrl;
+    PhotoViewController ctrl;
     
     /**
      * List of volumes to index. After indexing of a volume has started it will be 
@@ -91,7 +92,7 @@ public class UpdateIndexAction extends DefaultAction implements BackgroundTaskLi
          * Get a list of external volumes
          */
         
-        DAOFactory daoFactory = DAOFactory.instance(HibernateDAOFactory.class);
+        DAOFactory daoFactory = ctrl.getDAOFactory();
         VolumeDAO volDAO = daoFactory.getVolumeDAO();
         List<VolumeBase> allVolumes = volDAO.findAll();
         volumes = new ArrayList<ExternalVolume>();

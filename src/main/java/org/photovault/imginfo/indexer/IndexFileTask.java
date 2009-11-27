@@ -22,6 +22,7 @@ package org.photovault.imginfo.indexer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,6 +42,7 @@ import org.photovault.imginfo.FileLocation;
 import org.photovault.imginfo.ImageDescriptorBase;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.ImageFileDAO;
+import org.photovault.imginfo.ImageOperations;
 import org.photovault.imginfo.ModifyImageFileCommand;
 import org.photovault.imginfo.OriginalImageDescriptor;
 import org.photovault.imginfo.PhotoInfo;
@@ -272,15 +274,14 @@ public class IndexFileTask extends BackgroundTask {
                 volume.mapFileToVolumeRelativeName( f ) ) );
         try {
             cmdHandler.executeCommand( cmd );
-            
-            // Copy metadata from image file to created photos and 
-            // create thumbnails
-            for ( PhotoInfo p : cmd.getCreatedPhotos() ) {
-                createPreviewInstances( img, p, daoFactory );
-            }
+
             // Add all photos associated with this image to current folder
             ifile = ifDAO.findById( cmd.getImageFile().getId(), false );
             updatePhotosFound();
+            // Create any missing preview images for the found photos
+            for ( PhotoInfo p : photosFound ) {
+                createPreviewInstances( img, p, daoFactory );
+            }
             addPhotosToFolder(  );
         } catch ( CommandException ex ) {
             log.warn( "Exception in modifyImageFileCommand: " + ex.getMessage() );
@@ -295,15 +296,53 @@ public class IndexFileTask extends BackgroundTask {
     }
 
     /**
-     Create the needed preview instances for a photo
+     Create the needed preview instances for a photo.
+     The method cretes both a thumbnail (small, low quality, max 200x200 images)
+     as well as preview that can be used for displaying if the volume with original is
+     offline (high quality, max 1280x1280 JPEG image without cropping)
+
      @param img the loaded image that is used as a basis for preview
      @param p The photo
+     @param f DAO factory used for database access
      */
-    private void createPreviewInstances(PhotovaultImage img, PhotoInfo p, DAOFactory f ) throws CommandException {        
+    private void createPreviewInstances(
+            PhotovaultImage img, PhotoInfo p, DAOFactory f )
+            throws CommandException {
+        ImageDescriptorBase thumbImage = p.getPreferredImage( 
+                EnumSet.allOf( ImageOperations.class ), 
+                EnumSet.allOf( ImageOperations.class ), 0, 0, 200, 200 );
+        
+        // Preview image with no cropping, longer side 1280 pixels
+        int origWidth = p.getOriginal().getWidth();
+        int origHeight = p.getOriginal().getHeight();
+        
+        int copyMinWidth = Math.min( origWidth, 1280 );
+        int copyMinHeight = 0;
+        if ( origHeight > origWidth ) {
+            copyMinHeight = Math.min( origHeight, 1280 );
+            copyMinWidth = 0;
+        }
+        EnumSet<ImageOperations> previewOps = 
+                EnumSet.of( ImageOperations.RAW_CONVERSION, ImageOperations.COLOR_MAP );
+        ImageDescriptorBase previewImage = p.getPreferredImage(
+                previewOps, previewOps, 
+                copyMinWidth, copyMinHeight, 1280, 1280 );
+
+
         Volume vol = f.getVolumeDAO().getDefaultVolume();
-        CreateCopyImageCommand cmd = new CreateCopyImageCommand( img, p, vol, 200, 200 );
-        cmd.setLowQualityAllowed( true );
-        cmdHandler.executeCommand( cmd );
+        if ( previewImage == null ) {
+            CreateCopyImageCommand cmd =
+                    new CreateCopyImageCommand( img, p, vol, 1280, 1280 );
+            cmd.setLowQualityAllowed( false );
+            cmd.setOperationsToApply( previewOps );
+            cmdHandler.executeCommand( cmd );
+        }
+        if ( thumbImage == null ) {
+            CreateCopyImageCommand cmd =
+                    new CreateCopyImageCommand( img, p, vol, 200, 200 );
+            cmd.setLowQualityAllowed( true );
+            cmdHandler.executeCommand( cmd );
+        }
     }    
 
     private void updatePhotosFound() {
