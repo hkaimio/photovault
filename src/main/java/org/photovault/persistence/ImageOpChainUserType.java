@@ -6,6 +6,7 @@
 package org.photovault.persistence;
 
 import java.io.Serializable;
+import java.io.StringReader;
 import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -62,7 +63,8 @@ public class ImageOpChainUserType implements UserType {
         if ( value != null ) {
             xml = ((ImageOpChain)value).getAsXml();
         }
-        stmt.setClob( index, Hibernate.createClob( xml ) );
+        StringReader r = new StringReader( xml );
+        stmt.setCharacterStream( index, r );
     }
 
     public Object deepCopy( Object obj ) throws HibernateException {
