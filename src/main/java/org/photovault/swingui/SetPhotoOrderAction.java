@@ -28,8 +28,12 @@ import javax.swing.ImageIcon;
 import org.photovault.imginfo.PhotoInfo;
 
 /**
- *
- * @author harri
+ * Sets the order of photos in thumbnail view. The order is determined by
+ * comparator that is given as a parameter to constructor of this object. The
+ * order is always guaranteed to be fully determined even if the comparator
+ * regards two objects as the same - in this case the photos are ordered first
+ * by their original file name and if these are equal as well by their UUID.
+ * @author Harri Kaimio
  */
 public class SetPhotoOrderAction extends AbstractAction  {
 
@@ -67,10 +71,21 @@ public class SetPhotoOrderAction extends AbstractAction  {
         Comparator c;
         
         public int compare(Object o1, Object o2 ) {
+            PhotoInfo p1 = (PhotoInfo) o1;
+            PhotoInfo p2 = (PhotoInfo) o2;
             int res = c.compare( o1, o2 );
             if ( res == 0 ) {
-                PhotoInfo p1 = (PhotoInfo) o1;
-                PhotoInfo p2 = (PhotoInfo) o2;
+                String name1 = p1.getOrigFname();
+                String name2 = p2.getOrigFname();
+                if ( name1 != null && name2 != null ) {
+                    res = name1.compareTo( name2 );
+                } else if ( name1 != null ) {
+                    res = -1;
+                } else if ( name2 != null ) {
+                    res = 1;
+                }
+            }
+            if ( res == 0 ) {
                 UUID id1 = p1.getUuid();
                 UUID id2 = p2.getUuid();
                 res = id1.compareTo( id2 );
