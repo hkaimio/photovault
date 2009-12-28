@@ -384,7 +384,7 @@ public class PhotoCollectionThumbView
         for ( int n = 0; n < qualityStrings.length; n++ ) {
             qualityIcons[n] = getIcon( qualityIconnames[n] );
             AbstractAction qualityAction
-                    = new SetPhotoQualityAction( this, n, qualityStrings[n], 
+                    = new SetPhotoQualityAction( ctrl, n, qualityStrings[n],
                     qualityIcons[n],
                     "Set quality of selected phots to \"" + qualityStrings[n] + "\"",
                     null );

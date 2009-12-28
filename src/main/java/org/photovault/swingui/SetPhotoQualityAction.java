@@ -21,21 +21,26 @@
 package org.photovault.swingui;
 
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
+import java.awt.event.ActionEvent;
 import java.util.Collection;
 import java.util.Iterator;
-import org.photovault.imginfo.*;
+import javax.swing.ImageIcon;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.photovault.command.CommandException;
+import org.photovault.command.CommandHandler;
+import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.PhotoInfo;
-
+import org.photovault.swingui.framework.DataAccessAction;
+import org.photovault.swingui.framework.DefaultEvent;
+import org.photovault.swingui.framework.DefaultEventListener;
+import org.hibernate.Session;
 /**
    This action sets the "quality" attribut of all selected photos to a specific value
 */
-class SetPhotoQualityAction extends AbstractAction implements SelectionChangeListener {
+class SetPhotoQualityAction extends DataAccessAction {
 
-    static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( SetPhotoQualityAction.class.getName() );
+    static private Log log = LogFactory.getLog( SetPhotoQualityAction.class );
 
     /**
        Constructor.
@@ -47,40 +52,59 @@ class SetPhotoQualityAction extends AbstractAction implements SelectionChangeLis
        @param desc
        @param mnemonic Keyboard shortcut for this action
     */
-    public SetPhotoQualityAction( PhotoCollectionThumbView view,
+    public SetPhotoQualityAction( PhotoViewController ctrl,
 				  int quality,
 				  String text, ImageIcon icon,
 				  String desc, Integer mnemonic) {
 	super( text, icon );
-	this.view = view;
+	this.ctrl = ctrl;
 	putValue(SHORT_DESCRIPTION, desc);
         putValue(MNEMONIC_KEY, mnemonic);
-	view.addSelectionChangeListener( this );
-	setEnabled( view.getSelectedCount() > 0 );
+        ctrl.registerEventListener( SelectionChangeEvent.class,
+                new DefaultEventListener<SelectionChangeEvent>() {
+
+                    public void handleEvent(
+                            DefaultEvent<SelectionChangeEvent> event ) {
+                        selectionChanged();
+                    }
+                } );
 	this.quality = quality;
     }
 
     /**
        Listener for changes in selection. If no photos are selected disable the action.
     */
-    public void selectionChanged( SelectionChangeEvent e ) {
-	setEnabled( view.getSelectedCount() > 0 );
+    public void selectionChanged() {
+	setEnabled( !ctrl.getSelection().isEmpty() );
     }
 
     /**
        This is called when the action must be executed.
     */
-    public void actionPerformed( ActionEvent ev ) {
-        Collection selectedPhotos = view.getSelection();
+    public void actionPerformed( ActionEvent ev, Session session ) {
+        Collection selectedPhotos = ctrl.getSelection();
+        CommandHandler cmdHandler = ctrl.getCommandHandler();
         Iterator iter = selectedPhotos.iterator();
         while ( iter.hasNext() ) {
             PhotoInfo photo = (PhotoInfo) iter.next();
+
             if ( photo != null ) {
-                photo.setQuality( quality );
+                ChangePhotoInfoCommand cmd = new ChangePhotoInfoCommand( photo.
+                    getUuid() );
+                cmd.setQuality( quality );
+                try {
+                    cmdHandler.executeCommand( cmd );
+//                    PhotoInfo[] changedPhotos = cmd.getChangedPhotos().toArray( new PhotoInfo[1] );
+//                    photo = ctrl.getDAOFactory().getPhotoInfoDAO().makePersistent( changedPhotos[0] );
+                } catch (CommandException ex) {
+                    log.error( ex );
+                }
+
             }
         }
     }
 
     PhotoCollectionThumbView view;
+    PhotoViewController ctrl;
     int quality;
 }
