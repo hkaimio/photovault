@@ -23,10 +23,6 @@ package org.photovault.image;
 import com.adobe.xmp.XMPException;
 import com.adobe.xmp.XMPMeta;
 import com.adobe.xmp.XMPMetaFactory;
-import com.drew.imaging.jpeg.JpegMetadataReader;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.MetadataException;
-import com.drew.metadata.exif.ExifDirectory;
 import com.sun.media.imageio.plugins.tiff.BaselineTIFFTagSet;
 import com.sun.media.imageio.plugins.tiff.EXIFParentTIFFTagSet;
 import com.sun.media.imageio.plugins.tiff.EXIFTIFFTagSet;
@@ -40,7 +36,6 @@ import java.awt.image.SampleModel;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -68,6 +63,10 @@ import javax.media.jai.TiledImage;
 import javax.media.jai.operator.RenderableDescriptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.sanselan.ImageReadException;
+import org.apache.sanselan.Sanselan;
+import org.apache.sanselan.common.IImageMetadata;
+import org.apache.sanselan.formats.jpeg.JpegImageMetadata;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -360,12 +359,9 @@ public class ImageIOImage extends PhotovaultImage {
                             if ( readers.hasNext() ) {
                                 ImageReader reader = (ImageReader) readers.next();
                                 reader.setInput( metadataStream );
-                                IIOMetadata metadata = reader.getImageMetadata( 0 );
-                                this.metadata = TIFFDirectory.createFromMetadata( metadata );
+                                IIOMetadata iioMetadata = reader.getImageMetadata( 0 );
+                                this.metadata = TIFFDirectory.createFromMetadata( iioMetadata );
                                 TIFFField exifField = this.metadata.getTIFFField( EXIFParentTIFFTagSet.TAG_EXIF_IFD_POINTER );
-                                if ( exifField != null ) {
-                                    exifData = (TIFFDirectory) exifField.getData();
-                                }
                             }
                         } catch (IOException ex) {
                             ex.printStackTrace();
@@ -519,15 +515,7 @@ public class ImageIOImage extends PhotovaultImage {
                         imageIsLowQuality = isLowQualityAllowed;
                     }
                     if (loadMetadata ) {
-                        Set<String> nodes = new HashSet<String>();
-                        nodes.add( "unknown" );
-                        IIOMetadata metadata = reader.getImageMetadata( 0,
-                                "javax_imageio_jpeg_image_1.0", nodes );
-                        if ( metadata != null ) {
-                            Node tree = metadata.getAsTree( "javax_imageio_jpeg_image_1.0" );
-                            log.debug( "read metadata: " + metadata.toString() );
-                            this.parseJPEGMetadata( (IIOMetadataNode) tree);
-                        }
+                        readImageMetadata( reader );
                     }
                 } catch (Exception ex) {
                     log.warn( ex.getMessage() );
@@ -535,6 +523,19 @@ public class ImageIOImage extends PhotovaultImage {
                     return;
                 }
             }
+        }
+    }
+
+    private void readImageMetadata( ImageReader reader ) throws IOException {
+        Set<String> nodes = new HashSet<String>();
+        nodes.add( "unknown" );
+        IIOMetadata iioMetadata =
+                reader.getImageMetadata( 0, "javax_imageio_jpeg_image_1.0",
+                nodes );
+        if ( iioMetadata != null ) {
+            Node tree = iioMetadata.getAsTree( "javax_imageio_jpeg_image_1.0" );
+            log.debug( "read metadata: " + iioMetadata.toString() );
+            this.parseJPEGMetadata( (IIOMetadataNode) tree );
         }
     }
     
@@ -612,33 +613,15 @@ public class ImageIOImage extends PhotovaultImage {
      */
     private BufferedImage readExifThumbnail( File f ) {
         BufferedImage bi = null;
-        Metadata metadata = null;
         try {
-            metadata = JpegMetadataReader.readMetadata( f );
-        } catch (com.drew.imaging.jpeg.JpegProcessingException ex) {
-            ex.printStackTrace();
+        IImageMetadata sanselanMetadata = Sanselan.getMetadata( f );
+        if ( sanselanMetadata instanceof JpegImageMetadata ) {
+            bi = ((JpegImageMetadata)sanselanMetadata).getEXIFThumbnail();
         }
-        ExifDirectory exif = null;
-        if ( metadata != null && metadata.containsDirectory( ExifDirectory.class ) ) {
-            try {
-                exif = (ExifDirectory) metadata.getDirectory( ExifDirectory.class );
-                byte[] thumbData = exif.getThumbnailData();
-                if ( thumbData != null ) {
-                    ByteArrayInputStream bis = new ByteArrayInputStream( thumbData );
-                    try {
-                        bi = ImageIO.read( bis );
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    } finally {
-                        try {
-                            bis.close();
-                        } catch (IOException ex) {
-                            log.error( "Cannot close image instance after creating thumbnail." );
-                        }
-                    }
-                }
-            } catch ( MetadataException e ) {
-            }
+        } catch ( IOException ex ) {
+            log.error( ex );
+        } catch ( ImageReadException ex ) {
+            log.error( ex );
         }
         return bi;
     }

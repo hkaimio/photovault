@@ -28,9 +28,6 @@ import javax.media.jai.*;
 import com.sun.media.jai.codec.*;
 import java.awt.image.*;
 import java.awt.geom.*;
-import com.drew.metadata.*;
-import com.drew.metadata.exif.*;
-import com.drew.imaging.jpeg.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -934,43 +931,6 @@ public class PhotoInfo implements PhotoEditor {
                     e.getMessage() );
         }
         log.debug( "Exit: saveInstance" );
-    }
-    
-    /**
-     Attemps to read a thumbnail from EXIF headers
-     @return The thumbnail image or null if none available
-     */
-    private BufferedImage readExifThumbnail( File f ) {
-        BufferedImage bi = null;
-        Metadata metadata = null;
-        try {
-            metadata = JpegMetadataReader.readMetadata( f );
-        } catch (com.drew.imaging.jpeg.JpegProcessingException ex) {
-            ex.printStackTrace();
-        }
-        ExifDirectory exif = null;
-        if ( metadata != null && metadata.containsDirectory( ExifDirectory.class ) ) {
-            try {
-                exif = (ExifDirectory) metadata.getDirectory( ExifDirectory.class );
-                byte[] thumbData = exif.getThumbnailData();
-                if ( thumbData != null ) {
-                    ByteArrayInputStream bis = new ByteArrayInputStream( thumbData );
-                    try {
-                        bi = ImageIO.read( bis );
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    } finally {
-                        try {
-                            bis.close();
-                        } catch (IOException ex) {
-                            log.error( "Cannot close image instance after creating thumbnail." );
-                        }
-                    }
-                }
-            } catch ( MetadataException e ) {
-            }
-        }
-        return bi;
     }
     
     /** Creates a new thumbnail on the default volume

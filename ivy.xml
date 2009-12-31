@@ -43,7 +43,8 @@
 	<dependency org="sun" name="jna" rev="3.0.9"/>
 	<dependency org="sun" name="jxlayer" rev="4.0"/>
 	<dependency org="org.apache.commons" name="commons-digester" rev="1.8"/> 
-	<dependency org="org.apache.commons" name="commons-lang" rev="2.4"/> 
+	<dependency org="org.apache.commons" name="commons-lang" rev="2.4"/>
+	<dependency org="org.apache.commons.sanselan" name="sanselan" rev="0.97"/>
 	<dependency org="org.apache.ddlutils" name="ddlutils" rev="1.0"/>
 	<dependency org="org.hibernate" name="hibernate-tools" rev="3.2.2.Beta1"/>
 	<dependency org="org.testng" name="testng" rev="5.9" conf="*->jdk15"/>
@@ -53,6 +54,5 @@
 	<dependency org="org.jdesktop" name="swingworker" rev="1.2"/>
 	<dependency org="org.apache.derby" name="derby" rev="10.4.2.0"/>
 	<dependency org="com.mysql" name="mysql-connector-java" rev="5.1.7"/>
-	<dependency org="com.drewnoakes" name="metadata-extractor" rev="2.4.0-beta-1"/>
     </dependencies>
 </ivy-module>
