@@ -109,6 +109,14 @@ public class VersionedObjectEditor<T> {
         change.setPrevChange( initialChange );
     }
 
+    /**
+     * Create a editor for a new object based on history data
+     * @param histData History data for the object to be created
+     * @param df Resolver factory
+     * @throws ClassNotFoundException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public VersionedObjectEditor( ObjectHistoryDTO<T> histData, DTOResolverFactory df ) 
             throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         fieldResolver = df;
@@ -158,6 +166,14 @@ public class VersionedObjectEditor<T> {
     
     public T getTarget() {
         return target;
+    }
+
+    /**
+     * Returns the history of edited object
+     * @return
+     */
+    public ObjectHistory<T> getHistory() {
+        return history;
     }
 
     /**

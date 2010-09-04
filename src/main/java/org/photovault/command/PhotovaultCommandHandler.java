@@ -65,7 +65,10 @@ public class PhotovaultCommandHandler implements CommandHandler {
             shouldCloseSession = true;
         }
         Session oldSession = ManagedSessionContext.bind( (org.hibernate.classic.Session) commandSession);
-        command.setDAOFactory( DAOFactory.instance( HibernateDAOFactory.class ) );
+        HibernateDAOFactory df =
+                (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
+        df.setSession( commandSession );
+        command.setDAOFactory( df );
 
         Transaction tx = commandSession.beginTransaction();
         try {

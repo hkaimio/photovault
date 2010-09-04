@@ -24,6 +24,7 @@ import org.photovault.folder.FolderPhotoAssocDAO;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.ImageDescriptorDAO;
 import org.photovault.imginfo.ImageFileDAO;
+import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.VolumeDAO;
 import org.photovault.replication.ChangeDAO;
@@ -71,4 +72,5 @@ public abstract class DAOFactory {
     public abstract DTOResolverFactory getDTOResolverFactory();
     
     public abstract FolderPhotoAssocDAO getFolderPhotoAssocDAO();
+
 }

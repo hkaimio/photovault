@@ -346,7 +346,9 @@ public class PhotoCollectionThumbView
         JMenuItem showItem = new JMenuItem( showSelectedPhotoAction );
         showHistoryAction = new ShowPhotoHistoryAction( this, "Show history", 
                 null, "Show history of selected photo", KeyEvent.VK_H, null );
-        
+        resolveConflictsAction = new ResolvePhotoConflictsAction( this,
+                "Resolve conflicts", null, "Resolve synchronization conflicts",
+                KeyEvent.VK_R, null );
         JMenuItem rotateCW = new JMenuItem( ctrl.getActionAdapter( "rotate_cw" ) );
         JMenuItem rotateCCW = new JMenuItem( ctrl.getActionAdapter( "rotate_ccw" ) );
         JMenuItem rotate180deg = new JMenuItem( ctrl.getActionAdapter( "rotate_180" ) );        
@@ -396,7 +398,8 @@ public class PhotoCollectionThumbView
         rawIcon = getIcon( "raw_icon.png" );
         
         JMenuItem showHistory = new JMenuItem( showHistoryAction );
-        
+        JMenuItem resolveConflicts = new JMenuItem( resolveConflictsAction );
+
         popup.add( showItem );
         popup.add( propsItem );
         popup.add( colorsItem );
@@ -408,6 +411,7 @@ public class PhotoCollectionThumbView
         popup.add( exportSelected );
         popup.add( deleteSelected );
         popup.add( showHistory );
+        popup.add( resolveConflicts );
         MouseListener popupListener = new PopupListener();
         addMouseListener( popupListener );
         
@@ -516,7 +520,7 @@ public class PhotoCollectionThumbView
     private AbstractAction selectPrevAction;
     private AbstractAction deleteSelectedAction;
     private AbstractAction showHistoryAction;
-    
+    private AbstractAction resolveConflictsAction;
 
     public AbstractAction getExportSelectedAction() {
 	return exportSelectedAction;
@@ -740,6 +744,14 @@ public class PhotoCollectionThumbView
                 int ry = starty + (columnWidth - h - rawIcon.getIconHeight()) / (int) 2 + 5;
                 rawIcon.paintIcon( this, g2, rx, ry );
             }
+            if ( photo.getHistory().getHeads().size() > 1 ) {
+                // Draw the "unresolved conflicts" icon
+                int rx = startx + ( columnWidth + w - 10 ) / (int) 2 - 20;
+                int ry = starty + (columnWidth - h - 10 ) / (int) 2;
+                g2.setColor( Color.RED );
+                g2.fillRect( rx, ry, 10, 10 );
+            }
+
             Color prevBkg = g2.getBackground();
             if ( isSelected ) {
                 g2.setBackground( Color.BLUE );
