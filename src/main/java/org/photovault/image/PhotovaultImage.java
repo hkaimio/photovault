@@ -862,7 +862,7 @@ public abstract class PhotovaultImage {
 //                MultiplyConstDescriptor.createRenderable( ihsImage, new double[] {1.0, 1.0, saturation}, null );
         LookupTableJAI jailut = createSaturationMappingLUT();
         saturatedIhsImage = LookupDescriptor.createRenderable( ihsImage, jailut, null );
-        
+        saturatedIhsImage.setProperty( "org.photovault.opname", "saturated_ihs_image" );
         pb = new ParameterBlock();
         pb.addSource(saturatedIhsImage);
         ColorSpace sRGB = ColorSpace.getInstance( ColorSpace.CS_sRGB );
