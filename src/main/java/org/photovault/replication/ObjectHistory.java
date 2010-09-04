@@ -37,6 +37,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -160,6 +161,16 @@ public class ObjectHistory<T> {
     
     void setChanges( Set c ) {
         allChanges=c;
+    }
+
+    @Transient
+    public Change<T> getChange( UUID id ) {
+        for ( Change<T> c : allChanges ) {
+            if ( id.equals( c.getUuid() ) ) {
+                return c;
+            }
+        }
+        return null;
     }
 
     /**

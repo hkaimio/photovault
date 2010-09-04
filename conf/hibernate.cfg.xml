@@ -8,7 +8,7 @@
         <property name="hibernate.connection.url">
             jdbc:derby:photovault;create=true
         </property>
-        <property name="hibernate.connection.autocommit">true</property>
+        <property name="hibernate.connection.autocommit">false</property>
         <property name="hibernate.connection.username">
         </property>
         <property name="hibernate.dialect">

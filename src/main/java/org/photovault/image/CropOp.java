@@ -57,7 +57,7 @@ public class CropOp extends ImageOp {
      */
     public CropOp( ImageOpChain chain, String string ) {
         super();
-        initPortMaps();
+        initPorts();
         setName( string );
         chain.addOperation( this );
     }

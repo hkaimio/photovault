@@ -27,9 +27,13 @@ import java.util.List;
 import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
+import org.photovault.persistence.HibernateUtil;
 import org.photovault.replication.ChangeFactory;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.ObjectHistory;
@@ -107,30 +111,45 @@ public class DataExporter {
     public void importChanges( ObjectInputStream is, DAOFactory df )
             throws IOException {
         ObjectHistoryDTO dto = null;
+        int folderCount = 0;
+        int photoCount = 0;
+        int totalCount = 0;
         try {
             dto = (ObjectHistoryDTO) is.readObject();
         } catch ( ClassNotFoundException ex ) {
             log.error( ex );
         }
+        HibernateDAOFactory hdf = (HibernateDAOFactory) df;
+        Session session = hdf.getSession();
         PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
         PhotoInfoDAO photoDao = df.getPhotoInfoDAO();
         DTOResolverFactory rf = df.getDTOResolverFactory();
         ChangeFactory cf = new ChangeFactory( df.getChangeDAO() );
         while ( dto != null ) {
+            long startTime = System.currentTimeMillis();
+            Transaction tx = session.beginTransaction();
             UUID uuid = dto.getTargetUuid();
             String className = dto.getTargetClassName();
 
             VersionedObjectEditor e = null;
             if ( className.equals( PhotoFolder.class.getName() ) ) {
                 e = getFolderEditor( uuid, folderDao, rf );
+                folderCount++;
             } else {
                 e = getPhotoEditor( uuid, photoDao, rf );
+                photoCount++;
             }
+            totalCount++;
             try {
                 e.addToHistory( dto, cf );
             } catch ( ClassNotFoundException ex ) {
                 log.error( ex );
             }
+            session.flush();
+            tx.commit();
+            session.clear();
+            log.debug(  "Imported " + className + " in " + (System.currentTimeMillis()-startTime) + " ms. " +
+                    photoCount + " photos, " + folderCount + " folders." );
             // e.apply();
             try {
                 dto = (ObjectHistoryDTO) is.readObject();
@@ -154,12 +173,15 @@ public class DataExporter {
     private VersionedObjectEditor<PhotoFolder> getFolderEditor(
             UUID uuid, PhotoFolderDAO folderDao, DTOResolverFactory rf ) {
         PhotoFolder target = null;
+        log.debug( "getFolderEditor(), uuid " + uuid );
         target = folderDao.findByUUID( uuid );
         VersionedObjectEditor<PhotoFolder> e = null;
         if ( target != null ) {
+            log.debug( "getFodlerEditor: folder " + uuid + " found" );
             e = new VersionedObjectEditor( target, rf );
         } else {
             try {
+                log.debug( "getFodlerEditor: Creating new folder " + uuid );
                 e = new VersionedObjectEditor( PhotoFolder.class, uuid, rf );
                 target = e.getTarget();
                 folderDao.makePersistent( target );

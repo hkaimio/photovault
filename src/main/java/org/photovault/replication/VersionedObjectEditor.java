@@ -139,6 +139,7 @@ public class VersionedObjectEditor<T> {
      */
     public void addToHistory( ObjectHistoryDTO<T> h, ChangeFactory<T> cf ) 
             throws ClassNotFoundException, IOException {
+        log.debug( "addToHistory: entry" );
         if ( !h.getTargetUuid().equals( history.getTargetUuid() ) ) {
             throw new IllegalArgumentException( "trying to merge with history of another object" );
         }
@@ -156,6 +157,7 @@ public class VersionedObjectEditor<T> {
          If new changes were added to current branch, update to new head
          */
         if ( wasAtHead && !history.getHeads().contains( oldVersion ) ) {
+            log.debug( "addToHistory: updating version" );
             Change<T> newVersion = oldVersion;
             Set<Change<T>> children = newVersion.getChildChanges();
             while ( children.size() == 1 ) {

@@ -25,6 +25,8 @@ import java.io.ObjectInputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.persistence.DAOFactory;
 
 /**
@@ -33,7 +35,7 @@ import org.photovault.persistence.DAOFactory;
  instances from a serialized change.
  */
 public class ChangeFactory<T> {
-    
+    static private Log log = LogFactory.getLog( ChangeFactory.class );
     /**
      DAO used for accessing local persistent data.
      */
@@ -67,6 +69,7 @@ public class ChangeFactory<T> {
 
     public void addObjectHistory( ObjectHistoryDTO<T> h ) 
             throws ClassNotFoundException, IOException {
+        log.debug( "addObjectHistory: entry" );
         UUID targetUuid = h.getTargetUuid();
         ObjectHistory<T> targetHistory = dao.findObjectHistory( h.getTargetUuid() );
         if ( targetHistory == null ) {
@@ -74,6 +77,7 @@ public class ChangeFactory<T> {
             The target object was not known to local database.
             Create local copy
              */
+            log.debug( "addObjectHistory: creating " + h.getTargetClassName() + " " + h.getTargetUuid() );
             targetHistory = createTarget( h.getTargetClassName(), h.getTargetUuid() );
         }
         for ( ChangeDTO<T> ch : h.getChanges() ) {
@@ -82,6 +86,7 @@ public class ChangeFactory<T> {
             }
             addChange( targetHistory, ch );
         }
+        dao.flush();
     }
 
     
@@ -117,6 +122,7 @@ public class ChangeFactory<T> {
             change = targetHistory.getVersion();
         } else {
             change = addChange( targetHistory, data );
+            dao.flush();
         }
         return change;
     }
@@ -159,8 +165,10 @@ public class ChangeFactory<T> {
      */
     private Change<T> addChange( ObjectHistory<T> targetHistory, ChangeDTO<T> data ) {
 
-        Change<T> change = dao.findChange( data.changeUuid );
+        log.debug( "addChange: entry" );
+        Change<T> change = targetHistory.getChange( data.changeUuid );
         if ( change != null ) {
+            log.debug( "addChange: change already exists" );
             return change;
         }
         change = new Change<T>();
@@ -177,8 +185,9 @@ public class ChangeFactory<T> {
         change.setParentChanges( parents );
         change.setChangedFields( data.changedFields );
         dao.makePersistent( change );
-        dao.flush();
+        // dao.flush();
         targetHistory.addChange( change );
+        log.debug( "addChange: exit" );
         return change;
     }
 }

@@ -21,6 +21,8 @@
 package org.photovault.replication;
 
 import org.hibernate.Session;
+import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 
 /**
@@ -57,5 +59,15 @@ public abstract class HibernateDTOResolver<T,D> implements DTOResolver<T,D> {
             session = HibernateUtil.getSessionFactory()
             .getCurrentSession();
         return session;
+    }
+
+    private HibernateDAOFactory daoFactory = null;
+
+    final protected DAOFactory getDAOFactory() {
+        if ( daoFactory == null ) {
+            daoFactory = new HibernateDAOFactory();
+            daoFactory.setSession( getSession() );
+        }
+        return daoFactory;
     }
 }

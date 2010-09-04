@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -134,7 +135,7 @@ public class FolderPhotoAssociation {
      Get the photo associated with folder by this object (if known)
      @return
      */
-    @ManyToOne
+    @ManyToOne( fetch = FetchType.LAZY )
     @JoinColumn(name = "photo_uuid", nullable = true)
     public PhotoInfo getPhoto() {
         return photo;
@@ -155,7 +156,7 @@ public class FolderPhotoAssociation {
      Get the folder associated with photo by this object (if known)
      @return
      */
-    @ManyToOne
+    @ManyToOne( fetch=FetchType.LAZY )
     @JoinColumn(name = "folder_uuid", nullable = true)
     public PhotoFolder getFolder() {
         return folder;

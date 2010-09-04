@@ -23,7 +23,10 @@ package org.photovault.imginfo.dto;
 import java.util.UUID;
 import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.persistence.DAOFactory;
 import org.photovault.replication.HibernateDTOResolver;
 
 /**
@@ -37,6 +40,9 @@ public class FolderRefResolver extends
         HibernateDTOResolver<FolderPhotoAssociation, FolderRefDTO> {
 
     public FolderPhotoAssociation getObjectFromDto( FolderRefDTO dto ) {
+        DAOFactory df = getDAOFactory();
+        PhotoFolderDAO folderDao = df.getPhotoFolderDAO();
+         PhotoInfoDAO photoDao = df.getPhotoInfoDAO();
         FolderPhotoAssociation a = 
                 (FolderPhotoAssociation) getSession().get(  
                 FolderPhotoAssociation.class,dto.getAssocId() );
@@ -47,14 +53,14 @@ public class FolderRefResolver extends
         }
         UUID photoUuid = dto.getPhotoId();
         if ( photoUuid != null ) {
-            PhotoInfo p = (PhotoInfo) getSession().get( PhotoInfo.class, photoUuid );
+            PhotoInfo p = photoDao.findByUUID( photoUuid );
             if ( p != null ) {
                 a.setPhoto( p );
             }
         }
         UUID folderUuid = dto.getFolderId();
         if ( folderUuid != null ) {
-            PhotoFolder f = (PhotoFolder) getSession().get( PhotoFolder.class, folderUuid );
+            PhotoFolder f = folderDao.findByUUID( folderUuid );
             if ( f != null ) {
                 a.setFolder( f );
             }
