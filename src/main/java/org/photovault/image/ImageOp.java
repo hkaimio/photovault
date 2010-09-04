@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * ImageOp is base class for all descriptions of image processing operations
@@ -38,7 +40,7 @@ import java.util.Set;
  */
 @XStreamAlias( "imageop" )
 public abstract class ImageOp {
-
+    static private Log log = LogFactory.getLog( ImageOp.class );
     /**
      * Source port for the operation
      */
@@ -186,6 +188,9 @@ public abstract class ImageOp {
     }
 
     public Map<String,Sink> getInputPorts() {
+        if ( inputPorts == null ) {
+            log.error( "inputPorts is null!!" );
+        }
         return Collections.unmodifiableMap( inputPorts );
     }
 
@@ -216,4 +221,11 @@ public abstract class ImageOp {
     public abstract ImageOp createCopy();
 
     protected abstract void initPorts();
+
+    private Object readResolve() {
+        outputPorts = new HashMap<String, Source>();
+        inputPorts = new HashMap<String, Sink>();
+        return this;
+    }
+
 }
