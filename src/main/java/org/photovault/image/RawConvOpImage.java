@@ -108,9 +108,10 @@ public class RawConvOpImage extends PointOpImage {
                 pixel[1] = (sg*m) >> 16;
                 pixel[2] = (sb*m) >> 16;
                 long clippedSum = 0;
-                long unclippedSum = 0;
+                long totalHeadroom = 0;
                 boolean clipped[] = new boolean[3];
                 int channelsClipped = 0;
+                int channelsUnclipped = 0;
                 for ( int n = 0; n < 3; n++ ) {
                     if ( pixel[n] > 65535 ) {
                         channelsClipped++;
@@ -118,20 +119,36 @@ public class RawConvOpImage extends PointOpImage {
                         clippedSum += pixel[n] - 65535;
                     } else {
                         clipped[n] = false;
-                        unclippedSum += pixel[n];
+                        totalHeadroom += 65536-pixel[n];
+                        channelsUnclipped++;
                     }
                 }
                 if ( channelsClipped > 0 ) {
                     for ( int n = 0; n < 3 ; n++ ) {
                         if ( !clipped[n] ) {
-                            if ( unclippedSum == 0 ) {
-                                pixel[n] += clippedSum;
-                            } else {
-                                pixel[n] += (clippedSum*pixel[n])/unclippedSum;
-                            }
+                            // Spread the clipped energy to other channels so that
+                            // they reach saturation at the same time
+                            long headroom = 65536 - pixel[n];
+                            pixel[n] += clippedSum * headroom / totalHeadroom;
                         }
                     }
                 }
+//                while ( channelsClipped > 0 && clippedSum > 0 &&
+//                        channelsUnclipped > 0 ) {
+//                    long spreaded = 0;
+//                    long spreadPerChan = clippedSum / channelsUnclipped +1;
+//                    for ( int n = 0; n < 3; n++ ) {
+//                        if ( !clipped[n] ) {
+//                            long add = Math.min( spreadPerChan, 65536 - pixel[n] );
+//                            pixel[n] += add;
+//                            spreaded += add;
+//                            if ( pixel[n] > 65535 ) {
+//                                channelsUnclipped--;
+//                            }
+//                        }
+//                    }
+//                    clippedSum -= spreaded;
+//                }
                 try {
                     w.setSample( c, l, 0, Math.min( 65535, pixel[0] ) );
                     w.setSample( c, l, 1, Math.min( 65535, pixel[1] ) );

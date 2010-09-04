@@ -82,7 +82,7 @@ public class DCRawMapOp extends ImageOp {
      * @return the white
      */
     public int getWhite() {
-        return white;
+        return (white > 65535) ? 65535 : white;
     }
 
     /**
