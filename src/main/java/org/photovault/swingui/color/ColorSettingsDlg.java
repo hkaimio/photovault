@@ -235,6 +235,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private void initComponents() {
 
         fieldSliderCombo1 = new org.photovault.swingui.color.FieldSliderCombo();
+        fieldSliderCombo2 = new org.photovault.swingui.color.FieldSliderCombo();
         dlgControlPane = new javax.swing.JPanel();
         applyBtn = new javax.swing.JButton();
         discardBtn = new javax.swing.JButton();
@@ -301,6 +302,8 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         hlightRecoverySlider = new org.photovault.swingui.color.FieldSliderCombo();
         jLabel7 = new javax.swing.JLabel();
         waveletDenoiseSlider = new org.photovault.swingui.color.FieldSliderCombo();
+        whiteLevelSlider = new org.photovault.swingui.color.FieldSliderCombo();
+        jLabel8 = new javax.swing.JLabel();
         colorSettingControls = new javax.swing.JPanel();
         colorCurveSelectionCombo = new javax.swing.JComboBox();
         colorCurvePanel1 = new org.photovault.swingui.color.ColorCurvePanel();
@@ -429,11 +432,11 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         rawHistogramPane.setLayout(rawHistogramPaneLayout);
         rawHistogramPaneLayout.setHorizontalGroup(
             rawHistogramPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 256, Short.MAX_VALUE)
+            .add(0, 423, Short.MAX_VALUE)
         );
         rawHistogramPaneLayout.setVerticalGroup(
             rawHistogramPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 16, Short.MAX_VALUE)
+            .add(0, 0, Short.MAX_VALUE)
         );
 
         jLabel6.setText("Recover highlights");
@@ -459,29 +462,50 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             }
         });
 
+        whiteLevelSlider.setMaximum(65536.0);
+        whiteLevelSlider.setMinimum(1000.0);
+        whiteLevelSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                whiteLevelSliderStateChanged(evt);
+            }
+        });
+
+        jLabel8.setText("White level");
+
         org.jdesktop.layout.GroupLayout rawControlsPaneLayout = new org.jdesktop.layout.GroupLayout(rawControlsPane);
         rawControlsPane.setLayout(rawControlsPaneLayout);
         rawControlsPaneLayout.setHorizontalGroup(
             rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, rawControlsPaneLayout.createSequentialGroup()
+            .add(rawControlsPaneLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, ctempSlider, 0, 0, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, blackLevelSlider, 0, 0, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel1)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, hlightCompSlider, 0, 0, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel5)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel2)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel4)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel3)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel6)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, evCorrSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, greenGainSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel7)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, hlightRecoverySlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, waveletDenoiseSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE))
-                .addContainerGap())
+                .add(rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(rawControlsPaneLayout.createSequentialGroup()
+                        .add(hlightCompSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 288, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())
+                    .add(rawControlsPaneLayout.createSequentialGroup()
+                        .add(rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(rawHistogramPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(jLabel1)
+                            .add(jLabel3)
+                            .add(jLabel7)
+                            .add(jLabel6)
+                            .add(jLabel4)
+                            .add(jLabel2)
+                            .add(rawControlsPaneLayout.createSequentialGroup()
+                                .add(rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                                    .add(whiteLevelSlider, 0, 0, Short.MAX_VALUE)
+                                    .add(waveletDenoiseSlider, 0, 0, Short.MAX_VALUE)
+                                    .add(hlightRecoverySlider, 0, 0, Short.MAX_VALUE)
+                                    .add(greenGainSlider, 0, 0, Short.MAX_VALUE)
+                                    .add(ctempSlider, 0, 0, Short.MAX_VALUE)
+                                    .add(blackLevelSlider, 0, 0, Short.MAX_VALUE)
+                                    .add(evCorrSlider, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE))
+                                .add(63, 63, 63)
+                                .add(jLabel5)))
+                        .add(372, 372, 372))
+                    .add(rawControlsPaneLayout.createSequentialGroup()
+                        .add(jLabel8)
+                        .addContainerGap(237, Short.MAX_VALUE))))
         );
         rawControlsPaneLayout.setVerticalGroup(
             rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -494,21 +518,28 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(hlightCompSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jLabel5)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(blackLevelSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(jLabel8)
+                .add(rawControlsPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(rawControlsPaneLayout.createSequentialGroup()
+                        .add(62, 62, 62)
+                        .add(jLabel5))
+                    .add(rawControlsPaneLayout.createSequentialGroup()
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(whiteLevelSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 64, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                .add(18, 18, 18)
+                .add(blackLevelSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 64, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jLabel2)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(ctempSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(ctempSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 65, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jLabel4)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(greenGainSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(greenGainSlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 64, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jLabel6)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(hlightRecoverySlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(hlightRecoverySlider, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 64, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jLabel7)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -533,7 +564,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         colorCurvePanel1.setLayout(colorCurvePanel1Layout);
         colorCurvePanel1Layout.setHorizontalGroup(
             colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 256, Short.MAX_VALUE)
+            .add(0, 289, Short.MAX_VALUE)
         );
         colorCurvePanel1Layout.setVerticalGroup(
             colorCurvePanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -561,7 +592,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
                 .add(colorCurveSelectionCombo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(colorCurvePanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(320, Short.MAX_VALUE))
+                .addContainerGap(308, Short.MAX_VALUE))
         );
 
         colorSettingTabs.addTab("Colors", colorSettingControls);
@@ -571,11 +602,13 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, dlgControlPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(colorSettingTabs, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE))
+                .addContainerGap(198, Short.MAX_VALUE)
+                .add(dlgControlPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(colorSettingTabs, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 329, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -783,6 +816,27 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         }
     }//GEN-LAST:event_waveletDenoiseSliderStateChanged
 
+    private void whiteLevelSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_whiteLevelSliderStateChanged
+       int newWhite = (int) whiteLevelSlider.getValue();
+        if (  Math.abs( newWhite - white ) > 1 ) {
+
+            white = newWhite;
+            ctrl.viewChanged( this, PhotoInfoFields.RAW_WHITE_LEVEL, white );
+            if ( rawSettings != null ) {
+                RawSettingsFactory f = new RawSettingsFactory( rawSettings );
+                f.setWhite( newWhite );
+                try {
+                    rawSettings = f.create();
+                } catch (PhotovaultException ex) {
+                    log.error( "Error setting black: " + ex.getMessage() );
+                }
+                firePreviewChangeEvent( new RawSettingsPreviewEvent(
+                        this, ctrl.getPhotos(), rawSettings ) );
+                reloadHistogram();
+            }
+        }
+    }//GEN-LAST:event_whiteLevelSliderStateChanged
+
     /**
      Called by colorCurvePane when use has edited the curve
      @param c the curve after editing.
@@ -918,6 +972,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
         ctempSlider.setEnabled( enable );
         greenGainSlider.setEnabled( enable );
         blackLevelSlider.setEnabled( enable );
+        whiteLevelSlider.setEnabled( enable );
         waveletDenoiseSlider.setEnabled( enable );
         if ( !enable && colorSettingTabs.getSelectedIndex() == 0 ) {
             colorSettingTabs.setSelectedIndex( 1 );
@@ -1155,6 +1210,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             double recovery = rawSettings.getHlightRecovery();
             hlightRecoverySlider.setValue( recovery );
             blackLevelSlider.setValue( rawSettings.getBlack() );
+            whiteLevelSlider.setValue( rawSettings.getWhite() );
             double colorTemp = rawSettings.getColorTemp();
             ctempSlider.setValue( (int) colorTemp );
             double g = rawSettings.getGreenGain();
@@ -1188,6 +1244,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     }
 
     int black = 0;
+    int white = 65535;
     
     public void setRawBlack(int black) {
         this.black = black;
@@ -1208,9 +1265,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             // restore the normal label table without any extra annotations
             blackLevelSlider.setAnnotations( null );
         blackLevelSlider.setMultivalued( false );
-        }        
+        }
     }
-    
+
     public void setRawBlackMultivalued(boolean multivalued, Object[] values ) {
         if ( values != null && values.length > 1  ) {
             double[] annotations = new double[values.length];
@@ -1227,6 +1284,46 @@ public class ColorSettingsDlg extends javax.swing.JDialog
 
     public int getRawBlack() {
         return (int) blackLevelSlider.getValue();
+    }
+
+    public void setRawWhite(int white) {
+        this.white = white;
+        whiteLevelSlider.setValue( (double) white );
+    }
+
+    public void setRawWhite( int white, List refValues ) {
+        this.white = white;
+        whiteLevelSlider.setValue( (double) white );
+        if ( refValues != null && refValues.size() > 1  ) {
+            double[] annotations = new double[refValues.size()];
+            for ( int n = 0; n < refValues.size() ; n++ ) {
+                annotations[n] = ((Number)refValues.get(n)).doubleValue();
+            }
+            whiteLevelSlider.setAnnotations( annotations );
+            whiteLevelSlider.setMultivalued( true );
+        } else {
+            // restore the normal label table without any extra annotations
+            whiteLevelSlider.setAnnotations( null );
+        whiteLevelSlider.setMultivalued( false );
+        }
+    }
+
+    public void setRawWhiteMultivalued(boolean multivalued, Object[] values ) {
+        if ( values != null && values.length > 1  ) {
+            double[] annotations = new double[values.length];
+            for ( int n = 0; n < values.length ; n++ ) {
+                annotations[n] = ((Number)values[n]).doubleValue();
+            }
+            whiteLevelSlider.setAnnotations( annotations );
+        } else {
+            // restore the normal label table without any extra annotations
+            whiteLevelSlider.setAnnotations( null );
+        }
+        whiteLevelSlider.setMultivalued( multivalued );
+    }
+
+    public int getRawWhite() {
+        return (int) whiteLevelSlider.getValue();
     }
 
     float denoise = 0;
@@ -1628,6 +1725,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
             case RAW_BLACK_LEVEL:
                 setRawBlack( newValue != null ? ( (Number)newValue).intValue() : 0, refValues );
                 break;
+            case RAW_WHITE_LEVEL:
+                setRawWhite( newValue != null ? ( (Number)newValue).intValue() : 0, refValues );
+                break;
             case RAW_CTEMP:
                 setRawColorTemp( newValue != null ? ( (Number)newValue).doubleValue() : 0, refValues );
                 break;
@@ -1694,6 +1794,7 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private javax.swing.JPanel dlgControlPane;
     private org.photovault.swingui.color.FieldSliderCombo evCorrSlider;
     private org.photovault.swingui.color.FieldSliderCombo fieldSliderCombo1;
+    private org.photovault.swingui.color.FieldSliderCombo fieldSliderCombo2;
     private org.photovault.swingui.color.FieldSliderCombo greenGainSlider;
     private org.photovault.swingui.color.FieldSliderCombo hlightCompSlider;
     private org.photovault.swingui.color.FieldSliderCombo hlightRecoverySlider;
@@ -1704,10 +1805,12 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JButton okBtn;
     private javax.swing.JPanel rawControlsPane;
     private javax.swing.JPanel rawHistogramPane;
     private org.photovault.swingui.color.FieldSliderCombo waveletDenoiseSlider;
+    private org.photovault.swingui.color.FieldSliderCombo whiteLevelSlider;
     // End of variables declaration//GEN-END:variables
 
 }
