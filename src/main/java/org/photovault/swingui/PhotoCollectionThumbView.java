@@ -84,6 +84,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.CreateCopyImageCommand;
+import org.photovault.imginfo.CreatePreviewImagesTask;
 import org.photovault.imginfo.Volume;
 import org.photovault.imginfo.VolumeDAO;
 import org.photovault.swingui.taskscheduler.TaskPriority;
@@ -1509,19 +1510,7 @@ public class PhotoCollectionThumbView
             // We found a photo without thumbnail
             VolumeDAO volDAO = ctrl.getDAOFactory().getVolumeDAO();
             Volume vol = volDAO.getDefaultVolume();
-            final CreateCopyImageCommand cmd = 
-                    new CreateCopyImageCommand( nextPhoto, vol, 200, 200 );
-            return new BackgroundTask() {
-                
-                public void run( ) {
-                    try {
-                        cmdHandler.executeCommand( cmd );
-                    } catch ( CommandException ex ) {
-                        log.error( ex.getMessage() );
-                    }
-                }
-
-            };
+            return new CreatePreviewImagesTask( nextPhoto );
 	} 
         // All photos have thumbnail :-)
         return null;

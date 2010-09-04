@@ -103,17 +103,6 @@ public class ExtVolIndexer implements Runnable {
             volume.setFolderId( topFolder.getUuid() );
         }
     }
-
-    /**
-     Create the needed preview instances for a photo
-     @param p The photo
-     */
-    private void createPreviewInstances(PhotoInfo p, DAOFactory f ) throws CommandException {        
-        Volume vol = f.getVolumeDAO().getDefaultVolume();
-        CreateCopyImageCommand cmd = new CreateCopyImageCommand( p, vol, 200, 200 );
-        cmd.setLowQualityAllowed( true );
-        commandHandler.executeCommand( cmd );
-    }
     
     /**
      Finds a subfolder with given name. This is classified as protected so that also

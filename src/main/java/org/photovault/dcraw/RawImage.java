@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006-2009 Harri Kaimio
+  Copyright (c) 2006-2010 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -1145,7 +1145,7 @@ public class RawImage extends PhotovaultImage {
             loadRawImage();
             doAutoExpose();
         }
-        
+
         RawSettingsFactory rsf = new RawSettingsFactory( null );
         rsf.setDaylightMultipliers( daylightMultipliers );
         rsf.setRedGreenRation( chanMultipliers[0]/chanMultipliers[1] );
