@@ -85,8 +85,8 @@ public class CreateExternalVolume extends DataAccessCommand {
                             "%s is a Photovault database, cannot convert to external volume!", 
                             basedir.getAbsolutePath()) );
                 }
-                List<VolumeBase> vols = volDAO.findByExample( tv );
-                if ( vols.size() == 0 ) {
+                volume = (ExternalVolume) volDAO.getVolume( tv.getId() );
+                if ( volume == null ) {
                     /*
                      Good, this volume was created by some other Photovault 
                     database instance, so we can just persist it here
