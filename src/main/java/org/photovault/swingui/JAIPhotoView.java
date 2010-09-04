@@ -21,11 +21,14 @@
 package org.photovault.swingui;
 
 import com.sun.media.jai.util.SunTileCache;
+import com.sun.media.jai.util.SunTileScheduler;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
 import java.util.Iterator;
+import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderedOp;
+import javax.media.jai.TileRequest;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.color.ColorSpace;
@@ -36,6 +39,8 @@ import java.awt.geom.AffineTransform;
 import javax.media.jai.JAI;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.InterpolationBilinear;
+import javax.media.jai.TileCache;
+import javax.media.jai.TileComputationListener;
 import javax.media.jai.widget.ScrollingImagePanel;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
@@ -98,6 +103,35 @@ public class JAIPhotoView extends JPanel
 
         setBackground( new Color( 0.2f, 0.2f, 0.2f ) );
     }
+
+    static class ImageTileComputationListener implements TileComputationListener {
+
+        private final JAIPhotoView view;
+
+        public ImageTileComputationListener( JAIPhotoView view ) {
+            this.view = view;
+        }
+
+
+
+        public void tileComputed( Object o, TileRequest[] trs, PlanarImage pi,
+                int tilex, int tiley, Raster raster ) {
+            int x = view.imgX + pi.getTileWidth() * tilex;
+            int y = view.imgY + pi.getTileWidth() * tiley;
+            view.repaint( x, y, pi.getTileWidth(), pi.getTileHeight() );
+        }
+
+        public void tileCancelled( Object o, TileRequest[] trs, PlanarImage pi,
+                int x, int y ) {
+            log.debug( "tileCancelled("+ x + ", " + y + ")" );
+        }
+
+        public void tileComputationFailure( Object o, TileRequest[] trs,
+                PlanarImage pi, int x, int y, Throwable thrwbl ) {
+            log.debug( "tileComputationFailure ("+ x + ", " + y + "): " + thrwbl );
+        }
+
+    }
     
     public void paint( Graphics g ) {
         super.paint( g );
@@ -115,7 +149,27 @@ public class JAIPhotoView extends JPanel
 	    imgHeight = xformImage.getHeight();
 	    imgX = (compWidth-imgWidth)/2;
 	    imgY = (compHeight-imgHeight)/2;
-	    g2.drawRenderedImage( xformImage, new AffineTransform(1f,0f,0f,1f, imgX, imgY) );
+            g2.translate( imgX, imgY );
+            Shape oldClip = g2.getClip();
+            g2.setClip( 0, 0, xformImage.getWidth(), xformImage.getHeight() );
+            int xTileCount = xformImage.getNumXTiles();
+            int yTileCount = xformImage.getNumYTiles();
+            TileCache cache = JAI.getDefaultInstance().getTileCache();
+            for ( int ytile = 0 ; ytile < yTileCount ; ytile++ ) {
+                for ( int xtile = 0; xtile < xTileCount ; xtile++ ) {
+                    ImageTile tile = xformImageTiles[xtile][ytile];
+                    Rectangle tileBounds = tile.getBounds();
+                    if ( g2.hitClip( (int) tileBounds.getMinX(),
+                            (int) tileBounds.getMinY(),
+                            (int) tileBounds.getWidth(),
+                            (int) tileBounds.getHeight() ) ) {
+                        xformImageTiles[xtile][ytile].drawTile( cache, g2 );
+                    }
+                }
+            }
+            g2.setClip( oldClip );
+//            g2.drawRenderedImage( xformImage, new AffineTransform(1f,0f,0f,1f, imgX, imgY) );
+            g2.translate( -imgX, -imgY );
             if ( !drawCropped ) {
                 paintCropBorder( g2, imgX, imgY, imgWidth, imgHeight );
             } else if ( fitSize ) {
@@ -176,6 +230,7 @@ public class JAIPhotoView extends JPanel
         SunTileCache tileCache = (SunTileCache) JAI.getDefaultInstance().getTileCache();
         buf.append( "cmiss=" + tileCache.getCacheMissCount() + ", chits=" + tileCache.getCacheHitCount() + 
                 ", ctiles=" + tileCache.getCacheTileCount() + "cache used=" + tileCache.getCacheMemoryUsed() );
+        SunTileScheduler sched;
         return buf.toString();
     }
         
@@ -880,6 +935,20 @@ public class JAIPhotoView extends JPanel
                 xformImage = origImage.getRenderedImage( imgScale, false );
                 
             }
+            // Create tile painters for the image
+            int xTileCount = xformImage.getNumXTiles();
+            int yTileCount = xformImage.getNumYTiles();
+            xformImageTiles = new ImageTile[xTileCount][yTileCount];
+            for ( int ytile = 0 ; ytile < yTileCount ; ytile++ ) {
+                for ( int xtile = 0; xtile < xTileCount ; xtile++ ) {
+                    xformImageTiles[xtile][ytile] =
+                            new ImageTile( this, (PlanarImage) xformImage,
+                            xtile, ytile);
+                }
+            }
+            ((PlanarImage)xformImage).addTileComputationListener(
+                    new ImageTileComputationListener( this ) );
+
             cropBorderXpoints = null;
             cropBorderYpoints = null;
         } catch ( Exception ex ) {
@@ -1088,6 +1157,7 @@ public class JAIPhotoView extends JPanel
     // The image that is viewed
     PhotovaultImage origImage = null;
     RenderedImage xformImage = null;
+    ImageTile[][] xformImageTiles = null;
 
     // scale of the image
     float imgScale = 1.0f;
