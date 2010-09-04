@@ -28,7 +28,9 @@ import java.util.Iterator;
 import javax.media.jai.RenderedOp;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.event.*;
+import java.awt.font.LineMetrics;
 import java.awt.image.*;
 import java.awt.geom.AffineTransform;
 import javax.media.jai.JAI;
@@ -116,10 +118,56 @@ public class JAIPhotoView extends JPanel
             if ( !drawCropped ) {
                 paintCropBorder( g2, imgX, imgY, imgWidth, imgHeight );
             }
-            log.debug( "JAI cache info: " + getJAICacheDebugInfo() ); 
+            log.debug( "JAI cache info: " + getJAICacheDebugInfo() );
+            if ( showInfo ) {
+                paintInfo( g2 );
+            }
 	}
     }
-    
+
+    /**
+     * Duration how long the color info box is shown, in milliseconds
+     */
+    private int colorInfoDurationMsec = 4000;
+    /**
+     * Duration of fade out of color info box, in milliseconds
+     */
+    private int colorInfoFadeMsec = 500;
+
+    /**
+     * Draw a info box about the color of a pixel
+     * @param g Graphics context
+     */
+    private void paintInfo( Graphics2D g ) {
+        long timeElapsed = System.currentTimeMillis() -infoStartTime;
+        if ( timeElapsed > colorInfoDurationMsec ) {
+            showInfo = false;
+        } else {
+            float alpha = 
+                    (timeElapsed < colorInfoDurationMsec-colorInfoFadeMsec ) ?
+                        1.0f :
+                        (colorInfoDurationMsec-timeElapsed)/(float)(colorInfoFadeMsec);
+            Rectangle2D rgbLineRect = g.getFont().getStringBounds( infoTextRGB,
+                    g.getFontRenderContext() );
+            Rectangle2D labLineRect = g.getFont().getStringBounds( infoTextLab,
+                    g.getFontRenderContext() );
+            Color background = new Color( 0.3f, 0.3f, 0.3f, 0.5f*alpha );
+            g.setColor( background );
+
+            float rectWidth = ((int) Math.max( rgbLineRect.getWidth(), labLineRect.getWidth() ) ) + 20;
+            g.fillRoundRect( infoX+imgX+2, infoY+imgY+2, (int) rectWidth, 35, 8, 8 );
+            g.setColor( new Color( 1.0f, 1.0f, 1.0f, alpha ) );
+            Stroke s = new BasicStroke( 2 );
+            g.setStroke( s );
+            g.drawRoundRect( infoX+imgX, infoY+imgY, (int) rectWidth, 35, 8, 8 );
+
+            g.drawString( infoTextRGB, infoX+imgX+10, infoY+imgY+14 );
+            g.drawString( infoTextLab, infoX+imgX+10, infoY+imgY+29 );
+            repaint( infoX + imgX, infoY + imgY,(int) (rectWidth + 10), 45 );
+        }
+
+    }
+
     public String getJAICacheDebugInfo() {
         StringBuffer buf = new StringBuffer();
         SunTileCache tileCache = (SunTileCache) JAI.getDefaultInstance().getTileCache();
@@ -793,9 +841,49 @@ public class JAIPhotoView extends JPanel
 
     int handleMoving = -1;
     boolean isRotating = false;
-    
+
+    /**
+     * Time when color info box was made visible
+     */
+    long infoStartTime = 0;
+    /**
+     * Should color info box be drawn
+     */
+    boolean showInfo = false;
+    /**
+     * The RGB color info text
+     */
+    String infoTextRGB = "";
+    /**
+     * The Lab color info text
+     */
+    String infoTextLab = "";
+    /**
+     * X coordinate of the pixel whose color is dsplayed in color info box
+     */
+    int infoX;
+    /**
+     * Y coordinate of the pixel whose color is dsplayed in color info box
+     */
+    int infoY;
     
     public void mouseClicked(MouseEvent mouseEvent) {
+        if ( drawCropped && xformImage != null ) {
+            int x = mouseEvent.getX() - imgX;
+            int y = mouseEvent.getY() - imgY;
+            showColorInfoBox( x, y);
+        }
+    }
+
+    private static void xyzToLab( float[] xyz, float[] lab ) {
+        float eps = 0.008856f;
+        float k = 903.3f;
+        float fx = xyz[0] > eps ? (float) Math.pow( xyz[0], 1.0f/3.0f ) : (k*xyz[0]+16.0f)/116.0f;
+        float fy = xyz[1] > eps ? (float) Math.pow( xyz[1], 1.0f/3.0f ) : (k*xyz[1]+16.0f)/116.0f;
+        float fz = xyz[2] > eps ? (float) Math.pow( xyz[2], 1.0f/3.0f ) : (k*xyz[2]+16.0f)/116.0f;
+        lab[0] = 116.0f*fy-16.0f;
+        lab[1]= 500.0f * ( fx - fy );
+        lab[2]= 200.0f * ( fy - fz );
     }
 
     public void mousePressed(MouseEvent mouseEvent) {
@@ -884,6 +972,43 @@ public class JAIPhotoView extends JPanel
             calcNewCrop();
             repaint();
         }
+    }
+
+    /**
+     * Initialize the color info box that shows color of a pixel
+     * @param x X coordinate of the pixel (from xformImage)
+     * @param y Y coordinate of the pixel (from xformImage)
+     */
+    private void showColorInfoBox( int x, int y ) {
+        if ( x < xformImage.getMinX() ||
+                y < xformImage.getMinY() ||
+                x >= xformImage.getMinX()+xformImage.getWidth() ||
+                y >= xformImage.getMinY()+xformImage.getHeight() ) {
+            return;
+        }
+        Raster imgRaster = xformImage.getData();
+        float[] sample = new float[3];
+        for ( int n = 0; n < 3;
+                n++ ) {
+            sample[n] = imgRaster.getSampleFloat( x, y, n ) / 255.0f;
+        }
+        ColorSpace cs = xformImage.getColorModel().getColorSpace();
+        float[] ciexyz = cs.toCIEXYZ( sample );
+        float[] labValue = new float[3];
+        xyzToLab( ciexyz, labValue );
+
+        // Create the info dialog
+        infoX = x;
+        infoY = y;
+        infoTextRGB =
+                String.format( "RGB: %.2f, %.2f, %.2f", sample[0], sample[1],
+                sample[2] );
+        infoTextLab =
+                String.format( "Lab: %2.1f, %2.1f, %2.1f", labValue[0],
+                labValue[1], labValue[2] );
+        infoStartTime = System.currentTimeMillis();
+        showInfo = true;
+        repaint( x + imgX, y + imgY, 200, 200 );
     }
 	
     private void updateCropParamEditor() {
