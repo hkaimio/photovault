@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -46,8 +47,18 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.image.ImageOpChain;
+import org.photovault.imginfo.dto.CopyImageDescriptorDTO;
+import org.photovault.imginfo.dto.FileLocationDTO;
+import org.photovault.imginfo.dto.ImageDescriptorDTO;
+import org.photovault.imginfo.dto.ImageFileDTO;
+import org.photovault.imginfo.dto.ImageFileDtoResolver;
+import org.photovault.imginfo.dto.ImageFileXmlConverter;
+import org.photovault.imginfo.dto.OrigImageDescriptorDTO;
+import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.dto.PhotoChangeSerializer;
 import org.photovault.persistence.DAOFactory;
+import org.photovault.persistence.GenericDAO;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.replication.Change;
@@ -75,45 +86,25 @@ public class DataExporter {
     public void DataExporter() {
     }
 
-    /**
-     * Export the folder hierarchy of current database
-     * @param os stream in which the history will be written
-     * @param df factory used for accessing the folders
-     * @throws IOException
-     */
-    public void exportFolders( ObjectOutputStream os, DAOFactory df )
-            throws IOException {
-        PhotoFolderDAO folderDAO = df.getPhotoFolderDAO();
-        PhotoFolder root = folderDAO.findRootFolder();
-        exportFolderHierarchy( root, os );
-    }
-
-
-    /**
-     * Export all photos in current database
-     * @param os stream in which the history will be written
-     * @param df factory used for accessing the folders
-     * @throws IOException
-     */
-    public void exportPhotos( ObjectOutputStream os, DAOFactory df ) 
-            throws IOException {
-        PhotoInfoDAO photoDAO = df.getPhotoInfoDAO();
-        List<PhotoInfo> allPhotos = photoDAO.findAll();
-        for ( PhotoInfo p : allPhotos ) {
-            ObjectHistory<PhotoInfo> h = p.getHistory();
-            ObjectHistoryDTO<PhotoInfo> dto = new ObjectHistoryDTO( h );
-            os.writeObject( dto );
-        }
-    }
-
     public void exportPhotos( File zipFile, DAOFactory df ) throws FileNotFoundException, IOException {
         PhotoInfoDAO photoDAO = df.getPhotoInfoDAO();
-        List<PhotoInfo> allPhotos = photoDAO.findAll();
         FileOutputStream os = new FileOutputStream( zipFile );
         ZipOutputStream zipo = new ZipOutputStream( os );
         int photoCount = 0;
+        ImageFileDAO ifDao = df.getImageFileDAO();
+        List<ImageFile> files = ifDao.findAll();
+        ZipEntry filedir = new ZipEntry( "files/" );
+        zipo.putNextEntry( filedir );
+        for ( ImageFile f : files ) {
+            addFileInfo( f, zipo );
+        }
+
+        PhotoFolderDAO folderDAO = df.getPhotoFolderDAO();
+        exportFolderHierarchy( folderDAO.findRootFolder(), zipo );
+        List<PhotoInfo> allPhotos = photoDAO.findAll();
         for ( PhotoInfo p : allPhotos ) {
-            addPhotoHistory( p, zipo );
+            String dirName = "photo_" +  p.getUuid() + "/";
+            exportHistory( p.getHistory(), dirName, zipo );
             photoCount++;
             log.debug( "" + photoCount + " photos exported" );
         }
@@ -123,16 +114,16 @@ public class DataExporter {
     /**
      * Export the folder hierarchy below a given folder to externam file
      * @param f The top folder of the hierarchy
-     * @param os Strean in which the exported data will be written.
+     * @param zipo Stream in which the exported data will be written.
      * @throws IOException
      */
-    private void exportFolderHierarchy( PhotoFolder f, ObjectOutputStream os )
+    private void exportFolderHierarchy( PhotoFolder f, ZipOutputStream zipo )
             throws IOException {
         ObjectHistory<PhotoFolder> h = f.getHistory();
-        ObjectHistoryDTO<PhotoFolder> dto = new ObjectHistoryDTO( h );
-        os.writeObject( dto );
+        String dirName = "folder_" + f.getUuid() + "/";
+        exportHistory( h, dirName, zipo );
         for ( PhotoFolder child : f.getSubfolders() ) {
-            exportFolderHierarchy( child, os);
+            exportFolderHierarchy( child, zipo);
         }
     }
 
@@ -267,24 +258,31 @@ public class DataExporter {
     public void exportFileInfo( ImageFile f, File sidecar ) throws IOException {
         OutputStream os = new FileOutputStream( sidecar );
         ZipOutputStream zipo = new ZipOutputStream( os );
+        ZipEntry filedir = new ZipEntry( "files/" );
+        zipo.putNextEntry( filedir );
+        addFileInfo( f, zipo );
+
+
         for ( Map.Entry<String, ImageDescriptorBase> e : f.getImages().entrySet() ) {
             ImageDescriptorBase img = e.getValue();
             if ( img instanceof OriginalImageDescriptor ) {
                 OriginalImageDescriptor orig = (OriginalImageDescriptor) img;
                 for ( PhotoInfo p : orig.getPhotos() ) {
-                    addPhotoHistory( p, zipo );
+                    String dirName = "photo_" + p.getUuid() + "/";
+                    exportHistory( p.getHistory(), dirName, zipo );
                 }
             }
         }
         zipo.close();
     }
 
-    public void importChanges( File zipFile, DAOFactory df ) throws FileNotFoundException, IOException {
+    public void importChanges( File zipFile, DAOFactory df )
+            throws FileNotFoundException, IOException {
         FileInputStream is = new FileInputStream( zipFile );
         ZipInputStream zipis = new ZipInputStream( is );
 
         PhotoInfo p;
-        UUID photoUuid = null;
+        UUID targetId = null;
         VersionedObjectEditor<PhotoInfo> pe = null;
         ObjectHistoryDTO<PhotoInfo> h = null;
         PhotoInfoDAO photoDao = df.getPhotoInfoDAO();
@@ -304,52 +302,111 @@ public class DataExporter {
             if ( !fname.endsWith( ".xml" ) ) {
                 log.warn( "Unexpected suffix: " + ename );
             }
-            long esize = e.getSize();
-            byte[] data = null;
-            if ( esize > 0 ) {
-                data = new byte[(int) esize];
-                zipis.read( data );
-            } else {
-                byte[] tmp = new byte[65536];
-                int offset = 0;
-                int bytesRead = 0;
-                while ( ( bytesRead = zipis.read( tmp, offset, tmp.length-offset ) ) > 0 ) {
-                    offset += bytesRead;
-                    if ( offset >= tmp.length ) {
-                        tmp = Arrays.copyOf( tmp, tmp.length*2 );
-                    }
-                }
-                data = Arrays.copyOf( tmp, offset );
-            }
-            ChangeDTO<PhotoInfo> dto = ChangeDTO.createChange( data, PhotoInfo.class );
-            if ( dto == null ) {
-                log.warn( "Failed to read change " + ename );
-                continue;
-            }
-            UUID changeId = dto.getChangeUuid();
-            if ( !fname.startsWith( changeId.toString() ) ) {
-                log.warn( "Unexpected changeId " + changeId + " in file " + ename );
-            }
+            byte[] data = readZipEntry( e, zipis );
 
-            if ( !PhotoInfo.class.getName().equals( dto.getTargetClassName() ) ) {
-                log.warn( "Only PhotoInfo class supported, saw " + dto.getTargetClassName() );
-                continue;
-            }
-            UUID changeTargetId = dto.getTargetUuid();
-            if ( !changeTargetId.equals( photoUuid ) ) {
-                if ( h != null ) {
-                    addHistory( h, df );
+            if ( path[0].equals( "files" ) ) {
+                String xml = new String( data, "utf-8" );
+                this.parseFileInfo( xml, df );
+            } else {
+                Class targetObjectClass = null;
+                if ( path[0].startsWith( "photo_" ) ) {
+                    targetObjectClass = PhotoInfo.class;
+                } else if ( path[0].startsWith( "folder_" ) ) {
+                    targetObjectClass = PhotoFolder.class;
+                } else {
+                    log.error( "Illegal folder name found: " + path[0] );
+                    continue;
                 }
-                photoUuid = changeTargetId;
-                h = new ObjectHistoryDTO<PhotoInfo>( PhotoInfo.class, photoUuid );
+
+                ChangeDTO dto = ChangeDTO.createChange( 
+                        data, targetObjectClass );
+                if ( dto == null ) {
+                    log.warn( "Failed to read change " + ename );
+                    continue;
+                }
+                UUID changeId = dto.getChangeUuid();
+                if ( !fname.startsWith( changeId.toString() ) ) {
+                    log.warn( "Unexpected changeId " + changeId + " in file "
+                            + ename );
+                }
+
+                UUID newTargetId = dto.getTargetUuid();
+                if ( !newTargetId.equals( targetId ) ) {
+                    if ( h != null ) {
+                        addHistory( h, df );
+                    }
+                    targetId = newTargetId;
+                    h = new ObjectHistoryDTO( targetObjectClass, targetId );
+                }
+                h.addChange( dto );
+                targetId = newTargetId;
             }
-            h.addChange( dto );
-            photoUuid = changeTargetId;
         }
     }
-    private void addHistory( ObjectHistoryDTO<PhotoInfo> h, DAOFactory df ) {
+
+    /**
+     * Reads a zip file entry into byte array
+     * @param e The entry to read
+     * @param zipis ZipInputStream that is read
+     * @return The data in entry
+     * @throws IOException
+     */
+
+    private byte[] readZipEntry( ZipEntry e, ZipInputStream zipis ) throws IOException {
+        long esize = e.getSize();
+        byte[] data = null;
+        if ( esize > 0 ) {
+            data = new byte[(int) esize];
+            zipis.read( data );
+        } else {
+            byte[] tmp = new byte[65536];
+            int offset = 0;
+            int bytesRead = 0;
+            while ( (bytesRead = zipis.read( tmp, offset, tmp.length - offset )) >
+                    0 ) {
+                offset += bytesRead;
+                if ( offset >= tmp.length ) {
+                    tmp = Arrays.copyOf( tmp, tmp.length * 2 );
+                }
+            }
+            data = Arrays.copyOf( tmp, offset );
+        }
+        return data;
+    }
+
+    private GenericDAO getDaoForClass( Class clazz, DAOFactory df ) {
+        if ( PhotoInfo.class.equals( clazz ) ) {
+            return df.getPhotoInfoDAO();
+        } else if ( PhotoFolder.class.equals( clazz ) ) {
+            return df.getPhotoFolderDAO();
+        }
+        return null;
+    }
+    
+    private Object findExistingInstance( Class clazz, UUID id, DAOFactory df ) {
+        if ( PhotoInfo.class.equals( clazz ) ) {
+            PhotoInfoDAO dao = df.getPhotoInfoDAO();
+            return dao.findByUUID( id );
+        } else if ( PhotoFolder.class.equals( clazz ) ) {
+            PhotoFolderDAO dao = df.getPhotoFolderDAO();
+            return dao.findByUUID( id );
+        }
+        throw new IllegalArgumentException(
+                "Only PhotoInfo and PhotoFolder are supported, not " +
+                clazz.getName() );
+    }
+
+    private void addHistory( ObjectHistoryDTO h, DAOFactory df ) {
         log.debug( "entry: addHistory, " + h.getTargetClassName() + " " + h.getTargetUuid() );
-        PhotoInfoDAO photoDao = df.getPhotoInfoDAO();
+        Class targetClass;
+        try {
+            targetClass = Class.forName( h.getTargetClassName() );
+        } catch ( ClassNotFoundException ex ) {
+            log.error( ex );
+            throw new IllegalStateException(
+                    "Cannot find class of change's target", ex );
+        }
+        GenericDAO dao = getDaoForClass( targetClass, df );
         DTOResolverFactory drf = df.getDTOResolverFactory();
         Transaction tx = null;
         Session s = null;
@@ -357,13 +414,13 @@ public class DataExporter {
             s = ((HibernateDAOFactory)df).getSession();
             tx = s.beginTransaction();
         }
-        PhotoInfo p = photoDao.findByUUID( h.getTargetUuid() );
-        VersionedObjectEditor<PhotoInfo> pe = null;
-        if ( p == null ) {
+
+        Object targetObj = findExistingInstance( targetClass, h.getTargetUuid(), df );
+        VersionedObjectEditor pe = null;
+        if ( targetObj == null ) {
             log.debug(  "  Target object not found." );
             try {
-                pe = new VersionedObjectEditor<PhotoInfo>(
-                         h, drf );
+                pe = new VersionedObjectEditor( h, drf );
                 pe.apply();
             } catch ( InstantiationException ex ) {
                 log.error( ex );
@@ -377,30 +434,34 @@ public class DataExporter {
                 log.error( ex );
                 if ( tx != null ) tx.rollback();
                 return;
+            } catch ( IllegalStateException ex ) {
+                log.error( ex );
+                if ( tx != null ) tx.rollback();
+                return;
             }
-            p = pe.getTarget();
-            photoDao.makePersistent( p );
+            targetObj = pe.getTarget();
+            dao.makePersistent( targetObj );
         } else {
             log.debug(  "  Target object found" );
-            pe = new VersionedObjectEditor<PhotoInfo>(
-                    p, df.getDTOResolverFactory() );
+            pe = new VersionedObjectEditor( targetObj, df.getDTOResolverFactory() );
+            ObjectHistory hist = pe.getHistory();
             try {
-                ChangeFactory<PhotoInfo> cf =
-                        new ChangeFactory<PhotoInfo>(  df.getChangeDAO() );
-                Change<PhotoInfo> oldVersion = p.getHistory().getVersion();
-                boolean wasAtHead = p.getHistory().getHeads().contains( oldVersion );
+                ChangeFactory cf =
+                        new ChangeFactory( df.getChangeDAO() );
+                Change oldVersion = hist.getVersion();
+                boolean wasAtHead = hist.getHeads().contains( oldVersion );
                 pe.addToHistory( h, cf );
-                Change<PhotoInfo> newVersion = p.getHistory().getVersion();
-                Set<Change<PhotoInfo>> newHeads = new HashSet( p.getHistory().getHeads() );
+                Change newVersion = hist.getVersion();
+                Set<Change> newHeads = new HashSet( hist.getHeads() );
                 if ( newHeads.size() > 1 ) {
                     log.debug( "  merging heads" );
                     boolean conflictsLeft = false;
-                    Change<PhotoInfo> currentTip = null;
-                    for ( Change<PhotoInfo> head : newHeads ) {
+                    Change currentTip = null;
+                    for ( Change head : newHeads ) {
                         if ( currentTip != null && currentTip != head ) {
                             log.debug( "merging " + currentTip.getUuid() +
                                     " with " + head.getUuid() );
-                            Change<PhotoInfo> merged = currentTip.merge( head );
+                            Change merged = currentTip.merge( head );
                             if ( !merged.hasConflicts() ) {
                                 merged.freeze();
                                 log.debug( "merge succesfull, " + merged.getUuid() );
@@ -409,7 +470,9 @@ public class DataExporter {
                                 conflictsLeft = true;
                                 if ( log.isDebugEnabled() ) {
                                     StringBuffer conflicts = new StringBuffer( " Conflicts unresolved: \n" );
-                                    for ( FieldConflictBase conflict: merged.getFieldConficts() ) {
+                                    for ( Object o: merged.getFieldConficts() ) {
+                                        // Why does this not work without cast from Object???
+                                        FieldConflictBase conflict = (FieldConflictBase) o;
                                         String fieldName = conflict.getFieldName();
                                         conflicts.append( fieldName );
                                         conflicts.append( ": " );
@@ -430,7 +493,7 @@ public class DataExporter {
                         pe.changeToVersion( currentTip );
                     }
                 }
-                photoDao.flush();
+                dao.flush();
             } catch ( ClassNotFoundException ex ) {
                 log.error( ex );
                 if ( tx != null ) tx.rollback();
@@ -447,15 +510,13 @@ public class DataExporter {
         }
     }
 
-    private void addPhotoHistory( PhotoInfo p, ZipOutputStream os ) throws IOException {
-        String photoDirName = "photo_" + p.getUuid() + "/";
-        ZipEntry photoDir = new ZipEntry( photoDirName );
+    private void exportHistory( ObjectHistory h, String dirName, ZipOutputStream os ) throws IOException {
+        ZipEntry photoDir = new ZipEntry( dirName );
         os.putNextEntry( photoDir );
-        ObjectHistory<PhotoInfo> h = p.getHistory();
         ObjectHistoryDTO<PhotoInfo> hdto = new ObjectHistoryDTO<PhotoInfo>( h );
         for ( ChangeDTO ch : hdto.getChanges() ) {
             UUID chId = ch.getChangeUuid();
-            String fname = photoDirName + chId + ".xml";
+            String fname = dirName + chId + ".xml";
             ZipEntry chEntry = new ZipEntry( fname );
             os.putNextEntry( chEntry );
             byte[] xml = ch.getXmlData();
@@ -463,7 +524,60 @@ public class DataExporter {
         }
     }
 
+    private XStream fileXstream;
 
+    private void addFileInfo( ImageFile f, ZipOutputStream zipo ) throws IOException {
+        String fileName = "files/file_" + f.getId().toString()+ ".xml";
+        ZipEntry fileEntry = new ZipEntry( fileName );
+        zipo.putNextEntry( fileEntry );
+        ImageFileDTO dto = new ImageFileDTO( f );
+        String xml = getFileXstream().toXML( dto );
+        zipo.write( xml.getBytes( "utf-8" ) );
+    }
+
+    private void parseFileInfo( String xml, DAOFactory df ) {
+        ImageFileDTO dto = (ImageFileDTO) getFileXstream().fromXML( xml );
+        if ( dto.getHash() == null && dto.getLocations().isEmpty() ) {
+            /*
+             * No way to identify the file if we encounter it, so importing
+             * it would be meaningless.
+             */
+            return;
+        }
+        ImageFileDtoResolver resolver = new ImageFileDtoResolver();
+        DTOResolverFactory drf = df.getDTOResolverFactory();
+        ImageFileDtoResolver fdr = (ImageFileDtoResolver) drf.getResolver( ImageFileDtoResolver.class );
+        Transaction tx = null;
+        Session s = null;
+        if ( df instanceof HibernateDAOFactory ) {
+            s = ((HibernateDAOFactory)df).getSession();
+            tx = s.beginTransaction();
+        }
+        fdr.getObjectFromDto( dto );
+        if ( tx != null ) {
+            s.flush();
+            tx.commit();
+            s.clear();
+        }
+    }
+
+    private synchronized XStream getFileXstream() {
+        if ( fileXstream == null ) {
+            XStream xstream = new XStream();
+            ImageFileXmlConverter c = new ImageFileXmlConverter( xstream.
+                    getMapper(), true );
+            xstream.registerConverter( c, XStream.PRIORITY_VERY_HIGH );
+            xstream.processAnnotations( ImageFileDTO.class );
+            xstream.processAnnotations( FileLocationDTO.class );
+            xstream.processAnnotations( ImageDescriptorDTO.class );
+            xstream.processAnnotations( OrigImageDescriptorDTO.class );
+            xstream.processAnnotations( CopyImageDescriptorDTO.class );
+            xstream.processAnnotations( OrigImageRefResolver.class );
+            ImageOpChain.initXStream( xstream );
+            fileXstream = xstream;
+        }
+        return fileXstream;
+    }
 
 
 }

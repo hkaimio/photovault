@@ -116,6 +116,8 @@ public class VersionedObjectEditor<T> {
      * @throws ClassNotFoundException
      * @throws InstantiationException
      * @throws IllegalAccessException
+     * @throws IllegalStateException if the history data contains a change whose
+     * parent is not known or the history data is not topologically sorted.
      */
     public VersionedObjectEditor( ObjectHistoryDTO<T> histData, DTOResolverFactory df ) 
             throws ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -134,8 +136,14 @@ public class VersionedObjectEditor<T> {
             Set<Change<T>> parents = new HashSet<Change<T>>();
             for ( UUID parentId : chd.parentIds ) {
                 Change<T> parent = history.getChange( parentId );
+                if ( parent != null ) {
                 parents.add( parent );
                 parent.addChildChange( change );
+                } else {
+                    throw new IllegalStateException(
+                            "Unknown parent " + parentId +
+                            " for change " + chd.changeUuid );
+                }
             }
             change.setParentChanges( parents );
             change.setChangedFields( chd.changedFields );

@@ -22,15 +22,20 @@ package org.photovault.imginfo.dto;
 
 import com.thoughtworks.xstream.XStream;
 import java.awt.geom.Rectangle2D;
+import java.util.Date;
 import java.util.UUID;
 import org.photovault.common.PhotovaultException;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
+import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.CopyImageDescriptor;
+import org.photovault.imginfo.ExternalVolume;
+import org.photovault.imginfo.FileLocation;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.OriginalImageDescriptor;
+import org.photovault.imginfo.VolumeManager;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.*;
@@ -48,11 +53,15 @@ public class Test_XmlConversion {
     @BeforeClass
     public void setup() {
         xstream = new XStream();
+        ImageFileXmlConverter c = new ImageFileXmlConverter( xstream.getMapper(), true );
+        xstream.registerConverter( c, XStream.PRIORITY_VERY_HIGH );
         xstream.processAnnotations( ImageFileDTO.class );
+        xstream.processAnnotations( FileLocationDTO.class );
         xstream.processAnnotations( ImageDescriptorDTO.class );
         xstream.processAnnotations( OrigImageDescriptorDTO.class );
         xstream.processAnnotations( CopyImageDescriptorDTO.class );
         xstream.processAnnotations( OrigImageRefResolver.class );
+        ImageOpChain.initXStream( xstream );
     }
 
     @Test
@@ -86,6 +95,10 @@ public class Test_XmlConversion {
         rf.setDaylightMultipliers( new double[]{1.0, 1.1, 1.2} );
         RawConversionSettings rs = rf.create();
         copy1.setRawSettings( rs );
+        ExternalVolume v = new ExternalVolume( "testvol", "/tmp/testvol" );
+        FileLocation l = new FileLocation( v, "dir/file.jpg" );
+        l.setLastModifiled( new Date() );
+        f.addLocation( l );
 
         ImageFileDTO dto = new ImageFileDTO( f );
 
@@ -99,10 +112,7 @@ public class Test_XmlConversion {
         assertEquals( dto.getHash(), dto2.getHash() );
         assertEquals( dto.getImages().size(), dto2.getImages().size() );
         CopyImageDescriptorDTO copy2 = (CopyImageDescriptorDTO) dto2.getImages().get( "image#2" );
-        assertEquals( copy1.getCropArea(), copy2.getCropArea() );
-        assertEquals( copy1.getRawSettings(), copy2.getRawSettings() );
-        assertEquals( copy1.getRotation(), copy2.getRotation() );
-        assertEquals( copy1.getColorChannelMapping(), copy2.getColorChannelMapping() );
+        assertEquals( copy1.getProcessing(), copy2.getProcessing() );
         assertTrue( dto2 == copy2.getOrigImageFile() );
         assertEquals( "image#1", copy2.getOrigLocator() );
     }

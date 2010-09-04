@@ -27,12 +27,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.photovault.imginfo.*;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.media.jai.ImageLayout;
 
 /**
  Data transfer object that is used to transfer information about {@link ImageFile}
@@ -56,6 +59,7 @@ public class ImageFileDTO implements Serializable {
 
     ImageFileDTO() {
         images = new HashMap<String, ImageDescriptorDTO>();
+        locations = new ArrayList<FileLocationDTO>();
     }
 
     /**
@@ -78,6 +82,7 @@ public class ImageFileDTO implements Serializable {
         size = f.getFileSize();        
         createdFiles.put( uuid, this );
         images = new HashMap<String, ImageDescriptorDTO>( f.getImages().size() );
+        locations = new ArrayList<FileLocationDTO>();
         for ( ImageDescriptorBase img : f.getImages().values() ) {
             ImageDescriptorDTO idto = null;
             if ( img instanceof OriginalImageDescriptor ) {
@@ -86,6 +91,10 @@ public class ImageFileDTO implements Serializable {
                 idto = new CopyImageDescriptorDTO( (CopyImageDescriptor) img, createdFiles );
             }
             images.put( img.getLocator(), idto );
+        }
+        for (FileLocation l : f.getLocations() ) {
+            FileLocationDTO ldto = new FileLocationDTO( l );
+            addLocation( ldto );
         }
     }
     /**
@@ -114,6 +123,8 @@ public class ImageFileDTO implements Serializable {
      */
     @XStreamAlias( "images" )
     transient private Map<String, ImageDescriptorDTO> images;
+
+    transient private List<FileLocationDTO> locations;
 
     /**
      * Add a new image to the file. USer by {@link ImageFileXmlConverter}
@@ -170,6 +181,15 @@ public class ImageFileDTO implements Serializable {
         return Collections.unmodifiableMap( images );
     }
     
+    
+    public List<FileLocationDTO> getLocations() {
+        return Collections.unmodifiableList( locations );
+    }
+
+    void addLocation( FileLocationDTO l ) {
+        locations.add( l );
+    }
+
     /**
      Write the obejct to stream
      @param is

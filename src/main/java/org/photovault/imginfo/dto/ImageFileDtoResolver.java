@@ -20,6 +20,10 @@
 
 package org.photovault.imginfo.dto;
 
+import java.util.List;
+import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.photovault.imginfo.*;
 import org.photovault.replication.HibernateDTOResolver;
@@ -34,6 +38,7 @@ import org.photovault.replication.HibernateDTOResolver;
  */
 public class ImageFileDtoResolver extends HibernateDTOResolver<ImageFile, ImageFileDTO> {
 
+    private static Log log = LogFactory.getLog( ImageFileDtoResolver.class );
 
     /**
      Creates a new resolver.
@@ -59,8 +64,8 @@ public class ImageFileDtoResolver extends HibernateDTOResolver<ImageFile, ImageF
      @return The persistent object mathing the DTO
      */
     public ImageFile getObjectFromDto( ImageFileDTO dto ) {
-        ImageFile file = 
-                (ImageFile) getSession().get(  ImageFile.class, dto.getUuid() );
+        ImageFile file =
+                (ImageFile) getSession().get( ImageFile.class, dto.getUuid() );
         if ( file == null ) {
             file = new ImageFile();
             file.setId( dto.getUuid() );
@@ -69,9 +74,38 @@ public class ImageFileDtoResolver extends HibernateDTOResolver<ImageFile, ImageF
             for ( ImageDescriptorDTO imgdto : dto.getImages().values() ) {
                 ImageDescriptorBase img = imgdto.getImageDescriptor( this );
                 img.setFile( file );
-                file.getImages().put( imgdto.getLocator(), img  );
+                file.getImages().put( imgdto.getLocator(), img );
             }
-            getSession().save( file ); 
+            List<FileLocationDTO> locations = dto.getLocations();
+            VolumeManager vm = VolumeManager.instance();
+            VolumeDAO volDao = getDAOFactory().getVolumeDAO();
+            for ( FileLocationDTO l : locations ) {
+                UUID volId = l.getVolumeId();
+                VolumeBase v = volDao.getVolume( l.getVolumeId() );
+                if ( v == null ) {
+                    String volName = "";
+                    String volType = l.getVolumeType();
+
+                    if ( volType.equals( "org.photovault.imginfo.Volume" ) ) {
+                        v = new Volume();
+                    } else if ( volType.equals(
+                            "org.photovault.imginfo.ExternalVolume" ) ) {
+                        v = new ExternalVolume();
+                    } else {
+                        log.error( "Unknown volume type: " + volType );
+                        return null;
+                    }
+                    v.setId( volId );
+                    v.setName( volName );
+                    volDao.makePersistent( v );
+                    volDao.flush();
+                }
+                FileLocation loc = new FileLocation( v, l.getLocation() );
+                if ( !file.getLocations().contains( loc ) ) {
+                    file.addLocation( loc );
+                }
+            }
+            getSession().save( file );
         }
         return file;
     }

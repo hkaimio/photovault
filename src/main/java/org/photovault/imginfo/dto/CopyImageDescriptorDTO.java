@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
+import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.ImageDescriptorBase;
 import org.photovault.imginfo.ImageFile;
@@ -56,10 +57,7 @@ public class CopyImageDescriptorDTO
      */
     CopyImageDescriptorDTO( CopyImageDescriptor img, Map<UUID, ImageFileDTO> createdFiles ) {
         super( img );
-        colorChannelMapping = img.getColorChannelMapping();
-        cropArea = img.getCropArea();
-        rotation = img.getRotation();
-        rawSettings = img.getRawSettings();
+        processing = img.getProcessing();
         
         // Make sure that also original instance is stored in this graph
         ImageFile origFile = img.getOriginal().getFile();
@@ -79,28 +77,8 @@ public class CopyImageDescriptorDTO
         super();
     }
     
-    
-    /**
-     Color corrections applied to the image
-     @serialField 
-     */
-    private ChannelMapOperation colorChannelMapping;
-    /**
-     Cropping for the copy
-     @serialField 
-     */
-    private Rectangle2D cropArea;
-    /**
-     Rotation applied to the copy
-     @serialField 
-     */
-    private double rotation;
-    /**
-     Raw conversion applied to the copy or <code>null</code> if the original
-     is not a camera raw file
-     @serialField 
-     */
-    private RawConversionSettings rawSettings;
+    private ImageOpChain processing;
+
     /**
      DTO of the file that contains this iamge
      @serialField 
@@ -131,29 +109,15 @@ public class CopyImageDescriptorDTO
             ImageFileDtoResolver fileResolver ) {
         super.updateDescriptor( img, fileResolver );
         CopyImageDescriptor cimg = (CopyImageDescriptor) img;
-        cimg.setColorChannelMapping( getColorChannelMapping() );
-        cimg.setCropArea( getCropArea() );
-        cimg.setRawSettings( getRawSettings() );
+        cimg.setProcessing( processing );
         ImageFile origFile = fileResolver.getObjectFromDto( getOrigImageFile() );
         OriginalImageDescriptor original = 
                 (OriginalImageDescriptor) origFile.getImage( getLocator() );
         cimg.setOriginal( original );
     }
 
-    public ChannelMapOperation getColorChannelMapping() {
-        return colorChannelMapping;
-    }
-
-    public Rectangle2D getCropArea() {
-        return cropArea;
-    }
-
-    public double getRotation() {
-        return rotation;
-    }
-
-    public RawConversionSettings getRawSettings() {
-        return rawSettings;
+    public ImageOpChain getProcessing() {
+        return processing;
     }
 
     public ImageFileDTO getOrigImageFile() {

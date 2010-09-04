@@ -136,6 +136,9 @@ class ValueFieldDesc extends FieldDesc {
             } catch ( NoSuchMethodException ex ) {
                 throw new IllegalStateException(
                         "No suitable method for setting " + propName, ex );
+            } catch ( Exception ex ) {
+                throw new IllegalStateException(
+                        "Unexpected problem setting " + propName, ex );
             }
         }
 
