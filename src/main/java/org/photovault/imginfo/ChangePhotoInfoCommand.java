@@ -503,6 +503,8 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 af.add(folder);
             }
             Set<PhotoFolder> rf = new HashSet<PhotoFolder>();
+            Set<FolderPhotoAssociation> deletedAssocs =
+                    new HashSet<FolderPhotoAssociation>();
             for ( UUID folderId : removedFromFolders ) {
                 log.debug( "Removing photo " + photo.getUuid() + " from folder " + folderId );
                 PhotoFolder folder = folderDAO.findById( folderId, false );
@@ -512,12 +514,15 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 FolderPhotoAssociation a = assocDAO.getAssociation( folder, photo );
                 fep.removePhotoAssociation( a );
                 pep.removeFolderAssociation( a );
-                assocDAO.makeTransient( a );
+                deletedAssocs.add( a );
                 Change<PhotoFolder> ch = fe.apply();
                 changes.add( new ChangeDTO<PhotoFolder>( ch )) ;
             }
             Change<PhotoInfo> ch = pe.apply();
             changes.add( new ChangeDTO<PhotoInfo>( ch ) );
+            for ( FolderPhotoAssociation a : deletedAssocs ) {
+                assocDAO.makeTransient( a );
+            }
         }
     }
 }
