@@ -116,6 +116,24 @@ public class Test_ImageOp {
     }
 
     @Test
+    public void testXml2() {
+        String xml= "<crop rot=\"0.0\" minx=\"0.0584958217270195\" maxx=\"0.807799442896936\" miny=\"0.17130919220055713\" maxy=\"0.9066852367688023\"/>";
+        XStream xs = new XStream();
+        xs.processAnnotations( ImageOp.class );
+        xs.processAnnotations( DCRawOp.class );
+        xs.processAnnotations( DCRawMapOp.class );
+        xs.processAnnotations( CropOp.class );
+        xs.processAnnotations( ChanMapOp.class );
+        xs.processAnnotations( ImageOpChain.class );
+        xs.processAnnotations( ColorCurve.class );
+        xs.registerConverter( new ImageOpChainXmlConverter( xs.getMapper() ) );
+        CropOp crop = (CropOp) xs.fromXML( xml );
+        assertNotNull( crop.getInputPorts() );
+
+    }
+
+
+    @Test
     public void testLegacyHelpers() throws PhotovaultException {
         ImageOpChain chain = new ImageOpChain();
         RawSettingsFactory rf = new RawSettingsFactory();
