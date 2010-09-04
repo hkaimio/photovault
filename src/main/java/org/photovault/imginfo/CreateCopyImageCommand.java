@@ -267,10 +267,10 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
             saveImage( dstFile, renderedDst, xpmData );
         } catch (PhotovaultException ex) {
             throw new CommandException( ex.getMessage() );
-        }
+        } finally {
+            img.dispose();
+        } 
 
-        img.dispose();
-        
         /*
          Check if the resulting image file is already known & create a new one
          if not

@@ -438,6 +438,9 @@ public class RawImage extends PhotovaultImage {
         if ( lrd != null ) {
             closeRaw();
         }
+        if ( rawImage != null ) {
+            rawImage.dispose();
+        }
         super.dispose();
     }
 
@@ -559,6 +562,9 @@ public class RawImage extends PhotovaultImage {
             //dcraw.setHalfSize( false );
             if ( rawIsHalfSized ) {
                 needsReload = true;
+                if ( rawImage != null ) {
+                    rawImage.dispose();
+                }
                 rawImage = null;
                 correctedImage = null;
             }
@@ -1140,7 +1146,7 @@ public class RawImage extends PhotovaultImage {
      @return The conversion settings
      */
     public RawConversionSettings getRawSettings() {
-        if ( rawImage == null ) {
+        if ( rawImage == null && rawSettings == null ) {
             subsample = 4;
             loadRawImage();
             doAutoExpose();
@@ -1192,6 +1198,9 @@ public class RawImage extends PhotovaultImage {
         if ( hlightRecovery != s.getHlightRecovery() ) {
              hlightRecovery = s.getHlightRecovery();
             correctedImage = null;
+            if ( rawImage != null ) {
+                rawImage.dispose();
+            }
             rawImage = null;
             wbAdjustedRawImage = null;
             rawConverter = null;
@@ -1200,6 +1209,9 @@ public class RawImage extends PhotovaultImage {
         if ( waveletThreshold != s.getWaveletThreshold() ) {
             waveletThreshold = s.getWaveletThreshold();
             correctedImage = null;
+            if ( rawImage != null ) {
+                rawImage.dispose();
+            }
             rawImage = null;
             wbAdjustedRawImage = null;
             rawConverter = null;
@@ -1214,6 +1226,9 @@ public class RawImage extends PhotovaultImage {
             daylightMultipliers[1] = 1.;
             daylightMultipliers[2] = s.getDaylightBlueGreenRatio();
             correctedImage = null;
+            if ( rawImage != null ) {
+                rawImage.dispose();
+            }
             rawImage = null;
         }
         
