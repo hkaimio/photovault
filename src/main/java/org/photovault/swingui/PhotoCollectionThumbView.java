@@ -68,6 +68,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -374,23 +375,19 @@ public class PhotoCollectionThumbView
         // Create the Quality submenu
         JMenu qualityMenu = new JMenu( "Quality" );
         qualityMenu.setIcon( getIcon( "empty_icon.png" ) );
-        String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
-        String qualityIconnames[] = { 
-            "quality_unevaluated.png", 
-            "quality_top.png", 
-            "quality_good.png", 
-            "quality_ok.png", 
-            "quality_poor.png", 
-            "quality_unusable.png" 
+        String qualityIconnames[] = {
+            "quality_unevaluated.png",
+            "quality_top.png",
+            "quality_good.png",
+            "quality_ok.png",
+            "quality_poor.png",
+            "quality_unusable.png"
         };
-        qualityIcons = new ImageIcon[qualityStrings.length];
-        for ( int n = 0; n < qualityStrings.length; n++ ) {
+        qualityIcons = new ImageIcon[6];
+
+        for ( int n = 0; n < qualityIconnames.length; n++ ) {
             qualityIcons[n] = getIcon( qualityIconnames[n] );
-            AbstractAction qualityAction
-                    = new SetPhotoQualityAction( ctrl, n, qualityStrings[n],
-                    qualityIcons[n],
-                    "Set quality of selected phots to \"" + qualityStrings[n] + "\"",
-                    null );
+            Action qualityAction = ctrl.getActionAdapter( "quality_" + n );
             JMenuItem qualityMenuItem = new JMenuItem( qualityAction );
             qualityMenu.add( qualityMenuItem );
         }

@@ -27,6 +27,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
@@ -40,12 +41,16 @@ import java.util.ListIterator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import org.jdesktop.jxlayer.JXLayer;
 import org.apache.commons.logging.Log;
@@ -61,6 +66,7 @@ import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.replication.ChangeDTO;
 import org.photovault.swingui.framework.AbstractController;
+import org.photovault.swingui.framework.DataAccessAction;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
 import org.photovault.swingui.framework.PersistenceController;
@@ -121,6 +127,43 @@ public class PhotoViewController extends PersistenceController {
         registerAction( "rotate_180", new RotateSelectedPhotoAction( this, 180,
                 "Rotate 180 degrees", rotate180DegIcon,
                 "Rotates the selected photo 180 degrees counterclockwise", KeyEvent.VK_T ) );
+        registerAction( "rotate_180", new RotateSelectedPhotoAction( this, 180,
+                "Rotate 180 degrees", rotate180DegIcon,
+                "Rotates the selected photo 180 degrees counterclockwise", KeyEvent.VK_T ) );
+        String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
+        String qualityIconnames[] = {
+            "quality_unevaluated.png",
+            "quality_top.png",
+            "quality_good.png",
+            "quality_ok.png",
+            "quality_poor.png",
+            "quality_unusable.png"
+        };
+        KeyStroke qualityAccelerators[] = {
+            null,
+            KeyStroke.getKeyStroke( KeyEvent.VK_5,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ),
+            KeyStroke.getKeyStroke( KeyEvent.VK_4,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ),
+            KeyStroke.getKeyStroke( KeyEvent.VK_3,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ),
+            KeyStroke.getKeyStroke( KeyEvent.VK_2,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ),
+            KeyStroke.getKeyStroke( KeyEvent.VK_1,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() ),
+        };
+        ImageIcon[] qualityIcons = new ImageIcon[qualityStrings.length];
+        for ( int n = 0; n < qualityStrings.length; n++ ) {
+            qualityIcons[n] = getIcon( qualityIconnames[n] );
+            DataAccessAction qualityAction
+                    = new SetPhotoQualityAction( this, n, qualityStrings[n],
+                    qualityIcons[n],
+                    "Set quality of selected phots to \"" + qualityStrings[n] + "\"",
+                    null );
+            qualityAction.putValue(
+                    AbstractAction.ACCELERATOR_KEY, qualityAccelerators[n] );
+            registerAction( "quality_" + n, qualityAction );
+        }
 
         // Create the UI controls
         thumbPane = new PhotoCollectionThumbView( this, null );

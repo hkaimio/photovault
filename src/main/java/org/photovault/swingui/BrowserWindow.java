@@ -398,6 +398,17 @@ public class BrowserWindow extends AbstractController {
         imageMenu.add( new JMenuItem( viewPane.getEditSelectionColorsAction() ) );
         imageMenu.add( new JMenuItem( viewPane.getDeleteSelectedAction() ) );
 
+        // Create the Quality submenu
+        JMenu qualityMenu = new JMenu( "Quality" );
+        qualityMenu.setIcon( getIcon( "empty_icon.png" ) );
+
+        for ( int n = 0; n < 6; n++ ) {
+            Action qualityAction = viewCtrl.getActionAdapter( "quality_" + n );
+            JMenuItem qualityMenuItem = new JMenuItem( qualityAction );
+            qualityMenu.add( qualityMenuItem );
+        }
+        imageMenu.add( qualityMenu );
+        
         JMenu aboutMenu = new JMenu( "About" );
         aboutMenu.setMnemonic( KeyEvent.VK_A );
         aboutMenu.add( new JMenuItem( new ShowAboutDlgAction( "About Photovault...", null, "", null ) ) );
