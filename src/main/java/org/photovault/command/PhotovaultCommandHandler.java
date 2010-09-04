@@ -67,26 +67,33 @@ public class PhotovaultCommandHandler implements CommandHandler {
         Session oldSession = ManagedSessionContext.bind( (org.hibernate.classic.Session) commandSession);
         command.setDAOFactory( DAOFactory.instance( HibernateDAOFactory.class ) );
 
-        Transaction tx = commandSession.beginTransaction();        
-        command.execute();
-        // log.debug( "Executed command:\n" + command.getAsXml() );
-        commandSession.flush();
-        tx.commit();
-        fireCommandEvent( new CommandExecutedEvent( this, command ) );
-        if ( shouldCloseSession ) {
-            commandSession.close();
-        }
-        
-        if ( oldSession != null ) {
-            ManagedSessionContext.bind( (org.hibernate.classic.Session) oldSession);            
-        } else {
-            ManagedSessionContext.unbind( HibernateUtil.getSessionFactory() );
-        }
-        
-        if ( changeInterceptor != null ) {
-            for ( Object o : changeInterceptor.getChangedObjects() ) {
-                fireChangeEvent( o );
+        Transaction tx = commandSession.beginTransaction();
+        try {
+            command.execute();
+            commandSession.flush();
+            tx.commit();
+            fireCommandEvent( new CommandExecutedEvent( this, command ) );
+        } catch ( Exception e ) {
+            tx.rollback();
+            throw new CommandException( "Exception thrown by command: ", e );
+        } finally {
+            if ( shouldCloseSession ) {
+                commandSession.close();
             }
+
+            if ( oldSession != null ) {
+                ManagedSessionContext.bind(
+                        (org.hibernate.classic.Session) oldSession );
+            } else {
+                ManagedSessionContext.unbind( HibernateUtil.getSessionFactory() );
+            }
+
+            if ( changeInterceptor != null ) {
+                for ( Object o : changeInterceptor.getChangedObjects() ) {
+                    fireChangeEvent( o );
+                }
+            }
+
         }
         return command;
     }
