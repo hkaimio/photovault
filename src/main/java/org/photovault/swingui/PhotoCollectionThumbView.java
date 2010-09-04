@@ -811,13 +811,17 @@ public class PhotoCollectionThumbView
                 prefWidth += columnWidth * (int)( photos.size() / rowCount );
             }
         } else {
+            prefWidth = 500;
+            prefHeight = 500;
             Dimension compSize = getSize();
-            int columns = (int)(compSize.getWidth() / columnWidth);
-            prefWidth = columnWidth * columns;
-            prefHeight = rowHeight;
-            if ( photos != null ) {
-                prefHeight += rowHeight * (int)(photos.size() / columns );
-            }            
+            if ( compSize.getWidth() > 0 ) {
+                int columns = (int) (compSize.getWidth() / columnWidth);
+                prefWidth = columnWidth * columns;
+                prefHeight = rowHeight;
+                if ( photos != null ) {
+                    prefHeight += rowHeight * (int) (photos.size() / columns);
+                }
+            }
         }
         // prefHeight += 10;
         return new Dimension( prefWidth, prefHeight );

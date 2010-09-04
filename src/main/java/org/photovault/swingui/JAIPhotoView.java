@@ -95,6 +95,8 @@ public class JAIPhotoView extends JPanel
         paramEditor = new CropParamEditor( null, false );
         updateCropParamEditor();
         paramEditor.addListener( this );
+
+        setBackground( new Color( 0.2f, 0.2f, 0.2f ) );
     }
     
     public void paint( Graphics g ) {
@@ -107,7 +109,6 @@ public class JAIPhotoView extends JPanel
 	g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
  	int compWidth = getWidth();
  	int compHeight = getHeight();
-	
  	if ( xformImage != null ) {
  	    // Determine the place for the image. If the image is smaller that window, center it
 	    imgWidth = xformImage.getWidth();
@@ -117,6 +118,8 @@ public class JAIPhotoView extends JPanel
 	    g2.drawRenderedImage( xformImage, new AffineTransform(1f,0f,0f,1f, imgX, imgY) );
             if ( !drawCropped ) {
                 paintCropBorder( g2, imgX, imgY, imgWidth, imgHeight );
+            } else if ( fitSize ) {
+                paintImageBorder( g2, imgX, imgY, imgWidth, imgHeight );
             }
             log.debug( "JAI cache info: " + getJAICacheDebugInfo() );
             if ( showInfo ) {
@@ -184,7 +187,15 @@ public class JAIPhotoView extends JPanel
     int imgWidth;
     /** Image height in the component */
     int imgHeight;
-    
+
+    /**
+     * Margin to be left above fitted image
+     */
+    int fitMarginTop = 20;
+    int fitMarginBottom = 20;
+    int fitMarginLeft = 20;
+    int fitMarginRight = 20;
+
     int cropBorderXpoints[] = null;
     int cropBorderYpoints[] = null;
     int cropHandlesX[] = new int[9];
@@ -518,6 +529,51 @@ public class JAIPhotoView extends JPanel
                 rotHandleY[1]-handleRadius,
                 handleRadius*2, handleRadius*2 );
     }
+
+    private void paintImageBorder( Graphics2D g2, int x, int y, int imgWidth, int imgHeight ) {
+        Graphics2D borderG2 = (Graphics2D) g2.create();
+        Stroke stroke = new BasicStroke( 2.0f );
+        borderG2.setStroke( stroke );
+        // Paint the inner border
+        GradientPaint p = new GradientPaint( new Point( x, y ), Color.black,
+                new Point( x+imgWidth, y ), Color.white );
+        borderG2.setPaint( p );
+        borderG2.drawLine( x, y, x+imgWidth, y );
+        p = new GradientPaint( new Point( x+imgWidth, y ), Color.white,
+                new Point( x+imgWidth, y+imgHeight ), Color.black );
+        borderG2.setPaint( p );
+        borderG2.drawLine( x+imgWidth, y, x+imgWidth, y+imgHeight );
+        p = new GradientPaint( new Point( x, y+imgHeight ), Color.white,
+                new Point( x+imgWidth, y+imgHeight ), Color.black );
+        borderG2.setPaint( p );
+        borderG2.drawLine( x, y+imgHeight, x+imgWidth, y+imgHeight );
+        p = new GradientPaint( new Point( x, y ), Color.black,
+                new Point( x, y+imgHeight ), Color.white );
+        borderG2.setPaint( p );
+        borderG2.drawLine( x, y, x, y+imgHeight );
+
+        // Paint the outer border
+        x -= 2;
+        y -= 2;
+        imgWidth += 4;
+        imgHeight += 4;
+        p = new GradientPaint( new Point( x, y ), Color.white,
+                new Point( x+imgWidth, y ), Color.black );
+        borderG2.setPaint( p );
+        borderG2.drawLine( x, y, x+imgWidth, y );
+        p = new GradientPaint( new Point( x+imgWidth, y ), Color.black,
+                new Point( x+imgWidth, y+imgHeight ), Color.white );
+        borderG2.setPaint( p );
+        borderG2.drawLine( x+imgWidth, y, x+imgWidth, y+imgHeight );
+        p = new GradientPaint( new Point( x, y+imgHeight ), Color.black,
+                new Point( x+imgWidth, y+imgHeight ), Color.white );
+        borderG2.setPaint( p );
+        borderG2.drawLine( x, y+imgHeight, x+imgWidth, y+imgHeight );
+        p = new GradientPaint( new Point( x, y ), Color.white,
+                new Point( x, y+imgHeight ), Color.black );
+        borderG2.setPaint( p );
+        borderG2.drawLine( x, y, x, y+imgHeight );
+    }
     
     /**
      Get the crop rectangle handle that is at a specified position
@@ -606,6 +662,10 @@ public class JAIPhotoView extends JPanel
             if ( xformImage != null ) {
                 w = xformImage.getWidth();
                 h = xformImage.getHeight();
+                if ( drawCropped && fitSize ) {
+                    w += fitMarginLeft + fitMarginRight;
+                    h += fitMarginTop + fitMarginLeft;
+                }
             }
 	}
 	return new Dimension( w, h );
@@ -809,7 +869,13 @@ public class JAIPhotoView extends JPanel
             
             // Create the zoom xform
             if ( fitSize ) {
-                xformImage = origImage.getRenderedImage( (int)maxWidth, (int)maxHeight, false );
+                double usedMaxWidth = maxWidth;
+                double usedMaxHeight = maxHeight;
+                if ( drawCropped ) {
+                    usedMaxWidth -= fitMarginLeft + fitMarginRight;
+                    usedMaxHeight -= fitMarginBottom + fitMarginTop;
+                }
+                xformImage = origImage.getRenderedImage( (int)usedMaxWidth, (int)usedMaxHeight, false );
             } else {
                 xformImage = origImage.getRenderedImage( imgScale, false );
                 

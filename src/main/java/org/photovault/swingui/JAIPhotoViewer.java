@@ -79,7 +79,14 @@ public class JAIPhotoViewer extends JPanel implements
         cropPhotoAction = new CropPhotoAction( imageView,
                 "Crop photo", cropIcon, "Crop or rotate the selected photo",
                 KeyEvent.VK_O, null );
-        
+        InputMap inputMap = getInputMap( WHEN_IN_FOCUSED_WINDOW );
+        inputMap.put(
+                KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ),
+                "hide_fullwindow_preview" );
+        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 ), "move_next" );
+        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_DOWN, 0 ), "move_next" );
+        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_UP, 0 ), "move_prev" );
+
     }
     
     float rawConvScaling = 1.0f;
@@ -97,7 +104,7 @@ public class JAIPhotoViewer extends JPanel implements
         isFit = true;
 	Dimension displaySize = scrollPane.getSize();
         log.debug( "fit to " + displaySize.getWidth() + ", " + displaySize.getHeight() );
-	imageView.fitToRect( displaySize.getWidth()-4, displaySize.getHeight()-4 );
+	imageView.fitToRect( displaySize.getWidth()-6, displaySize.getHeight()-6 );
     }
         
     /**

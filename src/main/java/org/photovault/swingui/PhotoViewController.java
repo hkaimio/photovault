@@ -99,6 +99,8 @@ public class PhotoViewController extends PersistenceController {
 
     private JSplitPane splitPane;
 
+    private JLayeredPane layeredPane;
+
     private JXLayer<JScrollPane> scrollLayer;
 
     private ProgressIndicatorLayer progressLayer;
@@ -174,6 +176,10 @@ public class PhotoViewController extends PersistenceController {
             }
         } );
         previewPane = new JAIPhotoViewer( this );
+        previewPane.getActionMap().put( "hide_fullwindow_preview",
+                new HidePhotoPreviewAction( this ) );
+        previewPane.getActionMap().put(  "move_next", thumbPane.getSelectNextAction() );
+        previewPane.getActionMap().put(  "move_prev", thumbPane.getSelectPreviousAction() );
 
         // Create the split pane to display both of these components
 
@@ -193,7 +199,10 @@ public class PhotoViewController extends PersistenceController {
 
         collectionPane = new JPanel();
         splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
+        layeredPane = new JLayeredPane();
+        layeredPane.setLayout(  new StackLayout() );
         collectionPane.add( splitPane );
+        collectionPane.add( layeredPane );
         GridBagLayout layout = new GridBagLayout();
         collectionPane.setLayout( layout );
 
@@ -204,8 +213,10 @@ public class PhotoViewController extends PersistenceController {
         c.gridy = 0;
         // collectionPane.add( scrollLayer );
         layout.setConstraints( splitPane, c);
+        layout.setConstraints( layeredPane, c);
 //        collectionPane.add( previewPane );
-        setLayout( Layout.PREVIEW_HORIZONTAL_THUMBS );
+        thumbPane.setRowHeight( 200 );
+        setLayout( Layout.ONLY_THUMBS );
 
         /*
         Register action so that we are notified of changes to currently
@@ -385,10 +396,24 @@ public class PhotoViewController extends PersistenceController {
        this.fireEvent( e );
     }
     
+    void showSelectedPhotoFullWindow() {
+        if ( getSelection().size() == 1 ) {
+            if ( layout != Layout.ONLY_THUMBS ) {
+                setLayout( Layout.ONLY_THUMBS );
+            }
+        }
+        previewPane.setVisible( true );
+    }
+    
+    void hideSelectedPhoto() {
+        if ( layout == Layout.ONLY_THUMBS ) {
+            previewPane.setVisible( false );
+        }
+    }
+
     public Collection getSelection() {
         return thumbPane.getSelection();
     }
-
 
     public enum Layout {
         PREVIEW_VERTICAL_THUMBS,
@@ -438,6 +463,9 @@ public class PhotoViewController extends PersistenceController {
         scrollLayer.setVisible( true );
         thumbPane.setColumnCount( 1 );
         previewPane.setVisible( true );
+        layeredPane.removeAll();
+        layeredPane.setVisible( false );
+        splitPane.setVisible( true );
         splitPane.remove( previewPane );
         splitPane.remove( scrollLayer );
         splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
@@ -472,6 +500,9 @@ public class PhotoViewController extends PersistenceController {
         scrollLayer.setVisible( true );
         thumbPane.setRowCount( 1 );
         previewPane.setVisible( true );
+        layeredPane.removeAll();
+        layeredPane.setVisible( false );
+        splitPane.setVisible( true );
         splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
         splitPane.remove( previewPane );
         splitPane.remove( scrollLayer );
@@ -496,17 +527,20 @@ public class PhotoViewController extends PersistenceController {
         thumbScroll.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED );
         int thumbColWidth = thumbPane.getColumnWidth();
         int thumbRowHeight = thumbPane.getRowHeight();
+        splitPane.setVisible( false );
+        layeredPane.setVisible( true );
         scrollLayer.setMinimumSize(
                 new Dimension( thumbColWidth, thumbRowHeight+50));
         scrollLayer.setVisible( true );
-//        layout.setConstraints( scrollLayer, c );
         thumbPane.setRowCount( -1 );
         thumbPane.setColumnCount( -1 );
         splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
         splitPane.remove( previewPane );
         splitPane.remove( scrollLayer );
-        splitPane.setTopComponent( scrollLayer );
+        layeredPane.add( scrollLayer, new Integer( 1 ) );
+        layeredPane.add( previewPane, new Integer( 2 ) );
         previewPane.setVisible( false );
+        thumbScroll.setVisible( true );
         getView().validate();        
     }
 
@@ -514,15 +548,7 @@ public class PhotoViewController extends PersistenceController {
      Show only preview image, no thumbnail pane.
      */
     private void setupLayoutNoThumbs() {
-        thumbPane.setRowCount( 1 );
-        splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-        splitPane.remove( previewPane );
-        splitPane.remove( scrollLayer );
-        splitPane.setTopComponent( previewPane );
-
-        thumbScroll.setVisible( false );
         previewPane.setVisible( true );
-        getView().validate();
     }
     
     void setPreviewSize( int width ) {

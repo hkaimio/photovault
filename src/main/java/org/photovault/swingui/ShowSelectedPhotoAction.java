@@ -21,15 +21,8 @@
 package org.photovault.swingui;
 
 
-import java.io.FileNotFoundException;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.util.Collection;
-import java.util.Iterator;
-import org.photovault.imginfo.*;
-import org.photovault.imginfo.PhotoInfo;
 
 /**
    This action class implements displays the selected images
@@ -57,14 +50,7 @@ class ShowSelectedPhotoAction extends AbstractAction implements SelectionChangeL
     }
     
     public void actionPerformed( ActionEvent ev ) {
-	Collection selectedPhotos = view.getSelection();
-        PhotoList photos = new PhotoList( selectedPhotos );
-        // TODO: This should happen in root controller
-//        BrowserWindow w = new BrowserWindow( view.ctrl, photos );
-        BrowserWindow w = new BrowserWindow( view.ctrl, null );
-//        w.setShowCollectionPane( false );
-//        w.setupLayoutNoThumbs();
-//        w.setVisible( true );
+        view.ctrl.showSelectedPhotoFullWindow();
     }
 
     PhotoCollectionThumbView view;
