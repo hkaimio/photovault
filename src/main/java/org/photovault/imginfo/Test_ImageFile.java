@@ -48,6 +48,7 @@ import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 
 
 /**
@@ -69,7 +70,6 @@ public class Test_ImageFile extends PhotovaultTestCase {
     VolumeBase vol2;
     
     @BeforeMethod
-    @Override
     public void setUp() {
         JUnitHibernateManager.getHibernateManager();
         session = HibernateUtil.getSessionFactory().openSession();
@@ -99,8 +99,8 @@ public class Test_ImageFile extends PhotovaultTestCase {
     }
 
     @AfterMethod
-    @Override
     public void tearDown() throws Exception {
+        session.close();
         session = HibernateUtil.getSessionFactory().openSession();
         vol1 = (VolumeBase) session.get( VolumeBase.class, vol1.getId() );
         vol2 = (VolumeBase) session.get( VolumeBase.class, vol2.getId() );

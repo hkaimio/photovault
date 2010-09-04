@@ -191,7 +191,7 @@ public class ChangeDTO<T> implements Serializable {
      Get the canonical XML serialization of this change.
      @return
      */
-    byte[] getXmlData() {
+    public byte[] getXmlData() {
         if ( xmlData == null ) {
             try {
                 Class targetClass = Class.forName( targetClassName );
@@ -203,6 +203,8 @@ public class ChangeDTO<T> implements Serializable {
         }
         return xmlData;
     }
+
+
     /**
      Serialize this object.
      <p>

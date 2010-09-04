@@ -44,6 +44,7 @@ import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 
 public class Test_PhotoInfo extends PhotovaultTestCase {
     static Log log = LogFactory.getLog( Test_PhotoInfo.class.getName() );
@@ -66,7 +67,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     /**
      Sets ut the test environment
      */
-    @Override
     @BeforeMethod
     public void setUp() {
         session = HibernateUtil.getSessionFactory().openSession();
@@ -80,7 +80,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     /**
      Tears down the testing environment
      */
-    @Override
     @AfterMethod
     public void tearDown() {
         tx.commit();

@@ -77,9 +77,8 @@ class ImportXMLAction extends AbstractAction implements XmlImportListener {
                                 (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
                         df.setSession( s );
 
-                        is = new ObjectInputStream( new FileInputStream( f ) );
                         DataExporter exporter = new DataExporter();
-                        exporter.importChanges( is, df );
+                        exporter.importChanges( f, df );
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     } finally {

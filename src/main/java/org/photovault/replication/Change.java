@@ -366,6 +366,11 @@ public class Change<T> {
         head = childChanges.isEmpty();
     }
     
+    @Transient
+    public boolean isFrozen() {
+        return frozen;
+    }
+
     /**
      Returns <code>true</code> if this change has unresolved conflicts
      */
@@ -428,7 +433,7 @@ public class Change<T> {
             }
             
             // record all field changes that are still valid currently
-            for ( Map.Entry<String,FieldChange> e : c.changedFields.entrySet() ) {
+            for ( Map.Entry<String,FieldChange> e : c.getChangedFields().entrySet() ) {
                 if ( !changedFieldsOther.containsKey( e.getKey() ) ) {
                     try {
                         changedFieldsOther.put( e.getKey(), (FieldChange) e.getValue().clone() );
@@ -449,7 +454,7 @@ public class Change<T> {
          */
         Map<String, FieldChange> changedFieldsThis = new HashMap();
         for ( Change<T> c = this ; c != commonBase ; c = c.getPrevChange() ) {
-            for ( Map.Entry<String,FieldChange> e : c.changedFields.entrySet() ) {
+            for ( Map.Entry<String,FieldChange> e : c.getChangedFields().entrySet() ) {
                 FieldChange fc = (FieldChange) changedFieldsThis.get( e.getKey() );
                 if ( fc == null ) {
                     try {

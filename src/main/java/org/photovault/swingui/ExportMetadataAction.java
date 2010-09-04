@@ -74,12 +74,12 @@ class ExportMetadataAction extends AbstractAction implements XmlExportListener {
                                 (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
                         df.setSession( s );
 
-                        os = new ObjectOutputStream( new FileOutputStream( f ) );
+                        // os = new ObjectOutputStream( new FileOutputStream( f ) );
                         DataExporter exporter = new DataExporter();
                         xmlExportStatus( null, XmlExporter.EXPORTER_STATE_EXPORTING_FOLDERS );
-                        exporter.exportFolders( os, df );
+                        // exporter.exportFolders( os, df );
                         xmlExportStatus( null, XmlExporter.EXPORTER_STATE_EXPORTING_PHOTOS );
-                        exporter.exportPhotos( os, df );
+                        exporter.exportPhotos( f, df );
                         xmlExportStatus( null, XmlExporter.EXPORTER_STATE_COMPLETED );
 
                     } catch (IOException ex) {

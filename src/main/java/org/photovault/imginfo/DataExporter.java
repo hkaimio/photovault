@@ -20,25 +20,47 @@
 
 package org.photovault.imginfo;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
+import org.photovault.imginfo.dto.PhotoChangeSerializer;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
+import org.photovault.replication.Change;
+import org.photovault.replication.ChangeDTO;
 import org.photovault.replication.ChangeFactory;
+import org.photovault.replication.DTOResolver;
 import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.FieldConflictBase;
 import org.photovault.replication.ObjectHistory;
 import org.photovault.replication.ObjectHistoryDTO;
 import org.photovault.replication.VersionedObjectEditor;
+import org.photovault.replication.XStreamChangeSerializer;
+import org.photovault.swingui.PhotoInfoEditor;
 
 /**
  * Export or import the contents of a Photovault database history.
@@ -82,6 +104,20 @@ public class DataExporter {
             ObjectHistoryDTO<PhotoInfo> dto = new ObjectHistoryDTO( h );
             os.writeObject( dto );
         }
+    }
+
+    public void exportPhotos( File zipFile, DAOFactory df ) throws FileNotFoundException, IOException {
+        PhotoInfoDAO photoDAO = df.getPhotoInfoDAO();
+        List<PhotoInfo> allPhotos = photoDAO.findAll();
+        FileOutputStream os = new FileOutputStream( zipFile );
+        ZipOutputStream zipo = new ZipOutputStream( os );
+        int photoCount = 0;
+        for ( PhotoInfo p : allPhotos ) {
+            addPhotoHistory( p, zipo );
+            photoCount++;
+            log.debug( "" + photoCount + " photos exported" );
+        }
+        zipo.close();
     }
 
     /**
@@ -225,4 +261,209 @@ public class DataExporter {
         }
         return e;
     }
+
+    XStreamChangeSerializer ser = new PhotoChangeSerializer();
+
+    public void exportFileInfo( ImageFile f, File sidecar ) throws IOException {
+        OutputStream os = new FileOutputStream( sidecar );
+        ZipOutputStream zipo = new ZipOutputStream( os );
+        for ( Map.Entry<String, ImageDescriptorBase> e : f.getImages().entrySet() ) {
+            ImageDescriptorBase img = e.getValue();
+            if ( img instanceof OriginalImageDescriptor ) {
+                OriginalImageDescriptor orig = (OriginalImageDescriptor) img;
+                for ( PhotoInfo p : orig.getPhotos() ) {
+                    addPhotoHistory( p, zipo );
+                }
+            }
+        }
+        zipo.close();
+    }
+
+    public void importChanges( File zipFile, DAOFactory df ) throws FileNotFoundException, IOException {
+        FileInputStream is = new FileInputStream( zipFile );
+        ZipInputStream zipis = new ZipInputStream( is );
+
+        PhotoInfo p;
+        UUID photoUuid = null;
+        VersionedObjectEditor<PhotoInfo> pe = null;
+        ObjectHistoryDTO<PhotoInfo> h = null;
+        PhotoInfoDAO photoDao = df.getPhotoInfoDAO();
+        DTOResolverFactory drf = df.getDTOResolverFactory();
+        ChangeFactory<PhotoInfo> cf = new ChangeFactory<PhotoInfo>( df.getChangeDAO() );
+        for ( ZipEntry e = zipis.getNextEntry(); e != null ; e= zipis.getNextEntry() ) {
+            if ( e.isDirectory() ) {
+                continue;
+            }
+            String ename = e.getName();
+            log.debug( "start processing entry " + ename );
+            String[] path = ename.split( "/" );
+            if ( path.length != 2 ) {
+                log.warn( "zip directory hierarchy should have 2 levels: " + ename );
+            }
+            String fname = path[path.length-1];
+            if ( !fname.endsWith( ".xml" ) ) {
+                log.warn( "Unexpected suffix: " + ename );
+            }
+            long esize = e.getSize();
+            byte[] data = null;
+            if ( esize > 0 ) {
+                data = new byte[(int) esize];
+                zipis.read( data );
+            } else {
+                byte[] tmp = new byte[65536];
+                int offset = 0;
+                int bytesRead = 0;
+                while ( ( bytesRead = zipis.read( tmp, offset, tmp.length-offset ) ) > 0 ) {
+                    offset += bytesRead;
+                    if ( offset >= tmp.length ) {
+                        tmp = Arrays.copyOf( tmp, tmp.length*2 );
+                    }
+                }
+                data = Arrays.copyOf( tmp, offset );
+            }
+            ChangeDTO<PhotoInfo> dto = ChangeDTO.createChange( data, PhotoInfo.class );
+            if ( dto == null ) {
+                log.warn( "Failed to read change " + ename );
+                continue;
+            }
+            UUID changeId = dto.getChangeUuid();
+            if ( !fname.startsWith( changeId.toString() ) ) {
+                log.warn( "Unexpected changeId " + changeId + " in file " + ename );
+            }
+
+            if ( !PhotoInfo.class.getName().equals( dto.getTargetClassName() ) ) {
+                log.warn( "Only PhotoInfo class supported, saw " + dto.getTargetClassName() );
+                continue;
+            }
+            UUID changeTargetId = dto.getTargetUuid();
+            if ( !changeTargetId.equals( photoUuid ) ) {
+                if ( h != null ) {
+                    addHistory( h, df );
+                }
+                photoUuid = changeTargetId;
+                h = new ObjectHistoryDTO<PhotoInfo>( PhotoInfo.class, photoUuid );
+            }
+            h.addChange( dto );
+            photoUuid = changeTargetId;
+        }
+    }
+    private void addHistory( ObjectHistoryDTO<PhotoInfo> h, DAOFactory df ) {
+        log.debug( "entry: addHistory, " + h.getTargetClassName() + " " + h.getTargetUuid() );
+        PhotoInfoDAO photoDao = df.getPhotoInfoDAO();
+        DTOResolverFactory drf = df.getDTOResolverFactory();
+        Transaction tx = null;
+        Session s = null;
+        if ( df instanceof HibernateDAOFactory ) {
+            s = ((HibernateDAOFactory)df).getSession();
+            tx = s.beginTransaction();
+        }
+        PhotoInfo p = photoDao.findByUUID( h.getTargetUuid() );
+        VersionedObjectEditor<PhotoInfo> pe = null;
+        if ( p == null ) {
+            log.debug(  "  Target object not found." );
+            try {
+                pe = new VersionedObjectEditor<PhotoInfo>(
+                         h, drf );
+                pe.apply();
+            } catch ( InstantiationException ex ) {
+                log.error( ex );
+                if ( tx != null ) tx.rollback();
+                return;
+            } catch ( IllegalAccessException ex ) {
+                log.error( ex );
+                if ( tx != null ) tx.rollback();
+                return;
+            } catch ( ClassNotFoundException ex ) {
+                log.error( ex );
+                if ( tx != null ) tx.rollback();
+                return;
+            }
+            p = pe.getTarget();
+            photoDao.makePersistent( p );
+        } else {
+            log.debug(  "  Target object found" );
+            pe = new VersionedObjectEditor<PhotoInfo>(
+                    p, df.getDTOResolverFactory() );
+            try {
+                ChangeFactory<PhotoInfo> cf =
+                        new ChangeFactory<PhotoInfo>(  df.getChangeDAO() );
+                Change<PhotoInfo> oldVersion = p.getHistory().getVersion();
+                boolean wasAtHead = p.getHistory().getHeads().contains( oldVersion );
+                pe.addToHistory( h, cf );
+                Change<PhotoInfo> newVersion = p.getHistory().getVersion();
+                Set<Change<PhotoInfo>> newHeads = new HashSet( p.getHistory().getHeads() );
+                if ( newHeads.size() > 1 ) {
+                    log.debug( "  merging heads" );
+                    boolean conflictsLeft = false;
+                    Change<PhotoInfo> currentTip = null;
+                    for ( Change<PhotoInfo> head : newHeads ) {
+                        if ( currentTip != null && currentTip != head ) {
+                            log.debug( "merging " + currentTip.getUuid() +
+                                    " with " + head.getUuid() );
+                            Change<PhotoInfo> merged = currentTip.merge( head );
+                            if ( !merged.hasConflicts() ) {
+                                merged.freeze();
+                                log.debug( "merge succesfull, " + merged.getUuid() );
+                                currentTip = merged;
+                            } else {
+                                conflictsLeft = true;
+                                if ( log.isDebugEnabled() ) {
+                                    StringBuffer conflicts = new StringBuffer( " Conflicts unresolved: \n" );
+                                    for ( FieldConflictBase conflict: merged.getFieldConficts() ) {
+                                        String fieldName = conflict.getFieldName();
+                                        conflicts.append( fieldName );
+                                        conflicts.append( ": " );
+                                        conflicts.append(
+                                                currentTip.getField( fieldName) );
+                                        conflicts.append( " <-> " );
+                                        conflicts.append(
+                                                head.getField( fieldName) );
+                                    }
+                                    log.debug(  conflicts );
+                                }
+                            }
+                        } else {
+                            currentTip = head;
+                        }
+                    }
+                    if ( wasAtHead && !conflictsLeft ) {
+                        pe.changeToVersion( currentTip );
+                    }
+                }
+                photoDao.flush();
+            } catch ( ClassNotFoundException ex ) {
+                log.error( ex );
+                if ( tx != null ) tx.rollback();
+                return;
+            } catch ( IOException ex ) {
+                log.error( ex );
+                if ( tx != null ) tx.rollback();
+                return;
+            }
+        }
+        if ( tx != null ) {
+            tx.commit();
+            s.clear();
+        }
+    }
+
+    private void addPhotoHistory( PhotoInfo p, ZipOutputStream os ) throws IOException {
+        String photoDirName = "photo_" + p.getUuid() + "/";
+        ZipEntry photoDir = new ZipEntry( photoDirName );
+        os.putNextEntry( photoDir );
+        ObjectHistory<PhotoInfo> h = p.getHistory();
+        ObjectHistoryDTO<PhotoInfo> hdto = new ObjectHistoryDTO<PhotoInfo>( h );
+        for ( ChangeDTO ch : hdto.getChanges() ) {
+            UUID chId = ch.getChangeUuid();
+            String fname = photoDirName + chId + ".xml";
+            ZipEntry chEntry = new ZipEntry( fname );
+            os.putNextEntry( chEntry );
+            byte[] xml = ch.getXmlData();
+            os.write( xml );
+        }
+    }
+
+
+
+
 }

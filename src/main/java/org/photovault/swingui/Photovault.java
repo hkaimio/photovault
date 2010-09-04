@@ -43,6 +43,7 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultSettings;
 import org.apache.log4j.PropertyConfigurator;
+import org.hibernate.Transaction;
 import org.photovault.command.CommandListener;
 import org.photovault.imginfo.VolumeDAO;
 import org.photovault.imginfo.VolumeManager;
@@ -252,10 +253,16 @@ public class Photovault extends AbstractController implements SchemaUpdateListen
         /*
          * Check what volumes we have available
          */
-        DAOFactory df = DAOFactory.instance( HibernateDAOFactory.class );
+        HibernateDAOFactory df =
+                (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );
         VolumeDAO volDao = df.getVolumeDAO();
+        Session s = df.getSession();
+        Transaction tx = s.beginTransaction();
         VolumeManager vm = VolumeManager.instance();
         vm.updateVolumeMounts( volDao );
+        s.flush();
+        tx.commit();
+        s.close();
     }
 
     protected void checkJAI() throws PhotovaultException {

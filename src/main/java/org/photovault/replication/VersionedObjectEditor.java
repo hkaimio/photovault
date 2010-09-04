@@ -21,6 +21,7 @@
 package org.photovault.replication;
 
 import java.io.IOException;
+import java.lang.Class;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -107,7 +108,39 @@ public class VersionedObjectEditor<T> {
         change = history.createChange();
         change.setPrevChange( initialChange );
     }
-    
+
+    public VersionedObjectEditor( ObjectHistoryDTO<T> histData, DTOResolverFactory df ) 
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+        fieldResolver = df;
+        Class<T> clazz = (Class<T>) Class.forName( histData.getTargetClassName() );
+        classDesc = getClassDescriptor( clazz );
+        target = clazz.newInstance();
+        history = classDesc.getObjectHistory( target );
+        history.setTargetUuid( histData.getTargetUuid() );
+        for ( ChangeDTO<T> chd : histData.getChanges() ) {
+            change = new Change<T>();
+            change.setTargetHistory( history );
+            change.setUuid( chd.changeUuid );
+            change.setSerializedChange( chd.xmlData );
+            // Try to find parents of this change
+            Set<Change<T>> parents = new HashSet<Change<T>>();
+            for ( UUID parentId : chd.parentIds ) {
+                Change<T> parent = history.getChange( parentId );
+                parents.add( parent );
+                parent.addChildChange( change );
+            }
+            change.setParentChanges( parents );
+            change.setChangedFields( chd.changedFields );
+            // dao.makePersistent( change );
+            // dao.flush();
+            history.addChange( change );
+        }
+        Set<Change<T>> heads = history.getHeads();
+        if ( heads.size() == 1 ) {
+            this.changeToVersion( heads.iterator().next() );
+        }
+    }
+
     public Object getProxy() {
         EditorProxyInvocationHandler ih = 
                 new EditorProxyInvocationHandler( this, classDesc );
@@ -243,6 +276,14 @@ public class VersionedObjectEditor<T> {
      to object history.
      */
     public Change<T> apply() {
+        if ( change.isFrozen() ) {
+            if ( history.getVersion() != change ) {
+                throw new IllegalStateException(
+                        "Frozen change does not match object state" );
+            }
+            return change;
+        }
+
         if ( change.getParentChanges().isEmpty() ) {
             /*
              This is an initial change. Set the default values for all value 
@@ -369,7 +410,7 @@ public class VersionedObjectEditor<T> {
         }
 
         history.setVersion( newVersion );
-        change.setPrevChange( newVersion );
+        // change.setPrevChange( newVersion );
     }
     
     public Change<T> getChange() {

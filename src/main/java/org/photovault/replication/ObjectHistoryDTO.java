@@ -81,7 +81,13 @@ public class ObjectHistoryDTO<T> implements Serializable {
             prepareDtos( ch, writtenIds );
         }
     }
-    
+
+    public ObjectHistoryDTO( Class<T> targetClass, UUID uuid ) {
+        targetUuid = uuid;
+        targetClassName = targetClass.getName();
+        changes = new ArrayList();
+    }
+
     /**
      Returns UUID of the target object
      */
@@ -102,7 +108,15 @@ public class ObjectHistoryDTO<T> implements Serializable {
     public List<ChangeDTO> getChanges() {
         return Collections.unmodifiableList( changes );
     }    
-    
+
+    /**
+     * Add new change to the change history
+     * @param ch The change to add
+     */
+    public void addChange( ChangeDTO ch ) {
+        changes.add( ch );
+    }
+
     /**
      Prepares {@link ChangeDTO} objects for serialization for certain change and 
      its predecessors if they have not been prepared already. This fuction is 
