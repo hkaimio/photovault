@@ -951,6 +951,12 @@ public class RawImage extends PhotovaultImage {
 
         if ( rawConverter != null ) {
             int w = (int)(white * Math.pow( 2, -evCorr ) );
+            if ( w < 0 ) {
+                w = 0;
+            }
+            if ( w > 0xffff ) {
+                w = 0xffff;
+            }
             rawConverter.setParameter( w, 0 );
             rawConverter.setParameter( black, 1 );
             rawConverter.setParameter( highlightCompression, 2 );
