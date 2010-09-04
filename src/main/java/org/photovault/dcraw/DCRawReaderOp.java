@@ -82,6 +82,8 @@ class DCRawReaderOp extends SourcelessOpImage {
         setProperty( "dcraw_black", lrd.color.black );
         setProperty( "dcraw_max", lrd.color.maximum );
         setProperty( "dcraw_black", lrd.color.black );
+        setProperty( "dcraw_margin_top", lrd.sizes.top_margin );
+        setProperty( "dcraw_margin_left", lrd.sizes.left_margin );
     }
 
     @Override
@@ -115,7 +117,7 @@ class DCRawReaderOp extends SourcelessOpImage {
 
     private int fc( int row, int col ) {
         row += lrd.sizes.top_margin;
-        col += lrd.sizes.bottom_margin;
+        col += lrd.sizes.left_margin;
         return (bayerfilter >> ((((row) << 1 & 14) + ((col) & 1)) << 1) & 3);
 //        int pos = 2 * ( row % 8 ) + ( col % 2 );
 //        return (bayerfilter >> ( 2 * pos )) & 0x3;

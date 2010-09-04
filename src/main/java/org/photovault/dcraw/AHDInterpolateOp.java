@@ -75,6 +75,11 @@ class AHDInterpolateOp extends OpImage {
      * Downsampling factor. If 1, AHD interpolation is performed. If >1 the image
      * is simply downsampled using a box filter.
      */
+
+    private int topMargin;
+
+    private int leftMargin;
+    
     private int downSample;
 
     static private ImageLayout layoutHelper( RenderedImage src, int downSample ) {
@@ -126,6 +131,11 @@ class AHDInterpolateOp extends OpImage {
 
         Object obj = src.getProperty( "bayerfilter" );
         bayerfilter = (Integer) obj;
+        obj = src.getProperty( "dcraw_margin_top" );
+        topMargin = (Short) obj;
+        obj = src.getProperty( "dcraw_margin_left" );
+        leftMargin = (Short) obj;
+
 
         camToRGB = new double[3][4];
         float[] rgb_cam = (float[]) src.getProperty( "dcraw_rgb_cam" );
@@ -180,6 +190,8 @@ class AHDInterpolateOp extends OpImage {
      * @param area Area of dst that needs to be computed
      */
     private void computeRectAHD( PlanarImage[] img, WritableRaster dst, Rectangle area ) {
+        log.debug( "entry: computeAHD " + area );
+        long entryTime = System.currentTimeMillis();
 
         // RandomIterFactory.create( img[0], area);
         int minx = Math.max(  (int)area.getMinX()-3, 0 );
@@ -360,6 +372,8 @@ class AHDInterpolateOp extends OpImage {
                 }
             }
         }
+        long dur = System.currentTimeMillis()-entryTime;
+        log.debug( "exit: computeRectAHD in " + dur + "ms" );
     }
 
     /**
@@ -369,6 +383,9 @@ class AHDInterpolateOp extends OpImage {
      * @param area Area of dst that needs to be computed
      */
     private void computeDownsample( PlanarImage[] img, WritableRaster dst, Rectangle area ) {
+        log.debug( "entry: computeDownsample " + area );
+        long entryTime = System.currentTimeMillis();
+
         // Current line of image
         int rgb[][] = new int[(int)area.getWidth()][3];
         int sampleCount[][] = new int[(int)area.getWidth()][3];
@@ -422,6 +439,8 @@ class AHDInterpolateOp extends OpImage {
                 dstY++;
             }
         }
+        long dur = System.currentTimeMillis()-entryTime;
+        log.debug( "exit: computeDownsample in " + dur + "ms" );
     }
 
     /**
@@ -432,6 +451,8 @@ class AHDInterpolateOp extends OpImage {
      * @return Color of the pixel (0 - red, 1 or 3 - green, 2 - blue)
      */
     private int fc( int row, int col ) {
+        row+=topMargin;
+        col+=leftMargin;
         return (bayerfilter >> ((((row) << 1 & 14) + ((col) & 1)) << 1) & 3);
 //        int pos = 2 * ( row % 8 ) + ( col % 2 );
 //        return (bayerfilter >> ( 2 * pos )) & 0x3;

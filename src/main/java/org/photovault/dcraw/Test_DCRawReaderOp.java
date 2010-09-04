@@ -21,10 +21,12 @@
 
 package org.photovault.dcraw;
 
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.File;
@@ -36,7 +38,12 @@ import javax.media.jai.ColorModelFactory;
 import javax.media.jai.ColorSpaceJAI;
 import javax.media.jai.JAI;
 import javax.media.jai.ParameterBlockJAI;
+import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderedOp;
+import javax.media.jai.TileComputationListener;
+import javax.media.jai.TileRequest;
+import javax.media.jai.TileScheduler;
+import javax.media.jai.TiledImage;
 import javax.media.jai.operator.BandCombineDescriptor;
 import javax.media.jai.operator.ColorConvertDescriptor;
 import org.testng.annotations.Test;
@@ -48,11 +55,11 @@ import org.testng.annotations.Test;
 public class Test_DCRawReaderOp {
 
     @Test
-    public void testRead() throws IOException {
+    public void testRead() throws IOException, InterruptedException {
         AHDInterpolateDescriptor.register();
         DCRawReaderDescriptor.register();
         ParameterBlock b = new ParameterBlockJAI( "DCRawReader" );
-        b.set( "/home/harri/Kuvat/kamerasta/2009-09-14/IMG_7017.CR2", 0 );
+        b.set( "/home/harri/Kuvat/kamerasta/2010-07-25/IMG_1563.CR2", 0 );
         RenderedOp op = JAI.create( "DCRawReader", b );
         System.out.println( "width " + op.getWidth() );
         System.out.println( "width " + op.getHeight() );
@@ -66,7 +73,7 @@ public class Test_DCRawReaderOp {
         b2.set( 2.35, 0 );
         b2.set( 1.0, 1 );
         b2.set( 1.35, 2 );
-        b2.set( 8, 3 );
+        b2.set( 1, 3 );
         RenderedOp interpolated = JAI.create( "AHDInterpolate", b2 );
 
         double[][] camToRGB = new double[3][4];
@@ -91,9 +98,60 @@ public class Test_DCRawReaderOp {
         RenderedOp srgbImage = ColorConvertDescriptor.create( xyzImage, cm, xyzHints);
         long startTime = System.currentTimeMillis();
         JAI.getDefaultInstance().getTileScheduler().setParallelism( 2 );
-        ImageIO.write( srgbImage, "tiff", new File( "/tmp/test.tif" ) );
+        JAI.getDefaultInstance().getTileCache().setMemoryCapacity( 100 * 1024 * 1024 );
+
+        int xTileCount = srgbImage.getMaxTileX();
+        int yTileCount = srgbImage.getMaxTileY();
+        TileScheduler sched = JAI.getDefaultInstance().getTileScheduler();
+        final int tileCount = xTileCount * yTileCount;
+        Point[] tileIdxs = new Point[xTileCount*yTileCount];
+        for ( int ytile = 0 ; ytile < yTileCount ;ytile++ ) {
+            for ( int xtile = 0 ; xtile < xTileCount ;xtile++ ) {
+                tileIdxs[xtile+ytile*xTileCount] = new Point(xtile,ytile);
+            }
+        }
+        final long start = System.currentTimeMillis();
+        final TiledImage result = new TiledImage( 0, 0, srgbImage.getWidth(),
+                srgbImage.getHeight(), 0, 0,
+                srgbImage.getSampleModel(), srgbImage.getColorModel() );
+        TileComputationListener l = new TileComputationListener() {
+
+            int tilesLeft = tileCount;
+
+            public void tileComputed( Object o, TileRequest[] trs,
+                    PlanarImage pi, int i, int i1, Raster raster ) {
+                System.out.println( "tileComputed (" +i + ", " + i1 + ")" );
+                result.setData( raster );
+                tilesLeft--;
+                if ( tilesLeft == 0 ) {
+                    long dur = System.currentTimeMillis() - start;
+                    System.out.println( "all computed in " + dur + " ms!!" );
+                    ready();
+                }
+            }
+
+            public void tileCancelled( Object o, TileRequest[] trs,
+                    PlanarImage pi, int i, int i1 ) {
+                throw new UnsupportedOperationException( "Not supported yet." );
+            }
+
+            public void tileComputationFailure( Object o, TileRequest[] trs,
+                    PlanarImage pi, int i, int i1, Throwable thrwbl ) {
+                System.out.println( "failure with tile (" +i + ", " + i1 + ")" );
+            }
+
+            synchronized void ready() {
+                notifyAll();
+            }
+        };
+        TileRequest req = sched.scheduleTiles( srgbImage, tileIdxs, new TileComputationListener[] {l} );
+        synchronized( l ) {
+            l.wait();
+        }
+        ImageIO.write( result, "tiff", new File( "/tmp/test.tif" ) );
         long execTime = System.currentTimeMillis() - startTime;
         System.out.println( "Converted in " + execTime + " ms" );
+        TiledImage img;
     }
 
     static private class LinRGBColorModelFactory implements ColorModelFactory {
