@@ -38,6 +38,7 @@ import java.util.Date;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.folder.PhotoFolder;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.imginfo.xml.Base64;
 import org.photovault.persistence.DAOFactory;
@@ -91,7 +92,12 @@ public class XMPConverter {
      Photovault XMP extensions namespace
      */
     static private final String NS_PV = "http://ns.photovault.org/xmp/1.0/";
-        
+
+    /**
+     * Photoshop XMP schema namespace
+     */
+    static private final String NS_PHOTOSHOP = "http://ns.adobe.com/photoshop/1.0";
+
     private DAOFactory df;
     
     /**
@@ -121,6 +127,15 @@ public class XMPConverter {
             } catch ( XMPException e ) {
                 log.error( "CMPException: " + e.getMessage() );
             }
+        }
+
+        if ( reg.getNamespacePrefix( NS_PHOTOSHOP ) == null ) {
+            try {
+                reg.registerNamespace( NS_PHOTOSHOP, "photoshop" );
+            } catch ( XMPException e ) {
+                log.error( "CMPException: " + e.getMessage() );
+            }
+
         }
 
         byte[] data = null;
@@ -194,13 +209,63 @@ public class XMPConverter {
                 p.getPhotographer(), null );
         meta.setProperty( NS_DC, "description", p.getDescription() );
 
-//            photo.getFStop();
-//            photo.getFilm();
-//            photo.getFilmSpeed();
-//            photo.getFocalLength();
-//            photo.getQuality();
-//            photo.getShootingPlace();
-//            photo.getShutterSpeed();
+        double fstop = p.getFStop();
+        if ( fstop > 0.0 ) {
+            String aperture = floatToRational( p.getFStop() );
+            meta.setProperty( NS_EXIF, "ApertureValue", aperture );
+            meta.setProperty( NS_EXIF, "FNumber", aperture );
+        }
+//        String film = photo.getFilm();
+
+          int isoSpeed = p.getFilmSpeed();
+          if ( isoSpeed > 0 ) {
+              meta.appendArrayItem( NS_EXIF, "ISOSpeedRatings",
+                      new PropertyOptions().setArrayOrdered( true ),
+                      String.valueOf( isoSpeed ), null );
+          }
+
+          double focalLength = p.getFocalLength();
+          if ( focalLength > 0.0 ) {
+              meta.setProperty( NS_EXIF, "FocalLength", floatToRational( focalLength ) );
+          }
+
+          int quality = p.getQuality();
+          double rating = 0.0;
+          switch ( quality ) {
+              case PhotoInfo.QUALITY_TOP :
+                  rating = 5.0;
+                  break;
+              case PhotoInfo.QUALITY_GOOD :
+                  rating = 4.0;
+                  break;
+              case PhotoInfo.QUALITY_FAIR :
+                  rating = 3.0;
+                  break;
+              case PhotoInfo.QUALITY_POOR :
+                  rating = 1.0;
+                  break;
+              case PhotoInfo.QUALITY_UNUSABLE :
+                  rating = -1.0;
+                  break;
+
+          }
+          meta.setPropertyDouble( NS_XMP_BASIC, "Rating", rating );
+
+          /* XMP location needs to be formal hierachical place, so we will store
+           * this as a keyword.
+           */
+          PropertyOptions subjectOptions = new PropertyOptions( PropertyOptions.ARRAY );
+          String shootingPlace = p.getShootingPlace();
+          if ( shootingPlace != null ) {
+              meta.appendArrayItem( NS_DC, "subject",
+                      subjectOptions, shootingPlace, null );
+          }
+
+          double expTime = p.getShutterSpeed();
+          if ( expTime > 0.0 ) {
+              String shutterSpeed = expTimeAsRational( expTime );
+              meta.setProperty( NS_EXIF, "ExposureTme", shutterSpeed );
+          }
 //            photo.getTechNotes();
 
 
@@ -210,12 +275,21 @@ public class XMPConverter {
                     "yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
             String xmpShootDate = dfmt.format( shootDate );
             meta.setProperty( NS_XMP_BASIC, "CreateDate", xmpShootDate );
+            meta.setProperty( NS_PHOTOSHOP, "DateCreated", xmpShootDate );
         }
 
         // Save technical data
         meta.setProperty( NS_TIFF, "Model", p.getCamera() );
         meta.setProperty( NS_EXIF_AUX, "Lens", p.getLens() );
         // TODO: add other photo attributes as well
+
+        // Add names of the folders the photo belongs to as keywords
+        for ( PhotoFolder folder : p.getFolders() ) {
+            if ( folder.getExternalDir() == null ) {
+                meta.appendArrayItem( NS_DC, "subject",
+                        subjectOptions, folder.getName(), null );
+            }
+        }
 
 
         // Save the history of the image
@@ -270,4 +344,43 @@ public class XMPConverter {
         Date d = c.getTime();
         pe.setFuzzyShootTime( new FuzzyDate( d, 0.0 ) );
     }
+
+    /**
+     * Simple method to convert aperture value in floating point into rational
+     * number
+     * @param f The floating point number
+     * @return f as rational representation in string format.
+     * E.g. floatToRational( 0.5 ) returns "1/2"
+     */
+    private String floatToRational( double f ) {
+        long times10 = Math.round( f*10 );
+        if ( times10 % 10 == 0 ) {
+            return String.valueOf( f );
+        }
+        return String.valueOf( Math.round(f*10) ) + "/10";
+    }
+    private static int shutterSpeeds[] = {
+            1, 2, 3, 4, 6, 8, 10, 15, 20, 30, 50, 60, 90, 125, 200, 250, 350,
+            500, 1000, 2000, 4000, 8000 };
+
+    private String expTimeAsRational( double expTime ) {
+        for ( int sp : shutterSpeeds ) {
+            double time = 1.0 / sp;
+            if ( Math.abs( expTime - time )/time < 0.01 ) {
+                return "1/" + sp;
+            }
+            if ( time < expTime ) {
+                break;
+            }
+        }
+        double denomin = 1.0;
+        while ( Math.abs( Math.round( expTime * denomin ) / denomin - expTime ) >
+                0.01 * expTime ) {
+            denomin *= 10.0;
+        }
+        return String.valueOf( Math.round( expTime * denomin ) ) + "/" 
+                + Math.round(denomin);
+
+    }
+
 }
