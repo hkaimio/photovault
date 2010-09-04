@@ -26,6 +26,7 @@ import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
 import javax.media.jai.*;
 import com.sun.media.jai.codec.*;
+import java.awt.Dimension;
 import java.awt.image.*;
 import java.awt.geom.*;
 import javax.persistence.CascadeType;
@@ -461,12 +462,41 @@ public class PhotoInfo implements PhotoEditor {
             preferred = original;
             appliedPreferred = EnumSet.noneOf( ImageOperations.class );
         }
-        
+
+        // Calculate minimum & maimum scaling of resolution compared to original
+        double minScale = ((double)minWidth) / ((double)original.getWidth());
+        double maxScale = ((double)maxHeight) / ((double)original.getHeight());
+        if ( allowedOpers.contains( ImageOperations.CROP ) ) {
+            Dimension croppedSize = getCroppedSize();
+            double aspectRatio = croppedSize.getWidth()/croppedSize.getHeight();
+            double miw = minWidth;
+            double mih = minHeight;
+            double maw = maxWidth;
+            double mah = maxHeight;
+            if ( mih == 0.0 || (miw / mih) > aspectRatio ) {
+                mih = miw / aspectRatio;
+            }
+            if ( mih > 0.0 && (miw / mih) < aspectRatio ) {
+                miw = mih * aspectRatio;
+            }
+            if ( maw/mah > aspectRatio ) {
+                maw = mah * aspectRatio;
+            }
+            if ( maw/mah < aspectRatio ) {
+                mah = maw / aspectRatio;
+            }
+            minScale = ((double)miw) / ((double)croppedSize.getWidth());
+            maxScale = ((double)maw) / ((double)croppedSize.getWidth());
+        }
+
         // Check the copies
         Set<CopyImageDescriptor> copies = original.getCopies();
         for ( CopyImageDescriptor copy : copies ) {
-            if ( copy.getWidth() >= minWidth && copy.getHeight() >= minHeight &&
-                    copy.getWidth() <= maxWidth && copy.getHeight() <= maxHeight &&
+            double scale = ((double)copy.getWidth()) / ((double)original.getWidth());
+            if ( copy.getAppliedOperations().contains( ImageOperations.CROP ) ) {
+                scale = ((double)copy.getWidth()) / ((double)getCroppedSize().getWidth());
+            }
+            if ( scale >= minScale && scale <= maxScale &&
                     copy.getFile().findAvailableCopy() != null ) {
                 EnumSet<ImageOperations> applied = copy.getAppliedOperations();
                 if ( applied.containsAll( requiredOpers ) && 
@@ -1474,6 +1504,21 @@ public class PhotoInfo implements PhotoEditor {
         modified();
     }
     
+    @Transient
+    public Dimension getCroppedSize() {
+        double rot = processing.getRotation() * Math.PI / 180.0;
+        double origWidth = original.getWidth();
+        double origHeight = original.getHeight();
+        double rotSin = Math.abs( Math.sin( rot ) );
+        double rotCos = Math.abs( Math.cos( rot ) );
+        double rotWidth = origWidth * rotCos + origHeight * rotSin;
+        double rotHeight = origWidth * rotSin + origHeight * rotCos;
+        Rectangle2D crop = processing.getCropping();
+        Dimension ret = new Dimension((int) (rotWidth * crop.getWidth()),
+                (int)(rotHeight*crop.getHeight() ) );
+        return ret;
+    }
+
     /**
      * Get the current raw conversion settings.
      * @return Current settings or <code>null</code> if this is not a raw image.

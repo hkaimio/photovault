@@ -192,10 +192,19 @@ public class JAIPhotoViewer extends JPanel implements
     private void showBestInstance() throws PhotovaultException {
         EnumSet<ImageOperations> allowedOps = EnumSet.allOf( ImageOperations.class );
         allowedOps.removeAll( dynOps );
+        int w = imageView.getWidth();
+        int h = imageView.getHeight();
+        Dimension croppedSize = photo.getCroppedSize();
+        double ar = croppedSize.getWidth() / croppedSize.getHeight();
+        if ( w > ar * h ) {
+            w = (int) (h * ar);
+        } else {
+            h = (int)(w / ar);
+        }
         ImageDescriptorBase image = photo.getPreferredImage( 
                 EnumSet.noneOf( ImageOperations.class ),
                 allowedOps,
-                imageView.getWidth(), imageView.getHeight(),
+                w, h,
                 Integer.MAX_VALUE, Integer.MAX_VALUE );
         if ( image != null && image.getLocator().equals( "image#0" ) ) {
             File imageFile = image.getFile().findAvailableCopy();
