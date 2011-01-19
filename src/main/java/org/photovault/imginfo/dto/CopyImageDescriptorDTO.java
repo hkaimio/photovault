@@ -21,12 +21,9 @@
 package org.photovault.imginfo.dto;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
-import org.photovault.dcraw.RawConversionSettings;
-import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.ImageDescriptorBase;

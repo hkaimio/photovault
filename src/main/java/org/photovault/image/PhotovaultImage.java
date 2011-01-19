@@ -41,6 +41,7 @@ import javax.media.jai.Interpolation;
 import javax.media.jai.InterpolationBilinear;
 import javax.media.jai.JAI;
 import javax.media.jai.LookupTableJAI;
+import javax.media.jai.OpImage;
 import javax.media.jai.ParameterBlockJAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.RenderableOp;
@@ -672,7 +673,7 @@ public abstract class PhotovaultImage {
          */
         hints.put( JAI.KEY_INTERPOLATION, new InterpolationBilinear() );
         rotatedImage = JAI.createRenderable( "affine", rotParams, hints );
-
+        rotatedImage.setProperty( "org.photovault.opname", "rotated_image" );
         /*
          Due to rounding errors in JAI pipeline transformations we have a danger 
          that the crop border goes outside image area. To avoind this, create a
@@ -741,11 +742,13 @@ public abstract class PhotovaultImage {
         
         croppedImage = JAI.createRenderable("crop", cropParams, hints );
         // Translate the image so that it begins in origo
+        rotatedImage.setProperty( "org.photovault.opname", "cropped_image" );
         ParameterBlockJAI pbXlate = new ParameterBlockJAI( "translate" );
         pbXlate.addSource( croppedImage );
         pbXlate.setParameter( "xTrans", (float) (-croppedImage.getMinX() ) );
         pbXlate.setParameter( "yTrans", (float) (-croppedImage.getMinY() ) );
         xformCroppedImage = JAI.createRenderable( "translate", pbXlate );
+        rotatedImage.setProperty( "org.photovault.opname", "xlated_image" );
         return xformCroppedImage;
     }
     
@@ -802,6 +805,8 @@ public abstract class PhotovaultImage {
                 Interpolation.getInstance( Interpolation.INTERP_NEAREST ) );
         
         RenderedOp scaledImage = JAI.create( "affine", scaleParams );
+        scaledImage.setProperty( "org.photovault.opname", "scaled_image" );
+
         return scaledImage;        
     }
     
@@ -815,6 +820,7 @@ public abstract class PhotovaultImage {
                 Interpolation.getInstance( Interpolation.INTERP_BILINEAR ) );
         
         RenderedOp scaledImage = JAI.create( "affine", scaleParams );
+        scaledImage.setProperty( "org.photovault.opname", "scaled_image" );
         return scaledImage;        
     }    
     
@@ -826,7 +832,7 @@ public abstract class PhotovaultImage {
     protected RenderableOp getColorCorrected( RenderableOp src ) {
         // Initialize lookup table based on original image color model
         LookupTableJAI jailut = createColorMappingLUT();
-        return LookupDescriptor.createRenderable( src, jailut, null );        
+        return LookupDescriptor.createRenderable( src, jailut, null );
     }
     
     /**
@@ -950,4 +956,34 @@ public abstract class PhotovaultImage {
     public abstract Date getTimestamp();
 
 
+    private void debugPrintGraph( RenderedImage img, String prefix ) {
+        Object opName = img.getProperty( "org.photovault.opname" );
+        if ( opName != null && opName instanceof String ) {
+            System.out.println( prefix + opName  + " (" + img.getClass().getName() + ")" );
+        } else {
+            System.out.println( prefix + "unnamed image"  + " (" + img.getClass().getName() + ")" );
+        }
+
+        System.out.println( prefix + "  " + img.toString() );
+        if ( img instanceof RenderedOp ) {
+            RenderedOp op = (RenderedOp) img;
+            System.out.println( prefix + "  operation name" + op.getOperationName() );
+            ParameterBlock pb = op.getParameterBlock();
+            if ( pb instanceof ParameterBlockJAI ) {
+                ParameterBlockJAI pbj = (ParameterBlockJAI) pb;
+                String[] paramNames = pbj.getParameterListDescriptor().getParamNames();
+                Vector params = pbj.getParameters();
+                for ( int n = 0 ; n < paramNames.length ; n++ ) {
+                    System.out.println( prefix + "  " + paramNames[n] + params.get( n ) );
+                }
+            }
+        }
+        Vector<RenderedImage> sources = img.getSources();
+        if ( sources == null ) {
+            return;
+        }
+        for ( RenderedImage parent : sources ) {
+            debugPrintGraph( parent, prefix + "    " );
+        }
+    }
 }
