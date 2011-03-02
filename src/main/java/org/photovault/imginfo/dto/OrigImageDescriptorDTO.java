@@ -24,7 +24,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import java.io.Serializable;
 import org.photovault.imginfo.*;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import org.photovault.imginfo.dto.ImageProtos.Image.Builder;
 
 /**
  Data transfer object of {@link OriginalImageDescriptor} objects.
@@ -49,6 +51,10 @@ public class OrigImageDescriptorDTO
         super( img );
     }
 
+    OrigImageDescriptorDTO( ImageProtos.Image proto ) {
+        super( proto );
+    }
+
     /**
      Default constructor, for serialization
      */
@@ -62,4 +68,18 @@ public class OrigImageDescriptorDTO
     protected ImageDescriptorBase createImageDescriptor() {
         return new OriginalImageDescriptor();
     }
+
+    @Override
+    public Builder getBuilder() {
+        return super.getBuilder()
+                .setType( ImageProtos.ImageType.ORIGINAL );
+    }
+
+    @Override
+    public Builder getBuilder( Set<UUID> knownFiles) {
+        return super.getBuilder()
+                .setType( ImageProtos.ImageType.ORIGINAL );
+    }
+
+
 }

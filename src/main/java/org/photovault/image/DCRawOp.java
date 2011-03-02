@@ -19,11 +19,16 @@
  */
 package org.photovault.image;
 
+import com.google.protobuf.Message;
+import com.google.protobuf.Message.Builder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import java.util.Arrays;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.ProtobufConverter;
+import org.photovault.common.ProtobufSupport;
 import org.photovault.dcraw.RawConversionSettings;
 
 /**
@@ -35,7 +40,8 @@ import org.photovault.dcraw.RawConversionSettings;
  * @since 0.6.0
  */
 @XStreamAlias( "dcraw" )
-public class DCRawOp extends ImageOp {
+public class DCRawOp extends ImageOp
+implements ProtobufSupport<DCRawOp, ImageOpDto.DCRawOp, ImageOpDto.DCRawOp.Builder>{
 
     static final private Log log = LogFactory.getLog( DCRawOp.class );
 
@@ -359,5 +365,61 @@ public class DCRawOp extends ImageOp {
         ctemp = ct[0];
         greenGain = ct[1];
         ctempInitialized = true;
+    }
+
+    public ImageOpDto.DCRawOp.Builder getBuilder() {
+        ImageOpDto.DCRawOp.Builder b = ImageOpDto.DCRawOp.newBuilder();
+        if ( aberCorr != null ) {
+            b.addAllAberCorr( Arrays.asList( aberCorr[0], aberCorr[1] ) );
+        }
+        b.setBlueGreenRatio( getBlueGreenRatio() ).
+                setDlBlueGreenRatio( getDaylightBlueGreenRatio() )
+                .setDlRedGreenRatio( getDaylightRedGreenRatio() )
+                .setMedianFilterPassCount( getMedianFilterPassCount() )
+                .setRedGreenRatio( getRedGreenRatio() )
+                .setWaveletDenoiseThreshold( getWaveletThreshold() );
+        return b;
+    }
+
+    static DCRawOp create( ImageOpDto.DCRawOp d ) {
+        DCRawOp op = new DCRawOp();
+        if ( d.getAberCorrCount() == 2 ) {
+            op.aberCorr = new double[2];
+            op.aberCorr[0] = d.getAberCorr( 0 );
+            op.aberCorr[1] = d.getAberCorr( 1 );
+        }
+        op.setBlueGreenRatio( d.getBlueGreenRatio() );
+        op.setDaylightBlueGreenRatio( d.getDlBlueGreenRatio() );
+        op.setDaylightRedGreenRatio( d.getDlRedGreenRatio() );
+        op.setMedianFilterPassCount( d.getMedianFilterPassCount() );
+        op.setRedGreenRatio( d.getRedGreenRatio() );
+        op.setWaveletThreshold( d.getWaveletDenoiseThreshold() );
+        
+        return op;
+    }
+
+    public boolean equals( Object o ) {
+        if ( !( o instanceof DCRawOp ) ) {
+            return false;
+        }
+        DCRawOp other = (DCRawOp) o;
+        return this.blueGreenRatio == other.blueGreenRatio
+                && this.redGreenRatio == other.redGreenRatio
+                && this.daylightBlueGreenRatio == other.daylightBlueGreenRatio
+                && this.daylightRedGreenRatio == other.daylightRedGreenRatio
+                && this.medianFilterPassCount == other.medianFilterPassCount
+                && this.waveletThreshold == other.waveletThreshold;
+    }
+
+   public static class ProtobufConv implements ProtobufConverter<DCRawOp> {
+
+        public Message createMessage( DCRawOp obj ) {
+            return obj.getBuilder().build();
+        }
+
+        public DCRawOp createObject( Message msg ) {
+            return  DCRawOp.create( (ImageOpDto.DCRawOp) msg );
+        }
+
     }
 }

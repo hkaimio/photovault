@@ -20,6 +20,9 @@
 
 package org.photovault.imginfo.dto;
 
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Message;
+import com.google.protobuf.Message.Builder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
@@ -32,10 +35,16 @@ import java.util.Arrays;
 import org.photovault.imginfo.*;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import javax.media.jai.ImageLayout;
+import org.photovault.common.ProtobufConverter;
+import org.photovault.common.ProtobufHelper;
+import org.photovault.common.ProtobufSupport;
+import org.photovault.common.Types;
 
 /**
  Data transfer object that is used to transfer information about {@link ImageFile}
@@ -53,7 +62,8 @@ import javax.media.jai.ImageLayout;
  */
 @XStreamAlias( "image-file" )
 @XStreamConverter( ImageFileXmlConverter.class )
-public class ImageFileDTO implements Serializable {
+public class ImageFileDTO implements Serializable,
+        ProtobufSupport<ImageFileDTO, ImageProtos.ImageFile, ImageProtos.ImageFile.Builder>{
 
     static final long serialVersionUID = -1744409450144341619L;
 
@@ -69,7 +79,49 @@ public class ImageFileDTO implements Serializable {
     public ImageFileDTO( ImageFile f ) {
         this(f, new HashMap<UUID, ImageFileDTO>());
     }
-    
+
+    public ImageFileDTO( ImageProtos.ImageFile proto ) {
+        this();
+        hash = proto.getMd5Hash().toByteArray();
+        uuid = new UUID( proto.getUuid().getMostSigBits(),
+                proto.getUuid().getLeastSigBits() );
+        size = proto.getSize();
+        for ( ImageProtos.Image i : proto.getImagesList() ) {
+            ImageDescriptorDTO idesc = null;
+            switch( i.getType() ) {
+                case ORIGINAL:
+                    idesc = new OrigImageDescriptorDTO( i );
+                    break;
+                case COPY:
+                    idesc = new CopyImageDescriptorDTO( i );
+                    break;
+                default:
+                    break;
+            }
+            if ( idesc != null ) {
+                images.put( idesc.getLocator(), idesc );
+            }
+        }
+        for ( ImageProtos.FileLocation lp : proto.getLocationsList() ) {
+            Class volType = null;
+            switch ( lp.getVolume().getType() ) {
+                case TRAD:
+                    volType = Volume.class;
+                    break;
+                case EXTERNAL:
+                    volType = ExternalVolume.class;
+                    break;
+            }
+            UUID volId = ProtobufHelper.uuid( lp.getVolume().getUuid() );
+            String path = lp.getPath();
+            long lastMod = lp.getLastModifiedTime();
+            FileLocationDTO l = new FileLocationDTO(
+                    volType, volId, path, lastMod );
+            addLocation( l );
+        }
+    }
+
+
     /**
      Constructor that is used internally while constructing ImageFile graph.
      @param f The file used
@@ -215,4 +267,60 @@ public class ImageFileDTO implements Serializable {
             images.put( locator, dto );
         }
     }
+
+    public ImageProtos.ImageFile.Builder getBuilder() {
+        return getBuilder( new HashSet<UUID>() );
+    }
+
+    ImageProtos.ImageFile.Builder getBuilder( Set<UUID> knownFiles ) {
+        Types.UUID uuidProto = ProtobufHelper.uuidBuf( uuid );
+        ImageProtos.ImageFile.Builder b = ImageProtos.ImageFile.newBuilder();
+        b.setSize( size )
+                .setUuid( uuidProto )
+                .setMd5Hash( ByteString.copyFrom( hash ) );
+        for ( ImageDescriptorDTO img : images.values() ) {
+            b.addImages( img.getBuilder( knownFiles ) );
+        }
+        for ( FileLocationDTO l : locations ) {
+            ImageProtos.FileLocation.Builder flb = l.getBuilder();
+            b.addLocations( flb );
+        }
+        return b;
+    }
+
+    public void buildDebugString( StringBuilder b, String prefix ) {
+        b.append( prefix ).append( "ImageFile uuid: " ). append( uuid );
+        b.append( ", size: " ).append( size ).append( ", hash " );
+        for ( byte byt: hash ) {
+            b.append( String.format( "%02x", byt ) );
+        }
+        b.append( "\n" );
+        for ( Map.Entry<String, ImageDescriptorDTO> e: images.entrySet() ) {
+            b.append( prefix + "  image " + e.getKey() + ": " );
+            e.getValue().buildDebugString( b, prefix + "    " );
+            b.append( "\n" );
+        }
+        for ( FileLocationDTO l : locations ) {
+            l.buildDebugString( b, prefix );
+            b.append( "\n" );
+        }
+    }
+
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        buildDebugString( b, "" );
+        return b.toString();
+    }
+
+   public static class ProtobufConv implements ProtobufConverter<ImageFileDTO> {
+
+        public Message createMessage( ImageFileDTO obj ) {
+            return obj.getBuilder().build();
+        }
+
+        public ImageFileDTO createObject( Message msg ) {
+            return new ImageFileDTO( (ImageProtos.ImageFile) msg );
+        }
+
+    }    
 }

@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 
+import com.google.protobuf.Message;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -28,6 +29,8 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.dto.ImageProtos;
+import org.photovault.imginfo.dto.ImageProtos.TimeRange;
 
 public class FuzzyDate implements Serializable {
 
@@ -282,5 +285,23 @@ public class FuzzyDate implements Serializable {
     public int hashCode() {
         int hash = (int) (31 * (midpoint + 27 * variation));
         return hash;
+    }
+
+    public static class ProtobufConv implements ProtobufConverter<FuzzyDate>{
+
+        public Message createMessage( FuzzyDate obj ) {
+            ImageProtos.TimeRange.Builder b = ImageProtos.TimeRange.newBuilder();
+            b.setMidpointMsec( obj.midpoint );
+            b.setAccuracyMsec( obj.variation );
+            return b.build();
+        }
+
+        public FuzzyDate createObject( Message msg ) {
+            ImageProtos.TimeRange p = (TimeRange) msg;
+            FuzzyDate t = new FuzzyDate(
+                    new Date( p.getMidpointMsec()), p.getAccuracyMsec() );
+            return t;
+        }
+
     }
 }

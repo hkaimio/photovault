@@ -121,7 +121,6 @@ final class ValueChange extends FieldChange implements Externalizable {
         String subPartStart = getKeyForProp( propName );
         SortedMap<String,Object> propParts = propChanges.tailMap( subPartStart );
 
-
         Set<String> subValueChanges = new HashSet<String>();
         for ( String k : propParts.keySet() ) {
             if ( k.startsWith( subPartStart ) ) {

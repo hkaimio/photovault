@@ -1,0 +1,63 @@
+/* This is example of protobuf message */
+
+option java_package = "org.photovault.image";
+option java_generic_services = false;
+
+message ImageOpChain {
+    required string head = 1;
+    repeated ImageOp operations = 2;
+    repeated Link links = 3;
+}
+
+message Link {
+    required string source = 1;
+    required string sink = 2;
+}
+
+message ImageOp {
+    required string name = 1;
+    optional DCRawOp rawOp = 2;
+    optional DCRawMapOp rawMapOp = 3;
+    optional ChanMapOp chanMapOp = 4;
+    optional CropOp cropOp = 5;
+}
+
+
+message DCRawOp {
+    required double red_green_ratio = 3;
+    required double blue_green_ratio = 4;
+    required double dl_blue_green_ratio = 5;
+    required double dl_red_green_ratio = 6;
+    required uint32 median_filter_pass_count = 7;
+    required double wavelet_denoise_threshold = 8;
+    repeated double aber_corr = 9;
+}
+
+message DCRawMapOp {
+    required uint32 white = 1;
+    required uint32 black = 2;
+    optional double hlightCompr =3 [default = 0.0];
+    optional double evCorr = 4 [default = 0.0];
+}
+
+message ChanMapOp {
+    repeated ColorCurve channel_curves = 1;
+}
+
+message Point2Ddouble {
+    required double x = 1;
+    required double y = 2;
+}
+
+message ColorCurve {
+    required string name = 1;
+    repeated Point2Ddouble points = 2;
+}
+
+message CropOp {
+    required double minx = 1;
+    required double miny = 2;
+    required double maxx = 3;
+    required double maxy = 4;
+    optional double rot = 5 [default = 0.0];
+}

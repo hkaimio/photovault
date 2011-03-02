@@ -1,0 +1,98 @@
+/*
+  Copyright (c) 2011 Harri Kaimio
+
+  This file is part of Photovault.
+
+  Photovault is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  Photovault is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even therrore implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Photovault; if not, write to the Free Software Foundation,
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+ */
+
+import "image_op_dto.proto";
+import "types.proto";
+import "change_protos.proto";
+
+option java_package = "org.photovault.imginfo.dto";
+option java_generic_services = false;
+
+enum ImageType {
+    ORIGINAL = 1;
+    COPY = 2;
+}
+
+message Image {
+    required ImageType  type = 1;
+    required string locator = 2;
+    required uint32 width = 3;
+    required uint32 height = 4;
+    optional ImageRef original = 5;
+    optional ImageOpChain processing = 6;
+}
+
+
+message ImageFile {
+    required bytes md5_hash = 1;
+    required UUID uuid = 2;
+    required uint64 size = 3;
+    repeated Image images = 4;
+    repeated FileLocation locations = 5;
+}
+
+message ImageRef {
+    required UUID file_uuid = 1;
+    required string locator = 2;
+    optional ImageFile original_file = 3;
+}
+
+message FolderRef {
+    optional UUID ref_id = 1;
+    optional UUID folder_id = 2;
+    optional UUID photo_id = 3;
+}
+
+enum VolumeType {
+    EXTERNAL = 1;
+    TRAD = 2;
+}
+
+message Volume {
+    required VolumeType type = 1;
+    required UUID uuid = 2;
+}
+
+message FileLocation {
+    required Volume volume = 1;
+    required string path = 2;
+    optional uint64 last_modified_time = 3;
+}
+
+message TimeRange {
+    required int64 midpoint_msec = 1;
+    required uint64 accuracy_msec = 2 [default = 0];
+}
+
+extend ValueChange {
+    optional Image image = 100;
+    optional ImageFile imafe_file = 101;
+    optional ImageRef image_ref = 102;
+    optional Volume volume = 103;
+    optional FileLocation file_location = 104;
+    optional ImageOpChain image_op_chain = 105;
+    optional DCRawOp dcraw_op = 106;
+    optional DCRawMapOp raw_map_op = 107;
+    optional ChanMapOp chan_map_op = 108;
+    optional CropOp crop_op = 109;
+    optional ColorCurve color_curve = 110;
+    optional TimeRange time_range = 111;
+    optional FolderRef folder_ref = 112;
+}

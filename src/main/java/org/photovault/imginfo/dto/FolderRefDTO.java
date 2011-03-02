@@ -20,8 +20,11 @@
 
 package org.photovault.imginfo.dto;
 
+import com.google.protobuf.Message;
 import java.io.Serializable;
 import java.util.UUID;
+import org.photovault.imginfo.ProtobufConverter;
+import org.photovault.common.ProtobufHelper;
 import org.photovault.folder.FolderPhotoAssociation;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.PhotoInfo;
@@ -66,6 +69,19 @@ public class FolderRefDTO implements Serializable {
         }
     }
 
+    private FolderRefDTO( ImageProtos.FolderRef msg ) {
+        if ( msg.hasRefId() ) {
+            assocId = ProtobufHelper.uuid( msg.getRefId() );
+        }
+        if ( msg.hasPhotoId() ) {
+            photoId = ProtobufHelper.uuid( msg.getPhotoId() );
+        }
+        if ( msg.hasFolderId() ) {
+            folderId = ProtobufHelper.uuid( msg.getFolderId() );
+        }
+
+    }
+
     public UUID getAssocId() {
         return assocId;
     }
@@ -92,6 +108,29 @@ public class FolderRefDTO implements Serializable {
         int hash = 7;
         hash = 11 * hash + (this.assocId != null ? this.assocId.hashCode() : 0);
         return hash;
+    }
+
+    public static class ProtobufConv implements ProtobufConverter<FolderRefDTO> {
+
+        public Message createMessage( FolderRefDTO obj ) {
+            ImageProtos.FolderRef.Builder b = ImageProtos.FolderRef.newBuilder();
+            if ( obj.assocId != null ) {
+                b.setRefId( ProtobufHelper.uuidBuf( obj.assocId ) );
+            }
+            if ( obj.photoId != null ) {
+                b.setPhotoId( ProtobufHelper.uuidBuf( obj.photoId ) );
+            }
+            if ( obj.folderId != null ) {
+                b.setFolderId( ProtobufHelper.uuidBuf( obj.folderId ) );
+            }
+            return b.build();
+        }
+
+        public FolderRefDTO createObject( Message msg ) {
+            FolderRefDTO dto = new FolderRefDTO( (ImageProtos.FolderRef) msg );
+            return dto;
+        }
+
     }
     
 }

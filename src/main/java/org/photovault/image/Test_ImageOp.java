@@ -19,6 +19,7 @@
  */
 package org.photovault.image;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.thoughtworks.xstream.XStream;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.InvocationTargetException;
@@ -132,8 +133,69 @@ public class Test_ImageOp {
 
     }
 
-
     @Test
+    public void testProtobuf() throws InvalidProtocolBufferException {
+        ImageOpChain chain = new ImageOpChain();
+        DCRawOp op1 = new DCRawOp( chain, "dcraw" );
+        op1.setWhite( 32000 );
+        op1.setBlack( 30 );
+        Source op1out = op1.getOutputPort( "out" );
+        DCRawMapOp op2 = new DCRawMapOp( chain, "op2" );
+        op2.setBlack( 25 );
+        op2.setWhite( 10000 );
+        op2.setEvCorr( -1.0  );
+        op2.setHlightCompr( 0.1 );
+        Sink op2in = op2.getInputPort( "in" );
+        op2in.setSource( op1out );
+        Source op2out = op2.getOutputPort( "out" );
+        ChanMapOp op3 = new ChanMapOp( chain, "map" );
+        ColorCurve sat = new ColorCurve();
+        sat.addPoint( 0.0, 0.0 );
+        sat.addPoint( 1.0, 0.5 );
+        op3.setChannel( "sat", sat );
+        Sink op3in = op3.getInputPort( "in" );
+        op3in.setSource( op2out );
+        Source op3out = op3.getOutputPort( "out" );
+        CropOp op4 = new CropOp( chain, "crop" );
+        op4.setRot( 2.0 );
+        op4.setMaxX( 0.9 );
+        op4.setMaxY( 0.8 );
+        op4.setMinX( 0.1 );
+        op4.setMinY( 0.2 );
+        Sink op4in = op4.getInputPort( "in" );
+        op4in.setSource( op3out );
+        Source op4out = op4.getOutputPort( "out" );
+        chain.addOperation( op1 );
+        chain.addOperation( op2 );
+        chain.addOperation( op3 );
+        chain.addOperation( op4 );
+
+        chain.setHead( op4out.getPortName() );
+
+        byte[] data = chain.getBuilder().build().toByteArray();
+
+        ImageOpDto.ImageOpChain dto = ImageOpDto.ImageOpChain.parseFrom( data );
+        ImageOpChain chain2 = new ImageOpChain( dto );
+        assertEquals( chain, chain2 );
+
+//        XStream xs = new XStream();
+//        xs.processAnnotations( ImageOp.class );
+//        xs.processAnnotations( DCRawOp.class );
+//        xs.processAnnotations( DCRawMapOp.class );
+//        xs.processAnnotations( CropOp.class );
+//        xs.processAnnotations( ChanMapOp.class );
+//        xs.processAnnotations( ImageOpChain.class );
+//        xs.processAnnotations( ColorCurve.class );
+//        xs.registerConverter( new ImageOpChainXmlConverter( xs.getMapper() ) );
+//        String xml = xs.toXML( chain );
+//        ImageOpChain chain2 = (ImageOpChain) xs.fromXML( xml );
+//        String xml2 = xs.toXML( chain2 );
+//        assertEquals( xml, xml2 );
+
+    }
+
+
+    // @Test
     public void testLegacyHelpers() throws PhotovaultException {
         ImageOpChain chain = new ImageOpChain();
         RawSettingsFactory rf = new RawSettingsFactory();

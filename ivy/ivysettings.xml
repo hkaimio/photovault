@@ -2,7 +2,7 @@
   <!-- conf defaultResolver="jboss-rep"/ -->
   <settings defaultResolver="default" />
   <resolvers>
-    <chain name="public">
+    <chain name="public" returnFirst="true">
       <!-- First, check if we have the local module definition available -->
       <packager name="local-modules" 
 		buildRoot="${user.home}/.ivy2/packager/build"
@@ -16,6 +16,7 @@
 	<ivy pattern="http://ivyroundup.googlecode.com/svn/trunk/repo/modules/[organisation]/[module]/[revision]/ivy.xml"/>
 	<artifact pattern="http://ivyroundup.googlecode.com/svn/trunk/repo/modules/[organisation]/[module]/[revision]/packager.xml"/>
       </packager>
+      <ibiblio name="ibiblio" m2compatible="true"/>
     </chain>
   </resolvers>
   <include url="${ivy.default.settings.dir}/ivysettings-shared.xml"/>

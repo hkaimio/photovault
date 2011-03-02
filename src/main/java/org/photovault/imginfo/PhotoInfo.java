@@ -75,7 +75,7 @@ import org.photovault.replication.VersionedObjectEditor;
  */
 @Entity
 @Table( name = "pv_photos" )
-@Versioned( editor = PhotoEditor.class, changeSerializer=PhotoChangeSerializer.class )
+@Versioned( editor = PhotoEditor.class, changeSerializer=PvProtobufChangeSerializer.class )
 public class PhotoInfo implements PhotoEditor {
     
     static Log log = LogFactory.getLog( PhotoInfo.class.getName() );

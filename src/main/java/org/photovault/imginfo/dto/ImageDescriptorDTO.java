@@ -22,8 +22,12 @@ package org.photovault.imginfo.dto;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.util.Set;
+import java.util.UUID;
+import org.photovault.common.ProtobufSupport;
 import org.photovault.imginfo.*;
-
+import org.photovault.imginfo.dto.ImageProtos.Image;
+import org.photovault.imginfo.dto.ImageProtos.Image.Builder;
 /**
  Abstract base class for data transfer objects used to move or copy image 
  descriptors between data bases. Subclasses are used and constructed as a part 
@@ -36,7 +40,9 @@ import org.photovault.imginfo.*;
  @see ImageFileDtoResolver
  */
 @XStreamAlias( "image" )
-public abstract class ImageDescriptorDTO {
+public abstract class ImageDescriptorDTO
+    implements ProtobufSupport<ImageDescriptorDTO, ImageProtos.Image, ImageProtos.Image.Builder>,
+    DebugStringBuilder {
 
     /**
      Constructor
@@ -49,6 +55,12 @@ public abstract class ImageDescriptorDTO {
     }
 
     ImageDescriptorDTO() {
+    }
+
+    ImageDescriptorDTO( ImageProtos.Image proto ) {
+        width = proto.getWidth();
+        height = proto.getHeight();
+        locator = proto.getLocator();
     }
     
     /**
@@ -117,5 +129,24 @@ public abstract class ImageDescriptorDTO {
 
     public String getLocator() {
         return locator;
+    }
+
+    public Builder getBuilder() {
+        return Image.newBuilder()
+                .setHeight( height )
+                .setWidth( width )
+                .setLocator( locator );
+    }
+
+    Builder getBuilder( Set<UUID> knownFiles ) {
+        return Image.newBuilder()
+                .setHeight( height )
+                .setWidth( width )
+                .setLocator( locator );
+    }
+
+    public void buildDebugString( StringBuilder b, String prefix ) {
+        b.append( getClass().getName() ).append( " resolution: " ).append( width );
+        b.append(  "x" ).append( height );
     }
 }

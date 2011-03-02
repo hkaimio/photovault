@@ -20,17 +20,22 @@
 
 package org.photovault.image;
 
+import com.google.protobuf.Message;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.photovault.common.PhotovaultException;
+import org.photovault.imginfo.ProtobufConverter;
+import org.photovault.common.ProtobufSupport;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawSettingsFactory;
+import org.photovault.image.ImageOpDto.ImageOpChain.Builder;
 
 /**
  * ImageOpChain describes the image processing operations that are applied to
@@ -39,7 +44,8 @@ import org.photovault.dcraw.RawSettingsFactory;
  * @since 0.6.0
  */
 @XStreamAlias( "processing" )
-public class ImageOpChain {
+public class ImageOpChain implements
+        ProtobufSupport<ImageOpChain, ImageOpDto.ImageOpChain, ImageOpDto.ImageOpChain.Builder> {
 
     public ImageOpChain() {
     }
@@ -435,6 +441,7 @@ public class ImageOpChain {
         return cf.create();
     }
 
+    @Override
     public boolean equals( Object obj ) {
         if ( obj == null ) {
             return false;
@@ -443,7 +450,20 @@ public class ImageOpChain {
             return false;
         }
         ImageOpChain other = (ImageOpChain) obj;
-        if ( !operations.equals( other.operations ) ) {
+
+        if ( (this.head == null ?
+            other.head != null : !this.head.equals( other.head )) ) {
+            return false;
+        }
+
+
+        if ( this.sources == null ?
+            other.sources != null : !this.sources.equals( other.sources ) ) {
+            return false;
+        }
+
+        if ( this.operations == null ?
+            other.operations != null : !operations.equals( other.operations ) ) {
             return false;
         }
         return true;
@@ -453,6 +473,72 @@ public class ImageOpChain {
     public int hashCode() {
         return operations.hashCode();
     }
-    
+
+    public Builder getBuilder() {
+        Builder b = ImageOpDto.ImageOpChain.newBuilder();
+        for ( Map.Entry<String, ImageOp> e : operations.entrySet()) {
+            ImageOpDto.ImageOp.Builder ob = ImageOpDto.ImageOp.newBuilder();
+            ob.setName( e.getKey() );
+            ImageOp op = e.getValue();
+            if ( op instanceof DCRawOp ) {
+                ob.setRawOp( ((DCRawOp)op).getBuilder() );
+            } else if ( op instanceof DCRawMapOp ) {
+                ob.setRawMapOp( ((DCRawMapOp)op).getBuilder() );
+            } else if ( op instanceof ChanMapOp ) {
+                ob.setChanMapOp( ((ChanMapOp)op).getBuilder() );
+            } else if ( op instanceof CropOp ) {
+                ob.setCropOp( ((CropOp)op).getBuilder() );
+            } else {
+                throw new IllegalStateException(
+                        "Unknown image operation " + op.getClass().getName() );
+            }
+            b.addOperations( ob );
+        }
+
+        b.setHead( head );
+        for ( Map.Entry<String, String> e : sources.entrySet() ) {
+            b.addLinks(
+                    ImageOpDto.Link.newBuilder()
+                      .setSource( e.getValue() )
+                      .setSink( e.getKey() ) );
+        }
+        return b;
+    }
+
+    public ImageOpChain( ImageOpDto.ImageOpChain d ) {
+        setHead( d.getHead() );
+        for ( ImageOpDto.Link l : d.getLinksList() ) {
+            sources.put( l.getSink(), l.getSource() );
+        }
+        for( ImageOpDto.ImageOp op : d.getOperationsList() ) {
+            ImageOp o = null;
+            if ( op.hasRawOp() ) {
+                o = DCRawOp.create( op.getRawOp() );
+            } else if ( op.hasRawMapOp() ) {
+                o = new DCRawMapOp( op.getRawMapOp() );
+            } else if ( op.hasChanMapOp() ) {
+                o= new ChanMapOp( op.getChanMapOp() );
+            } else if ( op.hasCropOp() ) {
+                o = new CropOp( op.getCropOp() );
+            } else {
+                throw new IllegalStateException(
+                        "unknown operation type econutered while partisn ImageOpChain" );
+            }
+            o.setName( op.getName() );
+            o.setChain( this );
+        }
+    }
+
+    public static class ProtobufConv implements ProtobufConverter<ImageOpChain> {
+
+        public Message createMessage( ImageOpChain obj ) {
+            return obj.getBuilder().build();
+        }
+
+        public ImageOpChain createObject( Message msg ) {
+            return new ImageOpChain( (ImageOpDto.ImageOpChain) msg );
+        }
+
+    }
 }
 

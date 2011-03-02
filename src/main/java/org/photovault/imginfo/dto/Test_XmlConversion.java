@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo.dto;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.thoughtworks.xstream.XStream;
 import java.awt.geom.Rectangle2D;
 import java.util.Date;
@@ -113,6 +114,61 @@ public class Test_XmlConversion {
         assertEquals( dto.getImages().size(), dto2.getImages().size() );
         CopyImageDescriptorDTO copy2 = (CopyImageDescriptorDTO) dto2.getImages().get( "image#2" );
         assertEquals( copy1.getProcessing(), copy2.getProcessing() );
+        assertTrue( dto2 == copy2.getOrigImageFile() );
+        assertEquals( "image#1", copy2.getOrigLocator() );
+    }
+
+    @Test
+    public void testProtobufSerialization() throws PhotovaultException, InvalidProtocolBufferException {
+        ImageFile f = new ImageFile();
+        f.setFileSize( 1000000 );
+        f.setHash( new byte[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16} );
+        f.setId( UUID.randomUUID() );
+
+        OriginalImageDescriptor img = new OriginalImageDescriptor( f, "image#1" );
+        img.setWidth( 2000 );
+        img.setHeight( 1000 );
+
+        CopyImageDescriptor copy1 = new CopyImageDescriptor( f, "image#2", img );
+        copy1.setCropArea( new Rectangle2D.Double( 0.1, 0.1, 0.8, 0.8 ) );
+        copy1.setRotation( 27.0 );
+        copy1.setWidth( 200 );
+        copy1.setHeight( 100 );
+        ChannelMapOperationFactory cmf = new ChannelMapOperationFactory();
+        ColorCurve b1 = new ColorCurve();
+        b1.addPoint( 0.1, 0.1 );
+        b1.addPoint( 0.8, 0.8 );
+        cmf.setChannelCurve( "blue", b1 );
+        copy1.setColorChannelMapping( cmf.create() );
+        RawSettingsFactory rf = new RawSettingsFactory();
+        rf.setBlack( 20 );
+        rf.setWhite( 50000 );
+        rf.setColorTemp( 5500 );
+        rf.setEvCorr( -0.1 );
+        rf.setHlightComp( 0.2 );
+        rf.setDaylightMultipliers( new double[]{1.0, 1.1, 1.2} );
+        RawConversionSettings rs = rf.create();
+        copy1.setRawSettings( rs );
+        ExternalVolume v = new ExternalVolume( "testvol", "/tmp/testvol" );
+        FileLocation l = new FileLocation( v, "dir/file.jpg" );
+        l.setLastModifiled( new Date() );
+        f.addLocation( l );
+
+        ImageFileDTO dto = new ImageFileDTO( f );
+
+        byte[] data = dto.getBuilder().build().toByteArray();
+
+        ImageFileDTO dto2 = new ImageFileDTO(
+                ImageProtos.ImageFile.parseFrom( data ) );
+
+        // Verify that the deserialized object is OK
+        assertEquals( dto.getSize(), dto2.getSize() );
+        assertEquals( dto.getUuid(), dto2.getUuid() );
+        assertEquals( dto.getHash(), dto2.getHash() );
+        assertEquals( dto.getImages().size(), dto2.getImages().size() );
+        CopyImageDescriptorDTO copy2 = (CopyImageDescriptorDTO) dto2.getImages().get( "image#2" );
+        assertEquals( copy1.getProcessing(), copy2.getProcessing() );
+        assertEquals( 1, dto2.getLocations().size() );
         assertTrue( dto2 == copy2.getOrigImageFile() );
         assertEquals( "image#1", copy2.getOrigLocator() );
     }

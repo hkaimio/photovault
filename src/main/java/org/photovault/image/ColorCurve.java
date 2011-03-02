@@ -20,6 +20,8 @@
 
 package org.photovault.image;
 
+import com.google.protobuf.Message;
+import com.google.protobuf.Message.Builder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 import java.awt.geom.CubicCurve2D;
@@ -27,6 +29,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.List;
+import org.photovault.imginfo.ProtobufConverter;
+import org.photovault.common.ProtobufSupport;
 
 /**
   Mapping from original color channel to to desired output channel values. In 
@@ -47,7 +52,8 @@ import java.io.Serializable;
  */
 @XStreamAlias( "curve" )
 @XStreamConverter( ColorCurveXmlConverter.class )
-public class ColorCurve implements Serializable {
+public class ColorCurve implements Serializable,
+        ProtobufSupport<ColorCurve, ImageOpDto.ColorCurve, ImageOpDto.ColorCurve.Builder>{
     
     static final long serialVersionUID = -4691331290177499814L;
     
@@ -361,5 +367,39 @@ public class ColorCurve implements Serializable {
             pointY[n] = is.readDouble();            
         }
         calcCoeffs();
+    }
+
+    public ImageOpDto.ColorCurve.Builder getBuilder() {
+        ImageOpDto.ColorCurve.Builder b = ImageOpDto.ColorCurve.newBuilder();
+        for ( int n = 0 ; n < pointX.length ; n++ ) {
+            ImageOpDto.Point2Ddouble.Builder pb = ImageOpDto.Point2Ddouble.newBuilder()
+                    .setX( pointX[n]).setY( pointY[n] );
+            b.addPoints( pb );
+        }
+        return b;
+    }
+
+    ColorCurve( ImageOpDto.ColorCurve d ) {
+        List<ImageOpDto.Point2Ddouble> pts = d.getPointsList();
+        pointX = new double[ pts.size() ];
+        pointY = new double[ pts.size() ];
+        int n = 0;
+        for ( ImageOpDto.Point2Ddouble p: pts ) {
+            pointX[n] = p.getX();
+            pointY[n] = p.getY();
+            n++;
+        }
+    }
+
+    static public class ProtobufConv implements ProtobufConverter<ColorCurve> {
+
+        public Message createMessage( ColorCurve o ) {
+            return o.getBuilder().build();
+        }
+
+        public ColorCurve createObject( Message msg ) {
+            return new ColorCurve( (ImageOpDto.ColorCurve)msg );
+        }
+
     }
 }

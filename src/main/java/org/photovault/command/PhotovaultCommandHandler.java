@@ -21,6 +21,7 @@
 package org.photovault.command;
 
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.logging.Log;
@@ -78,7 +79,9 @@ public class PhotovaultCommandHandler implements CommandHandler {
             fireCommandEvent( new CommandExecutedEvent( this, command ) );
         } catch ( Exception e ) {
             tx.rollback();
+            e.printStackTrace();
             throw new CommandException( "Exception thrown by command: ", e );
+
         } finally {
             if ( shouldCloseSession ) {
                 commandSession.close();

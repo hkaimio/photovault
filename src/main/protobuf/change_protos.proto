@@ -1,0 +1,52 @@
+/* This is example of protobuf message */
+import "types.proto";
+
+option java_package = "org.photovault.replication";
+option java_generic_services = false;
+
+enum FieldChangeType {
+    VALUE_CHANGE = 1;
+    SET_CHANGE = 2;
+}
+
+message FieldChange {
+    required FieldChangeType type = 1;
+    required string fieldName = 2;
+    optional ValueChange valueChange = 3;
+    optional SetChange setChange = 4;
+}
+
+message ValueChange {
+//    required string valueType = 1;
+//    required bytes serializedValue = 2;
+    // Type of the value, 0 means null.
+    required int32 type = 1;
+    optional int32 intValue = 2;
+    optional double doubleValue = 3;
+    optional string stringValue = 4;
+    optional bool boolValue = 5;
+    optional UUID uuidValue = 6;
+    extensions 100 to max;
+}
+
+message SetChange {
+    repeated ValueChange added = 1;
+    repeated ValueChange removed = 2;
+}
+
+message Change {
+    required string targetClassName = 1;
+    optional UUID targetUUID = 2;
+    repeated UUID parentIds = 3;
+    repeated FieldChange fieldChanges = 4;
+}
+
+message ChangeEnvelope {
+    required UUID changeId = 1;
+    required bytes serializedChange = 2;
+    optional string creatorName = 3;
+    optional string creatorEmail = 4;
+    optional string comment = 5;
+    optional int64 createTime = 6;
+    repeated bytes signatures = 7;
+}

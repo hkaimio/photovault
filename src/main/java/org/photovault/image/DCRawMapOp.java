@@ -20,8 +20,12 @@
 
 package org.photovault.image;
 
+import com.google.protobuf.Message;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import org.photovault.imginfo.ProtobufConverter;
+import org.photovault.common.ProtobufSupport;
+import org.photovault.image.ImageOpDto.DCRawMapOp.Builder;
 
 /**
  * DCRawMapOp describes the tone mapping from raw image that is converted to
@@ -32,7 +36,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * @since 0.6.0
  */
 @XStreamAlias( "raw-map" )
-public class DCRawMapOp extends ImageOp {
+public class DCRawMapOp extends ImageOp
+implements ProtobufSupport<DCRawMapOp, ImageOpDto.DCRawMapOp, ImageOpDto.DCRawMapOp.Builder>{
 
     public DCRawMapOp() {
         super();
@@ -144,6 +149,50 @@ public class DCRawMapOp extends ImageOp {
     @Override
     public ImageOp createCopy() {
         return new DCRawMapOp( this );
+    }
+
+    public Builder getBuilder() {
+        return ImageOpDto.DCRawMapOp.newBuilder()
+                .setBlack( getBlack() )
+                .setEvCorr( getEvCorr() )
+                .setHlightCompr( getHlightCompr() )
+                .setWhite( getWhite() );
+    }
+
+    static DCRawMapOp create( ImageOpDto.DCRawMapOp d ) {
+        DCRawMapOp op = new DCRawMapOp(d );
+        return op;
+    }
+
+    public DCRawMapOp( ImageOpDto.DCRawMapOp d ) {
+        this.white = d.getWhite();
+        this.black = d.getBlack();
+        this.evCorr = d.getEvCorr();
+        this.hlightCompr = d.getHlightCompr();
+    }
+
+    public boolean equals( Object o ) {
+        if ( ! ( o instanceof DCRawMapOp ) ) {
+            return false;
+        }
+
+        DCRawMapOp other = (DCRawMapOp) o;
+        return this.black == other.black
+                && this.white == other.white
+                && this.evCorr == other.evCorr
+                && this.hlightCompr == other.hlightCompr;
+    }
+
+    public static class ProtobufConv implements ProtobufConverter<DCRawMapOp> {
+
+        public Message createMessage( DCRawMapOp obj ) {
+            return obj.getBuilder().build();
+        }
+
+        public DCRawMapOp createObject( Message msg ) {
+            return new DCRawMapOp( (ImageOpDto.DCRawMapOp)msg );
+        }
+
     }
 
 }

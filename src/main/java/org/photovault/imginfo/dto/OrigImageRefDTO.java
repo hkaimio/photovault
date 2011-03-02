@@ -21,9 +21,15 @@
 
 package org.photovault.imginfo.dto;
 
+import com.google.protobuf.Message;
 import java.io.Serializable;
+import org.photovault.imginfo.ProtobufConverter;
+import org.photovault.common.ProtobufHelper;
+import org.photovault.common.ProtobufSupport;
+import org.photovault.common.Types;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.OriginalImageDescriptor;
+import org.photovault.imginfo.dto.ImageProtos.ImageRef.Builder;
 
 /**
  Data transfer object for serializing reference to {@link OriginalImageDescriptor}.
@@ -35,7 +41,8 @@ import org.photovault.imginfo.OriginalImageDescriptor;
  @see ImageFileDTO
  @see OrigImageDescriptorDTO
  */
-public class OrigImageRefDTO implements Serializable {
+public class OrigImageRefDTO implements Serializable,
+        ProtobufSupport<OrigImageRefDTO, ImageProtos.ImageRef, ImageProtos.ImageRef.Builder>{
 
     /**
      DTO describing the {@link ImageFile} that contains the referenced image
@@ -57,6 +64,11 @@ public class OrigImageRefDTO implements Serializable {
         fileDto = new ImageFileDTO( orig.getFile() );
         locator = orig.getLocator();
     }
+
+    OrigImageRefDTO( ImageProtos.ImageRef proto ) {
+        locator = proto.getLocator();
+        fileDto = new ImageFileDTO( proto.getOriginalFile() );
+    }
     
     /**
      Get the DTO of the image file that contains the image
@@ -72,5 +84,24 @@ public class OrigImageRefDTO implements Serializable {
      */
     public String getLocator() {
         return locator;
+    }
+
+    public Builder getBuilder() {
+        return ImageProtos.ImageRef.newBuilder()
+                .setFileUuid( ProtobufHelper.uuidBuf( this.fileDto.getUuid() ) )
+                .setLocator( locator )
+                .setOriginalFile( fileDto.getBuilder() );
+    }
+
+   public static class ProtobufConv implements ProtobufConverter<OrigImageRefDTO> {
+
+        public Message createMessage( OrigImageRefDTO obj ) {
+            return obj.getBuilder().build();
+        }
+
+        public OrigImageRefDTO createObject( Message msg ) {
+            return new OrigImageRefDTO( (ImageProtos.ImageRef) msg );
+        }
+
     }
 }

@@ -40,6 +40,7 @@ import org.photovault.imginfo.PhotoInfo;
 import javax.persistence.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.PvProtobufChangeSerializer;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.replication.Change;
 import org.photovault.replication.ObjectHistory;
@@ -53,7 +54,7 @@ import org.photovault.replication.VersionedObjectEditor;
 /**
    Implements a folder that can contain both PhotoInfos and other folders
 */
-@Versioned( editor=FolderEditor.class )
+@Versioned( editor=FolderEditor.class, changeSerializer=PvProtobufChangeSerializer.class )
 @Entity
 @Table( name = "pv_folders" )
 public class PhotoFolder implements PhotoCollection {

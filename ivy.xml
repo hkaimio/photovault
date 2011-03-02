@@ -54,5 +54,6 @@
 	<dependency org="org.jdesktop" name="swingworker" rev="1.2"/>
 	<dependency org="org.apache.derby" name="derby" rev="10.4.2.0"/>
 	<dependency org="com.mysql" name="mysql-connector-java" rev="5.1.7"/>
+        <dependency org="com.google.protobuf" name="protobuf-java" rev="2.3.0"/>
     </dependencies>
 </ivy-module>

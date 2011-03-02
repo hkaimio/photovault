@@ -21,17 +21,19 @@
 package org.photovault.imginfo.dto;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import org.photovault.dcraw.RawConversionSettings;
-import org.photovault.image.ChannelMapOperation;
+import org.photovault.common.ProtobufHelper;
+import org.photovault.common.Types;
 import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.ImageDescriptorBase;
 import org.photovault.imginfo.ImageFile;
 import org.photovault.imginfo.OriginalImageDescriptor;
+import org.photovault.imginfo.dto.ImageProtos.Image.Builder;
+import org.photovault.imginfo.dto.ImageProtos.ImageRef;
 
 /**
  Data transfer object of {@link CopyImageDescriptor} objects.
@@ -76,7 +78,13 @@ public class CopyImageDescriptorDTO
     CopyImageDescriptorDTO() {
         super();
     }
-    
+
+    CopyImageDescriptorDTO( ImageProtos.Image proto ) {
+        super( proto );
+        processing = new ImageOpChain( proto.getProcessing() );
+        OrigImageRefDTO origRef = new OrigImageRefDTO( proto.getOriginal() );
+    }
+
     private ImageOpChain processing;
 
     /**
@@ -126,5 +134,37 @@ public class CopyImageDescriptorDTO
 
     public String getOrigLocator() {
         return origLocator;
+    }
+
+    @Override
+    public Builder getBuilder() {
+        return getBuilder( null );
+    }
+
+    @Override
+    Builder getBuilder( Set<UUID> knownFiles ) {
+        ImageRef.Builder ob = ImageRef.newBuilder();
+        Types.UUID origUuid = ProtobufHelper.uuidBuf( origImageFile.getUuid() );
+        ob.setFileUuid( origUuid )
+                .setLocator( origLocator );
+        if ( origImageFile != null
+                && knownFiles != null
+                && !knownFiles.contains( origImageFile.getUuid() ) ) {
+            knownFiles.add( origImageFile.getUuid() );
+            ob.setOriginalFile( origImageFile.getBuilder( knownFiles ) );
+        }
+        return super.getBuilder( knownFiles )
+                .setProcessing( processing.getBuilder() )
+                .setType( ImageProtos.ImageType.COPY )
+                .setOriginal( ob );
+    }
+
+    public void buildDebugString( StringBuilder b, String prefix ) {
+        super.buildDebugString( b, prefix );
+        b.append( "\n" );
+        b.append( prefix ).append( "originalFile: " ).append( origImageFile.getUuid() );
+        b.append( "\n" );
+        b.append( prefix ).append( "origFileLocator: " + origLocator );
+        b.append( "\n" ).append( prefix ).append( "processing: " ).append( processing );
     }
 }

@@ -20,8 +20,12 @@
 
 package org.photovault.image;
 
+import com.google.protobuf.Message;
+import com.google.protobuf.Message.Builder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import org.photovault.imginfo.ProtobufConverter;
+import org.photovault.common.ProtobufSupport;
 
 /**
  * CropOp describes the cropping and rotation done for an image as part of its
@@ -30,7 +34,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * @since 0.6.0
  */
 @XStreamAlias( "crop" )
-public class CropOp extends ImageOp {
+public class CropOp extends ImageOp
+        implements ProtobufSupport<CropOp, ImageOpDto.CropOp, ImageOpDto.CropOp.Builder> {
 
     /**
      * Constructor
@@ -171,4 +176,66 @@ public class CropOp extends ImageOp {
         return new CropOp( this );
     }
 
+    public ImageOpDto.CropOp.Builder getBuilder() {
+        return ImageOpDto.CropOp.newBuilder().setMaxx( maxx ).setMaxy( maxy ).
+                setMinx( minx).setMiny( miny ).setRot( rot );
+    }
+
+    CropOp( ImageOpDto.CropOp d ) {
+        setMaxX( d.getMaxx() );
+        setMaxY( d.getMaxy() );
+        setMinX( d.getMinx() );
+        setMinY( d.getMiny() );
+        setRot( d.getRot() );
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !( o instanceof CropOp ) ) {
+            return false;
+        }
+        CropOp other = (CropOp) o;
+        return ( this.maxx == other.maxx 
+                && this.minx == other.minx 
+                && this.maxy == other.maxy 
+                && this.miny == other.miny 
+                && this.rot == other.rot );
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash =
+                89 * hash +
+                (int) (Double.doubleToLongBits( this.rot ) ^
+                (Double.doubleToLongBits( this.rot ) >>> 32));
+        hash =
+                89 * hash +
+                (int) (Double.doubleToLongBits( this.minx ) ^
+                (Double.doubleToLongBits( this.minx ) >>> 32));
+        hash =
+                89 * hash +
+                (int) (Double.doubleToLongBits( this.maxx ) ^
+                (Double.doubleToLongBits( this.maxx ) >>> 32));
+        hash =
+                89 * hash +
+                (int) (Double.doubleToLongBits( this.miny ) ^
+                (Double.doubleToLongBits( this.miny ) >>> 32));
+        hash =
+                89 * hash +
+                (int) (Double.doubleToLongBits( this.maxy ) ^
+                (Double.doubleToLongBits( this.maxy ) >>> 32));
+        return hash;
+    }
+   public static class ProtobufConv implements ProtobufConverter<CropOp> {
+
+        public Message createMessage( CropOp obj ) {
+            return obj.getBuilder().build();
+        }
+
+        public CropOp createObject( Message msg ) {
+            return new CropOp( (ImageOpDto.CropOp) msg );
+        }
+
+    }
 }
