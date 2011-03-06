@@ -34,6 +34,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -1494,6 +1495,7 @@ public class PhotoInfo implements PhotoEditor {
     @ValueField
     @Column( name="processing", length=1000000 )
     @Type(type="org.photovault.persistence.ImageOpChainUserType")
+    @Lob
     public ImageOpChain getProcessing() {
         return processing;
     }
@@ -1502,6 +1504,19 @@ public class PhotoInfo implements PhotoEditor {
         processing = proc;
         invalidateThumbnail();
         modified();
+    }
+    
+    @Column( name="debug_processing_text", length=1000000 )
+    @Lob
+    public String getDebugProcessingString() {
+        if ( processing == null ) {
+            return null;
+        }
+        return processing.getBuilder().build().toString();
+    }
+
+    public void setDebugProcessingString( String str ) {
+
     }
     
     @Transient

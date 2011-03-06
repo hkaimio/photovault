@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 
+import javax.persistence.Lob;
 import java.awt.geom.Rectangle2D;
 import java.util.EnumSet;
 import javax.persistence.CascadeType;
@@ -84,7 +85,18 @@ public class CopyImageDescriptor extends ImageDescriptorBase {
         processing = chain;
     }
 
+    @Column( name="debug_processing_text", length=1000000 )
+    @Lob
+    public String getDebugProcessingString() {
+        if ( processing == null ) {
+            return null;
+        }
+        return processing.getBuilder().build().toString();
+    }
 
+    public void setDebugProcessingString( String str ) {
+
+    }
 
     @Transient
     public Rectangle2D getCropArea() {

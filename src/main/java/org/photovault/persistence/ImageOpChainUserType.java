@@ -5,8 +5,12 @@
 
 package org.photovault.persistence;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +21,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.tool.ant.HibernateToolTask;
 import org.hibernate.usertype.UserType;
 import org.photovault.image.ImageOpChain;
+import org.photovault.image.ImageOpDto;
 
 /**
  *
@@ -24,7 +29,7 @@ import org.photovault.image.ImageOpChain;
  */
 public class ImageOpChainUserType implements UserType {
 
-    static private int[] types = { Types.CLOB };
+    static private int[] types = { Types.BLOB };
 
     public int[] sqlTypes() {
         return types;
@@ -50,21 +55,22 @@ public class ImageOpChainUserType implements UserType {
 
     public Object nullSafeGet( ResultSet rs, String[] names, Object owner )
             throws HibernateException, SQLException {
-        Clob clob = rs.getClob( names[0] );
-        String xml = clob.getSubString( 1,(int) clob.length());
-        return ImageOpChain.fromXml( xml );
-
-        
+        Blob blob = rs.getBlob( names[0] );
+        ImageOpDto.ImageOpChain icp = null;
+        try {
+            icp = ImageOpDto.ImageOpChain.parseFrom( blob.getBinaryStream() );
+        } catch ( IOException e ) {
+            throw new HibernateException( e );
+        }
+        return new ImageOpChain( icp );
     }
 
     public void nullSafeSet( PreparedStatement stmt, Object value, int index )
             throws HibernateException, SQLException {
-        String xml = "";
-        if ( value != null ) {
-            xml = ((ImageOpChain)value).getAsXml();
-        }
-        StringReader r = new StringReader( xml );
-        stmt.setCharacterStream( index, r );
+        ImageOpChain chain = (ImageOpChain) value;
+        byte data[] = chain.getBuilder().build().toByteArray();
+        InputStream is = new ByteArrayInputStream( data );
+        stmt.setBlob( index, is );
     }
 
     public Object deepCopy( Object obj ) throws HibernateException {
