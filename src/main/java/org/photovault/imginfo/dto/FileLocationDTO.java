@@ -33,8 +33,8 @@ import org.photovault.common.ProtobufHelper;
 import org.photovault.common.ProtobufSupport;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.FileLocation;
+import org.photovault.imginfo.Volume;
 import org.photovault.imginfo.VolumeBase;
-import org.photovault.imginfo.dto.ImageProtos.Volume;
 
 /**
  * Data transfer object that describes {@link FileLocation}
@@ -122,7 +122,7 @@ public class FileLocationDTO
     }
 
     public ImageProtos.FileLocation.Builder getBuilder() {
-        Volume.Builder vb = ImageProtos.Volume.newBuilder();
+        ImageProtos.Volume.Builder vb = ImageProtos.Volume.newBuilder();
         vb.setUuid( ProtobufHelper.uuidBuf( volumeId ) );
         if ( volumeType.equals( Volume.class.getName() ) ) {
             vb.setType( ImageProtos.VolumeType.TRAD );

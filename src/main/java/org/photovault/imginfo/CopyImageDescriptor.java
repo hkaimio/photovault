@@ -33,7 +33,8 @@ import org.hibernate.annotations.Type;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ImageOpChain;
-
+import org.photovault.imginfo.dto.ImageProtos;
+import static org.photovault.common.ProtobufHelper.*;
 /**
  * CopyImageDescriptor describes the properties a a single image that is stored in an
  * image file.
@@ -54,6 +55,16 @@ public class CopyImageDescriptor extends ImageDescriptorBase {
         super( f, locator );
         this.original = orig;
         orig.copies.add( this );
+    }
+
+    public CopyImageDescriptor( ImageFile f, ImageProtos.Image ip, OriginalImageDescriptor orig ) {
+        super( f, ip );
+        if ( ip.getType() != ImageProtos.ImageType.COPY ) {
+            throw new IllegalStateException( "Cannot create a copy image from original." );
+        }
+
+        this.original = orig;
+        this.processing = new ImageOpChain( ip.getProcessing() );
     }
 
     /**

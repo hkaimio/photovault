@@ -3225,6 +3225,471 @@ public final class ImageProtos {
     // @@protoc_insertion_point(class_scope:TimeRange)
   }
   
+  public static final class PhotovaultData extends
+      com.google.protobuf.GeneratedMessage {
+    // Use PhotovaultData.newBuilder() to construct.
+    private PhotovaultData() {
+      initFields();
+    }
+    private PhotovaultData(boolean noInit) {}
+    
+    private static final PhotovaultData defaultInstance;
+    public static PhotovaultData getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public PhotovaultData getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_PhotovaultData_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_PhotovaultData_fieldAccessorTable;
+    }
+    
+    // optional string comment = 1;
+    public static final int COMMENT_FIELD_NUMBER = 1;
+    private boolean hasComment;
+    private java.lang.String comment_ = "";
+    public boolean hasComment() { return hasComment; }
+    public java.lang.String getComment() { return comment_; }
+    
+    // repeated .ImageFile files = 2;
+    public static final int FILES_FIELD_NUMBER = 2;
+    private java.util.List<org.photovault.imginfo.dto.ImageProtos.ImageFile> files_ =
+      java.util.Collections.emptyList();
+    public java.util.List<org.photovault.imginfo.dto.ImageProtos.ImageFile> getFilesList() {
+      return files_;
+    }
+    public int getFilesCount() { return files_.size(); }
+    public org.photovault.imginfo.dto.ImageProtos.ImageFile getFiles(int index) {
+      return files_.get(index);
+    }
+    
+    // repeated .ChangeEnvelope changes = 3;
+    public static final int CHANGES_FIELD_NUMBER = 3;
+    private java.util.List<org.photovault.replication.ChangeProtos.ChangeEnvelope> changes_ =
+      java.util.Collections.emptyList();
+    public java.util.List<org.photovault.replication.ChangeProtos.ChangeEnvelope> getChangesList() {
+      return changes_;
+    }
+    public int getChangesCount() { return changes_.size(); }
+    public org.photovault.replication.ChangeProtos.ChangeEnvelope getChanges(int index) {
+      return changes_.get(index);
+    }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      for (org.photovault.imginfo.dto.ImageProtos.ImageFile element : getFilesList()) {
+        if (!element.isInitialized()) return false;
+      }
+      for (org.photovault.replication.ChangeProtos.ChangeEnvelope element : getChangesList()) {
+        if (!element.isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasComment()) {
+        output.writeString(1, getComment());
+      }
+      for (org.photovault.imginfo.dto.ImageProtos.ImageFile element : getFilesList()) {
+        output.writeMessage(2, element);
+      }
+      for (org.photovault.replication.ChangeProtos.ChangeEnvelope element : getChangesList()) {
+        output.writeMessage(3, element);
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasComment()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(1, getComment());
+      }
+      for (org.photovault.imginfo.dto.ImageProtos.ImageFile element : getFilesList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, element);
+      }
+      for (org.photovault.replication.ChangeProtos.ChangeEnvelope element : getChangesList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, element);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.PhotovaultData parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.photovault.imginfo.dto.ImageProtos.PhotovaultData prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private org.photovault.imginfo.dto.ImageProtos.PhotovaultData result;
+      
+      // Construct using org.photovault.imginfo.dto.ImageProtos.PhotovaultData.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new org.photovault.imginfo.dto.ImageProtos.PhotovaultData();
+        return builder;
+      }
+      
+      protected org.photovault.imginfo.dto.ImageProtos.PhotovaultData internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new org.photovault.imginfo.dto.ImageProtos.PhotovaultData();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.photovault.imginfo.dto.ImageProtos.PhotovaultData.getDescriptor();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.PhotovaultData getDefaultInstanceForType() {
+        return org.photovault.imginfo.dto.ImageProtos.PhotovaultData.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.PhotovaultData build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private org.photovault.imginfo.dto.ImageProtos.PhotovaultData buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.PhotovaultData buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.files_ != java.util.Collections.EMPTY_LIST) {
+          result.files_ =
+            java.util.Collections.unmodifiableList(result.files_);
+        }
+        if (result.changes_ != java.util.Collections.EMPTY_LIST) {
+          result.changes_ =
+            java.util.Collections.unmodifiableList(result.changes_);
+        }
+        org.photovault.imginfo.dto.ImageProtos.PhotovaultData returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.photovault.imginfo.dto.ImageProtos.PhotovaultData) {
+          return mergeFrom((org.photovault.imginfo.dto.ImageProtos.PhotovaultData)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(org.photovault.imginfo.dto.ImageProtos.PhotovaultData other) {
+        if (other == org.photovault.imginfo.dto.ImageProtos.PhotovaultData.getDefaultInstance()) return this;
+        if (other.hasComment()) {
+          setComment(other.getComment());
+        }
+        if (!other.files_.isEmpty()) {
+          if (result.files_.isEmpty()) {
+            result.files_ = new java.util.ArrayList<org.photovault.imginfo.dto.ImageProtos.ImageFile>();
+          }
+          result.files_.addAll(other.files_);
+        }
+        if (!other.changes_.isEmpty()) {
+          if (result.changes_.isEmpty()) {
+            result.changes_ = new java.util.ArrayList<org.photovault.replication.ChangeProtos.ChangeEnvelope>();
+          }
+          result.changes_.addAll(other.changes_);
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              setComment(input.readString());
+              break;
+            }
+            case 18: {
+              org.photovault.imginfo.dto.ImageProtos.ImageFile.Builder subBuilder = org.photovault.imginfo.dto.ImageProtos.ImageFile.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addFiles(subBuilder.buildPartial());
+              break;
+            }
+            case 26: {
+              org.photovault.replication.ChangeProtos.ChangeEnvelope.Builder subBuilder = org.photovault.replication.ChangeProtos.ChangeEnvelope.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addChanges(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // optional string comment = 1;
+      public boolean hasComment() {
+        return result.hasComment();
+      }
+      public java.lang.String getComment() {
+        return result.getComment();
+      }
+      public Builder setComment(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasComment = true;
+        result.comment_ = value;
+        return this;
+      }
+      public Builder clearComment() {
+        result.hasComment = false;
+        result.comment_ = getDefaultInstance().getComment();
+        return this;
+      }
+      
+      // repeated .ImageFile files = 2;
+      public java.util.List<org.photovault.imginfo.dto.ImageProtos.ImageFile> getFilesList() {
+        return java.util.Collections.unmodifiableList(result.files_);
+      }
+      public int getFilesCount() {
+        return result.getFilesCount();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.ImageFile getFiles(int index) {
+        return result.getFiles(index);
+      }
+      public Builder setFiles(int index, org.photovault.imginfo.dto.ImageProtos.ImageFile value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.files_.set(index, value);
+        return this;
+      }
+      public Builder setFiles(int index, org.photovault.imginfo.dto.ImageProtos.ImageFile.Builder builderForValue) {
+        result.files_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addFiles(org.photovault.imginfo.dto.ImageProtos.ImageFile value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.files_.isEmpty()) {
+          result.files_ = new java.util.ArrayList<org.photovault.imginfo.dto.ImageProtos.ImageFile>();
+        }
+        result.files_.add(value);
+        return this;
+      }
+      public Builder addFiles(org.photovault.imginfo.dto.ImageProtos.ImageFile.Builder builderForValue) {
+        if (result.files_.isEmpty()) {
+          result.files_ = new java.util.ArrayList<org.photovault.imginfo.dto.ImageProtos.ImageFile>();
+        }
+        result.files_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllFiles(
+          java.lang.Iterable<? extends org.photovault.imginfo.dto.ImageProtos.ImageFile> values) {
+        if (result.files_.isEmpty()) {
+          result.files_ = new java.util.ArrayList<org.photovault.imginfo.dto.ImageProtos.ImageFile>();
+        }
+        super.addAll(values, result.files_);
+        return this;
+      }
+      public Builder clearFiles() {
+        result.files_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // repeated .ChangeEnvelope changes = 3;
+      public java.util.List<org.photovault.replication.ChangeProtos.ChangeEnvelope> getChangesList() {
+        return java.util.Collections.unmodifiableList(result.changes_);
+      }
+      public int getChangesCount() {
+        return result.getChangesCount();
+      }
+      public org.photovault.replication.ChangeProtos.ChangeEnvelope getChanges(int index) {
+        return result.getChanges(index);
+      }
+      public Builder setChanges(int index, org.photovault.replication.ChangeProtos.ChangeEnvelope value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.changes_.set(index, value);
+        return this;
+      }
+      public Builder setChanges(int index, org.photovault.replication.ChangeProtos.ChangeEnvelope.Builder builderForValue) {
+        result.changes_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addChanges(org.photovault.replication.ChangeProtos.ChangeEnvelope value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.changes_.isEmpty()) {
+          result.changes_ = new java.util.ArrayList<org.photovault.replication.ChangeProtos.ChangeEnvelope>();
+        }
+        result.changes_.add(value);
+        return this;
+      }
+      public Builder addChanges(org.photovault.replication.ChangeProtos.ChangeEnvelope.Builder builderForValue) {
+        if (result.changes_.isEmpty()) {
+          result.changes_ = new java.util.ArrayList<org.photovault.replication.ChangeProtos.ChangeEnvelope>();
+        }
+        result.changes_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllChanges(
+          java.lang.Iterable<? extends org.photovault.replication.ChangeProtos.ChangeEnvelope> values) {
+        if (result.changes_.isEmpty()) {
+          result.changes_ = new java.util.ArrayList<org.photovault.replication.ChangeProtos.ChangeEnvelope>();
+        }
+        super.addAll(values, result.changes_);
+        return this;
+      }
+      public Builder clearChanges() {
+        result.changes_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:PhotovaultData)
+    }
+    
+    static {
+      defaultInstance = new PhotovaultData(true);
+      org.photovault.imginfo.dto.ImageProtos.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:PhotovaultData)
+  }
+  
   public static final int IMAGE_FIELD_NUMBER = 100;
   public static final
     com.google.protobuf.GeneratedMessage.GeneratedExtension<
@@ -3351,6 +3816,11 @@ public final class ImageProtos {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_TimeRange_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_PhotovaultData_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_PhotovaultData_fieldAccessorTable;
   
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -3378,24 +3848,26 @@ public final class ImageProtos {
       "\006volume\030\001 \002(\0132\007.Volume\022\014\n\004path\030\002 \002(\t\022\032\n\022" +
       "last_modified_time\030\003 \001(\004\"<\n\tTimeRange\022\025\n" +
       "\rmidpoint_msec\030\001 \002(\003\022\030\n\raccuracy_msec\030\002 " +
-      "\002(\004:\0010*#\n\tImageType\022\014\n\010ORIGINAL\020\001\022\010\n\004COP" +
-      "Y\020\002*$\n\nVolumeType\022\014\n\010EXTERNAL\020\001\022\010\n\004TRAD\020",
-      "\002:#\n\005image\022\014.ValueChange\030d \001(\0132\006.Image:," +
-      "\n\nimafe_file\022\014.ValueChange\030e \001(\0132\n.Image" +
-      "File:*\n\timage_ref\022\014.ValueChange\030f \001(\0132\t." +
-      "ImageRef:%\n\006volume\022\014.ValueChange\030g \001(\0132\007" +
-      ".Volume:2\n\rfile_location\022\014.ValueChange\030h" +
-      " \001(\0132\r.FileLocation:3\n\016image_op_chain\022\014." +
-      "ValueChange\030i \001(\0132\r.ImageOpChain:(\n\010dcra" +
-      "w_op\022\014.ValueChange\030j \001(\0132\010.DCRawOp:-\n\nra" +
-      "w_map_op\022\014.ValueChange\030k \001(\0132\013.DCRawMapO" +
-      "p:-\n\013chan_map_op\022\014.ValueChange\030l \001(\0132\n.C",
-      "hanMapOp:&\n\007crop_op\022\014.ValueChange\030m \001(\0132" +
-      "\007.CropOp:.\n\013color_curve\022\014.ValueChange\030n " +
-      "\001(\0132\013.ColorCurve:,\n\ntime_range\022\014.ValueCh" +
-      "ange\030o \001(\0132\n.TimeRange:,\n\nfolder_ref\022\014.V" +
-      "alueChange\030p \001(\0132\n.FolderRefB\037\n\032org.phot" +
-      "ovault.imginfo.dto\210\001\000"
+      "\002(\004:\0010\"^\n\016PhotovaultData\022\017\n\007comment\030\001 \001(" +
+      "\t\022\031\n\005files\030\002 \003(\0132\n.ImageFile\022 \n\007changes\030",
+      "\003 \003(\0132\017.ChangeEnvelope*#\n\tImageType\022\014\n\010O" +
+      "RIGINAL\020\001\022\010\n\004COPY\020\002*$\n\nVolumeType\022\014\n\010EXT" +
+      "ERNAL\020\001\022\010\n\004TRAD\020\002:#\n\005image\022\014.ValueChange" +
+      "\030d \001(\0132\006.Image:,\n\nimafe_file\022\014.ValueChan" +
+      "ge\030e \001(\0132\n.ImageFile:*\n\timage_ref\022\014.Valu" +
+      "eChange\030f \001(\0132\t.ImageRef:%\n\006volume\022\014.Val" +
+      "ueChange\030g \001(\0132\007.Volume:2\n\rfile_location" +
+      "\022\014.ValueChange\030h \001(\0132\r.FileLocation:3\n\016i" +
+      "mage_op_chain\022\014.ValueChange\030i \001(\0132\r.Imag" +
+      "eOpChain:(\n\010dcraw_op\022\014.ValueChange\030j \001(\013",
+      "2\010.DCRawOp:-\n\nraw_map_op\022\014.ValueChange\030k" +
+      " \001(\0132\013.DCRawMapOp:-\n\013chan_map_op\022\014.Value" +
+      "Change\030l \001(\0132\n.ChanMapOp:&\n\007crop_op\022\014.Va" +
+      "lueChange\030m \001(\0132\007.CropOp:.\n\013color_curve\022" +
+      "\014.ValueChange\030n \001(\0132\013.ColorCurve:,\n\ntime" +
+      "_range\022\014.ValueChange\030o \001(\0132\n.TimeRange:," +
+      "\n\nfolder_ref\022\014.ValueChange\030p \001(\0132\n.Folde" +
+      "rRefB\037\n\032org.photovault.imginfo.dto\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -3458,6 +3930,14 @@ public final class ImageProtos {
               new java.lang.String[] { "MidpointMsec", "AccuracyMsec", },
               org.photovault.imginfo.dto.ImageProtos.TimeRange.class,
               org.photovault.imginfo.dto.ImageProtos.TimeRange.Builder.class);
+          internal_static_PhotovaultData_descriptor =
+            getDescriptor().getMessageTypes().get(7);
+          internal_static_PhotovaultData_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_PhotovaultData_descriptor,
+              new java.lang.String[] { "Comment", "Files", "Changes", },
+              org.photovault.imginfo.dto.ImageProtos.PhotovaultData.class,
+              org.photovault.imginfo.dto.ImageProtos.PhotovaultData.Builder.class);
           org.photovault.imginfo.dto.ImageProtos.image.internalInit(
               org.photovault.imginfo.dto.ImageProtos.getDescriptor().getExtensions().get(0),
               org.photovault.imginfo.dto.ImageProtos.Image.class);

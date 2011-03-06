@@ -22,7 +22,6 @@ package org.photovault.imginfo.dto;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
-import com.google.protobuf.Message.Builder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
@@ -40,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import javax.media.jai.ImageLayout;
-import org.photovault.common.ProtobufConverter;
 import org.photovault.common.ProtobufHelper;
 import org.photovault.common.ProtobufSupport;
 import org.photovault.common.Types;

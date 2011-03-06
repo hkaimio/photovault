@@ -21,6 +21,9 @@
 package org.photovault.swingui;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +33,7 @@ import javax.swing.ImageIcon;
 import javax.swing.KeyStroke;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.imginfo.DataExporter;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.replication.Change;
 import org.photovault.replication.ObjectHistory;
@@ -87,6 +91,15 @@ public class ShowPhotoHistoryAction extends AbstractAction
                 printChange( buf, head, processedChanges );
             }
             log.debug( buf.toString() );
+            File f = new File( "/tmp/" + p.getUuid() + ".pve" );
+            try {
+                FileOutputStream os = new FileOutputStream( f );
+                DataExporter ex = new DataExporter();
+                ex.exportPhotoProtobuf( os, p );
+                os.close();
+            } catch ( IOException e ) {
+                log.error( e );
+            }
         }
     }
 

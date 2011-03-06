@@ -28,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Vector;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
@@ -70,7 +71,7 @@ class ImportXMLAction extends AbstractAction implements XmlImportListener {
                 @Override
                 public void run() {
                     Session s = null;
-                    ObjectInputStream is = null;
+                    InputStream is = null;
                     try {
                         s = HibernateUtil.getSessionFactory().openSession();
                         HibernateDAOFactory df =
@@ -78,7 +79,8 @@ class ImportXMLAction extends AbstractAction implements XmlImportListener {
                         df.setSession( s );
 
                         DataExporter exporter = new DataExporter();
-                        exporter.importChanges( f, df );
+                        is = new FileInputStream( f );
+                        exporter.importChangesProtobuf( is, df );
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     } finally {

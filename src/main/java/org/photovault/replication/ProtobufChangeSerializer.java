@@ -74,6 +74,7 @@ public class ProtobufChangeSerializer implements ChangeSerializer {
         ChangeProtos.Change ch = null;
         try {
             ch = ChangeProtos.Change.parseFrom( serialized, extensions );
+            log.debug(  "Deserialized change " + ch);
         } catch ( InvalidProtocolBufferException ex ) {
             return null;
         }
@@ -162,7 +163,7 @@ public class ProtobufChangeSerializer implements ChangeSerializer {
         }
         if ( lastChange == null || !field.equals( lastChange.getName() ) ) {
             // this is the first property for a new field
-            ch = new ValueChange( fname, null );
+            ch = new ValueChange( field );
         }
         Object val = msgToValueChange( vcp );
         ch.addPropChange( prop, val );

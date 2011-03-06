@@ -20,14 +20,16 @@
 
 package org.photovault.imginfo;
 
+import com.google.protobuf.ByteString;
+import com.google.protobuf.ExtensionRegistry;
 import com.thoughtworks.xstream.XStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,16 +37,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import javax.tools.FileObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.photovault.common.ProtobufHelper;
 import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.image.ImageOpChain;
@@ -53,25 +54,25 @@ import org.photovault.imginfo.dto.FileLocationDTO;
 import org.photovault.imginfo.dto.ImageDescriptorDTO;
 import org.photovault.imginfo.dto.ImageFileDTO;
 import org.photovault.imginfo.dto.ImageFileDtoResolver;
+import org.photovault.imginfo.dto.ImageFileProtobufResolver;
 import org.photovault.imginfo.dto.ImageFileXmlConverter;
+import org.photovault.imginfo.dto.ImageProtos;
 import org.photovault.imginfo.dto.OrigImageDescriptorDTO;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.dto.PhotoChangeSerializer;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.GenericDAO;
 import org.photovault.persistence.HibernateDAOFactory;
-import org.photovault.persistence.HibernateUtil;
 import org.photovault.replication.Change;
 import org.photovault.replication.ChangeDTO;
 import org.photovault.replication.ChangeFactory;
-import org.photovault.replication.DTOResolver;
+import org.photovault.replication.ChangeProtos;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.FieldConflictBase;
 import org.photovault.replication.ObjectHistory;
 import org.photovault.replication.ObjectHistoryDTO;
 import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.replication.XStreamChangeSerializer;
-import org.photovault.swingui.PhotoInfoEditor;
 
 /**
  * Export or import the contents of a Photovault database history.
@@ -84,6 +85,38 @@ public class DataExporter {
     Log log = LogFactory.getLog( DataExporter.class );
 
     public void DataExporter() {
+    }
+
+    public void exportPhotoProtobuf( FileOutputStream os, PhotoInfo p ) throws FileNotFoundException, IOException {
+        ImageProtos.PhotovaultData.Builder d =
+                ImageProtos.PhotovaultData.newBuilder();
+        Set<UUID> fileIds = new HashSet();
+        OriginalImageDescriptor orig = p.getOriginal();
+        ImageFile origFile = orig.getFile();
+        fileIds.add( origFile.getId() );
+        ImageFileDTO fdto = new ImageFileDTO( origFile );
+        d.addFiles( fdto.getBuilder() );
+        for ( CopyImageDescriptor copy : orig.getCopies() ) {
+            ImageFile copyFile = copy.getFile();
+            if ( !fileIds.contains( copyFile.getId() ) ) {
+                fdto = new ImageFileDTO( copyFile );
+                d.addFiles( fdto.getBuilder() );
+                fileIds.add(  copyFile.getId() );
+            }
+        }
+
+        // Add the change history
+        ObjectHistoryDTO<PhotoInfo> h = new ObjectHistoryDTO( p.getHistory() );
+        for ( ChangeDTO ch : h.getChanges() ) {
+            ChangeProtos.ChangeEnvelope.Builder chEnv =
+                    ChangeProtos.ChangeEnvelope.newBuilder();
+            chEnv.setChangeId( ProtobufHelper.uuidBuf( ch.getChangeUuid() ) );
+            chEnv.setCreateTime( System.currentTimeMillis() );
+            chEnv.setSerializedChange( ByteString.copyFrom( ch.getXmlData() ) );
+            d.addChanges( chEnv );
+        }
+
+        d.build().writeTo( os );
     }
 
     public void exportPhotos( File zipFile, DAOFactory df ) throws FileNotFoundException, IOException {
@@ -343,6 +376,75 @@ public class DataExporter {
             }
         }
     }
+
+    public void importChangesProtobuf( InputStream is, DAOFactory df )
+            throws IOException {
+        DTOResolverFactory drf = df.getDTOResolverFactory();
+        ImageFileProtobufResolver fdr = (ImageFileProtobufResolver) drf.getResolver(
+                ImageFileProtobufResolver.class );
+        Session s = null;
+        if ( df instanceof HibernateDAOFactory ) {
+            s = ((HibernateDAOFactory) df).getSession();
+        }
+
+        ImageProtos.PhotovaultData d =
+                ImageProtos.PhotovaultData.parseFrom( is );
+        while ( d != null ) {
+            for ( ImageProtos.ImageFile fp : d.getFilesList() ) {
+                log.debug( "Importing file " + fp );
+                Transaction tx = null;
+                if ( s != null ) {
+                    tx = s.beginTransaction();
+                }
+                fdr.getObjectFromDto( fp );
+                if ( tx != null ) {
+                    s.flush();
+                    tx.commit();
+                    s.clear();
+                }
+            }
+
+            ObjectHistoryDTO h = null;
+            UUID targetId= null;
+            Class targetClass = null;
+            for ( ChangeProtos.ChangeEnvelope cep : d.getChangesList() ) {
+                log.debug( "Importing new change " + cep );
+                ChangeProtos.Change chp =
+                        ChangeProtos.Change.parseFrom(cep.getSerializedChange() );
+                UUID newTargetId = ProtobufHelper.uuid( chp.getTargetUUID() );
+                if ( !newTargetId.equals( targetId ) ) {
+                    if ( h != null ) {
+                        addHistory( h, df );
+                    }
+                    try {
+                        targetId = newTargetId;
+                        targetClass = Class.forName(
+                                chp.getTargetClassName() );
+                        h = new ObjectHistoryDTO( targetClass, targetId );
+                    } catch ( ClassNotFoundException e ) {
+                        log.error( "Cannot find class "
+                                + chp.getTargetClassName() );
+                        h = null;
+                        continue;
+                    }
+                }
+                ChangeDTO dto = ChangeDTO.createChange(
+                        cep.getSerializedChange().toByteArray(), targetClass );
+                if ( !dto.calcUuid().equals( ProtobufHelper.uuid( cep.getChangeId() ) ) ) {
+                    log.error( "UUID in change envelope ("
+                            + ProtobufHelper.uuid( cep.getChangeId() )
+                            + ") does not match change hash " + dto.calcUuid() );
+                    continue;
+                }
+                h.addChange( dto );
+            }
+            if ( h != null ) {
+                addHistory( h, df );
+            }
+            d = ImageProtos.PhotovaultData.parseFrom( is );
+        }
+    }
+
 
     /**
      * Reads a zip file entry into byte array

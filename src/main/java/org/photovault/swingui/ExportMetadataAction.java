@@ -32,6 +32,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import org.hibernate.Session;
 import org.photovault.imginfo.DataExporter;
+import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.xml.XmlExportListener;
 import org.photovault.imginfo.xml.XmlExporter;
 import org.photovault.persistence.DAOFactory;
@@ -67,7 +69,7 @@ class ExportMetadataAction extends AbstractAction implements XmlExportListener {
                 @Override
                 public void run() {
                     Session s = null;
-                    ObjectOutputStream os = null;
+                    FileOutputStream os = null;
                     try {
                         s = HibernateUtil.getSessionFactory().openSession();
                         HibernateDAOFactory df =
@@ -79,7 +81,13 @@ class ExportMetadataAction extends AbstractAction implements XmlExportListener {
                         xmlExportStatus( null, XmlExporter.EXPORTER_STATE_EXPORTING_FOLDERS );
                         // exporter.exportFolders( os, df );
                         xmlExportStatus( null, XmlExporter.EXPORTER_STATE_EXPORTING_PHOTOS );
-                        exporter.exportPhotos( f, df );
+
+                        PhotoInfoDAO photoDao = df.getPhotoInfoDAO();
+                        os = new FileOutputStream( f );
+                        for ( PhotoInfo p : photoDao.findAll() ) {
+                            exporter.exportPhotoProtobuf( os, p );
+                        }
+                        // exporter.exportPhotos( f, df );
                         xmlExportStatus( null, XmlExporter.EXPORTER_STATE_COMPLETED );
 
                     } catch (IOException ex) {

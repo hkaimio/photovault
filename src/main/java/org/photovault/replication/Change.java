@@ -682,15 +682,17 @@ public class Change<T> {
             buf.append(  "\n" );
         }
         buf.append( "Changed fields:\n" );
-        if ( changedFields.size() == 0 ) {
+        if ( changedFields == null || changedFields.isEmpty() ) {
             buf.append( "  None\n" );
-        }
-        for ( Map.Entry<String,FieldChange> fc : this.changedFields.entrySet() ) {
-            buf.append( "  " );
-            buf.append( fc.getKey() );
-            buf.append( " -> " );
-            buf.append( fc.getValue() );
-            buf.append(  "\n" );
+        } else {
+            for ( Map.Entry<String, FieldChange> fc : this.changedFields.
+                    entrySet() ) {
+                buf.append( "  " );
+                buf.append( fc.getKey() );
+                buf.append( " -> " );
+                buf.append( fc.getValue() );
+                buf.append( "\n" );
+            }
         }
         return buf.toString();
     }

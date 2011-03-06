@@ -92,12 +92,7 @@ public class CreateExternalVolume extends DataAccessCommand {
                     database instance, so we can just persist it here
                      */
                     volume = (ExternalVolume) volDAO.makePersistent( tv );
-                } else {
-                    // This volume is already indexed in this database
-                    throw new CommandException(
-                            String.format( "%s is already an external volume!", 
-                            basedir.getAbsolutePath() ) );
-                }
+                } 
             } else {
                 /*
                 This is a new volume, not previously indexed

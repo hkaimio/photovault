@@ -20,6 +20,8 @@
 
 package org.photovault.imginfo;
 
+import com.google.protobuf.ByteString;
+import org.photovault.imginfo.dto.ImageProtos;
 import org.photovault.imginfo.dto.ImageFileDtoResolver;
 import org.photovault.imginfo.dto.ImageFileDTO;
 import java.awt.geom.Rectangle2D;
@@ -39,6 +41,7 @@ import org.photovault.common.PhotovaultException;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
+import org.photovault.imginfo.dto.ImageFileProtobufResolver;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
@@ -49,6 +52,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.*;
+import static org.photovault.common.ProtobufHelper.*;
 
 
 /**
@@ -407,6 +411,61 @@ public class Test_ImageFile extends PhotovaultTestCase {
     @Test( enabled = false )
     public void testPhotoDeleteMultiplePhotosForOriginal() {
         throw new UnsupportedOperationException( "Photo deletion not yet implemented" );        
+    }
+
+    @Test
+    public void testProtobufImageFile() {
+        ImageProtos.ImageFile.Builder fb = ImageProtos.ImageFile.newBuilder();
+        UUID fileId1 = UUID.randomUUID();
+        fb.setUuid( uuidBuf( fileId1 ) );
+        fb.setMd5Hash( ByteString.EMPTY );
+        fb.setSize( 100000 );
+        ImageProtos.Volume.Builder vb = ImageProtos.Volume.newBuilder();
+        vb.setType( ImageProtos.VolumeType.EXTERNAL );
+        vb.setUuid( uuidBuf( vol2.getId() ) );
+        ImageProtos.Volume v = vb.build();
+        ImageProtos.FileLocation.Builder lb = ImageProtos.FileLocation.newBuilder();
+        lb.setVolume( v );
+        lb.setPath( "/test/test.jpg" );
+        fb.addLocations( lb );
+
+        // Create some images
+        ImageProtos.Image.Builder ib = ImageProtos.Image.newBuilder();
+        ib.setType( ImageProtos.ImageType.ORIGINAL );
+        ib.setHeight( 100 );
+        ib.setWidth( 200 );
+        ib.setLocator( "image#1" );
+        fb.addImages( ib );
+
+        // File 2
+        ImageProtos.ImageFile.Builder fb2 = ImageProtos.ImageFile.newBuilder();
+        UUID fileId2 = UUID.randomUUID();
+        fb2.setUuid( uuidBuf( fileId2 ) )
+                .setMd5Hash( ByteString.EMPTY )
+                .setSize( 20000 )
+                .addLocations( ImageProtos.FileLocation.newBuilder()
+                     .setVolume( v )
+                     .setPath( "/test/test2.jpg"));
+        ib = ImageProtos.Image.newBuilder();
+        ib.setType( ImageProtos.ImageType.COPY );
+        ib.setHeight( 200 );
+        ib.setWidth( 300 );
+        ib.setLocator( "image#2" );
+        ImageProtos.ImageRef.Builder irp = ImageProtos.ImageRef.newBuilder();
+        irp.setFileUuid( uuidBuf( fileId1 ) );
+        irp.setLocator( "image#1" );
+        ib.setOriginal( irp );
+        fb2.addImages( ib );
+
+        ImageFileProtobufResolver resolver = new ImageFileProtobufResolver( session );
+        ImageFile f = resolver.getObjectFromDto( fb.build() );
+        assertEquals( fileId1, f.getId() );
+        assertEquals( 1, f.getLocations().size() );
+        OriginalImageDescriptor orig = (OriginalImageDescriptor) f.getImage( "image#1" );
+        assertEquals( 100, orig.getHeight() );
+        ImageFile f2 = resolver.getObjectFromDto( fb2.build() );
+        CopyImageDescriptor copy = (CopyImageDescriptor) f2.getImage( "image#2" );
+        assertTrue( copy.getOriginal() == orig );
     }
     
     private void assertMatchesDb( ImageFile i, Session session ) {

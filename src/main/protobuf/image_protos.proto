@@ -81,6 +81,12 @@ message TimeRange {
     required uint64 accuracy_msec = 2 [default = 0];
 }
 
+message PhotovaultData {
+    optional string comment = 1;
+    repeated ImageFile files = 2;
+    repeated ChangeEnvelope changes = 3;
+}
+
 extend ValueChange {
     optional Image image = 100;
     optional ImageFile imafe_file = 101;

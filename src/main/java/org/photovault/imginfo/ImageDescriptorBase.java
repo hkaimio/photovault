@@ -34,6 +34,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import org.photovault.imginfo.dto.ImageProtos;
 
 /**
  * Image descriptors describe meta data about a single image known to Photovaut.
@@ -66,6 +67,16 @@ public class ImageDescriptorBase implements java.io.Serializable {
         file.images.put( locator, this );
     }
 
+    /**
+     * Constructor for creating ImageDescriptor from a Protobuf struct.
+     * @param f
+     * @param ip
+     */
+    public ImageDescriptorBase( ImageFile f, ImageProtos.Image ip ) {
+        this( f, ip.getLocator() );
+        this.height = ip.getHeight();
+        this.width = ip.getWidth();
+    }
 
     Long id;
     private UUID fileId;

@@ -27,6 +27,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import org.photovault.imginfo.dto.ImageProtos;
 
 /**
  *
@@ -45,6 +46,10 @@ public class OriginalImageDescriptor extends ImageDescriptorBase {
         super( f, locator );
     }
     
+    public OriginalImageDescriptor( ImageFile f, ImageProtos.Image ip ) {
+        super( f, ip );
+    }
+
     Set<CopyImageDescriptor> copies = new HashSet<CopyImageDescriptor>();
 
     @OneToMany( mappedBy="original", cascade  = { CascadeType.PERSIST, CascadeType.MERGE } )

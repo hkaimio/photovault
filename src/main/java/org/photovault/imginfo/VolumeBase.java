@@ -308,7 +308,7 @@ public abstract class VolumeBase {
      */
     @Transient
     public boolean isAvailable() {
-	return true;
+	return VolumeManager.instance().getVolumeMountPoint( this ) != null;
     }
     
     /**

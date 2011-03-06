@@ -64,6 +64,10 @@ final class ValueChange extends FieldChange implements Externalizable {
     public ValueChange() {
         super();
     }
+
+    public ValueChange( String name ) {
+        super( name );
+    }
     
     /**
      Constructor

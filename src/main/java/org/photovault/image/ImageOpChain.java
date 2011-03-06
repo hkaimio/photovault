@@ -27,9 +27,10 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.photovault.common.PhotovaultException;
 import org.photovault.imginfo.ProtobufConverter;
 import org.photovault.common.ProtobufSupport;
@@ -47,6 +48,8 @@ import org.photovault.image.ImageOpDto.ImageOpChain.Builder;
 public class ImageOpChain implements
         ProtobufSupport<ImageOpChain, ImageOpDto.ImageOpChain, ImageOpDto.ImageOpChain.Builder> {
 
+    static private Log log = LogFactory.getLog( ImageOpChain.class );
+    
     public ImageOpChain() {
     }
 
@@ -495,7 +498,12 @@ public class ImageOpChain implements
             b.addOperations( ob );
         }
 
-        b.setHead( head );
+        if ( head != null ) {
+            b.setHead( head );
+        } else {
+            log.debug( "Head missing" );
+            b.setHead( "" );
+        }
         for ( Map.Entry<String, String> e : sources.entrySet() ) {
             b.addLinks(
                     ImageOpDto.Link.newBuilder()

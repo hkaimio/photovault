@@ -69,7 +69,7 @@ public class ImageOpChainUserType implements UserType {
 
     public Object deepCopy( Object obj ) throws HibernateException {
         ImageOpChain chain = (ImageOpChain) obj;
-        return new ImageOpChain( chain );
+        return obj != null ? new ImageOpChain( chain ) : null;
     }
 
     public boolean isMutable() {
