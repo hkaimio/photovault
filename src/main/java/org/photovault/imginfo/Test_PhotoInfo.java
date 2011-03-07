@@ -481,7 +481,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
 	assertFalse( "Thumbnail exists, should not return default thumbnail",
 		     thumb == Thumbnail.getDefaultThumbnail() );
 
-        // Try to find the new thumbnail
+        // Try to find the new thumbnailTest_PhotoInfoChange
 	boolean foundThumbnail = false;
         OriginalImageDescriptor orig = photo.getOriginal();
         
@@ -764,6 +764,34 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         
     }
     
+    @Test
+    public void testTagging() throws InstantiationException, IllegalAccessException {
+	UUID photoId = UUID.randomUUID();
+        HibernateDtoResolverFactory rf = new HibernateDtoResolverFactory( session );
+        VersionedObjectEditor<PhotoInfo> pe = new VersionedObjectEditor(  PhotoInfo.class, photoId, rf );
+        photoDAO.makePersistent( pe.getTarget() );
+        session.flush();
+        session.clear();
+        PhotoInfo photo = null;
+        photo = photoDAO.findByUUID( photoId );
+        assertNotNull( photo );
+        pe = new VersionedObjectEditor<PhotoInfo>( photo, rf );
+        pe.addToSet( "tags", new Tag( "test1" ) );
+        pe.addToSet( "tags", new Tag( "animals", "giraffe" ) );
+        pe.apply();
+        session.flush();
+        session.clear();
+
+        photo = photoDAO.findByUUID( photoId );
+        assertNotNull( photo );
+        assertEquals( 2, photo.getTags().size() );
+        pe = new VersionedObjectEditor<PhotoInfo>( photo, rf );
+        pe.removeFromSet( "tags", new Tag( "test1" ) );
+        pe.apply();
+        assertEquals( 1, photo.getTags().size() );
+
+    }
+
     CommandHandler cmdHandler = new PhotovaultCommandHandler( null );
     
     PhotoInfo createPhoto( File f ) {

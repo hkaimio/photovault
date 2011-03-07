@@ -74,6 +74,7 @@ public class PvProtobufChangeSerializer extends ProtobufChangeSerializer {
                 new FuzzyDate.ProtobufConv() );
         registerConverter( ImageProtos.folderRef, FolderRefDTO.class,
                 new FolderRefDTO.ProtobufConv() );
+        registerConverter( ImageProtos.tag, Tag.class, new Tag.ProtobufConv() );
     }
 
     /**

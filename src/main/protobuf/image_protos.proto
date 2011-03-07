@@ -81,6 +81,20 @@ message TimeRange {
     required uint64 accuracy_msec = 2 [default = 0];
 }
 
+message Tag {
+    required string type = 1;
+    required string name = 2;
+    optional TagPosition pos = 3;
+}
+
+message TagPosition {
+    required int32 center_x = 1;
+    required int32 center_y = 2;
+    required int32 width = 3;
+    required int32 height = 4;
+    optional ImageRef reference_image = 5;
+}
+
 message PhotovaultData {
     optional string comment = 1;
     repeated ImageFile files = 2;
@@ -101,4 +115,5 @@ extend ValueChange {
     optional ColorCurve color_curve = 110;
     optional TimeRange time_range = 111;
     optional FolderRef folder_ref = 112;
+    optional Tag tag = 113;
 }

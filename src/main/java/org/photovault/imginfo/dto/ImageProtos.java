@@ -20,6 +20,7 @@ public final class ImageProtos {
     registry.add(org.photovault.imginfo.dto.ImageProtos.colorCurve);
     registry.add(org.photovault.imginfo.dto.ImageProtos.timeRange);
     registry.add(org.photovault.imginfo.dto.ImageProtos.folderRef);
+    registry.add(org.photovault.imginfo.dto.ImageProtos.tag);
   }
   public enum ImageType
       implements com.google.protobuf.ProtocolMessageEnum {
@@ -3225,6 +3226,876 @@ public final class ImageProtos {
     // @@protoc_insertion_point(class_scope:TimeRange)
   }
   
+  public static final class Tag extends
+      com.google.protobuf.GeneratedMessage {
+    // Use Tag.newBuilder() to construct.
+    private Tag() {
+      initFields();
+    }
+    private Tag(boolean noInit) {}
+    
+    private static final Tag defaultInstance;
+    public static Tag getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public Tag getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_Tag_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_Tag_fieldAccessorTable;
+    }
+    
+    // required string type = 1;
+    public static final int TYPE_FIELD_NUMBER = 1;
+    private boolean hasType;
+    private java.lang.String type_ = "";
+    public boolean hasType() { return hasType; }
+    public java.lang.String getType() { return type_; }
+    
+    // required string name = 2;
+    public static final int NAME_FIELD_NUMBER = 2;
+    private boolean hasName;
+    private java.lang.String name_ = "";
+    public boolean hasName() { return hasName; }
+    public java.lang.String getName() { return name_; }
+    
+    // optional .TagPosition pos = 3;
+    public static final int POS_FIELD_NUMBER = 3;
+    private boolean hasPos;
+    private org.photovault.imginfo.dto.ImageProtos.TagPosition pos_;
+    public boolean hasPos() { return hasPos; }
+    public org.photovault.imginfo.dto.ImageProtos.TagPosition getPos() { return pos_; }
+    
+    private void initFields() {
+      pos_ = org.photovault.imginfo.dto.ImageProtos.TagPosition.getDefaultInstance();
+    }
+    public final boolean isInitialized() {
+      if (!hasType) return false;
+      if (!hasName) return false;
+      if (hasPos()) {
+        if (!getPos().isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasType()) {
+        output.writeString(1, getType());
+      }
+      if (hasName()) {
+        output.writeString(2, getName());
+      }
+      if (hasPos()) {
+        output.writeMessage(3, getPos());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasType()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(1, getType());
+      }
+      if (hasName()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(2, getName());
+      }
+      if (hasPos()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getPos());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Tag parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.photovault.imginfo.dto.ImageProtos.Tag prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private org.photovault.imginfo.dto.ImageProtos.Tag result;
+      
+      // Construct using org.photovault.imginfo.dto.ImageProtos.Tag.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new org.photovault.imginfo.dto.ImageProtos.Tag();
+        return builder;
+      }
+      
+      protected org.photovault.imginfo.dto.ImageProtos.Tag internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new org.photovault.imginfo.dto.ImageProtos.Tag();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.photovault.imginfo.dto.ImageProtos.Tag.getDescriptor();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.Tag getDefaultInstanceForType() {
+        return org.photovault.imginfo.dto.ImageProtos.Tag.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.Tag build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private org.photovault.imginfo.dto.ImageProtos.Tag buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.Tag buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        org.photovault.imginfo.dto.ImageProtos.Tag returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.photovault.imginfo.dto.ImageProtos.Tag) {
+          return mergeFrom((org.photovault.imginfo.dto.ImageProtos.Tag)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(org.photovault.imginfo.dto.ImageProtos.Tag other) {
+        if (other == org.photovault.imginfo.dto.ImageProtos.Tag.getDefaultInstance()) return this;
+        if (other.hasType()) {
+          setType(other.getType());
+        }
+        if (other.hasName()) {
+          setName(other.getName());
+        }
+        if (other.hasPos()) {
+          mergePos(other.getPos());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              setType(input.readString());
+              break;
+            }
+            case 18: {
+              setName(input.readString());
+              break;
+            }
+            case 26: {
+              org.photovault.imginfo.dto.ImageProtos.TagPosition.Builder subBuilder = org.photovault.imginfo.dto.ImageProtos.TagPosition.newBuilder();
+              if (hasPos()) {
+                subBuilder.mergeFrom(getPos());
+              }
+              input.readMessage(subBuilder, extensionRegistry);
+              setPos(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required string type = 1;
+      public boolean hasType() {
+        return result.hasType();
+      }
+      public java.lang.String getType() {
+        return result.getType();
+      }
+      public Builder setType(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasType = true;
+        result.type_ = value;
+        return this;
+      }
+      public Builder clearType() {
+        result.hasType = false;
+        result.type_ = getDefaultInstance().getType();
+        return this;
+      }
+      
+      // required string name = 2;
+      public boolean hasName() {
+        return result.hasName();
+      }
+      public java.lang.String getName() {
+        return result.getName();
+      }
+      public Builder setName(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasName = true;
+        result.name_ = value;
+        return this;
+      }
+      public Builder clearName() {
+        result.hasName = false;
+        result.name_ = getDefaultInstance().getName();
+        return this;
+      }
+      
+      // optional .TagPosition pos = 3;
+      public boolean hasPos() {
+        return result.hasPos();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.TagPosition getPos() {
+        return result.getPos();
+      }
+      public Builder setPos(org.photovault.imginfo.dto.ImageProtos.TagPosition value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.hasPos = true;
+        result.pos_ = value;
+        return this;
+      }
+      public Builder setPos(org.photovault.imginfo.dto.ImageProtos.TagPosition.Builder builderForValue) {
+        result.hasPos = true;
+        result.pos_ = builderForValue.build();
+        return this;
+      }
+      public Builder mergePos(org.photovault.imginfo.dto.ImageProtos.TagPosition value) {
+        if (result.hasPos() &&
+            result.pos_ != org.photovault.imginfo.dto.ImageProtos.TagPosition.getDefaultInstance()) {
+          result.pos_ =
+            org.photovault.imginfo.dto.ImageProtos.TagPosition.newBuilder(result.pos_).mergeFrom(value).buildPartial();
+        } else {
+          result.pos_ = value;
+        }
+        result.hasPos = true;
+        return this;
+      }
+      public Builder clearPos() {
+        result.hasPos = false;
+        result.pos_ = org.photovault.imginfo.dto.ImageProtos.TagPosition.getDefaultInstance();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:Tag)
+    }
+    
+    static {
+      defaultInstance = new Tag(true);
+      org.photovault.imginfo.dto.ImageProtos.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:Tag)
+  }
+  
+  public static final class TagPosition extends
+      com.google.protobuf.GeneratedMessage {
+    // Use TagPosition.newBuilder() to construct.
+    private TagPosition() {
+      initFields();
+    }
+    private TagPosition(boolean noInit) {}
+    
+    private static final TagPosition defaultInstance;
+    public static TagPosition getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public TagPosition getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_TagPosition_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_TagPosition_fieldAccessorTable;
+    }
+    
+    // required int32 center_x = 1;
+    public static final int CENTER_X_FIELD_NUMBER = 1;
+    private boolean hasCenterX;
+    private int centerX_ = 0;
+    public boolean hasCenterX() { return hasCenterX; }
+    public int getCenterX() { return centerX_; }
+    
+    // required int32 center_y = 2;
+    public static final int CENTER_Y_FIELD_NUMBER = 2;
+    private boolean hasCenterY;
+    private int centerY_ = 0;
+    public boolean hasCenterY() { return hasCenterY; }
+    public int getCenterY() { return centerY_; }
+    
+    // required int32 width = 3;
+    public static final int WIDTH_FIELD_NUMBER = 3;
+    private boolean hasWidth;
+    private int width_ = 0;
+    public boolean hasWidth() { return hasWidth; }
+    public int getWidth() { return width_; }
+    
+    // required int32 height = 4;
+    public static final int HEIGHT_FIELD_NUMBER = 4;
+    private boolean hasHeight;
+    private int height_ = 0;
+    public boolean hasHeight() { return hasHeight; }
+    public int getHeight() { return height_; }
+    
+    // optional .ImageRef reference_image = 5;
+    public static final int REFERENCE_IMAGE_FIELD_NUMBER = 5;
+    private boolean hasReferenceImage;
+    private org.photovault.imginfo.dto.ImageProtos.ImageRef referenceImage_;
+    public boolean hasReferenceImage() { return hasReferenceImage; }
+    public org.photovault.imginfo.dto.ImageProtos.ImageRef getReferenceImage() { return referenceImage_; }
+    
+    private void initFields() {
+      referenceImage_ = org.photovault.imginfo.dto.ImageProtos.ImageRef.getDefaultInstance();
+    }
+    public final boolean isInitialized() {
+      if (!hasCenterX) return false;
+      if (!hasCenterY) return false;
+      if (!hasWidth) return false;
+      if (!hasHeight) return false;
+      if (hasReferenceImage()) {
+        if (!getReferenceImage().isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasCenterX()) {
+        output.writeInt32(1, getCenterX());
+      }
+      if (hasCenterY()) {
+        output.writeInt32(2, getCenterY());
+      }
+      if (hasWidth()) {
+        output.writeInt32(3, getWidth());
+      }
+      if (hasHeight()) {
+        output.writeInt32(4, getHeight());
+      }
+      if (hasReferenceImage()) {
+        output.writeMessage(5, getReferenceImage());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasCenterX()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, getCenterX());
+      }
+      if (hasCenterY()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(2, getCenterY());
+      }
+      if (hasWidth()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, getWidth());
+      }
+      if (hasHeight()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(4, getHeight());
+      }
+      if (hasReferenceImage()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getReferenceImage());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.TagPosition parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.photovault.imginfo.dto.ImageProtos.TagPosition prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private org.photovault.imginfo.dto.ImageProtos.TagPosition result;
+      
+      // Construct using org.photovault.imginfo.dto.ImageProtos.TagPosition.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new org.photovault.imginfo.dto.ImageProtos.TagPosition();
+        return builder;
+      }
+      
+      protected org.photovault.imginfo.dto.ImageProtos.TagPosition internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new org.photovault.imginfo.dto.ImageProtos.TagPosition();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.photovault.imginfo.dto.ImageProtos.TagPosition.getDescriptor();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.TagPosition getDefaultInstanceForType() {
+        return org.photovault.imginfo.dto.ImageProtos.TagPosition.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.TagPosition build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private org.photovault.imginfo.dto.ImageProtos.TagPosition buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.TagPosition buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        org.photovault.imginfo.dto.ImageProtos.TagPosition returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.photovault.imginfo.dto.ImageProtos.TagPosition) {
+          return mergeFrom((org.photovault.imginfo.dto.ImageProtos.TagPosition)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(org.photovault.imginfo.dto.ImageProtos.TagPosition other) {
+        if (other == org.photovault.imginfo.dto.ImageProtos.TagPosition.getDefaultInstance()) return this;
+        if (other.hasCenterX()) {
+          setCenterX(other.getCenterX());
+        }
+        if (other.hasCenterY()) {
+          setCenterY(other.getCenterY());
+        }
+        if (other.hasWidth()) {
+          setWidth(other.getWidth());
+        }
+        if (other.hasHeight()) {
+          setHeight(other.getHeight());
+        }
+        if (other.hasReferenceImage()) {
+          mergeReferenceImage(other.getReferenceImage());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              setCenterX(input.readInt32());
+              break;
+            }
+            case 16: {
+              setCenterY(input.readInt32());
+              break;
+            }
+            case 24: {
+              setWidth(input.readInt32());
+              break;
+            }
+            case 32: {
+              setHeight(input.readInt32());
+              break;
+            }
+            case 42: {
+              org.photovault.imginfo.dto.ImageProtos.ImageRef.Builder subBuilder = org.photovault.imginfo.dto.ImageProtos.ImageRef.newBuilder();
+              if (hasReferenceImage()) {
+                subBuilder.mergeFrom(getReferenceImage());
+              }
+              input.readMessage(subBuilder, extensionRegistry);
+              setReferenceImage(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required int32 center_x = 1;
+      public boolean hasCenterX() {
+        return result.hasCenterX();
+      }
+      public int getCenterX() {
+        return result.getCenterX();
+      }
+      public Builder setCenterX(int value) {
+        result.hasCenterX = true;
+        result.centerX_ = value;
+        return this;
+      }
+      public Builder clearCenterX() {
+        result.hasCenterX = false;
+        result.centerX_ = 0;
+        return this;
+      }
+      
+      // required int32 center_y = 2;
+      public boolean hasCenterY() {
+        return result.hasCenterY();
+      }
+      public int getCenterY() {
+        return result.getCenterY();
+      }
+      public Builder setCenterY(int value) {
+        result.hasCenterY = true;
+        result.centerY_ = value;
+        return this;
+      }
+      public Builder clearCenterY() {
+        result.hasCenterY = false;
+        result.centerY_ = 0;
+        return this;
+      }
+      
+      // required int32 width = 3;
+      public boolean hasWidth() {
+        return result.hasWidth();
+      }
+      public int getWidth() {
+        return result.getWidth();
+      }
+      public Builder setWidth(int value) {
+        result.hasWidth = true;
+        result.width_ = value;
+        return this;
+      }
+      public Builder clearWidth() {
+        result.hasWidth = false;
+        result.width_ = 0;
+        return this;
+      }
+      
+      // required int32 height = 4;
+      public boolean hasHeight() {
+        return result.hasHeight();
+      }
+      public int getHeight() {
+        return result.getHeight();
+      }
+      public Builder setHeight(int value) {
+        result.hasHeight = true;
+        result.height_ = value;
+        return this;
+      }
+      public Builder clearHeight() {
+        result.hasHeight = false;
+        result.height_ = 0;
+        return this;
+      }
+      
+      // optional .ImageRef reference_image = 5;
+      public boolean hasReferenceImage() {
+        return result.hasReferenceImage();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.ImageRef getReferenceImage() {
+        return result.getReferenceImage();
+      }
+      public Builder setReferenceImage(org.photovault.imginfo.dto.ImageProtos.ImageRef value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.hasReferenceImage = true;
+        result.referenceImage_ = value;
+        return this;
+      }
+      public Builder setReferenceImage(org.photovault.imginfo.dto.ImageProtos.ImageRef.Builder builderForValue) {
+        result.hasReferenceImage = true;
+        result.referenceImage_ = builderForValue.build();
+        return this;
+      }
+      public Builder mergeReferenceImage(org.photovault.imginfo.dto.ImageProtos.ImageRef value) {
+        if (result.hasReferenceImage() &&
+            result.referenceImage_ != org.photovault.imginfo.dto.ImageProtos.ImageRef.getDefaultInstance()) {
+          result.referenceImage_ =
+            org.photovault.imginfo.dto.ImageProtos.ImageRef.newBuilder(result.referenceImage_).mergeFrom(value).buildPartial();
+        } else {
+          result.referenceImage_ = value;
+        }
+        result.hasReferenceImage = true;
+        return this;
+      }
+      public Builder clearReferenceImage() {
+        result.hasReferenceImage = false;
+        result.referenceImage_ = org.photovault.imginfo.dto.ImageProtos.ImageRef.getDefaultInstance();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:TagPosition)
+    }
+    
+    static {
+      defaultInstance = new TagPosition(true);
+      org.photovault.imginfo.dto.ImageProtos.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:TagPosition)
+  }
+  
   public static final class PhotovaultData extends
       com.google.protobuf.GeneratedMessage {
     // Use PhotovaultData.newBuilder() to construct.
@@ -3781,6 +4652,13 @@ public final class ImageProtos {
       org.photovault.imginfo.dto.ImageProtos.FolderRef> folderRef =
         com.google.protobuf.GeneratedMessage
           .newGeneratedExtension();
+  public static final int TAG_FIELD_NUMBER = 113;
+  public static final
+    com.google.protobuf.GeneratedMessage.GeneratedExtension<
+      org.photovault.replication.ChangeProtos.ValueChange,
+      org.photovault.imginfo.dto.ImageProtos.Tag> tag =
+        com.google.protobuf.GeneratedMessage
+          .newGeneratedExtension();
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_Image_descriptor;
   private static
@@ -3817,6 +4695,16 @@ public final class ImageProtos {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_TimeRange_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_Tag_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_Tag_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_TagPosition_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_TagPosition_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_PhotovaultData_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -3848,26 +4736,32 @@ public final class ImageProtos {
       "\006volume\030\001 \002(\0132\007.Volume\022\014\n\004path\030\002 \002(\t\022\032\n\022" +
       "last_modified_time\030\003 \001(\004\"<\n\tTimeRange\022\025\n" +
       "\rmidpoint_msec\030\001 \002(\003\022\030\n\raccuracy_msec\030\002 " +
-      "\002(\004:\0010\"^\n\016PhotovaultData\022\017\n\007comment\030\001 \001(" +
-      "\t\022\031\n\005files\030\002 \003(\0132\n.ImageFile\022 \n\007changes\030",
-      "\003 \003(\0132\017.ChangeEnvelope*#\n\tImageType\022\014\n\010O" +
-      "RIGINAL\020\001\022\010\n\004COPY\020\002*$\n\nVolumeType\022\014\n\010EXT" +
-      "ERNAL\020\001\022\010\n\004TRAD\020\002:#\n\005image\022\014.ValueChange" +
-      "\030d \001(\0132\006.Image:,\n\nimafe_file\022\014.ValueChan" +
-      "ge\030e \001(\0132\n.ImageFile:*\n\timage_ref\022\014.Valu" +
-      "eChange\030f \001(\0132\t.ImageRef:%\n\006volume\022\014.Val" +
-      "ueChange\030g \001(\0132\007.Volume:2\n\rfile_location" +
-      "\022\014.ValueChange\030h \001(\0132\r.FileLocation:3\n\016i" +
-      "mage_op_chain\022\014.ValueChange\030i \001(\0132\r.Imag" +
-      "eOpChain:(\n\010dcraw_op\022\014.ValueChange\030j \001(\013",
-      "2\010.DCRawOp:-\n\nraw_map_op\022\014.ValueChange\030k" +
-      " \001(\0132\013.DCRawMapOp:-\n\013chan_map_op\022\014.Value" +
-      "Change\030l \001(\0132\n.ChanMapOp:&\n\007crop_op\022\014.Va" +
-      "lueChange\030m \001(\0132\007.CropOp:.\n\013color_curve\022" +
-      "\014.ValueChange\030n \001(\0132\013.ColorCurve:,\n\ntime" +
-      "_range\022\014.ValueChange\030o \001(\0132\n.TimeRange:," +
-      "\n\nfolder_ref\022\014.ValueChange\030p \001(\0132\n.Folde" +
-      "rRefB\037\n\032org.photovault.imginfo.dto\210\001\000"
+      "\002(\004:\0010\"<\n\003Tag\022\014\n\004type\030\001 \002(\t\022\014\n\004name\030\002 \002(" +
+      "\t\022\031\n\003pos\030\003 \001(\0132\014.TagPosition\"t\n\013TagPosit",
+      "ion\022\020\n\010center_x\030\001 \002(\005\022\020\n\010center_y\030\002 \002(\005\022" +
+      "\r\n\005width\030\003 \002(\005\022\016\n\006height\030\004 \002(\005\022\"\n\017refere" +
+      "nce_image\030\005 \001(\0132\t.ImageRef\"^\n\016Photovault" +
+      "Data\022\017\n\007comment\030\001 \001(\t\022\031\n\005files\030\002 \003(\0132\n.I" +
+      "mageFile\022 \n\007changes\030\003 \003(\0132\017.ChangeEnvelo" +
+      "pe*#\n\tImageType\022\014\n\010ORIGINAL\020\001\022\010\n\004COPY\020\002*" +
+      "$\n\nVolumeType\022\014\n\010EXTERNAL\020\001\022\010\n\004TRAD\020\002:#\n" +
+      "\005image\022\014.ValueChange\030d \001(\0132\006.Image:,\n\nim" +
+      "afe_file\022\014.ValueChange\030e \001(\0132\n.ImageFile" +
+      ":*\n\timage_ref\022\014.ValueChange\030f \001(\0132\t.Imag",
+      "eRef:%\n\006volume\022\014.ValueChange\030g \001(\0132\007.Vol" +
+      "ume:2\n\rfile_location\022\014.ValueChange\030h \001(\013" +
+      "2\r.FileLocation:3\n\016image_op_chain\022\014.Valu" +
+      "eChange\030i \001(\0132\r.ImageOpChain:(\n\010dcraw_op" +
+      "\022\014.ValueChange\030j \001(\0132\010.DCRawOp:-\n\nraw_ma" +
+      "p_op\022\014.ValueChange\030k \001(\0132\013.DCRawMapOp:-\n" +
+      "\013chan_map_op\022\014.ValueChange\030l \001(\0132\n.ChanM" +
+      "apOp:&\n\007crop_op\022\014.ValueChange\030m \001(\0132\007.Cr" +
+      "opOp:.\n\013color_curve\022\014.ValueChange\030n \001(\0132" +
+      "\013.ColorCurve:,\n\ntime_range\022\014.ValueChange",
+      "\030o \001(\0132\n.TimeRange:,\n\nfolder_ref\022\014.Value" +
+      "Change\030p \001(\0132\n.FolderRef:\037\n\003tag\022\014.ValueC" +
+      "hange\030q \001(\0132\004.TagB\037\n\032org.photovault.imgi" +
+      "nfo.dto\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -3930,8 +4824,24 @@ public final class ImageProtos {
               new java.lang.String[] { "MidpointMsec", "AccuracyMsec", },
               org.photovault.imginfo.dto.ImageProtos.TimeRange.class,
               org.photovault.imginfo.dto.ImageProtos.TimeRange.Builder.class);
-          internal_static_PhotovaultData_descriptor =
+          internal_static_Tag_descriptor =
             getDescriptor().getMessageTypes().get(7);
+          internal_static_Tag_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_Tag_descriptor,
+              new java.lang.String[] { "Type", "Name", "Pos", },
+              org.photovault.imginfo.dto.ImageProtos.Tag.class,
+              org.photovault.imginfo.dto.ImageProtos.Tag.Builder.class);
+          internal_static_TagPosition_descriptor =
+            getDescriptor().getMessageTypes().get(8);
+          internal_static_TagPosition_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_TagPosition_descriptor,
+              new java.lang.String[] { "CenterX", "CenterY", "Width", "Height", "ReferenceImage", },
+              org.photovault.imginfo.dto.ImageProtos.TagPosition.class,
+              org.photovault.imginfo.dto.ImageProtos.TagPosition.Builder.class);
+          internal_static_PhotovaultData_descriptor =
+            getDescriptor().getMessageTypes().get(9);
           internal_static_PhotovaultData_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_PhotovaultData_descriptor,
@@ -3977,6 +4887,9 @@ public final class ImageProtos {
           org.photovault.imginfo.dto.ImageProtos.folderRef.internalInit(
               org.photovault.imginfo.dto.ImageProtos.getDescriptor().getExtensions().get(12),
               org.photovault.imginfo.dto.ImageProtos.FolderRef.class);
+          org.photovault.imginfo.dto.ImageProtos.tag.internalInit(
+              org.photovault.imginfo.dto.ImageProtos.getDescriptor().getExtensions().get(13),
+              org.photovault.imginfo.dto.ImageProtos.Tag.class);
           return null;
         }
       };

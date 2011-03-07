@@ -56,6 +56,7 @@ import org.photovault.image.PhotovaultImageFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.annotations.CollectionOfElements;
 import org.hibernate.annotations.Type;
 import org.photovault.image.DCRawMapOp;
 import org.photovault.image.ImageOpChain;
@@ -1834,6 +1835,47 @@ public class PhotoInfo implements PhotoEditor {
     public void removeFolderAssociation( FolderPhotoAssociation a ) {
         folderAssociations.remove( a );
         a.setPhoto( null );
+    }
+
+    /**
+     * Tags associated with this photo
+     */
+    Set<Tag> tags = new HashSet<Tag>();
+
+    /**
+     * Get all tags associated with this photo
+     * @return
+     */
+    @SetField( elemClass=Tag.class )
+    @CollectionOfElements
+    public Set<Tag> getTags() {
+        return Collections.unmodifiableSet( tags );
+    }
+
+    /**
+     * Set the tags.
+     * @param newTags
+     */
+    public void setTags( Set<Tag> newTags ) {
+        tags = newTags;
+    }
+
+    /**
+     * Add a new tag to the photo. Used by {@link VersionedObjectEditor}, should
+     * not be used directly
+     * @param tag
+     */
+    public void addTag( Tag tag ) {
+        tags.add( tag );
+    }
+
+    /**
+     * Remove a tag from the photo. Used by {@link VersionedObjectEditor}, should
+     * not be used directly
+     * @param tag
+     */
+    public void removeTag( Tag tag ) {
+        tags.remove( tag );
     }
     
     /**
