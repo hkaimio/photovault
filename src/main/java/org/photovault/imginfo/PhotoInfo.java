@@ -1849,7 +1849,7 @@ public class PhotoInfo implements PhotoEditor {
     @SetField( elemClass=Tag.class )
     @CollectionOfElements
     public Set<Tag> getTags() {
-        return Collections.unmodifiableSet( tags );
+        return  tags;
     }
 
     /**

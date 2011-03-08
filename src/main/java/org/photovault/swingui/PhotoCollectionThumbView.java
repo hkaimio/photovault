@@ -396,7 +396,9 @@ public class PhotoCollectionThumbView
         
         JMenuItem showHistory = new JMenuItem( showHistoryAction );
         JMenuItem resolveConflicts = new JMenuItem( resolveConflictsAction );
-
+        AddTagAction addTagAction = new AddTagAction( ctrl, "Add tag...",
+                null, "Add tag to image", KeyEvent.VK_T );
+        JMenuItem addTag = new JMenuItem( addTagAction );
         popup.add( showItem );
         popup.add( propsItem );
         popup.add( colorsItem );
@@ -409,6 +411,7 @@ public class PhotoCollectionThumbView
         popup.add( deleteSelected );
         popup.add( showHistory );
         popup.add( resolveConflicts );
+        popup.add( addTag );
         MouseListener popupListener = new PopupListener();
         addMouseListener( popupListener );
         
