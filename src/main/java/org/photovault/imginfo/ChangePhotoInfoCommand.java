@@ -119,7 +119,23 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      Folders the photos should be removed from
      */    
     Set<UUID> removedFromFolders = new HashSet<UUID>();
-    
+
+    private static class SetChange {
+        Set added = new HashSet();
+        Set removed = new HashSet();
+        void add( Object o ) {
+            added.add( o );
+            removed.remove( o );
+        }
+
+        void remove( Object o ) {
+            added.remove( o );
+            removed.add( o );
+        }
+    }
+
+    Map<String, SetChange> modifiedSets = new HashMap();
+
     /**
      UUIDs of all photos that will be changed by this command.
      */
@@ -165,7 +181,23 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         return changedFields.get( field );
     }
     
-    
+    public void addToSet( String name, Object val ) {
+        SetChange sc = modifiedSets.get( name );
+        if ( sc == null ) {
+            sc = new SetChange();
+            modifiedSets.put( name, sc );
+        }
+        sc.add( val );
+    }
+
+    public void removeFromSet( String name, Object val ) {
+        SetChange sc = modifiedSets.get( name );
+        if ( sc == null ) {
+            sc = new SetChange();
+            modifiedSets.put( name, sc );
+        }
+        sc.remove( val );
+    }
     
     
     // Utility methods for setting fields
@@ -423,6 +455,15 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 throw new CommandException(
                         "Unexpected problem instantiating processing grap helpers",
                         ex );
+            }
+
+            for ( Map.Entry<String,SetChange> e : modifiedSets.entrySet() ) {
+                for ( Object val : e.getValue().added ) {
+                    pe.addToSet( e.getKey(), val);
+                }
+                for ( Object val : e.getValue().removed ) {
+                    pe.removeFromSet( e.getKey(), val);
+                }
             }
 
             for ( Map.Entry<PhotoInfoFields, Object> e :

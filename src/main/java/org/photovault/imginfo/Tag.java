@@ -121,7 +121,7 @@ public class Tag {
 
     @Override
     public String toString() {
-        if ( type == TEXT_TAG ) {
+        if ( type.equals( TEXT_TAG ) || type.equals( PERSON_TAG ) ) {
             return name;
         } else {
             return type + ":" + name;

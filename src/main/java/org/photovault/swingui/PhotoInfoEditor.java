@@ -30,25 +30,22 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
-import org.photovault.imginfo.FuzzyDate;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.text.*;
-import java.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.text.*;
 import java.beans.*;
-import java.io.File;
 
 import org.photovault.imginfo.*;
 import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
-import org.photovault.imginfo.PhotoInfo;
 import org.photovault.swingui.folderpane.FolderTreePane;
 import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
+import org.photovault.swingui.tag.TagList;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
     Use can either edit an existing record or create a completely new record.
@@ -105,7 +102,12 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	shootingPlaceDoc = shootingPlaceField.getDocument();
 	shootingPlaceDoc.addDocumentListener( this );
 	shootingPlaceDoc.putProperty( FIELD, PhotoInfoFields.SHOOTING_PLACE );
-	
+
+        // Tags
+        JLabel tagLabel = new JLabel( "Tags" );
+        tagList = new TagList( ctrl.getTagController() );
+        tagList.setBackground( generalPane.getBackground() );
+
 	// Description text
 	JLabel descLabel = new JLabel( "Description" );
 	descriptionTextArea = new JTextArea( 5, 40 );
@@ -124,9 +126,12 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
 	generalPane.setLayout( layout );
-	JLabel[] labels     = { photographerLabel, fuzzyDateLabel, shootingPlaceLabel, qualityLabel };
-	JComponent[] fields = { photographerField, fuzzyDateField, shootingPlaceField, qualityField };
+	JLabel[] labels     = { photographerLabel, fuzzyDateLabel, shootingPlaceLabel, qualityLabel, tagLabel };
+	JComponent[] fields = { photographerField, fuzzyDateField, shootingPlaceField, qualityField, tagList };
 	addLabelTextRows( labels, fields, layout, generalPane );
+        c = layout.getConstraints( tagList );
+        c.fill = GridBagConstraints.HORIZONTAL;
+        layout.setConstraints( tagList, c);
 
 	
 	generalPane.add( descScrollPane );
@@ -460,6 +465,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 
     String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
     JComboBox qualityField = null;
+
+    JList tagList = null;
 
     JTextField cameraField = null;
     Document cameraDoc = null;
@@ -795,5 +802,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     private static final String FIELD = "FIELD";
 
     public void setHistogram( String channel, int[] histData ) {
+    }
+
+    public void setTagListModel( ListModel listModel ) {
+        tagList.setModel( listModel );
     }
 }

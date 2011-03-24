@@ -31,7 +31,7 @@ import org.apache.commons.logging.LogFactory;
  * FolderNode keeps track of photos currently in the model that belong to a certain folder.
  * It determises the presentation of the folder in folder tree.
  * <P>
- * FolderNode is used as an user object of DefaultMutableTreeNode. 
+ * FolderNode FolderToFolderNodeMapperis used as an user object of DefaultMutableTreeNode.
  * <p>
  * TODO: Note that currently this object is used only as a "dummy" data structure 
  * to get the node representation for DefaultMutableTree, since the representation 

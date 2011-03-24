@@ -20,6 +20,7 @@
 
 package org.photovault.swingui.selection;
 
+import javax.swing.ListModel;
 import javax.swing.tree.TreePath;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
@@ -108,5 +109,7 @@ public interface PhotoSelectionView {
     void setColorChannelMapping( ChannelMapOperation cm );
     ChannelMapOperation getColorChannelMapping();
     void setColorChannelMappingMultivalued( boolean mv );
+
+    public void setTagListModel( ListModel listModel );
 }
     

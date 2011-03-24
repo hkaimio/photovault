@@ -24,6 +24,7 @@ package org.photovault.command;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,10 @@ public class ApplyChangeCommand extends DataAccessCommand {
      */
     public void addChange( ChangeDTO change ) {
         changes.add(change );
+    }
+
+    public List<ChangeDTO> getChanges() {
+        return Collections.unmodifiableList( changes );
     }
 
     public void execute() throws CommandException {

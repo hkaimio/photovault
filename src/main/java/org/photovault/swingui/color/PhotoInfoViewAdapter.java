@@ -22,6 +22,7 @@ package org.photovault.swingui.color;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import javax.swing.ListModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -285,6 +286,10 @@ public class PhotoInfoViewAdapter implements PhotoSelectionView, PreviewImageVie
     }
 
     public void setHistogram( String channel, int[] histData ) {
+    }
+
+    public void setTagListModel( ListModel listModel ) {
+
     }
         
 }

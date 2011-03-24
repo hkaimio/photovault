@@ -36,6 +36,7 @@ import org.photovault.replication.ChangeDTO;
 import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
+import org.photovault.swingui.tag.AddTagDlg;
 
 /**
  * A very simple action for adding a tag to selected photos. This is mostly a
@@ -66,38 +67,32 @@ public class AddTagAction extends AbstractAction {
     }
 
     public void actionPerformed( ActionEvent e ) {
-        String tagStr = JOptionPane.showInputDialog( "Tag the image with:" );
-        Tag tag = null;
-        if ( tagStr != null ) {
-            int colon = tagStr.indexOf( ":" );
-            if ( colon >= 0 ) {
-                String type = tagStr.substring( 0, colon );
-                String name = tagStr.substring( colon + 1 );
-                tag = new Tag( type, name );
-            } else {
-                tag = new Tag( tagStr );
-            }
-            Collection<PhotoInfo> selectedPhotos = (Collection<PhotoInfo>) ctrl.
-                    getSelection();
-            CommandHandler cmdHandler = ctrl.getCommandHandler();
-            for ( PhotoInfo photo : selectedPhotos ) {
-                if ( photo != null ) {
-                    VersionedObjectEditor<PhotoInfo> ed =
-                            new VersionedObjectEditor<PhotoInfo>(
-                            photo, ctrl.getDAOFactory().getDTOResolverFactory() );
-                    ed.addToSet( "tags", tag );
-                    ChangeDTO ch = new ChangeDTO( ed.getChange() );
-                    ApplyChangeCommand cmd = new ApplyChangeCommand( ch );
-                    try {
-                        cmdHandler.executeCommand( cmd );
-                    } catch ( CommandException ex ) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-
+        AddTagDlg dlg = new AddTagDlg( null, true );
+        dlg.setVisible( true );
+        if ( dlg.getReturnStatus() != AddTagDlg.RET_OK ) {
+            return;
         }
 
+        Tag tag = dlg.getTag();
+        Collection<PhotoInfo> selectedPhotos = (Collection<PhotoInfo>) ctrl.
+                getSelection();
+        CommandHandler cmdHandler = ctrl.getCommandHandler();
+        ApplyChangeCommand cmd = new ApplyChangeCommand();
+        for ( PhotoInfo photo : selectedPhotos ) {
+            if ( photo != null ) {
+                VersionedObjectEditor<PhotoInfo> ed =
+                        new VersionedObjectEditor<PhotoInfo>(
+                        photo, ctrl.getDAOFactory().getDTOResolverFactory() );
+                ed.addToSet( "tags", tag );
+                ChangeDTO ch = new ChangeDTO( ed.getChange() );
+                cmd.addChange( ch );
+            }
+        }
+        try {
+            cmdHandler.executeCommand( cmd );
+        } catch ( CommandException ex ) {
+            ex.printStackTrace();
+        }
     }
 
     public void selectionChanged() {

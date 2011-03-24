@@ -32,6 +32,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +42,8 @@ import java.util.ListIterator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -55,6 +58,7 @@ import javax.swing.ScrollPaneConstants;
 import org.jdesktop.jxlayer.JXLayer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.photovault.command.ApplyChangeCommand;
 import org.photovault.command.CommandExecutedEvent;
 import org.photovault.command.DataAccessCommand;
 import org.photovault.folder.PhotoFolder;
@@ -64,7 +68,13 @@ import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.replication.Change;
+import org.photovault.replication.ChangeDAO;
 import org.photovault.replication.ChangeDTO;
+import org.photovault.replication.ChangeFactory;
+import org.photovault.replication.DTOResolverFactory;
+import org.photovault.replication.ObjectHistoryDTO;
+import org.photovault.replication.VersionedObjectEditor;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DataAccessAction;
 import org.photovault.swingui.framework.DefaultEvent;
@@ -230,6 +240,8 @@ public class PhotoViewController extends PersistenceController {
                     photoChangeCommandExecuted( (ChangePhotoInfoCommand) cmd );
                 } else if ( cmd instanceof CreateCopyImageCommand ) {
                     imageCreated( (CreateCopyImageCommand) cmd );
+                } else if ( cmd instanceof ApplyChangeCommand ) {
+                    changeApplied( (ApplyChangeCommand) cmd );
                 }
             }
         } );
@@ -315,7 +327,26 @@ public class PhotoViewController extends PersistenceController {
             }
         }
     }
-    
+
+    private void changeApplied( ApplyChangeCommand cmd ) {
+        for ( ChangeDTO ch : cmd.getChanges() ) {
+            UUID id = ch.getTargetUuid();
+            for ( PhotoInfo p : photos ) {
+                if ( id.equals( p.getUuid() ) ) {
+                    DTOResolverFactory rf =
+                            getDAOFactory().getDTOResolverFactory();
+                    VersionedObjectEditor e =
+                            new VersionedObjectEditor( p, rf );
+                    ChangeDAO chDao = getDAOFactory().getChangeDAO();
+                    Change c = chDao.findChange( ch.getChangeUuid() );
+                    e.changeToVersion( c );
+                    break;
+                }
+            }
+        }
+        thumbPane.setPhotos( photos );
+    }
+
     /**
      Add all photos from a collection to current model if they are not yet
      part of it.

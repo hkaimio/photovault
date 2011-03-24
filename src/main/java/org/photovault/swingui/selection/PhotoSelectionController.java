@@ -37,6 +37,7 @@ import org.photovault.swingui.folderpane.FolderController;
 import org.photovault.swingui.framework.AbstractController;
 import org.photovault.swingui.framework.DataAccessAction;
 import org.photovault.swingui.framework.PersistenceController;
+import org.photovault.swingui.tag.TagController;
 
 /**
  * PhotoSelectionController contains the application logic for creating and editing 
@@ -67,6 +68,7 @@ public class PhotoSelectionController extends PersistenceController {
         views = new ArrayList<PhotoSelectionView>();
         cmd = new ChangePhotoInfoCommand();
         folderCtrl = new FolderController( this );
+        tagCtrl = new TagController( this );
 
         this.registerAction( "save", new DataAccessAction( "Save" ) {
             public void actionPerformed( ActionEvent ev, org.hibernate.Session session ) {
@@ -82,6 +84,7 @@ public class PhotoSelectionController extends PersistenceController {
     }
 
     FolderController folderCtrl = null;
+    TagController tagCtrl = null;
     
     protected PhotoInfo[] photos = null;
     protected boolean isCreatingNew = true;
@@ -106,6 +109,7 @@ public class PhotoSelectionController extends PersistenceController {
         }
         
         folderCtrl.setPhotos( this.photos, false );
+        tagCtrl.setPhotos( photos );
         photosChanged();
     }
     
@@ -138,6 +142,7 @@ public class PhotoSelectionController extends PersistenceController {
             updateViews( null, f );
         }
         folderCtrl.setPhotos( this.photos, false );
+        tagCtrl.setPhotos( this.photos );
         photosChanged();
     }
     
@@ -155,6 +160,7 @@ public class PhotoSelectionController extends PersistenceController {
         views.clear();
         addView( view );
         folderCtrl.setViews( views );
+        tagCtrl.setViews( views );
     }
     
     /**
@@ -168,6 +174,7 @@ public class PhotoSelectionController extends PersistenceController {
             updateViews( null, f );
         }
         folderCtrl.setViews( views );
+        tagCtrl.setViews( views );
     }
     
     /**
@@ -194,7 +201,11 @@ public class PhotoSelectionController extends PersistenceController {
     public FolderController getFolderController() {
         return folderCtrl;
     }
-        
+
+    public TagController getTagController() {
+        return tagCtrl;
+    }
+    
     /**
      Get the change command that contains all changes made to selection.
      */
@@ -334,4 +345,5 @@ public class PhotoSelectionController extends PersistenceController {
         }
         updateViews( view, field );
     }
+
 }

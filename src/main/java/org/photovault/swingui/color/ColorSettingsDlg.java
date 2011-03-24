@@ -39,6 +39,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.ListModel;
 import javax.swing.SwingConstants;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -177,6 +178,9 @@ public class ColorSettingsDlg extends javax.swing.JDialog
     protected void discardChanges() {
         // TODO: Hibernate refactoring
         ctrl.discard();
+    }
+
+    public void setTagListModel( ListModel listModel ) {
     }
     
     static class ModelValueAnnotation extends JPanel {
