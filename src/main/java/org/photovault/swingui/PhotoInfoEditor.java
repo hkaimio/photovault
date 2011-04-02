@@ -102,10 +102,24 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	
 	// Shooting place field
 	JLabel shootingPlaceLabel =  new JLabel( "Shooting place" );
-	shootingPlaceField = new JTextField( 30 );
+	shootingPlaceField = createMvTextField( "shotLocation.description", 30 );
 	shootingPlaceDoc = shootingPlaceField.getDocument();
-	shootingPlaceDoc.addDocumentListener( this );
-	shootingPlaceDoc.putProperty( FIELD, PhotoInfoFields.SHOOTING_PLACE );
+        JLabel shotLocRoadLabel = new JLabel( "Road" );
+        JTextField shotLocRoadField = createMvTextField( "shotLocation.road", 30 );
+        JLabel shotLocSuburbLabel = new JLabel( "Suburb" );
+        JTextField shotLocSuburbField = createMvTextField( "shotLocation.suburb", 30 );
+        JLabel shotLocCityLabel = new JLabel( "City" );
+        JTextField shotLocCityField = createMvTextField( "shotLocation.city", 30 );
+        JLabel shotLocCountryLabel = new JLabel( "Country" );
+        JTextField shotLocCountryField = createMvTextField( "shotLocation.country", 30 );
+        JLabel shotLocGeohashLabel = new JLabel( "Geohash code" );
+        JTextField shotLocGeohashField = createMvTextField( "shotLocation.geoHashString", 30 );
+        shotLocGeohashField.getInputMap().put( 
+                KeyStroke.getKeyStroke( KeyEvent.VK_F2, 0 ), "fillAddress" );
+        shotLocGeohashField.getActionMap().put(  
+                "fillAddress", new FindAddressAction( ctrl ) );
+
+
 
         // Tags
         JLabel tagLabel = new JLabel( "Tags" );
@@ -130,8 +144,16 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
 	generalPane.setLayout( layout );
-	JLabel[] labels     = { photographerLabel, fuzzyDateLabel, shootingPlaceLabel, qualityLabel, tagLabel };
-	JComponent[] fields = { photographerField, fuzzyDateField, shootingPlaceField, qualityField, tagList };
+	JLabel[] labels     = { 
+            photographerLabel, fuzzyDateLabel, shootingPlaceLabel,
+            shotLocGeohashLabel, shotLocRoadLabel, shotLocSuburbLabel, shotLocCityLabel,
+            shotLocCountryLabel,
+            qualityLabel, tagLabel };
+	JComponent[] fields = { 
+            photographerField, fuzzyDateField, shootingPlaceField,
+            shotLocGeohashField, shotLocRoadField, shotLocSuburbField,
+            shotLocCityField, shotLocCountryField,
+            qualityField, tagList };
 	addLabelTextRows( labels, fields, layout, generalPane );
         c = layout.getConstraints( tagList );
         c.fill = GridBagConstraints.HORIZONTAL;

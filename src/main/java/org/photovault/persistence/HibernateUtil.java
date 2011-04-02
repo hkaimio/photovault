@@ -36,6 +36,7 @@ public class HibernateUtil {
     throws PhotovaultException {
         try {
             cfg = dbDesc.getDbDescriptor().initHibernate( user, passwd );
+            cfg.setNamingStrategy( DefaultComponentSafeNamingStrategy.INSTANCE );
             sessionFactory = cfg.buildSessionFactory();
         } catch (Throwable ex) {
             throw new ExceptionInInitializerError(ex);

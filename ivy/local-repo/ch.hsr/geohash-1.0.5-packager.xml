@@ -1,0 +1,7 @@
+<packager-module version="1.0">
+  <property name="jar" value="geohash"/>
+  <resource url="http://www.photovault.org/raw-attachment/wiki/Dev/ch.hsr.geohash-1.0.5.jar"
+	    sha1="292f346f6b6f3e046e21991c084a74972806973d"
+	    tofile="artifacts/jars/geohash.jar">
+  </resource>
+</packager-module>

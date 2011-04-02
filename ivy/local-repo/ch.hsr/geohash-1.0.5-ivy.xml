@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0">
+  <info organisation="ch.hsr" module="geohash" revision="1.0.5">
+    <license name="LGPLv2"/>
+    <description homepage="http://www.adobe.com/devnet/xmp/sdk/eula.html">
+      Java library to handle geospatial coordinates represented in geohash
+      format.
+    </description>
+  </info>
+  <configurations>
+    <conf name="default"/>
+  </configurations>
+
+</ivy-module>
+

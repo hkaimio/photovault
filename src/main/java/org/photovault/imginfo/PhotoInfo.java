@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006-2007 Harri Kaimio
+  Copyright (c) 2006-2011 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 import java.awt.image.renderable.ParameterBlock;
+import java.beans.PropertyChangeEvent;
 import java.util.*;
 import java.io.*;
 import javax.imageio.*;
@@ -29,8 +30,10 @@ import com.sun.media.jai.codec.*;
 import java.awt.Dimension;
 import java.awt.image.*;
 import java.awt.geom.*;
+import java.beans.PropertyChangeListener;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -63,6 +66,7 @@ import org.photovault.image.ImageOpChain;
 import org.photovault.imginfo.dto.FolderRefResolver;
 import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.imginfo.dto.PhotoChangeSerializer;
+import org.photovault.imginfo.location.Location;
 import org.photovault.replication.ObjectHistory;
 import org.photovault.replication.DTOResolverFactory;
 import org.photovault.replication.History;
@@ -1236,9 +1240,9 @@ public class PhotoInfo implements PhotoEditor {
      * @return value of shootingPlace.
      */
     @ValueField
-    @Column( name = "shooting_place" )
+    @Transient
     public String getShootingPlace() {
-        return shootingPlace;
+        return shotLocation != null ? shotLocation.getDescription() : null;
     }
     
     /**
@@ -1247,9 +1251,39 @@ public class PhotoInfo implements PhotoEditor {
      */
     public void setShootingPlace(String  v) {
         checkStringProperty( "Shooting place", v, SHOOTING_PLACE_LENGTH );
-        this.shootingPlace = v;
+        if ( shotLocation == null ) {
+            shotLocation = new Location();
+        }
+        shotLocation.setDescription( v );
+    }
+
+    private Location shotLocation;
+
+    private PropertyChangeListener shotLocationListener;
+
+    @ValueField
+    @Embedded
+    public Location getShotLocation() {
+        return shotLocation;
+    }
+
+    public void setShotLocation( Location l ) {
+        if ( shotLocation != null ) {
+            shotLocation.removePropertyChangeListener( shotLocationListener );
+        }
+        shotLocation = l;
+        if ( shotLocation != null ) {
+            final PhotoInfo staticThis = this;
+            shotLocationListener = new PropertyChangeListener() {
+
+                public void propertyChange( PropertyChangeEvent evt ) {
+                    staticThis.modified();
+                }
+            };
+        }
         modified();
     }
+
     String photographer;
     
     /**
