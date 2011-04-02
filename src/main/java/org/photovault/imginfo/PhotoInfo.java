@@ -142,43 +142,6 @@ public class PhotoInfo implements PhotoEditor {
     public VersionedObjectEditor<PhotoInfo> editor( DTOResolverFactory rf ) {
         return new VersionedObjectEditor<PhotoInfo>(  this , rf );
     }
-        
-    
-    /**
-     Get a PhotoInfo object with given ID
-     @param session the persistence context into which the object is requested
-     @param uid UID of the requested object.
-     @return The PhotoInfo with given UID or <code>null</code> if no such is 
-     available.
-     */
-    public static PhotoInfo findPhotoInfo( Session session, Integer uid )
-    throws PhotoNotFoundException {        
-        PhotoInfo photo =  (PhotoInfo) session.get( PhotoInfo.class, uid );
-        if ( photo == null ) {
-            throw new PhotoNotFoundException();
-        }
-        return photo;
-    }
-    
-    
-    /**
-     Retrieves the PhotoInfo objects whose original instance has a specific hash code
-     @param hash The hash code we are looking for
-     @return An array of matching PhotoInfo objects or <code>null</code>
-     if none found.
-     @deprecated Use PhotoInfoDAO#findPhotosWithOriginalHash instead.
-     */
-    static public PhotoInfo[] retrieveByOrigHash(byte[] hash) {
-        throw new UnsupportedOperationException( 
-                "retrieveByOrigHash not supported with Hibernate, " +
-                "Use PhotoInfoDAO#findPhotosWithOriginalHash instead" );
-//        PhotoInfo photos[] = null;
-//        List result = new ArrayList();
-//        if ( result.size() > 0 ) {
-//                photos = (PhotoInfo[]) result.toArray( new PhotoInfo[result.size()] );
-//            }
-//        return photos;  
-    }
     
     /**
      Creates a new persistent PhotoInfo object and stores it in database
@@ -577,34 +540,6 @@ public class PhotoInfo implements PhotoEditor {
             thumbnail = null;
         }
     }
-    
-    /**
-     Delete all thumbnail/copy instance that do not match to the image settings.
-     */
-    private void purgeInvalidInstances() {
-        log.debug( "entry: purgeInvalidInstances" );
-        throw new UnsupportedOperationException( "ImageInstance has been deprecated!!!" );
-//        List<ImageInstance> purgeList = new ArrayList<ImageInstance>();
-//        for ( ImageInstance instance : instances ) {
-//            if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_THUMBNAIL
-//                    && !matchesCurrentSettings( instance ) ) {
-//                purgeList.add( instance );
-//            } else if ( instance.getInstanceType() == ImageInstance.INSTANCE_TYPE_MODIFIED
-//                    && !isConsistentWithCurrentSettings( instance ) ) {
-//                purgeList.add( instance );                
-//            }
-//        }
-//        log.debug( "Deleting " + purgeList.size() + " instances" );
-//        for ( ImageInstance i : purgeList ) {
-//            ODMGXAWrapper txw = new ODMGXAWrapper();
-//            txw.lock( this, Transaction.WRITE );
-//            txw.lock( i, Transaction.WRITE );
-//            instances.remove( i );
-//            i.delete();
-//            txw.commit();
-//        }
-//        log.debug( "exit: purgeInvalidInstances" );        
-    }
 
     /**
      Helper function to calculate aspect ratio of an image
@@ -618,28 +553,6 @@ public class PhotoInfo implements PhotoEditor {
     private double getAspect( int width, int height, double pixelAspect ) {
         return height > 0
                 ? pixelAspect*(((double) width) / ((double) height )) : -1.0;
-    }
-    
-    /**
-     Helper method to check if a image is ok for thumbnail creation, i.e. that
-     it is large enough and that its aspect ration is same as the original has
-     @param width width of the image to test
-     @param height Height of the image to test
-     @param minWidth Minimun width needed for creating a thumbnail
-     @param minHeight Minimum height needed for creating a thumbnail
-     @param origAspect Aspect ratio of the original image
-
-     @deprecated Use {@link PhotoInstanceCreator} instead
-     */
-    private boolean isOkForThumbCreation( int width, int height,
-            int minWidth, int minHeight, double origAspect, double aspectAccuracy ) {
-        if ( width < minWidth ) return false;
-        if ( height < minHeight ) return false;
-        double aspect = getAspect( width, height, 1.0 );
-        if ( Math.abs( aspect - origAspect) / origAspect > aspectAccuracy )  {
-            return false;
-        }
-        return true;
     }
         
     
@@ -912,154 +825,6 @@ public class PhotoInfo implements PhotoEditor {
     protected void createThumbnail() {
         VolumeBase vol = VolumeBase.getDefaultVolume();
         createThumbnail( vol );
-    }
-    
-    /**
-     TODO: The exported image must be stored as ImafeFile in database (so that it 
-     can be found later)
-     
-     Exports an image from database to a specified file with given resolution.
-     The image aspect ratio is preserved and the image is scaled so that it fits
-     to the given maximum resolution.
-     @param file File in which the image will be saved
-     @param width Width of the exported image in pixels. If negative the image is
-     exported in its "natural" resolution (i.e. not scaled)
-     @param height Height of the exported image in pixels
-     @throws PhotovaultException if exporting the photo fails for some reason.
-     */
-    public void exportPhoto( File file, int width, int height ) throws PhotovaultException {        
-
-        File imageFile = original.getFile().findAvailableCopy();
-        
-        if ( imageFile == null ) {
-            // If there are no instances, nothing can be exported
-            log.warn( "Error - no original image was found!!!" );
-            throw new PhotovaultException( "No image file found to export photo" );
-        }
-        
-        // Read the image
-        RenderedImage exportImage = null;
-        try {
-            String fname = imageFile.getName();
-            int lastDotPos = fname.lastIndexOf( "." );
-            if ( lastDotPos <= 0 || lastDotPos >= fname.length()-1 ) {
-                throw new IOException( "Cannot determine file type extension of " + imageFile.getAbsolutePath() );
-            }
-            PhotovaultImageFactory imageFactory = new PhotovaultImageFactory();
-            PhotovaultImage img = null;
-            /*
-            Do not read the image yet since setting raw conversion
-            parameters later may force a re-read.
-             */
-            img = imageFactory.create( imageFile, false, false );
-
-            img.setCropBounds( this.getCropBounds() );
-            img.setRotation( getPrefRotation() );
-            ChannelMapOperation channelMap = getColorChannelMapping();
-            if ( channelMap != null ) {
-                img.setColorAdjustment( channelMap );
-            }
-            if ( img instanceof RawImage ) {
-                RawImage ri = (RawImage) img;
-                RawConversionSettings rawSettings = getProcessing().getRawConvSettings();
-                if ( rawSettings != null ) {
-                    ri.setRawSettings( rawSettings );
-                } else if ( rawSettings == null ) {
-                    // No raw settings for this photo yet, let's use
-                    // the thumbnail settings
-                    rawSettings = ri.getRawSettings();
-                }
-            }
-            if ( width > 0 ) {
-                exportImage =img.getRenderedImage( width, height, false );
-            } else {
-                exportImage =img.getRenderedImage( 1.0, false );
-            }
-        } catch ( Exception e ) {
-            log.warn( "Error reading image: " + e.getMessage() );
-            throw new PhotovaultException( "Error reading image: " + e.getMessage(), e );
-        }
-                
-        // Reduce to 8 bit samples if we have more...
-        if ( exportImage.getSampleModel().getSampleSize( 0 ) == 16 ) {
-            double[] subtract = new double[1]; subtract[0] = 0;
-            double[] divide   = new double[1]; divide[0]   = 1./256.;
-            // Now we can rescale the pixels gray levels:
-            ParameterBlock pbRescale = new ParameterBlock();
-            pbRescale.add(divide);
-            pbRescale.add(subtract);
-            pbRescale.addSource( exportImage );
-            PlanarImage outputImage = (PlanarImage)JAI.create("rescale", pbRescale, null);
-            // Make sure it is a byte image - force conversion.
-            ParameterBlock pbConvert = new ParameterBlock();
-            pbConvert.addSource(outputImage);
-            pbConvert.add(DataBuffer.TYPE_BYTE);
-            exportImage = JAI.create("format", pbConvert);
-        }
-        
-        // Try to determine the file type based on extension
-        String ftype = "jpg";
-        String imageFname = file.getName();
-        int extIndex = imageFname.lastIndexOf( "." ) + 1;
-        if ( extIndex > 0 ) {
-            ftype = imageFname.substring( extIndex );
-        }
-        
-        try {
-            // Find a writer for that file extensions
-            ImageWriter writer = null;
-            Iterator iter = ImageIO.getImageWritersByFormatName( ftype );
-            if (iter.hasNext()) writer = (ImageWriter)iter.next();
-            if (writer != null) {
-                ImageOutputStream ios = null;
-                try {
-                    // Prepare output file
-                    ios = ImageIO.createImageOutputStream( file );
-                    writer.setOutput(ios);
-                    // Set some parameters
-                    ImageWriteParam param = writer.getDefaultWriteParam();
-                    // if bi has type ARGB and alpha is false, we have
-                    // to tell the writer to not use the alpha
-                    // channel: this is especially needed for jpeg
-                    // files where imageio seems to produce wrong jpeg
-                    // files right now...
-//                    if (exportImage.getType() == BufferedImage.TYPE_INT_ARGB ) {
-//                        // this is not so obvious: create a new
-//                        // ColorModel without OPAQUE transparency and
-//                        // no alpha channel.
-//                        ColorModel cm = new ComponentColorModel(exportImage.getColorModel().getColorSpace(),
-//                                false, false,
-//                                Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
-//                        // tell the writer to only use the first 3 bands (skip alpha)
-//                        int[] bands = {0, 1, 2};
-//                        param.setSourceBands(bands);
-//                        // although the java documentation says that
-//                        // SampleModel can be null, an exception is
-//                        // thrown in that case therefore a 1*1
-//                        // SampleModel that is compatible to cm is
-//                        // created:
-//                        param.setDestinationType(new ImageTypeSpecifier(cm,
-//                                cm.createCompatibleSampleModel(1, 1)));
-//                    }
-                    // Write the image
-                    writer.write(null, new IIOImage(exportImage, null, null), param);
-                    
-                    // Cleanup
-                    ios.flush();
-                } finally {
-                    if (ios != null) ios.close();
-                    writer.dispose();
-                    if ( exportImage != null && exportImage instanceof PlanarImage ) {
-                        ((PlanarImage)exportImage).dispose();
-                        System.gc();
-                    }
-                }
-            }
-            
-        } catch ( IOException e ) {
-            log.warn( "Error writing exported image: " + e.getMessage() );
-            throw new PhotovaultException( "Error writing exported image: " + e.getMessage(), e );
-        }
     }
     
     

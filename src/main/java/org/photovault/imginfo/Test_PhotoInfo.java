@@ -641,44 +641,6 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
     }
 
     /**
-       Test normal case of exporting image from database
-    */
-    @Test
-    public void testExport() {
-	String fname = "test1.jpg";
-	File f = new File( testImgDir, fname );
-	PhotoInfo photo = createPhoto( f );
-	photo.setPrefRotation( -90 );
-
-	File exportFile = new File( "/tmp/exportedImage.png" );
-// 	try {
-// 	    exportFile = File.createTempFile( "testExport", ".jpg" );
-// 	} catch ( IOException e ) {
-// 	    fail( "could not create export file: " + e.getMessage() );
-// 	}
-        try {
-            photo.exportPhoto( exportFile, 400, 400 );
-        } catch (PhotovaultException e ) {
-            fail( e.getMessage() );
-        }
-	// Read the exported image
-	BufferedImage exportedImage = null;
-	try {
-	    exportedImage = ImageIO.read( exportFile );
-	} catch ( IOException e ) {
-	    fail( "Could not read the exported image " + exportFile );
-	}
-
-	File exportRef = new File( testRefImageDir, "exportedImage.png" );
-	    
-	// Verify that the exported image matches the reference
-	assertTrue( "Exported image " + exportFile + " does not match reference " + exportRef,
-		    org.photovault.test.ImgTestUtils.compareImgToFile( exportedImage, exportRef ) );
-
-	photo.delete();
-    }
-
-    /**
        Test exporting an image to a file name that cannot be created
     */
 /*    public void testExportWriteNotAllowed() {
