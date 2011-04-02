@@ -180,16 +180,20 @@ public class ImageIOImage extends PhotovaultImage {
      * @return Camera model reported by dcraw
      */
     public String getCamera() {
-        // Put here both camera manufacturer and model
-        String maker = getEXIFTagAsString( BaselineTIFFTagSet.TAG_MAKE );        
         String model = getEXIFTagAsString( BaselineTIFFTagSet.TAG_MODEL );
-        StringBuffer cameraBuf = new StringBuffer( maker != null ? maker : "" );
-        if ( model != null ) {
-            cameraBuf.append( " "). append( model );
-        }
-        return cameraBuf.toString();
+        return model;
     }
-    
+
+
+    /**
+     * Get the camera maker.
+     * @return The MAKE EXIF tag value
+     */
+    public String getCameraMaker() {
+        String maker = getEXIFTagAsString( BaselineTIFFTagSet.TAG_MAKE );
+        return maker;
+    }
+
     /**
      * Get the film speed setting used when shooting the image
      * @return Film speed (in ISO) as reported by dcraw

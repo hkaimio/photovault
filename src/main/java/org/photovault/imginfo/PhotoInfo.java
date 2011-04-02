@@ -241,68 +241,6 @@ public class PhotoInfo implements PhotoEditor {
         modified();
     }
     
-
-    /**
-     This method reads the metadata from image file and updates the PhotoInfo record from it
-     @param f The file to read
-     */
-    void updateFromFileMetadata( File f ) {
-        ImageIOImage img = ImageIOImage.getImage( f, false, true );
-        if ( img == null ) {
-            return;
-        }
-        
-        
-        setShootTime( img.getTimestamp() );
-
-        // Exposure
-        setFStop( img.getAperture() );
-        
-        setShutterSpeed( img.getShutterSpeed() );
-        setFocalLength( img.getFocalLength() );
-        setFilmSpeed( img.getFilmSpeed() );
-        String camera = img.getCamera();
-        if ( camera.length() > CAMERA_LENGTH ) {
-            camera = camera.substring( 0, CAMERA_LENGTH );
-        }
-        setCamera( camera );
-        
-    }
-
-    /**
-     Reads metadata from raw camera file (using dcraw) and updates PhotoInfo
-     fields based on that
-     @param f The raw file to read
-     @return <code>true</code> if meta data was succesfully read, <code>false</code> 
-     otherwise (e.g. if f was not a raw image file.
-     */
-    private boolean updateFromRawFileMetadata( File f ) {
-        RawImage ri;
-        try {
-            ri = new RawImage(f);
-        } catch (PhotovaultException ex) {
-            return false;
-        }
-        if ( !ri.isValidRawFile() ) {
-            return false;
-        }
-        setShootTime( ri.getTimestamp() );
-        setFStop( ri.getAperture() );
-        setShutterSpeed( ri.getShutterSpeed() );
-        setFilmSpeed( ri.getFilmSpeed() );
-        String camera = ri.getCamera();
-        if ( camera.length() > CAMERA_LENGTH ) {
-            camera = camera.substring( 0, CAMERA_LENGTH );
-        }
-        setCamera( camera );
-        setFilm( "Digital" );
-        setFocalLength( ri.getFocalLength() );
-        
-        ri.autoExpose();
-        setRawSettings( ri.getRawSettings() );
-        return true;
-    }
-    
     
     /**
      Deletes the PhotoInfo and all related instances from database. 
@@ -1257,13 +1195,16 @@ public class PhotoInfo implements PhotoEditor {
         shotLocation.setDescription( v );
     }
 
-    private Location shotLocation;
+    private Location shotLocation = new Location();
 
     private PropertyChangeListener shotLocationListener;
 
     @ValueField
     @Embedded
     public Location getShotLocation() {
+        if ( shotLocation == null ) {
+            shotLocation = new Location();
+        }
         return shotLocation;
     }
 
@@ -1326,6 +1267,21 @@ public class PhotoInfo implements PhotoEditor {
         this.shutterSpeed = v;
         modified();
     }
+
+    String cameraMaker;
+
+    @ValueField
+    @Column( name = "camera_make" )
+    public String getCameraMaker() {
+        return cameraMaker;
+    }
+
+    public void setCameraMaker( String newValue ) {
+        cameraMaker = newValue;
+        modified();
+    }
+
+
     String camera;
     
     /**

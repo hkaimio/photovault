@@ -83,6 +83,12 @@ public abstract class PhotovaultImage {
     public abstract String getCamera();
 
     /**
+     * Get the name of company that made the camera
+     * @return
+     */
+    public abstract String getCameraMaker();
+
+    /**
      Get the original image
      @deprecated Use getRenderedImage instead
      */

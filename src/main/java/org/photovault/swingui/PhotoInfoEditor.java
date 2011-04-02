@@ -184,7 +184,11 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	JPanel pane = new JPanel();
 	tabPane.addTab( "Tech data", pane );
 
-	JLabel cameraLabel =  new JLabel( "Camera" );
+	JLabel cameraMakerLabel =  new JLabel( "Camera make" );
+	JTextField cameraMakerField = createMvTextField( "cameraMaker", 20 );
+	// cameraDoc = cameraField.getDocument();
+
+        JLabel cameraLabel =  new JLabel( "Camera model" );
 	cameraField = createMvTextField( "camera", 20 );
 	cameraDoc = cameraField.getDocument();
 	
@@ -249,8 +253,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	GridBagLayout layout = new GridBagLayout();
 	GridBagConstraints c = new GridBagConstraints();
 	pane.setLayout( layout );
-	JLabel[] labels     = { cameraLabel, lensLabel, focalLengthLabel, filmLabel, filmSpeedLabel, shutterSpeedLabel, fStopLabel };
-	JTextField[] fields = { cameraField, lensField, focalLengthField, filmField, filmSpeedField, shutterSpeedField, fStopField };
+	JLabel[] labels     = { cameraMakerLabel, cameraLabel, lensLabel, focalLengthLabel, filmLabel, filmSpeedLabel, shutterSpeedLabel, fStopLabel };
+	JTextField[] fields = { cameraMakerField, cameraField, lensField, focalLengthField, filmField, filmSpeedField, shutterSpeedField, fStopField };
 	addLabelTextRows( labels, fields, layout, pane );
 	pane.add( technoteScrollPane );
 	c.gridwidth = GridBagConstraints.REMAINDER;

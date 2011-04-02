@@ -29,7 +29,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.command.DataAccessCommand;
+import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.dcraw.RawImage;
+import org.photovault.image.ImageOpChain;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.replication.VersionedObjectEditor;
 
@@ -171,8 +173,14 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                         camera = camera.substring( 0, PhotoInfo.CAMERA_LENGTH );
                     }
                     photoEditor.setCamera( camera );
+                    String cameraMaker = img.getCameraMaker();
+                    e.setField( "cameraMaker", cameraMaker );
                     if ( img instanceof RawImage ) {
-                        photoEditor.setRawSettings( ((RawImage)img).getRawSettings() );
+                        ImageOpChain processingChain = new ImageOpChain();
+                        RawConversionSettings rawSettings =
+                                ((RawImage)img).getRawSettings();
+                        processingChain.applyRawConvSetting( rawSettings );
+                        e.setField( "processing", processingChain );
                     }
                 }
                 e.apply();

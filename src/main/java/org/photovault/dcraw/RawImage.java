@@ -164,7 +164,9 @@ public class RawImage extends PhotovaultImage {
      Timestamp of the raw image
      */
     private Date timestamp = null;
-    
+
+    private String cameraMaker = null;
+
     /**
      Camera model that was used to take the picture
      */
@@ -293,13 +295,9 @@ public class RawImage extends PhotovaultImage {
     public String getCamera() {
         return camera;
     }
-    
-    /**
-     * Set the camera model.
-     * @param camera The new camera model
-     */
-    public void setCamera(String camera) {
-        this.camera = camera;
+
+    public String getCameraMaker() {
+        return cameraMaker;
     }
     
     /**
@@ -884,7 +882,8 @@ public class RawImage extends PhotovaultImage {
         }
         validRawFile = true;
         this.aperture = lrd.other.getAperture();
-        camera = lrd.idata.getMake() + " " + lrd.idata.getModel();
+        cameraMaker = lrd.idata.getMake();
+        camera = lrd.idata.getModel();
         filmSpeed = (int) lrd.other.getIsoSpeed();
         shutterSpeed = lrd.other.getShutterSpeed();
         width = lrd.sizes.width;
