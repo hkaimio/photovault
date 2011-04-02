@@ -42,6 +42,7 @@
 	<dependency org="sun" name="jai_imageio" rev="1.1"/>
 	<dependency org="sun" name="jna" rev="3.0.9"/>
 	<dependency org="sun" name="jxlayer" rev="4.0"/>
+	<dependency org="com.jgoodies" name="binding" rev="2.0.1"/>
 	<dependency org="org.apache.commons" name="commons-digester" rev="1.8"/> 
 	<dependency org="org.apache.commons" name="commons-lang" rev="2.4"/>
 	<dependency org="org.apache.commons.sanselan" name="sanselan" rev="0.97"/>

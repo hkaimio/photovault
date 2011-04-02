@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2006 Harri Kaimio
+  Copyright (c) 2006-2011 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -22,6 +22,11 @@
 package org.photovault.swingui;
 
 
+import com.jgoodies.binding.adapter.Bindings;
+import com.jgoodies.binding.beans.PropertyAdapter;
+import com.jgoodies.binding.beans.PropertyConnector;
+import com.jgoodies.binding.value.AbstractConverter;
+import com.jgoodies.binding.value.ValueModel;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.tree.TreePath;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -45,6 +50,7 @@ import javax.swing.tree.TreeModel;
 import org.photovault.swingui.folderpane.FolderTreePane;
 import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
+import org.photovault.swingui.selection.TextFieldController;
 import org.photovault.swingui.tag.TagList;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
@@ -79,10 +85,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 
 	// Photographer field
 	JLabel photographerLabel = new JLabel( "Photographer" );
-	photographerField = new JTextField( 30 );
+	photographerField = createMvTextField( "photographer", 30 );
 	photographerDoc = photographerField.getDocument();
-	photographerDoc.addDocumentListener( this );
-	photographerDoc.putProperty( FIELD, PhotoInfoFields.PHOTOGRAPHER );
 
 	// "Fuzzy time" field
 	JLabel fuzzyDateLabel = new JLabel( "Shooting date" );
@@ -159,22 +163,16 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	tabPane.addTab( "Tech data", pane );
 
 	JLabel cameraLabel =  new JLabel( "Camera" );
-	cameraField = new JTextField( 20 );
+	cameraField = createMvTextField( "camera", 20 );
 	cameraDoc = cameraField.getDocument();
-	cameraDoc.addDocumentListener( this );
-	cameraDoc.putProperty( FIELD, PhotoInfoFields.CAMERA );
 	
 	JLabel lensLabel =  new JLabel( "Lens" );
-	lensField = new JTextField( 20 );
+	lensField = createMvTextField( "lens", 20 );
 	lensDoc = lensField.getDocument();
-	lensDoc.addDocumentListener( this );
-	lensDoc.putProperty( FIELD, PhotoInfoFields.LENS );
 
 	JLabel filmLabel =  new JLabel( "Film" );
-	filmField = new JTextField( 20 );
+	filmField = createMvTextField( "film", 20 );
 	filmDoc = filmField.getDocument();
-	filmDoc.addDocumentListener( this );
-	filmDoc.putProperty( FIELD, PhotoInfoFields.FILM );
 
 	JLabel filmSpeedLabel =  new JLabel( "Film speed" );
 	NumberFormatter filmSpeedFormatter = new NumberFormatter( new DecimalFormat( "#########0" ) );	
@@ -254,10 +252,20 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	pane.add( folderTreePane, c );
     }
 
+    private JTextField createMvTextField( String propName, int length ) {
+	JTextField fld = new JTextField( length );
+        TextFieldController tfc = ctrl.getFieldController( propName );
+
+        Bindings.bind( fld, new PropertyAdapter( tfc, "value", true ), true );
+        ValueModel mvValueModel = new PropertyAdapter( tfc, "multivalued", true );
+        ValueModel fieldColorModel = new MultivalueColorConverter( mvValueModel );
+        PropertyConnector.connect(
+                fieldColorModel, "value",
+                fld, "background" );
+        return fld;
+    }
+
     public void setPhotographer( String newValue ) {
-        photographerField.getDocument().removeDocumentListener( this );
-	photographerField.setText( newValue );
-        photographerField.getDocument().addDocumentListener( this );
     }
     
     public String getPhotographer( ) {
@@ -266,7 +274,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     }
 
     public void setPhotographerMultivalued( boolean mv ) {
-	photographerField.setBackground( mv ? multiValueColor : singleValueColor );
     }
 
     public void setFuzzyDate( FuzzyDate d ) {
@@ -289,9 +296,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     }
     
     public void setShootingPlace( String newValue ) {
-        shootingPlaceField.getDocument().removeDocumentListener( this );
-	shootingPlaceField.setText( newValue );
-        shootingPlaceField.getDocument().addDocumentListener( this );
     }
     
     public String getShootingPlace( ) {
@@ -299,7 +303,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     }
     
     public void setShootingPlaceMultivalued( boolean mv ) {
-	shootingPlaceField.setBackground( mv ? multiValueColor : singleValueColor );
     }
 
     public void setFStop( Number newValue ) {
@@ -354,22 +357,15 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     }
 
     public void setCamera( String newValue ) {
-        cameraField.getDocument().removeDocumentListener( this );
-	cameraField.setText( newValue );
-        cameraField.getDocument().addDocumentListener( this );
     }
     
     public String getCamera( ) {
 	return cameraField.getText( );
     }
     public void setCameraMultivalued( boolean mv ) {
-	cameraField.setBackground( mv ? multiValueColor : singleValueColor );
     }
     
     public void setLens( String newValue ) {
-        lensField.getDocument().removeDocumentListener( this );
-	lensField.setText( newValue );
-        lensField.getDocument().addDocumentListener( this );
     }
     
     public String getLens( ) {
@@ -377,13 +373,9 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     }
 
     public void setLensMultivalued( boolean mv ) {
-	lensField.setBackground( mv ? multiValueColor : singleValueColor );
     }
     
     public void setFilm( String newValue ) {
-	filmField.getDocument().removeDocumentListener( this );
-        filmField.setText( newValue );
-	filmField.getDocument().addDocumentListener( this );
     }
     
     public String getFilm( ) {
@@ -391,7 +383,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     }
 
     public void setFilmMultivalued( boolean mv ) {
-	filmField.setBackground( mv ? multiValueColor : singleValueColor );
     }
     
     public void setDescription( String newValue ) {

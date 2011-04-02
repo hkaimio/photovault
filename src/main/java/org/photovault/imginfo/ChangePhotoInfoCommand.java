@@ -108,7 +108,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
     /**
      Fields that have been changed by this command
      */
-    Map<PhotoInfoFields, Object> changedFields = new HashMap<PhotoInfoFields, Object>();
+    Map<String, Object> changedFields = new HashMap<String, Object>();
     
     /**
      Folders the photos should be added to
@@ -120,6 +120,9 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      */    
     Set<UUID> removedFromFolders = new HashSet<UUID>();
 
+    /**
+     * Structure to encapsulate changes to a set field
+     */
     private static class SetChange {
         Set added = new HashSet();
         Set removed = new HashSet();
@@ -134,6 +137,9 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
         }
     }
 
+    /**
+     * Modifications to set fields
+     */
     Map<String, SetChange> modifiedSets = new HashMap();
 
     /**
@@ -168,9 +174,12 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
      */
     public void setField( PhotoInfoFields field, Object newValue ) {
         log.debug( "setField " + field + ": " + newValue );
-        changedFields.put( field, newValue );
+        changedFields.put( field.getName(), newValue );
     }
-    
+
+    public void setField( String fieldName, Object newValue ) {
+        changedFields.put( fieldName, newValue );
+    }
     /**
      Get the ne wvalue for a field
      @return The value that will be changed to photos when this command is 
@@ -388,8 +397,8 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
             }
             debugMsg.append( "\n" );
             debugMsg.append( "Changed values:\n" );
-            for ( Map.Entry<PhotoInfoFields, Object> e: changedFields.entrySet() ) {
-                PhotoInfoFields field = e.getKey();
+            for ( Map.Entry<String, Object> e: changedFields.entrySet() ) {
+                String field = e.getKey();
                 Object value = e.getValue();
                 debugMsg.append( field ).append( ": " ).append( value ).append( "\n" );
             }
@@ -466,9 +475,9 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                 }
             }
 
-            for ( Map.Entry<PhotoInfoFields, Object> e :
-                    changedFields.entrySet() ) {
-                PhotoInfoFields field = e.getKey();
+            for ( Map.Entry<String, Object> e : changedFields.entrySet() ) {
+                String fieldName = e.getKey();
+                PhotoInfoFields field = PhotoInfoFields.getByName( fieldName );
                 Object value = e.getValue();
                 try {
                     if ( rawSettingsFields.contains( field ) ) {
@@ -486,7 +495,7 @@ public class ChangePhotoInfoCommand extends DataAccessCommand {
                         Double rot = (Double) e.getValue();
                         cropHelper.setProperty( "rot", rot );
                     } else {
-                        pe.setField( e.getKey().getName(), e.getValue() );
+                        pe.setField( fieldName, e.getValue() );
                     }
                 } catch ( IllegalAccessException ex ) {
                     log.error( "exception while setting field " + field, ex );
