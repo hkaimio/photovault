@@ -101,6 +101,19 @@ message PhotovaultData {
     repeated ChangeEnvelope changes = 3;
 }
 
+message License {
+    required string license_urn = 1;
+    optional string license_name = 2;
+}
+
+message Rights {
+    optional string copyright = 1;
+    optional string attribution_name = 2;
+    optional string attribution_url = 3;
+    optional string usage_terms = 4;
+    optional License license = 5;
+}
+
 extend ValueChange {
     optional Image image = 100;
     optional ImageFile imafe_file = 101;
@@ -116,4 +129,6 @@ extend ValueChange {
     optional TimeRange time_range = 111;
     optional FolderRef folder_ref = 112;
     optional Tag tag = 113;
+    optional License license = 114;
+    optional Rights rights = 115;
 }

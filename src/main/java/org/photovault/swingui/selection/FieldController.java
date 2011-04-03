@@ -37,14 +37,14 @@ import org.photovault.imginfo.PhotoInfo;
  * @author Harri Kaimio
  * @since 0.6.0
  */
-public class TextFieldController {
-    private static Log log = LogFactory.getLog(  TextFieldController.class );
+public class FieldController<T> {
+    private static Log log = LogFactory.getLog(  FieldController.class );
     private String property;
-    private String value;
+    private T value;
     private boolean isMultivalued = false;
     private PhotoSelectionController parentCtrl;
-    private List<String> values;
-    private List<String> uniqueValues = new ArrayList<String>();
+    private List<T> values;
+    private List<T> uniqueValues = new ArrayList<T>();
     private PropertyChangeSupport propertySupport;
 
     /**
@@ -52,7 +52,7 @@ public class TextFieldController {
      * @param parentCtrl The parent controller
      * @param propName Name of the property represented
      */
-    public TextFieldController( PhotoSelectionController parentCtrl, String propName ) {
+    public FieldController( PhotoSelectionController parentCtrl, String propName ) {
         this.parentCtrl = parentCtrl;
         this.property = propName;
         propertySupport = new PropertyChangeSupport( this );
@@ -71,7 +71,7 @@ public class TextFieldController {
      * Returns the current value of the property
      * @return
      */
-    public Object getValue() {
+    public T getValue() {
         return value;
     }
 
@@ -79,10 +79,10 @@ public class TextFieldController {
      * Set value of the property
      * @param newValue
      */
-    public void setValue( Object newValue ) {
-        String oldValue = this.value;
+    public void setValue( T newValue ) {
+        T oldValue = this.value;
         boolean wasMultivalued = isMultivalued;
-        value = (String) newValue;
+        value =  newValue;
         isMultivalued = false;
         parentCtrl.setField( property, newValue );
         propertySupport.firePropertyChange( "value", oldValue, newValue);
@@ -96,7 +96,7 @@ public class TextFieldController {
      * @param i
      * @return
      */
-    public String getUniqueValue( int i ) {
+    public T getUniqueValue( int i ) {
         return uniqueValues.get( i );
     }
 
@@ -117,18 +117,18 @@ public class TextFieldController {
      * @param photos
      */
     public void setPhotos( PhotoInfo[] photos ) {
-        values.clear();
+            values.clear();
         uniqueValues.clear();
         boolean haveNulls = false;
 
-        SortedSet<String> uniques = new TreeSet();
-        String oldValue = value;
+        SortedSet<T> uniques = new TreeSet();
+        T oldValue = value;
         boolean wasMultivalued = isMultivalued;
         if ( photos != null ) {
             for ( PhotoInfo p : photos ) {
-                String propVal = null;
+                T propVal = null;
                 try {
-                    propVal = (String) PropertyUtils.getProperty( p, property );
+                    propVal = (T) PropertyUtils.getProperty( p, property );
                 } catch ( IllegalAccessException ex ) {
                     log.error( ex );
                 } catch ( InvocationTargetException ex ) {
@@ -161,7 +161,7 @@ public class TextFieldController {
      * Get all unique values
      * @return
      */
-    public List<String> getUniqueValues() {
+    public List<T> getUniqueValues() {
         return uniqueValues;
     }
 
@@ -172,7 +172,7 @@ public class TextFieldController {
      * model.
      * @return
      */
-    public List<String> getValues() {
+    public List<T> getValues() {
         return values;
     }
 

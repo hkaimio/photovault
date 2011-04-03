@@ -75,6 +75,8 @@ public class PvProtobufChangeSerializer extends ProtobufChangeSerializer {
         registerConverter( ImageProtos.folderRef, FolderRefDTO.class,
                 new FolderRefDTO.ProtobufConv() );
         registerConverter( ImageProtos.tag, Tag.class, new Tag.ProtobufConv() );
+        registerConverter( ImageProtos.license, License.class,
+                new License.ProtobufConv() );
     }
 
     /**

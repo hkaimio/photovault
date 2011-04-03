@@ -986,6 +986,7 @@ public class PhotoInfo implements PhotoEditor {
                     staticThis.modified();
                 }
             };
+            shotLocation.addPropertyChangeListener( shotLocationListener );
         }
         modified();
     }
@@ -1012,6 +1013,37 @@ public class PhotoInfo implements PhotoEditor {
         this.photographer = v;
         modified();
     }
+
+    private UsageRights usageRights;
+    private PropertyChangeListener usageRightsListener = null;
+
+    @ValueField
+    @Embedded
+    public UsageRights getUsageRights() {
+        if ( usageRights == null ) {
+            usageRights = new UsageRights();
+        }
+        return usageRights;
+    }
+
+    public void setUsageRights( UsageRights l ) {
+        if ( usageRights != null ) {
+            usageRights.removePropertyChangeListener( usageRightsListener );
+        }
+        usageRights = l;
+        if ( usageRights != null ) {
+            final PhotoInfo staticThis = this;
+            usageRightsListener = new PropertyChangeListener() {
+
+                public void propertyChange( PropertyChangeEvent evt ) {
+                    staticThis.modified();
+                }
+            };
+            usageRights.addPropertyChangeListener( usageRightsListener );
+        }
+        modified();
+    }
+
     double shutterSpeed;
     
     /**

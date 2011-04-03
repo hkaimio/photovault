@@ -21,6 +21,8 @@ public final class ImageProtos {
     registry.add(org.photovault.imginfo.dto.ImageProtos.timeRange);
     registry.add(org.photovault.imginfo.dto.ImageProtos.folderRef);
     registry.add(org.photovault.imginfo.dto.ImageProtos.tag);
+    registry.add(org.photovault.imginfo.dto.ImageProtos.license);
+    registry.add(org.photovault.imginfo.dto.ImageProtos.rights);
   }
   public enum ImageType
       implements com.google.protobuf.ProtocolMessageEnum {
@@ -4561,6 +4563,816 @@ public final class ImageProtos {
     // @@protoc_insertion_point(class_scope:PhotovaultData)
   }
   
+  public static final class License extends
+      com.google.protobuf.GeneratedMessage {
+    // Use License.newBuilder() to construct.
+    private License() {
+      initFields();
+    }
+    private License(boolean noInit) {}
+    
+    private static final License defaultInstance;
+    public static License getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public License getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_License_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_License_fieldAccessorTable;
+    }
+    
+    // required string license_urn = 1;
+    public static final int LICENSE_URN_FIELD_NUMBER = 1;
+    private boolean hasLicenseUrn;
+    private java.lang.String licenseUrn_ = "";
+    public boolean hasLicenseUrn() { return hasLicenseUrn; }
+    public java.lang.String getLicenseUrn() { return licenseUrn_; }
+    
+    // optional string license_name = 2;
+    public static final int LICENSE_NAME_FIELD_NUMBER = 2;
+    private boolean hasLicenseName;
+    private java.lang.String licenseName_ = "";
+    public boolean hasLicenseName() { return hasLicenseName; }
+    public java.lang.String getLicenseName() { return licenseName_; }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      if (!hasLicenseUrn) return false;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasLicenseUrn()) {
+        output.writeString(1, getLicenseUrn());
+      }
+      if (hasLicenseName()) {
+        output.writeString(2, getLicenseName());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasLicenseUrn()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(1, getLicenseUrn());
+      }
+      if (hasLicenseName()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(2, getLicenseName());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static org.photovault.imginfo.dto.ImageProtos.License parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.License parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.photovault.imginfo.dto.ImageProtos.License prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private org.photovault.imginfo.dto.ImageProtos.License result;
+      
+      // Construct using org.photovault.imginfo.dto.ImageProtos.License.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new org.photovault.imginfo.dto.ImageProtos.License();
+        return builder;
+      }
+      
+      protected org.photovault.imginfo.dto.ImageProtos.License internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new org.photovault.imginfo.dto.ImageProtos.License();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.photovault.imginfo.dto.ImageProtos.License.getDescriptor();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.License getDefaultInstanceForType() {
+        return org.photovault.imginfo.dto.ImageProtos.License.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.License build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private org.photovault.imginfo.dto.ImageProtos.License buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.License buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        org.photovault.imginfo.dto.ImageProtos.License returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.photovault.imginfo.dto.ImageProtos.License) {
+          return mergeFrom((org.photovault.imginfo.dto.ImageProtos.License)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(org.photovault.imginfo.dto.ImageProtos.License other) {
+        if (other == org.photovault.imginfo.dto.ImageProtos.License.getDefaultInstance()) return this;
+        if (other.hasLicenseUrn()) {
+          setLicenseUrn(other.getLicenseUrn());
+        }
+        if (other.hasLicenseName()) {
+          setLicenseName(other.getLicenseName());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              setLicenseUrn(input.readString());
+              break;
+            }
+            case 18: {
+              setLicenseName(input.readString());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required string license_urn = 1;
+      public boolean hasLicenseUrn() {
+        return result.hasLicenseUrn();
+      }
+      public java.lang.String getLicenseUrn() {
+        return result.getLicenseUrn();
+      }
+      public Builder setLicenseUrn(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasLicenseUrn = true;
+        result.licenseUrn_ = value;
+        return this;
+      }
+      public Builder clearLicenseUrn() {
+        result.hasLicenseUrn = false;
+        result.licenseUrn_ = getDefaultInstance().getLicenseUrn();
+        return this;
+      }
+      
+      // optional string license_name = 2;
+      public boolean hasLicenseName() {
+        return result.hasLicenseName();
+      }
+      public java.lang.String getLicenseName() {
+        return result.getLicenseName();
+      }
+      public Builder setLicenseName(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasLicenseName = true;
+        result.licenseName_ = value;
+        return this;
+      }
+      public Builder clearLicenseName() {
+        result.hasLicenseName = false;
+        result.licenseName_ = getDefaultInstance().getLicenseName();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:License)
+    }
+    
+    static {
+      defaultInstance = new License(true);
+      org.photovault.imginfo.dto.ImageProtos.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:License)
+  }
+  
+  public static final class Rights extends
+      com.google.protobuf.GeneratedMessage {
+    // Use Rights.newBuilder() to construct.
+    private Rights() {
+      initFields();
+    }
+    private Rights(boolean noInit) {}
+    
+    private static final Rights defaultInstance;
+    public static Rights getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public Rights getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_Rights_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.photovault.imginfo.dto.ImageProtos.internal_static_Rights_fieldAccessorTable;
+    }
+    
+    // optional string copyright = 1;
+    public static final int COPYRIGHT_FIELD_NUMBER = 1;
+    private boolean hasCopyright;
+    private java.lang.String copyright_ = "";
+    public boolean hasCopyright() { return hasCopyright; }
+    public java.lang.String getCopyright() { return copyright_; }
+    
+    // optional string attribution_name = 2;
+    public static final int ATTRIBUTION_NAME_FIELD_NUMBER = 2;
+    private boolean hasAttributionName;
+    private java.lang.String attributionName_ = "";
+    public boolean hasAttributionName() { return hasAttributionName; }
+    public java.lang.String getAttributionName() { return attributionName_; }
+    
+    // optional string attribution_url = 3;
+    public static final int ATTRIBUTION_URL_FIELD_NUMBER = 3;
+    private boolean hasAttributionUrl;
+    private java.lang.String attributionUrl_ = "";
+    public boolean hasAttributionUrl() { return hasAttributionUrl; }
+    public java.lang.String getAttributionUrl() { return attributionUrl_; }
+    
+    // optional string usage_terms = 4;
+    public static final int USAGE_TERMS_FIELD_NUMBER = 4;
+    private boolean hasUsageTerms;
+    private java.lang.String usageTerms_ = "";
+    public boolean hasUsageTerms() { return hasUsageTerms; }
+    public java.lang.String getUsageTerms() { return usageTerms_; }
+    
+    // optional .License license = 5;
+    public static final int LICENSE_FIELD_NUMBER = 5;
+    private boolean hasLicense;
+    private org.photovault.imginfo.dto.ImageProtos.License license_;
+    public boolean hasLicense() { return hasLicense; }
+    public org.photovault.imginfo.dto.ImageProtos.License getLicense() { return license_; }
+    
+    private void initFields() {
+      license_ = org.photovault.imginfo.dto.ImageProtos.License.getDefaultInstance();
+    }
+    public final boolean isInitialized() {
+      if (hasLicense()) {
+        if (!getLicense().isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasCopyright()) {
+        output.writeString(1, getCopyright());
+      }
+      if (hasAttributionName()) {
+        output.writeString(2, getAttributionName());
+      }
+      if (hasAttributionUrl()) {
+        output.writeString(3, getAttributionUrl());
+      }
+      if (hasUsageTerms()) {
+        output.writeString(4, getUsageTerms());
+      }
+      if (hasLicense()) {
+        output.writeMessage(5, getLicense());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasCopyright()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(1, getCopyright());
+      }
+      if (hasAttributionName()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(2, getAttributionName());
+      }
+      if (hasAttributionUrl()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(3, getAttributionUrl());
+      }
+      if (hasUsageTerms()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(4, getUsageTerms());
+      }
+      if (hasLicense()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getLicense());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static org.photovault.imginfo.dto.ImageProtos.Rights parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.photovault.imginfo.dto.ImageProtos.Rights prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private org.photovault.imginfo.dto.ImageProtos.Rights result;
+      
+      // Construct using org.photovault.imginfo.dto.ImageProtos.Rights.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new org.photovault.imginfo.dto.ImageProtos.Rights();
+        return builder;
+      }
+      
+      protected org.photovault.imginfo.dto.ImageProtos.Rights internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new org.photovault.imginfo.dto.ImageProtos.Rights();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.photovault.imginfo.dto.ImageProtos.Rights.getDescriptor();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.Rights getDefaultInstanceForType() {
+        return org.photovault.imginfo.dto.ImageProtos.Rights.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.Rights build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private org.photovault.imginfo.dto.ImageProtos.Rights buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public org.photovault.imginfo.dto.ImageProtos.Rights buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        org.photovault.imginfo.dto.ImageProtos.Rights returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.photovault.imginfo.dto.ImageProtos.Rights) {
+          return mergeFrom((org.photovault.imginfo.dto.ImageProtos.Rights)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(org.photovault.imginfo.dto.ImageProtos.Rights other) {
+        if (other == org.photovault.imginfo.dto.ImageProtos.Rights.getDefaultInstance()) return this;
+        if (other.hasCopyright()) {
+          setCopyright(other.getCopyright());
+        }
+        if (other.hasAttributionName()) {
+          setAttributionName(other.getAttributionName());
+        }
+        if (other.hasAttributionUrl()) {
+          setAttributionUrl(other.getAttributionUrl());
+        }
+        if (other.hasUsageTerms()) {
+          setUsageTerms(other.getUsageTerms());
+        }
+        if (other.hasLicense()) {
+          mergeLicense(other.getLicense());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              setCopyright(input.readString());
+              break;
+            }
+            case 18: {
+              setAttributionName(input.readString());
+              break;
+            }
+            case 26: {
+              setAttributionUrl(input.readString());
+              break;
+            }
+            case 34: {
+              setUsageTerms(input.readString());
+              break;
+            }
+            case 42: {
+              org.photovault.imginfo.dto.ImageProtos.License.Builder subBuilder = org.photovault.imginfo.dto.ImageProtos.License.newBuilder();
+              if (hasLicense()) {
+                subBuilder.mergeFrom(getLicense());
+              }
+              input.readMessage(subBuilder, extensionRegistry);
+              setLicense(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // optional string copyright = 1;
+      public boolean hasCopyright() {
+        return result.hasCopyright();
+      }
+      public java.lang.String getCopyright() {
+        return result.getCopyright();
+      }
+      public Builder setCopyright(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasCopyright = true;
+        result.copyright_ = value;
+        return this;
+      }
+      public Builder clearCopyright() {
+        result.hasCopyright = false;
+        result.copyright_ = getDefaultInstance().getCopyright();
+        return this;
+      }
+      
+      // optional string attribution_name = 2;
+      public boolean hasAttributionName() {
+        return result.hasAttributionName();
+      }
+      public java.lang.String getAttributionName() {
+        return result.getAttributionName();
+      }
+      public Builder setAttributionName(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasAttributionName = true;
+        result.attributionName_ = value;
+        return this;
+      }
+      public Builder clearAttributionName() {
+        result.hasAttributionName = false;
+        result.attributionName_ = getDefaultInstance().getAttributionName();
+        return this;
+      }
+      
+      // optional string attribution_url = 3;
+      public boolean hasAttributionUrl() {
+        return result.hasAttributionUrl();
+      }
+      public java.lang.String getAttributionUrl() {
+        return result.getAttributionUrl();
+      }
+      public Builder setAttributionUrl(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasAttributionUrl = true;
+        result.attributionUrl_ = value;
+        return this;
+      }
+      public Builder clearAttributionUrl() {
+        result.hasAttributionUrl = false;
+        result.attributionUrl_ = getDefaultInstance().getAttributionUrl();
+        return this;
+      }
+      
+      // optional string usage_terms = 4;
+      public boolean hasUsageTerms() {
+        return result.hasUsageTerms();
+      }
+      public java.lang.String getUsageTerms() {
+        return result.getUsageTerms();
+      }
+      public Builder setUsageTerms(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasUsageTerms = true;
+        result.usageTerms_ = value;
+        return this;
+      }
+      public Builder clearUsageTerms() {
+        result.hasUsageTerms = false;
+        result.usageTerms_ = getDefaultInstance().getUsageTerms();
+        return this;
+      }
+      
+      // optional .License license = 5;
+      public boolean hasLicense() {
+        return result.hasLicense();
+      }
+      public org.photovault.imginfo.dto.ImageProtos.License getLicense() {
+        return result.getLicense();
+      }
+      public Builder setLicense(org.photovault.imginfo.dto.ImageProtos.License value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.hasLicense = true;
+        result.license_ = value;
+        return this;
+      }
+      public Builder setLicense(org.photovault.imginfo.dto.ImageProtos.License.Builder builderForValue) {
+        result.hasLicense = true;
+        result.license_ = builderForValue.build();
+        return this;
+      }
+      public Builder mergeLicense(org.photovault.imginfo.dto.ImageProtos.License value) {
+        if (result.hasLicense() &&
+            result.license_ != org.photovault.imginfo.dto.ImageProtos.License.getDefaultInstance()) {
+          result.license_ =
+            org.photovault.imginfo.dto.ImageProtos.License.newBuilder(result.license_).mergeFrom(value).buildPartial();
+        } else {
+          result.license_ = value;
+        }
+        result.hasLicense = true;
+        return this;
+      }
+      public Builder clearLicense() {
+        result.hasLicense = false;
+        result.license_ = org.photovault.imginfo.dto.ImageProtos.License.getDefaultInstance();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:Rights)
+    }
+    
+    static {
+      defaultInstance = new Rights(true);
+      org.photovault.imginfo.dto.ImageProtos.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:Rights)
+  }
+  
   public static final int IMAGE_FIELD_NUMBER = 100;
   public static final
     com.google.protobuf.GeneratedMessage.GeneratedExtension<
@@ -4659,6 +5471,20 @@ public final class ImageProtos {
       org.photovault.imginfo.dto.ImageProtos.Tag> tag =
         com.google.protobuf.GeneratedMessage
           .newGeneratedExtension();
+  public static final int LICENSE_FIELD_NUMBER = 114;
+  public static final
+    com.google.protobuf.GeneratedMessage.GeneratedExtension<
+      org.photovault.replication.ChangeProtos.ValueChange,
+      org.photovault.imginfo.dto.ImageProtos.License> license =
+        com.google.protobuf.GeneratedMessage
+          .newGeneratedExtension();
+  public static final int RIGHTS_FIELD_NUMBER = 115;
+  public static final
+    com.google.protobuf.GeneratedMessage.GeneratedExtension<
+      org.photovault.replication.ChangeProtos.ValueChange,
+      org.photovault.imginfo.dto.ImageProtos.Rights> rights =
+        com.google.protobuf.GeneratedMessage
+          .newGeneratedExtension();
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_Image_descriptor;
   private static
@@ -4709,6 +5535,16 @@ public final class ImageProtos {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_PhotovaultData_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_License_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_License_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_Rights_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_Rights_fieldAccessorTable;
   
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -4743,25 +5579,31 @@ public final class ImageProtos {
       "nce_image\030\005 \001(\0132\t.ImageRef\"^\n\016Photovault" +
       "Data\022\017\n\007comment\030\001 \001(\t\022\031\n\005files\030\002 \003(\0132\n.I" +
       "mageFile\022 \n\007changes\030\003 \003(\0132\017.ChangeEnvelo" +
-      "pe*#\n\tImageType\022\014\n\010ORIGINAL\020\001\022\010\n\004COPY\020\002*" +
-      "$\n\nVolumeType\022\014\n\010EXTERNAL\020\001\022\010\n\004TRAD\020\002:#\n" +
-      "\005image\022\014.ValueChange\030d \001(\0132\006.Image:,\n\nim" +
-      "afe_file\022\014.ValueChange\030e \001(\0132\n.ImageFile" +
-      ":*\n\timage_ref\022\014.ValueChange\030f \001(\0132\t.Imag",
-      "eRef:%\n\006volume\022\014.ValueChange\030g \001(\0132\007.Vol" +
-      "ume:2\n\rfile_location\022\014.ValueChange\030h \001(\013" +
-      "2\r.FileLocation:3\n\016image_op_chain\022\014.Valu" +
-      "eChange\030i \001(\0132\r.ImageOpChain:(\n\010dcraw_op" +
-      "\022\014.ValueChange\030j \001(\0132\010.DCRawOp:-\n\nraw_ma" +
-      "p_op\022\014.ValueChange\030k \001(\0132\013.DCRawMapOp:-\n" +
-      "\013chan_map_op\022\014.ValueChange\030l \001(\0132\n.ChanM" +
-      "apOp:&\n\007crop_op\022\014.ValueChange\030m \001(\0132\007.Cr" +
-      "opOp:.\n\013color_curve\022\014.ValueChange\030n \001(\0132" +
-      "\013.ColorCurve:,\n\ntime_range\022\014.ValueChange",
-      "\030o \001(\0132\n.TimeRange:,\n\nfolder_ref\022\014.Value" +
-      "Change\030p \001(\0132\n.FolderRef:\037\n\003tag\022\014.ValueC" +
-      "hange\030q \001(\0132\004.TagB\037\n\032org.photovault.imgi" +
-      "nfo.dto\210\001\000"
+      "pe\"4\n\007License\022\023\n\013license_urn\030\001 \002(\t\022\024\n\014li" +
+      "cense_name\030\002 \001(\t\"~\n\006Rights\022\021\n\tcopyright\030" +
+      "\001 \001(\t\022\030\n\020attribution_name\030\002 \001(\t\022\027\n\017attri" +
+      "bution_url\030\003 \001(\t\022\023\n\013usage_terms\030\004 \001(\t\022\031\n" +
+      "\007license\030\005 \001(\0132\010.License*#\n\tImageType\022\014\n",
+      "\010ORIGINAL\020\001\022\010\n\004COPY\020\002*$\n\nVolumeType\022\014\n\010E" +
+      "XTERNAL\020\001\022\010\n\004TRAD\020\002:#\n\005image\022\014.ValueChan" +
+      "ge\030d \001(\0132\006.Image:,\n\nimafe_file\022\014.ValueCh" +
+      "ange\030e \001(\0132\n.ImageFile:*\n\timage_ref\022\014.Va" +
+      "lueChange\030f \001(\0132\t.ImageRef:%\n\006volume\022\014.V" +
+      "alueChange\030g \001(\0132\007.Volume:2\n\rfile_locati" +
+      "on\022\014.ValueChange\030h \001(\0132\r.FileLocation:3\n" +
+      "\016image_op_chain\022\014.ValueChange\030i \001(\0132\r.Im" +
+      "ageOpChain:(\n\010dcraw_op\022\014.ValueChange\030j \001" +
+      "(\0132\010.DCRawOp:-\n\nraw_map_op\022\014.ValueChange",
+      "\030k \001(\0132\013.DCRawMapOp:-\n\013chan_map_op\022\014.Val" +
+      "ueChange\030l \001(\0132\n.ChanMapOp:&\n\007crop_op\022\014." +
+      "ValueChange\030m \001(\0132\007.CropOp:.\n\013color_curv" +
+      "e\022\014.ValueChange\030n \001(\0132\013.ColorCurve:,\n\nti" +
+      "me_range\022\014.ValueChange\030o \001(\0132\n.TimeRange" +
+      ":,\n\nfolder_ref\022\014.ValueChange\030p \001(\0132\n.Fol" +
+      "derRef:\037\n\003tag\022\014.ValueChange\030q \001(\0132\004.Tag:" +
+      "\'\n\007license\022\014.ValueChange\030r \001(\0132\010.License" +
+      ":%\n\006rights\022\014.ValueChange\030s \001(\0132\007.RightsB" +
+      "\037\n\032org.photovault.imginfo.dto\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4848,6 +5690,22 @@ public final class ImageProtos {
               new java.lang.String[] { "Comment", "Files", "Changes", },
               org.photovault.imginfo.dto.ImageProtos.PhotovaultData.class,
               org.photovault.imginfo.dto.ImageProtos.PhotovaultData.Builder.class);
+          internal_static_License_descriptor =
+            getDescriptor().getMessageTypes().get(10);
+          internal_static_License_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_License_descriptor,
+              new java.lang.String[] { "LicenseUrn", "LicenseName", },
+              org.photovault.imginfo.dto.ImageProtos.License.class,
+              org.photovault.imginfo.dto.ImageProtos.License.Builder.class);
+          internal_static_Rights_descriptor =
+            getDescriptor().getMessageTypes().get(11);
+          internal_static_Rights_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_Rights_descriptor,
+              new java.lang.String[] { "Copyright", "AttributionName", "AttributionUrl", "UsageTerms", "License", },
+              org.photovault.imginfo.dto.ImageProtos.Rights.class,
+              org.photovault.imginfo.dto.ImageProtos.Rights.Builder.class);
           org.photovault.imginfo.dto.ImageProtos.image.internalInit(
               org.photovault.imginfo.dto.ImageProtos.getDescriptor().getExtensions().get(0),
               org.photovault.imginfo.dto.ImageProtos.Image.class);
@@ -4890,6 +5748,12 @@ public final class ImageProtos {
           org.photovault.imginfo.dto.ImageProtos.tag.internalInit(
               org.photovault.imginfo.dto.ImageProtos.getDescriptor().getExtensions().get(13),
               org.photovault.imginfo.dto.ImageProtos.Tag.class);
+          org.photovault.imginfo.dto.ImageProtos.license.internalInit(
+              org.photovault.imginfo.dto.ImageProtos.getDescriptor().getExtensions().get(14),
+              org.photovault.imginfo.dto.ImageProtos.License.class);
+          org.photovault.imginfo.dto.ImageProtos.rights.internalInit(
+              org.photovault.imginfo.dto.ImageProtos.getDescriptor().getExtensions().get(15),
+              org.photovault.imginfo.dto.ImageProtos.Rights.class);
           return null;
         }
       };

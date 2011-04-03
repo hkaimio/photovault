@@ -91,7 +91,7 @@ public class PhotoSelectionController extends PersistenceController {
     
     protected Collection<PhotoSelectionView> views = null;
 
-    private SortedMap<String, TextFieldController> fieldControllers = new TreeMap();
+    private SortedMap<String, FieldController> fieldControllers = new TreeMap();
     
     /**
      Sets the PhotoInfo record that will be edited
@@ -145,7 +145,7 @@ public class PhotoSelectionController extends PersistenceController {
         }
         folderCtrl.setPhotos( this.photos, false );
         tagCtrl.setPhotos( this.photos );
-        for ( TextFieldController c : fieldControllers.values() ) {
+        for ( FieldController c : fieldControllers.values() ) {
             c.setPhotos( photos );
         }
         photosChanged();
@@ -211,10 +211,10 @@ public class PhotoSelectionController extends PersistenceController {
         return tagCtrl;
     }
 
-    public TextFieldController getFieldController( String propertyName ) {
-        TextFieldController ret = fieldControllers.get( propertyName );
+    public FieldController getFieldController( String propertyName ) {
+        FieldController ret = fieldControllers.get( propertyName );
         if ( ret == null ) {
-            ret = new TextFieldController( this, propertyName );
+            ret = new FieldController( this, propertyName );
             fieldControllers.put( propertyName, ret );
         }
         return ret;

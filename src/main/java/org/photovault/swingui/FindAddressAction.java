@@ -29,7 +29,7 @@ import org.photovault.geocoding.GeocodeProvider;
 import org.photovault.geocoding.OSMGeocoder;
 import org.photovault.imginfo.location.Location;
 import org.photovault.swingui.selection.PhotoSelectionController;
-import org.photovault.swingui.selection.TextFieldController;
+import org.photovault.swingui.selection.FieldController;
 
 /**
  * Action that finds address information for the currently selected photos based
@@ -70,7 +70,7 @@ class FindAddressAction extends AbstractAction {
     }
 
     private void updateField( String field, String newValue ) {
-        TextFieldController tc = ctrl.getFieldController( field );
+        FieldController tc = ctrl.getFieldController( field );
         if ( ( newValue != null && !newValue.equals( "" ) )
                 && (tc.getValue() == null || tc.getValue().equals( "" ) ) ) {
             // Change value only if it is not yet set

@@ -25,9 +25,44 @@ package org.photovault.swingui;
 import com.jgoodies.binding.adapter.Bindings;
 import com.jgoodies.binding.beans.PropertyAdapter;
 import com.jgoodies.binding.beans.PropertyConnector;
-import com.jgoodies.binding.value.AbstractConverter;
+import com.jgoodies.binding.list.SelectionInList;
 import com.jgoodies.binding.value.ValueModel;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListModel;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
+import javax.swing.text.NumberFormatter;
 import javax.swing.tree.TreePath;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
@@ -35,22 +70,15 @@ import org.apache.commons.logging.LogFactory;
 import org.photovault.dcraw.RawConversionSettings;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ColorCurve;
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.text.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.text.*;
-import java.beans.*;
 
-import org.photovault.imginfo.*;
-import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
+import org.photovault.imginfo.FuzzyDate;
+import org.photovault.imginfo.License;
+import org.photovault.imginfo.PhotoInfoFields;
 import org.photovault.swingui.folderpane.FolderTreePane;
 import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
-import org.photovault.swingui.selection.TextFieldController;
+import org.photovault.swingui.selection.FieldController;
 import org.photovault.swingui.tag.TagList;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
@@ -178,6 +206,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 
 	createTechDataUI();
 	createFolderPaneUI();
+        createRightsUI();
     }
 
     protected void createTechDataUI() {
@@ -261,8 +290,6 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	c.weighty = 0.5;
 	c.fill = GridBagConstraints.BOTH;
 	layout.setConstraints( technoteScrollPane, c );
-
-
     }
 	
 
@@ -278,9 +305,56 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	pane.add( folderTreePane, c );
     }
 
+    private void createRightsUI() {
+	JPanel pane = new JPanel();
+	tabPane.addTab( "Rights", pane );
+
+        JLabel copyrightLabel =  new JLabel( "Copyright" );
+	JTextField copyrightField = createMvTextField( "usageRights.copyright", 30 );
+        JLabel attributionLabel =  new JLabel( "Name for attribution" );
+	JTextField attributionField = createMvTextField( "usageRights.attributionName", 30 );
+        JLabel attributionUrlLabel =  new JLabel( "Url for attribution" );
+	JTextField attributionUrlField = createMvTextField( "usageRights.attributionUrl", 30 );
+
+        JLabel licenseLabel =  new JLabel( "License" );
+        List<License> licenses = new ArrayList();
+        licenses.addAll( EnumSet.allOf( License.class ) );
+        JComboBox licenseCombo = createMvComboBox( "usageRights.license", licenses );
+
+        // Tech note text
+	JLabel termsLabel = new JLabel( "Usage terms" );
+	JTextArea termsTextArea = createMvTextArea( "usageRights.usageTerms", 5, 40 );
+	termsTextArea.setLineWrap( true );
+	termsTextArea.setWrapStyleWord( true );
+	JScrollPane termsScrollPane = new JScrollPane( termsTextArea );
+	termsScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS );
+	Border termsBorder = BorderFactory.createEtchedBorder( EtchedBorder.LOWERED );
+	termsBorder = BorderFactory.createTitledBorder( termsBorder, "Usage terms" );
+        termsScrollPane.setBorder( termsBorder );
+
+	GridBagLayout layout = new GridBagLayout();
+	GridBagConstraints c = new GridBagConstraints();
+	pane.setLayout( layout );
+	JLabel[] labels     = { copyrightLabel, licenseLabel, attributionLabel, attributionUrlLabel};
+	JComponent[] fields = { copyrightField, licenseCombo, attributionField, attributionUrlField };
+	addLabelTextRows( labels, fields, layout, pane );
+	pane.add( termsScrollPane );
+	c.gridwidth = GridBagConstraints.REMAINDER;
+	c.weighty = 0.5;
+	c.fill = GridBagConstraints.BOTH;
+	layout.setConstraints( termsScrollPane, c );
+    }
+
+    /**
+     * Helper function to create a text field for editing a property and
+     * connecting it to selection model.
+     * @param propName Property to be edited
+     * @param length Length of the text field
+     * @return The created text field
+     */
     private JTextField createMvTextField( String propName, int length ) {
 	JTextField fld = new JTextField( length );
-        TextFieldController tfc = ctrl.getFieldController( propName );
+        FieldController tfc = ctrl.getFieldController( propName );
 
         Bindings.bind( fld, new PropertyAdapter( tfc, "value", true ), true );
         ValueModel mvValueModel = new PropertyAdapter( tfc, "multivalued", true );
@@ -288,6 +362,49 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
         PropertyConnector.connect(
                 fieldColorModel, "value",
                 fld, "background" );
+        return fld;
+    }
+
+    /**
+     * Helper function to create a text area for editing a property and
+     * connecting it to selection model.
+     * @param propName Property to be edited
+     * @param rows Number of rows in the text area
+     * @param cols Number of columns in the text area
+     * @return The created text area
+     */
+    private JTextArea createMvTextArea( String propName, int rows, int cols ) {
+	JTextArea fld = new JTextArea( rows, cols );
+        FieldController tfc = ctrl.getFieldController( propName );
+
+        Bindings.bind( fld, new PropertyAdapter( tfc, "value", true ), true );
+        ValueModel mvValueModel = new PropertyAdapter( tfc, "multivalued", true );
+        ValueModel fieldColorModel = new MultivalueColorConverter( mvValueModel );
+        PropertyConnector.connect(
+                fieldColorModel, "value",
+                fld, "background" );
+        return fld;
+    }
+
+    /**
+     * Helper function to create a combo box for editing a property and
+     * connecting it to selection model.
+     * @param propName Property to be edited
+     * @param values List of values in the combo box
+     * @return The created combo box
+     */
+
+    private JComboBox createMvComboBox( String propName, List values ) {
+	JComboBox fld = new JComboBox();
+        FieldController fc = ctrl.getFieldController( propName );
+        ValueModel fcValue = new PropertyAdapter(  fc, "value", true );
+
+        Bindings.bind( fld, new SelectionInList( values, fcValue ) );
+//        ValueModel mvValueModel = new PropertyAdapter( fc, "multivalued", true );
+//        ValueModel fieldColorModel = new MultivalueColorConverter( mvValueModel );
+//        PropertyConnector.connect(
+//                fieldColorModel, "value",
+//                fld, "background" );
         return fld;
     }
 
