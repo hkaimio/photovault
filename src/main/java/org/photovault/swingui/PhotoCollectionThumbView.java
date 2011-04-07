@@ -272,11 +272,16 @@ public class PhotoCollectionThumbView
     int columnCount = 1;
     int rowCount = -1;
     int columnsToPaint = 1;
+
     /**
-     Array of icons used to represent different quality settings in thumbnails
+     * Start used for quality indicator
      */
-    ImageIcon qualityIcons[] = null;
-    
+    ImageIcon starIcon = null;
+    /**
+     * Icon used to indicate rejected image
+     */
+    ImageIcon rejectedIcon= null;
+
     /**
      Icon to indicate that this image is stored in raw format.
      */
@@ -372,25 +377,8 @@ public class PhotoCollectionThumbView
                 KeyEvent.VK_D );
         JMenuItem deleteSelected = new JMenuItem( deleteSelectedAction );
         
-        // Create the Quality submenu
-        JMenu qualityMenu = new JMenu( "Quality" );
-        qualityMenu.setIcon( getIcon( "empty_icon.png" ) );
-        String qualityIconnames[] = {
-            "quality_unevaluated.png",
-            "quality_top.png",
-            "quality_good.png",
-            "quality_ok.png",
-            "quality_poor.png",
-            "quality_unusable.png"
-        };
-        qualityIcons = new ImageIcon[6];
-
-        for ( int n = 0; n < qualityIconnames.length; n++ ) {
-            qualityIcons[n] = getIcon( qualityIconnames[n] );
-            Action qualityAction = ctrl.getActionAdapter( "quality_" + n );
-            JMenuItem qualityMenuItem = new JMenuItem( qualityAction );
-            qualityMenu.add( qualityMenuItem );
-        }
+        starIcon = getIcon( "star_normal_border.png" );
+        rejectedIcon = getIcon( "quality_unusable.png" );
         
         rawIcon = getIcon( "raw_icon.png" );
         
@@ -405,7 +393,6 @@ public class PhotoCollectionThumbView
         popup.add( rotateCW );
         popup.add( rotateCCW );
         popup.add( rotate180deg );
-        popup.add( qualityMenu );
         popup.add( addToFolder );
         popup.add( exportSelected );
         popup.add( deleteSelected );
@@ -725,18 +712,22 @@ public class PhotoCollectionThumbView
         boolean drawAttrs = ( thumbWidth >= 100 );
         if ( drawAttrs ) {
             // Increase ypos so that attributes are drawn under the image
-            ypos += ((int) h) / 2 + 9;
+            ypos += ((int) h) / 2 + 3;
 
             // Draw the attributes
 
             // Draw the qualoity icon to the upper left corner of the thumbnail
             int quality = photo.getQuality();
-            if ( showQuality && quality != PhotoInfo.QUALITY_UNDEFINED ) {
-                ImageIcon qualityIcon = qualityIcons[quality];
-                int qx = startx + (columnWidth - w - qualityIcon.getIconWidth()) / (int) 2;
-                int qy = starty + (rowHeight - h - qualityIcon.getIconHeight()) / (int) 2;
-                qualityIcon.paintIcon( this, g2, qx, qy );
+            if ( showQuality && quality != 0 ) {
+                int qx = startx + (columnWidth - quality
+                        * starIcon.getIconWidth()) / (int) 2;
+                for ( int n = 0; n < quality; n++ ) {
+                    starIcon.paintIcon( this, g2, qx, ypos );
+                    qx += starIcon.getIconWidth();
+                }
+                ypos += starIcon.getIconHeight();
             }
+            ypos += 6;
 
             if ( photo.getRawSettings() != null ) {
                 // Draw the "RAW" icon

@@ -127,6 +127,14 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	JLabel qualityLabel = new JLabel( "Quality" );
 	qualityField = new JComboBox( qualityStrings );
 	qualityField.addActionListener( this );
+
+        StarRating qualityStars = new StarRating( 5 );
+        FieldController<Integer> qfCtrl = ctrl.getFieldController( "quality" );
+        ValueModel qualityFieldValue = new PropertyAdapter( qfCtrl, "value", true );
+        ValueModel starCount = new PropertyAdapter(  qualityStars, "selection", true );
+        PropertyConnector.connect(
+                qualityFieldValue, "value",
+                starCount, "value" );
 	
 	// Shooting place field
 	JLabel shootingPlaceLabel =  new JLabel( "Shooting place" );
@@ -181,7 +189,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
             photographerField, fuzzyDateField, shootingPlaceField,
             shotLocGeohashField, shotLocRoadField, shotLocSuburbField,
             shotLocCityField, shotLocCountryField,
-            qualityField, tagList };
+            qualityStars, tagList };
 	addLabelTextRows( labels, fields, layout, generalPane );
         c = layout.getConstraints( tagList );
         c.fill = GridBagConstraints.HORIZONTAL;

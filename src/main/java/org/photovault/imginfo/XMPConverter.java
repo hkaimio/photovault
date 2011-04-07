@@ -230,26 +230,7 @@ public class XMPConverter {
           }
 
           int quality = p.getQuality();
-          double rating = 0.0;
-          switch ( quality ) {
-              case PhotoInfo.QUALITY_TOP :
-                  rating = 5.0;
-                  break;
-              case PhotoInfo.QUALITY_GOOD :
-                  rating = 4.0;
-                  break;
-              case PhotoInfo.QUALITY_FAIR :
-                  rating = 3.0;
-                  break;
-              case PhotoInfo.QUALITY_POOR :
-                  rating = 1.0;
-                  break;
-              case PhotoInfo.QUALITY_UNUSABLE :
-                  rating = -1.0;
-                  break;
-
-          }
-          meta.setPropertyDouble( NS_XMP_BASIC, "Rating", rating );
+          meta.setPropertyDouble( NS_XMP_BASIC, "Rating", (double) quality );
 
           /* XMP location needs to be formal hierachical place, so we will store
            * this as a keyword.

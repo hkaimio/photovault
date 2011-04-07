@@ -283,7 +283,9 @@ public class PhotoInfo implements PhotoEditor {
     private double timeAccuracy;
     
     /**
-     * Describe quality here.
+     * Quality of the image in scale from 1 (worst) to 5 (best). 0 means
+     * that the quality has not been defined, -1 means that the photo is
+     * unusable.
      */
     private int quality;
     
@@ -1017,6 +1019,9 @@ public class PhotoInfo implements PhotoEditor {
     private UsageRights usageRights;
     private PropertyChangeListener usageRightsListener = null;
 
+    /**
+     * Returns the usage rights set for the photo
+     */
     @ValueField
     @Embedded
     public UsageRights getUsageRights() {
@@ -1026,6 +1031,10 @@ public class PhotoInfo implements PhotoEditor {
         return usageRights;
     }
 
+    /**
+     * Set the usage rights for the image
+     * @param l
+     */
     public void setUsageRights( UsageRights l ) {
         if ( usageRights != null ) {
             usageRights.removePropertyChangeListener( usageRightsListener );
@@ -1383,13 +1392,6 @@ public class PhotoInfo implements PhotoEditor {
         this.description = v;
         modified();
     }
-    
-    public static final int QUALITY_UNDEFINED = 0;
-    public static final int QUALITY_TOP = 1;
-    public static final int QUALITY_GOOD = 2;
-    public static final int QUALITY_FAIR = 3;
-    public static final int QUALITY_POOR = 4;
-    public static final int QUALITY_UNUSABLE = 5;
     
     /**
      * Get the value of value attribute.
