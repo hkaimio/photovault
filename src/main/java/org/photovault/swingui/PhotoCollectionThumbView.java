@@ -240,7 +240,7 @@ public class PhotoCollectionThumbView
     /**
        removes a listener for selection changes
     */
-    public void removePhotoFolderTreeListener( SelectionChangeListener l ) {
+    public void removeSelectionChangeListener( SelectionChangeListener l ) {
 	selectionChangeListeners.remove( l );
     }
 
@@ -1008,60 +1008,6 @@ public class PhotoCollectionThumbView
 	}
 	return boundsRect;
     }
-
-    /**
-       This method is called by @see ThumbnailCreatorThread after it has
-       created a thumbnail. The method checks if there are still photos
-       with no thumbnail and if such a photo exists it orders the thread
-       to create a thumbnail for it.
-    */
-    public void thumbnailCreated( PhotoInfo photo ) {
-	log.debug( "thumbnailCreated for " + photo.getUuid() );
-        photo = (PhotoInfo) ctrl.getPersistenceContext().merge( photo );
-	repaintPhoto( photo );
-
-	Container parent = getParent();
-	Rectangle viewRect = null;
-	if ( parent instanceof JViewport ) {
-	    viewRect = ((JViewport)parent).getViewRect();
-	}
-
-	PhotoInfo nextPhoto = null;
-	
-	// Walk through all photos until we find a photo that is visible
-	// and does not have a thumbnail. If all visible photos have a thumbnail
-        // but some non-visible ones do not, create a thumbnail for one of those.
-	log.debug( "Finding photo without thumbnail" );
-	for ( int n = 0; n < photos.size(); n++ ) {
-            PhotoInfo photoCandidate = photos.get( n );
-	    log.debug( "Photo " + photoCandidate.getUuid() );
-	    if ( !photoCandidate.hasThumbnail() ) {
-		log.debug( "No thumbnail" );
-		Rectangle photoRect = getPhotoBounds( n );
-		if ( photoRect.intersects( viewRect )  ) {
-		    // This photo is visible so it is a perfect candidate
-		    // for thumbnail creation. Do not look further
-		    nextPhoto = photoCandidate;
-		    break;
-		} else if ( nextPhoto == null ) {
-		    // Not visible but no photo without thumbnail has been
-		    // found previously. Store as a candidate and keep looking.
-		    nextPhoto = photoCandidate;
-		}		    
-	    }
-	}
-//	if ( nextPhoto != null ) {
-//                lastInstanceCreator = new PhotoInstanceCreator( this, 
-//                        ctrl.getDAOFactory().getPhotoInfoDAO(), nextPhoto, 
-//                        (Volume) VolumeBase.getDefaultVolume()  );
-//                lastInstanceCreator.execute();
-////                log.debug( "Making request for the next thumbail, " + p.getUid() );
-////                thumbCreatorThread.createThumbnail( p );
-////                log.debug( "request submitted" );
-//	} else {
-//            lastInstanceCreator = null;
-//        }
-    }
     
     /**
        The mouse press event that started current drag
@@ -1215,7 +1161,6 @@ public class PhotoCollectionThumbView
             }
             
             
-            ODMGXAWrapper xa = new ODMGXAWrapper();
 	    // Find out which photos are selected
 	    for ( int n = startPhoto; n < endPhoto; n++ ) {
                 /*
@@ -1233,7 +1178,6 @@ public class PhotoCollectionThumbView
                 }
 	    }
             fireSelectionChangeEvent();
-	    xa.commit();
 	    // Redrw the selection area so that the selection rectangle is not shown anymore
 	    Rectangle repaintRect = dragSelectionRect;
 	    if ( lastDragSelectionRect != null ) {
@@ -1290,7 +1234,7 @@ public class PhotoCollectionThumbView
     
     protected void handleDnDDragEvent( MouseEvent e ) {
         //Don't bother to drag if no photo is selected
-        if ( selection.size() == 0 ) {
+        if ( selection.isEmpty() ) {
             return;
         }
 

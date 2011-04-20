@@ -178,6 +178,18 @@ public class Volume extends VolumeBase {
        return f.getName(); 
     }
 
+    @Override
+    public FileLocation getFileLocation( File f ) {
+        FileLocation l = new FileLocation( this, f.getName() );
+        return l;
+    }
+
+    @Override
+    public FileLocation getFileLocation( String volPath ) {
+        FileLocation l = new FileLocation( this, volPath );
+        return l;
+    }
+
     /**
      * Write the volume as XML
      * @param outputWriter Writer to use

@@ -49,6 +49,7 @@ import org.photovault.swingui.indexer.UpdateIndexAction;
 import org.photovault.swingui.taskscheduler.BackgroundTaskListener;
 import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
 import org.photovault.swingui.taskscheduler.TaskPriority;
+import org.photovault.swingui.volumetree.VolumeTreeController;
 import org.photovault.taskscheduler.BackgroundTask;
 import org.photovault.taskscheduler.TaskProducer;
 
@@ -144,6 +145,10 @@ public class BrowserWindow extends AbstractController {
         previewPane = viewCtrl.getPreviewPane();
         tabPane.addTab( "Query", queryPane );
         tabPane.addTab( "Folders", treePane );
+
+        VolumeTreeController volTreeCtrl = new VolumeTreeController( this );
+        JTree volumeTree = volTreeCtrl.getView();
+        tabPane.addTab( "Volumes", volumeTree );
         //	viewPane = new TableCollectionView();
 
         // TODO: get rid of this!!!!
@@ -168,20 +173,35 @@ public class BrowserWindow extends AbstractController {
          */
 
         treeCtrl.registerEventListener( PhotoFolderTreeEvent.class,
-                new DefaultEventListener<PhotoFolder>() {
+                new DefaultEventListener<PhotoCollection>() {
 
-                    public void handleEvent( DefaultEvent<PhotoFolder> event ) {
-                        PhotoFolder f = event.getPayload();
-                        if ( f != null ) {
-                            viewCtrl.setCollection( f );
-                            if ( f.getExternalDir() != null ) {
-                                folderIndexer.updateFolder( f );
-                                viewCtrl.setIndexingOngoing( true );
+                    public void handleEvent( DefaultEvent<PhotoCollection> event ) {
+                        PhotoCollection c = event.getPayload();
+                        if ( c != null ) {
+                            viewCtrl.setCollection( c );
+                            if ( c instanceof PhotoFolder ) {
+                                PhotoFolder f = (PhotoFolder) c;
+
+                                if ( f.getExternalDir() != null ) {
+                                    folderIndexer.updateFolder( f );
+                                    viewCtrl.setIndexingOngoing( true );
+                                }
                             }
                         }
                     }
                 } );
 
+        volTreeCtrl.registerEventListener( PhotoFolderTreeEvent.class,
+                new DefaultEventListener<PhotoCollection>() {
+
+                    public void handleEvent( DefaultEvent<PhotoCollection> event ) {
+                        PhotoCollection c = event.getPayload();
+                        if ( c != null ) {
+                            viewCtrl.setCollection( c );
+                        }
+                    }
+                } );
+        
         collectionPane = viewCtrl.getCollectionPane();
 
         JSplitPane split = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, tabPane, collectionPane );

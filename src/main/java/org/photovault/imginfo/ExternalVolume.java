@@ -118,6 +118,57 @@ public class ExternalVolume extends VolumeBase {
     }
 
     /**
+     * Returns the {@link FileLocation} object that describes a file in this 
+     * volume
+     * @param f The file whose location is requested
+     * @return FileLocation object describing the location, or <code>null</code>
+     * if f points to a file that is not under the volume's root directory.
+     */
+    @Override
+    public FileLocation getFileLocation( File f ) {
+        FileLocation ret = null;
+        File directory = f.getParentFile().getAbsoluteFile();
+        String dirPath = directory.getPath();
+        // Get the relative path from volume root
+        String basedir = getBaseDir().getPath();
+        if ( dirPath.startsWith( basedir ) ) {
+            String relPath= dirPath.equals( basedir) ?
+                "" : dirPath.substring( basedir.length()+1 );
+            String relFilePath = f.getAbsolutePath().substring( basedir.length()+1 );
+            int level = 0;
+            while ( !directory.equals( getBaseDir() ) ) {
+                level++;
+                directory = directory.getParentFile();
+            }
+            ret = new FileLocation( this, relFilePath );
+            ret.setDirName( relPath );
+            ret.setDirLevel( level );
+        }
+        return ret;
+    }
+
+    /**
+     * Get a FileLocation object based on given volume relative path
+     * @param volPath
+     * @return 
+     */
+    public FileLocation getFileLocation( String volPath ) {
+        File f = new File( volPath );
+        File dir = f.getParentFile();
+        String dirPath = dir == null ? "" : dir.getPath();
+        int level = 0;
+        while ( dir != null ) {
+            level++;
+            dir = dir.getParentFile();
+        }
+        FileLocation l = new FileLocation( this, volPath );
+        l.setDirLevel( level );
+        l.setDirName( dirPath );
+        return l;
+    }
+
+
+    /**
      * Write the object as XML
      * @param outputWriter The writer into which the object is written
      * @param indent Number of spaces to indent the outermost element.
@@ -129,5 +180,5 @@ public class ExternalVolume extends VolumeBase {
                 "\" basedir=\"" + getBaseDir() +
                 "\" folder=\"" + getFolderId().toString() + "\"/>\n" );
     }
-    
+
 }

@@ -99,6 +99,13 @@ public class IndexFileTask extends BackgroundTask {
      */
     private ImageFile ifile;
     
+    /**
+     * Volume root relative path to the file
+     */ 
+    private String relPath;
+    
+    private FileLocation fileLoc;
+    
     private IndexingResult result;
     
     /**
@@ -137,6 +144,18 @@ public class IndexFileTask extends BackgroundTask {
      */
     public Set<PhotoInfo> getPhotosFound() {
         return photosFound;
+    }
+    
+    public ExternalVolume getVolume() {
+        return volume;
+    }
+    
+    public String getPath() {
+        return relPath;
+    }
+    
+    public FileLocation getFileLocation() {
+        return fileLoc;
     }
     
     /**
@@ -186,10 +205,11 @@ public class IndexFileTask extends BackgroundTask {
         ImageFileDAO ifDAO = daoFactory.getImageFileDAO();
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         // Check if the instance already exists n database
-        ifile = ifDAO.findFileInLocation( volume, volume.mapFileToVolumeRelativeName( f ) );
+        ifile = ifDAO.findFileInLocation( volume, 
+                volume.mapFileToVolumeRelativeName( f ) );
         if ( ifile != null ) {
             log.debug( "found existing file" );
-            FileLocation fileLoc = null;
+            fileLoc = null;
             for ( FileLocation loc : ifile.getLocations() ) {
                 if ( loc.getFile().equals( f ) ) {
                     fileLoc = loc;
@@ -269,9 +289,8 @@ public class IndexFileTask extends BackgroundTask {
                 return;
             }
         }
-        cmd.addLocation(
-                new FileLocation( volume,
-                volume.mapFileToVolumeRelativeName( f ) ) );
+        fileLoc = volume.getFileLocation( f );
+        cmd.addLocation( fileLoc );
         try {
             cmdHandler.executeCommand( cmd );
 

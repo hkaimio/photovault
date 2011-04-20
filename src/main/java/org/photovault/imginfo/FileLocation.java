@@ -23,8 +23,6 @@ package org.photovault.imginfo;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.JoinColumn;
@@ -47,6 +45,8 @@ public class FileLocation {
     private VolumeBase volume;
 
     private String fname;
+    private String dirName;
+    int dirLevel = 0;
     
     /**
      Default constructor for persistence layer.
@@ -100,7 +100,25 @@ public class FileLocation {
     public void setFname(String fname) {
         this.fname = fname;
     }
-    
+
+    @Column( name = "dir_name" )
+    public String getDirName() {
+        return dirName;
+    }
+
+    public void setDirName( String newName ) {
+        dirName = newName;
+    }
+
+    @Column( name = "dir_level" )
+    public int getDirLevel() {
+        return dirLevel;
+    }
+
+    public void setDirLevel( int l ) {
+        dirLevel = l;
+    }
+
     private long lastModified;
 
     @Column( name = "last_modified" )

@@ -65,9 +65,11 @@ import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.CreateCopyImageCommand;
+import org.photovault.imginfo.FileLocation;
 import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
+import org.photovault.imginfo.indexer.IndexFileTask;
 import org.photovault.replication.Change;
 import org.photovault.replication.ChangeDAO;
 import org.photovault.replication.ChangeDTO;
@@ -81,6 +83,9 @@ import org.photovault.swingui.framework.DefaultEvent;
 import org.photovault.swingui.framework.DefaultEventListener;
 import org.photovault.swingui.framework.PersistenceController;
 import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
+import org.photovault.swingui.taskscheduler.TaskFinishedEvent;
+import org.photovault.swingui.volumetree.ExtDirPhotos;
+import org.photovault.taskscheduler.BackgroundTask;
 
 /**
  Controller for the componenst actually used for viewing or editing photos. This 
@@ -175,6 +180,32 @@ public class PhotoViewController extends PersistenceController {
             qualityAction.putValue(
                     AbstractAction.ACCELERATOR_KEY, qualityAccelerators[n] );
             registerAction( "quality_" + n, qualityAction );
+            
+            registerEventListener( TaskFinishedEvent.class, 
+                    new DefaultEventListener<BackgroundTask>() {
+
+                public void handleEvent( DefaultEvent<BackgroundTask> event ) {
+                    BackgroundTask task = event.getPayload();
+                    if ( task instanceof IndexFileTask ) {
+                        IndexFileTask ifTask = (IndexFileTask) task;
+                        UUID volId = ifTask.getVolume().getId();
+                        FileLocation loc = ifTask.getFileLocation();
+                        Set<PhotoInfo> photos = ifTask.getPhotosFound();
+                        log.debug( "Found file " + loc.getFile() + " in volume " + volId );
+                        for ( PhotoInfo p : photos ) {
+                            log.debug ( "   linked to photo " + p.getUuid() );
+                        }
+                        if ( collection instanceof ExtDirPhotos ) {
+                            ExtDirPhotos dir = (ExtDirPhotos) collection;
+                            if ( loc.getVolume().getId().equals( dir.getVolId() ) 
+                                    && loc.getDirName().equals( dir.getDirPath() ) ) {
+                                addPhotos( photos );
+                                updateThumbView();
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         // Create the UI controls

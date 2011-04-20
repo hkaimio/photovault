@@ -100,7 +100,7 @@ public class ImageFileDtoResolver extends HibernateDTOResolver<ImageFile, ImageF
                     volDao.makePersistent( v );
                     volDao.flush();
                 }
-                FileLocation loc = new FileLocation( v, l.getLocation() );
+                FileLocation loc = v.getFileLocation( l.getLocation() );
                 if ( !file.getLocations().contains( loc ) ) {
                     file.addLocation( loc );
                 }

@@ -208,6 +208,9 @@ public class VolumeManager {
      */
     public VolumeBase getVolumeOfFile( File f, VolumeDAO volDAO )
             throws FileNotFoundException, IOException  {
+        if ( f == null ) {
+            return null;
+        }
         if ( f.isDirectory() ) {
             VolumeBase vol = getVolumeAt( f, volDAO );
             if ( vol != null ) {

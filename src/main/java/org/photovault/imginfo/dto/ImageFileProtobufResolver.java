@@ -99,7 +99,7 @@ public class ImageFileProtobufResolver extends HibernateDTOResolver<ImageFile, I
                     volDao.makePersistent( v );
                     volDao.flush();
                 }
-                FileLocation loc = new FileLocation( v, l.getPath() );
+                FileLocation loc = v.getFileLocation( l.getPath() );
                 if ( l.hasLastModifiedTime() ) {
                     loc.setLastModified( l.getLastModifiedTime() );
                 }

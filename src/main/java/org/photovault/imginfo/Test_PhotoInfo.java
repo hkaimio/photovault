@@ -687,8 +687,7 @@ public class Test_PhotoInfo extends PhotovaultTestCase {
         ModifyImageFileCommand fileCmd = 
                 new ModifyImageFileCommand( photo.getOriginal().getFile() );
         Volume vol = volDAO.getDefaultVolume();
-        fileCmd.addLocation( new FileLocation( vol, 
-                vol.mapFileToVolumeRelativeName( instanceFile ) ) );
+        fileCmd.addLocation( vol.getFileLocation( instanceFile ) );
         cmdHandler.executeCommand( fileCmd );
         
         // Create a copy

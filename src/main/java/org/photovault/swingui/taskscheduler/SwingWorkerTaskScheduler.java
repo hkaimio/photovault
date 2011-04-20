@@ -183,6 +183,8 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
                 fireTaskExecutedEvent( producer, nextTask );
                 log.debug( "Task " + nextTask + " executed" );
                 activeTask = null;
+                parent.fireEvent( 
+                        new TaskFinishedEvent( SwingWorkerTaskScheduler.this, nextTask ) );
                 scheduleNext();
             }
         };
@@ -232,10 +234,12 @@ public class SwingWorkerTaskScheduler implements CommandListener, TaskScheduler 
                     activeTask = c.requestTask(  );
                     log.debug( "Scheduling task " + activeTask );
                     if ( activeTask != null ) {
+                        parent.fireEvent( new TaskScheduledEvent( this, activeTask) );
                         runTask( c, activeTask );
                         waitList[n].add(c);
                         return;
                     } else {
+                        parent.fireEvent( new TaskFinishedEvent( this, activeTask) );
                         fireTaskProducerFinishedEvent( c );
                     }
                 }

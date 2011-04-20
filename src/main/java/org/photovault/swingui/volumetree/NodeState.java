@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007 Harri Kaimio
+  Copyright (c) 2011 Harri Kaimio
   
   This file is part of Photovault.
 
@@ -18,14 +18,24 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 
-package org.photovault.swingui;
 
+package org.photovault.swingui.volumetree;
 
-import org.photovault.imginfo.PhotoCollection;
-import org.photovault.swingui.framework.DefaultEvent;
-
-public class PhotoFolderTreeEvent extends DefaultEvent<PhotoCollection> {
-    public PhotoFolderTreeEvent( Object source, PhotoCollection selected ) {
-	super( source, selected );
-    }
+/**
+ * Enum of the possible states of a node in volume directory tree
+ * @author harri
+ */
+enum NodeState {
+    /**
+     * The node and subtree under is has not been initialized
+     */
+    UNINITIALIZED,
+    /**
+     * Initialization is ongoing (in background thread)
+     */
+    INITIALIZING,
+    /**
+     * The subtree under this node has been initialized
+     */
+    READY
 }

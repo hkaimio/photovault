@@ -238,6 +238,20 @@ public abstract class VolumeBase {
         return relPath;
     }
     
+    /*
+     * Get a {@link FileLocation} objetc thta describes a fiel stored in
+     * the volume directory.
+     * @return The FileLocation object or <code>null</code> if f is outside the 
+     * volume.
+     */
+    public abstract FileLocation getFileLocation( File f );
+    
+    /**
+     * Get a FileLocation object matching the given volume relative path
+     * @param volumePath
+     * @return
+     */
+    public abstract FileLocation getFileLocation( String volumePath );
     
     /**
      Returns the base directory for the volume.

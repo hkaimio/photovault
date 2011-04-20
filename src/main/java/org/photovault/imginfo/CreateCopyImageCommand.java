@@ -282,8 +282,7 @@ public class CreateCopyImageCommand  extends DataAccessCommand {
          Store location of created file in database
          */
         if ( volume != null ) {
-            dstImageFile.addLocation( new FileLocation( volume, 
-                    volume.mapFileToVolumeRelativeName( dstFile ) ) );
+            dstImageFile.addLocation( volume.getFileLocation( dstFile ) );
         }
         
         /*

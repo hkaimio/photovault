@@ -32,12 +32,9 @@ import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
 import org.photovault.test.PhotovaultTestCase;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 
 public class Test_Volume extends PhotovaultTestCase {
 
@@ -328,6 +325,7 @@ public class Test_Volume extends PhotovaultTestCase {
             VolumeBase extVolume = new ExternalVolume();
             extVolume.setName( "extvol" );
             VolumeManager.instance().initVolume( extVolume, testVolPath );
+            volDAO.makePersistent( extVolume );
             try {
                 db.addVolume( extVolume );
             } catch ( PhotovaultException ex ) {
@@ -348,7 +346,37 @@ public class Test_Volume extends PhotovaultTestCase {
             fail( "IOError: " + ex.getMessage() );
         }
     }
-    
+
+    @Test
+    public void testFileLocation() throws IOException, PhotovaultException {
+        File testVolPath = File.createTempFile( "pv_voltest", "" );
+        testVolPath.delete();
+        testVolPath.mkdir();
+        VolumeBase v = new ExternalVolume();
+        v.setName( "extvol" );
+        VolumeManager.instance().initVolume( v, testVolPath );
+        volDAO.makePersistent( v );
+        FileLocation l = v.getFileLocation( "first/second/third/file.jpg" );
+        assertEquals( "first/second/third", l.getDirName() );
+        assertEquals( 3, l.getDirLevel() );
+
+        l = v.getFileLocation( new File( v.getBaseDir(), "first/second/third/file.jpg" ) );
+        assertEquals( "first/second/third", l.getDirName() );
+        assertEquals( 3, l.getDirLevel() );
+
+        l = v.getFileLocation( "testfile.jpg" );
+        assertEquals( "", l.getDirName() );
+        assertEquals( 0, l.getDirLevel() );
+
+        l = v.getFileLocation( new File( v.getBaseDir(), "testfile.jpg" ) );
+        assertEquals( "", l.getDirName() );
+        assertEquals( 0, l.getDirLevel() );
+
+
+        l = v.getFileLocation( new File ( "/usr/tmp" ) );
+        assertNull( l );
+    }
+
     /**
        Test a special case - creating a file name for a PhotoInfo in which the shooting date has not been set.
        Criteria is simply that a valid file name is created and that no Exception is thrown.
