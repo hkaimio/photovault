@@ -322,6 +322,16 @@ public class VolumeManager {
     public File getVolumeMountPoint( VolumeBase vol ) {
         return availableVolumes.get( vol.getId() );
     }
+    
+    /**
+     Get root directory of a volume
+     @param id UUID of the volume
+     @return Directory where the volume is available of <code>null</code> if it 
+     is not.
+     */
+    public File getVolumeMountPoint( UUID id ) {
+        return availableVolumes.get( id );
+    }
 
     
     public void updateVolumeMounts() {

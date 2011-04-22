@@ -22,6 +22,7 @@ package org.photovault.imginfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import org.photovault.common.PhotovaultException;
 import org.photovault.persistence.GenericDAO;
@@ -52,4 +53,19 @@ public interface VolumeDAO extends GenericDAO<VolumeBase, UUID> {
      */
     VolumeBase getVolumeOfFile( File f ) throws PhotovaultException, IOException;
     
+    /**
+     * Get the list of all subdirectories of a directory in external volume
+     * @param vol The volume
+     * @param parentDir The directory
+     * @return List of all subdirectory paths of parentDir
+     */
+    List<String> getSubdirs( ExternalVolume vol, String parentDir );
+    
+    /**
+     * Remove all {@link FileLocation} objects that point to topDir or any 
+     * directory under it. Note that the files itself are not removed
+     * @param vol The volume
+     * @param topDir Top directory of the tree to remove
+     */
+    void removeTree( ExternalVolume vol, String topDir );
 }

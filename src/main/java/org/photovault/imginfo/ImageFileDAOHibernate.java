@@ -57,5 +57,9 @@ public class ImageFileDAOHibernate
                 setEntity( "volume", volume).setString( "fname", string ).
                 uniqueResult();
     }
+
+    public List<ImageFile> findFilesInDir( ExternalVolume vol, String path ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
+    }
     
 }   

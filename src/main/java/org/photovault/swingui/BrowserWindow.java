@@ -49,6 +49,7 @@ import org.photovault.swingui.indexer.UpdateIndexAction;
 import org.photovault.swingui.taskscheduler.BackgroundTaskListener;
 import org.photovault.swingui.taskscheduler.SwingWorkerTaskScheduler;
 import org.photovault.swingui.taskscheduler.TaskPriority;
+import org.photovault.swingui.volumetree.ExtDirPhotos;
 import org.photovault.swingui.volumetree.VolumeTreeController;
 import org.photovault.taskscheduler.BackgroundTask;
 import org.photovault.taskscheduler.TaskProducer;
@@ -83,14 +84,13 @@ public class BrowserWindow extends AbstractController {
         folderIndexer = new CurrentFolderIndexer(
                 taskScheduler, (PhotovaultCommandHandler) getCommandHandler() );
         createUI( null );
-
         taskScheduler.addTaskListener( folderIndexer, new BackgroundTaskListener() {
 
             public void taskExecuted( TaskProducer producer, BackgroundTask task ) {
                 StringBuffer msgBuf = new StringBuffer();
                 CurrentFolderIndexer indexer = (CurrentFolderIndexer) producer;
                 if ( indexer.getState() == CurrentFolderIndexer.IndexingPhase.FILE_INDEX ) {
-                    PhotoFolder f = indexer.getCurrentFolder();
+                    File f = indexer.getCurrentDir();
                     msgBuf.append( "Indexing " ).append( f.getName() ).append( "... " );
                     msgBuf.append( indexer.getPercentComplete() ).append( "% complete" );
                     viewCtrl.setIndexingPercentComplete( indexer.getPercentComplete() );
@@ -104,7 +104,7 @@ public class BrowserWindow extends AbstractController {
                 StringBuffer msgBuf = new StringBuffer();
                 CurrentFolderIndexer indexer = (CurrentFolderIndexer) producer;
                 if ( indexer.getState() == CurrentFolderIndexer.IndexingPhase.FILE_INDEX ) {
-                    PhotoFolder f = indexer.getCurrentFolder();
+                    File f = indexer.getCurrentDir();
                     msgBuf.append( "Indexed " ).append( f.getName() );
                 }
                 statusBar.statusChanged(
@@ -183,7 +183,8 @@ public class BrowserWindow extends AbstractController {
                                 PhotoFolder f = (PhotoFolder) c;
 
                                 if ( f.getExternalDir() != null ) {
-                                    folderIndexer.updateFolder( f );
+                                    ExternalDir ed = f.getExternalDir();
+                                    folderIndexer.updateDir( ed.getVolume(), ed.getPath() );
                                     viewCtrl.setIndexingOngoing( true );
                                 }
                             }
@@ -198,6 +199,16 @@ public class BrowserWindow extends AbstractController {
                         PhotoCollection c = event.getPayload();
                         if ( c != null ) {
                             viewCtrl.setCollection( c );
+                            if ( c instanceof ExtDirPhotos ) {
+                                ExtDirPhotos photos = (ExtDirPhotos) c;
+                                ExternalVolume vol = 
+                                        (ExternalVolume) viewCtrl
+                                        .getDAOFactory().getVolumeDAO()
+                                        .getVolume( photos.getVolId() );
+                                folderIndexer.updateDir( vol,
+                                        photos.getDirPath() );
+                                viewCtrl.setIndexingOngoing( true );
+                            }
                         }
                     }
                 } );
@@ -598,31 +609,16 @@ public class BrowserWindow extends AbstractController {
 //                extVolName += n;
 //            }
             
-            // Set up the indexer
-            PhotoFolder parentFolder = fc.getExtvolParentFolder();
-            PhotoFolderDAO folderDAO = viewCtrl.getDAOFactory().getPhotoFolderDAO();
-            if ( parentFolder == null ) {
-                parentFolder = folderDAO.findRootFolder();
-            }
             String rootFolderName = "extvol_" + dir.getName();
-            if ( rootFolderName.length() > PhotoFolder.NAME_LENGTH ) {
-                rootFolderName = rootFolderName.substring( 0, PhotoFolder.NAME_LENGTH );
-            }
             
-            CreatePhotoFolderCommand folderCmd = 
-                    new CreatePhotoFolderCommand( parentFolder, 
-                    rootFolderName, "" );
             CreateExternalVolume volCmd = null;
             try {
-                viewCtrl.getCommandHandler().executeCommand( folderCmd );
-                volCmd = new CreateExternalVolume( 
-                        dir, rootFolderName,  folderCmd.getCreatedFolder() );
+                volCmd = new CreateExternalVolume( dir, rootFolderName );
                 viewCtrl.getCommandHandler().executeCommand( volCmd );
 
                 // Start indexing
-                PhotoFolder topFolder = folderCmd.getCreatedFolder();
-                BackgroundIndexer indexer = new BackgroundIndexer( dir, volCmd.getCreatedVolume(),
-                        topFolder, true );
+                BackgroundIndexer indexer = new BackgroundIndexer( 
+                        dir, volCmd.getCreatedVolume(), true );
                 SwingWorkerTaskScheduler sched =
                         (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();
                 sched.registerTaskProducer( indexer,

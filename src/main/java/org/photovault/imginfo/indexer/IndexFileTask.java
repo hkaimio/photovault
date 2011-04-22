@@ -21,20 +21,15 @@
 package org.photovault.imginfo.indexer;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
 import org.photovault.common.PhotovaultException;
-import org.photovault.folder.PhotoFolder;
 import org.photovault.image.PhotovaultImage;
 import org.photovault.image.PhotovaultImageFactory;
-import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.ExternalVolume;
@@ -77,18 +72,24 @@ import org.photovault.taskscheduler.BackgroundTask;
  */
 public class IndexFileTask extends BackgroundTask {
     static Log log = LogFactory.getLog( IndexFileTask.class.getName() );
+
+    /**
+     Creates a new IndexFileTask
+     @param f The file that will be idnexed
+     @param vol Volume of f.
+     @param dir DirectoryIndexer that created this instance.
+     */
+    IndexFileTask( File f, ExternalVolume vol, DirectoryIndexer dir ) {
+        this.f = f;
+        this.volume = vol;
+        this.dirIndexer = dir;
+    }
     
     /**
      The file that will be indexed
      */
     private File f;
-    
-    /**
-     Folder corresponding to the directory in which the file is. Created photos
-     will be added to this folder.
-     */
-    private PhotoFolder folder;
-    
+        
     /**
      Volume of the file
      */
@@ -170,19 +171,6 @@ public class IndexFileTask extends BackgroundTask {
      */
     private DirectoryIndexer dirIndexer;
     
-    /**
-     Creates a new IndexFileTask
-     @param f The file that will be idnexed
-     @param folder PhotoFolder corresponding to f's directory
-     @param vol Volume of f.
-     @param dir DirectoryIndexer that created this instance.
-     */
-    public IndexFileTask( File f, PhotoFolder folder, ExternalVolume vol, DirectoryIndexer dir ) {
-        this.f = f;
-        this.folder = folder;
-        this.volume = vol;
-        this.dirIndexer = dir;
-    }
     
     /**
      Run the actual indexing operation
@@ -301,7 +289,6 @@ public class IndexFileTask extends BackgroundTask {
             for ( PhotoInfo p : photosFound ) {
                 createPreviewInstances( img, p, daoFactory );
             }
-            addPhotosToFolder(  );
         } catch ( CommandException ex ) {
             log.warn( "Exception in modifyImageFileCommand: " + ex.getMessage() );
             result = IndexingResult.NOT_IMAGE;
@@ -371,26 +358,5 @@ public class IndexFileTask extends BackgroundTask {
                     (OriginalImageDescriptor) img : 
                     ((CopyImageDescriptor) img).getOriginal();
         photosFound.addAll( origImage.getPhotos() );
-    }
-    
-    /**
-     Add the found photos to folder.
-    
-     @throws org.photovault.command.CommandException
-     */
-    private void addPhotosToFolder() throws CommandException {
-        ImageDescriptorBase img = ifile.getImage( "image#0" );
-        OriginalImageDescriptor origImage = 
-                (img instanceof OriginalImageDescriptor) ? 
-                    (OriginalImageDescriptor) img : 
-                    ((CopyImageDescriptor) img).getOriginal();
-        Set<PhotoInfo> photos = origImage.getPhotos();
-        List<UUID> photoIds = new ArrayList<UUID>();
-        for ( PhotoInfo p : photos ) {
-            photoIds.add( p.getUuid() );
-        }
-        ChangePhotoInfoCommand addFolderCmd = new ChangePhotoInfoCommand( photoIds );
-        addFolderCmd.addToFolder( folder );
-        cmdHandler.executeCommand( addFolderCmd );
     }
 }

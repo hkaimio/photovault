@@ -229,11 +229,14 @@ public abstract class VolumeBase {
         }
         String relPath = null;
         if ( found ) {
-            File relFile = new File( "" );
+            StringBuilder sb = new StringBuilder();
             for ( int n = pathElems.size()-1; n >= 0; n-- ) {
-                relFile = new File( relFile, (String) pathElems.get( n ) );
+                sb.append( pathElems.get( n ) );
+                if ( n > 0 ) {
+                    sb.append( "/" );
+                }
             }
-            relPath = relFile.getPath();
+            relPath = sb.toString();
         }
         return relPath;
     }

@@ -21,8 +21,11 @@
 
 package org.photovault.swingui.volumetree;
 
+import freemarker.template.utility.Collections12;
+import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +37,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.photovault.imginfo.VolumeManager;
 
 /**
  * Background task for querying subfolders of given folder from database
@@ -62,10 +66,14 @@ class QuerySubfoldersTask extends SwingWorker<List<DefaultMutableTreeNode>, Void
 
     @Override
     protected List<DefaultMutableTreeNode> doInBackground() throws Exception {
-        Query q = session.createSQLQuery( queryStr )
-                        .setString( "vol", volId.toString() );
+        List<String> dirs = null;
+        File volumeBase = VolumeManager.instance().getVolumeMountPoint( volId );
+        if ( volumeBase != null ) {
+            dirs = getSubdirsFromFs( volumeBase );
+        } else {
+            dirs = getSubdirsFromDb();
+        }
         List<DefaultMutableTreeNode> childBranches = new ArrayList();
-        List dirs = q.list();
         Deque<DefaultMutableTreeNode> path = new ArrayDeque();
         DefaultMutableTreeNode parent = null;
         String parentPath = "";
@@ -104,11 +112,36 @@ class QuerySubfoldersTask extends SwingWorker<List<DefaultMutableTreeNode>, Void
             parent = newNode;
             parentPath = parent != null
                     ? ((VolumeTreeNode) parent.getUserObject()).path : "";
-            
         }
         return childBranches;
     }
 
+    private List<String> getSubdirsFromDb() {
+        Query q = session.createSQLQuery( queryStr )
+                        .setString( "vol", volId.toString() );
+        List dirs = q.list();
+        return dirs;
+    }
+    
+    private List<String> getSubdirsFromFs( File baseDir ) {
+        List<String> dirs = new ArrayList();
+        appendSubdirs( baseDir, null, dirs );
+        Collections.sort( dirs );
+        return dirs;
+    }
+    
+    private void appendSubdirs( File dir, String basePath, List<String> dirs ) {
+        for ( File f: dir.listFiles() ) {
+            if ( f.isDirectory() && !".photovault_volume".equals( f.getName() ) ) {
+                String path = basePath == null ? 
+                        f.getName() :
+                        basePath + "/" + f.getName();
+                dirs.add( path );
+                appendSubdirs( f, path, dirs );
+            }
+        }
+    }
+    
     @Override
     protected void done() {
         try {

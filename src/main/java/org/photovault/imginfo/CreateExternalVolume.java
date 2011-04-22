@@ -23,9 +23,6 @@ package org.photovault.imginfo;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.photovault.command.CommandException;
@@ -33,7 +30,6 @@ import org.photovault.command.DataAccessCommand;
 import org.photovault.common.PVDatabase;
 import org.photovault.common.PhotovaultException;
 import org.photovault.common.PhotovaultSettings;
-import org.photovault.folder.PhotoFolder;
 import org.photovault.folder.PhotoFolderDAO;
 
 /**
@@ -51,7 +47,6 @@ public class CreateExternalVolume extends DataAccessCommand {
             LogFactory.getLog( CreateExternalVolume.class.getName() );
     
     private File basedir;
-    private PhotoFolder topFolder;
     private String volumeName;
     private ExternalVolume volume;
     
@@ -61,9 +56,8 @@ public class CreateExternalVolume extends DataAccessCommand {
      @param name Name for the external volume
      @param topFolder Folder that is associated with this volume
      */
-    public CreateExternalVolume( File basedir, String name, PhotoFolder topFolder ) {
+    public CreateExternalVolume( File basedir, String name ) {
         this.basedir = basedir;
-        this.topFolder = topFolder;
         this.volumeName = name;
     }
     
@@ -106,10 +100,6 @@ public class CreateExternalVolume extends DataAccessCommand {
                     log.error( "Cannot initialize volume", e );
                     throw new CommandException( "Cannot initialize volume" );
                 }
-            }
-            
-            if ( topFolder != null ) {
-                volume.setFolder( folderDAO.findById( topFolder.getUuid(), false ) );
             }
             
         } catch ( FileNotFoundException e ) {

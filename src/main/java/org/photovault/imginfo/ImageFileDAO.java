@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 
+import java.util.List;
 import java.util.UUID;
 import org.photovault.persistence.GenericDAO;
 
@@ -39,5 +40,13 @@ public interface ImageFileDAO extends GenericDAO<ImageFile, UUID> {
     ImageFile findImageFileWithHash( byte[] hash );
 
     ImageFile findFileInLocation(ExternalVolume volume, String string);
+    
+    /**
+     * Find all image files in a given directory in external volume
+     * @param vol Volume of the directory
+     * @param path Path to the folder
+     * @return List of the files in this folder
+     */
+    List<ImageFile> findFilesInDir( ExternalVolume vol, String path );
     
 }

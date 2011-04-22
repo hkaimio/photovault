@@ -117,8 +117,7 @@ public class UpdateIndexAction extends DefaultAction implements BackgroundTaskLi
             errorFiles.clear();
             vol = (ExternalVolume) volumes.get(0);
             BackgroundIndexer indexer =
-                    new BackgroundIndexer( vol.getBaseDir(  ), vol,
-                    vol.getFolder(  ), true );
+                    new BackgroundIndexer( vol.getBaseDir(  ), vol, true );
             volumes.remove( vol );
             SwingWorkerTaskScheduler sched = 
                     (SwingWorkerTaskScheduler) Photovault.getInstance().getTaskScheduler();

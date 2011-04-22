@@ -36,7 +36,7 @@ import org.photovault.imginfo.PhotoInfo;
  */
 public class ExtDirPhotos implements PhotoCollection {
     private final UUID volId;
-    private final String dirName;
+    private final String dirPath;
 
     /**
      * Constructor
@@ -45,8 +45,9 @@ public class ExtDirPhotos implements PhotoCollection {
      */
     ExtDirPhotos( UUID volId, String dirName ) {
         this.volId = volId;
-        this.dirName = dirName;
+        this.dirPath = dirName;
     }
+    
     public int getPhotoCount() {
         throw new UnsupportedOperationException( "Not supported yet." );
     }
@@ -66,7 +67,7 @@ public class ExtDirPhotos implements PhotoCollection {
     public List<PhotoInfo> queryPhotos( Session session ) {
         ExternalVolume vol = 
                 (ExternalVolume) session.get(  ExternalVolume.class, volId );
-        Query q = session.createQuery( "from PhotoInfo p join p.original.file.locations loc where loc.volume = :vol and loc.dirName = :dir" ).setParameter( "vol", vol ).setString( "dir", dirName );
+        Query q = session.createQuery( "from PhotoInfo p join p.original.file.locations loc where loc.volume = :vol and loc.dirName = :dir" ).setParameter( "vol", vol ).setString( "dir", dirPath );
         return q.list();
     }
     
@@ -75,7 +76,7 @@ public class ExtDirPhotos implements PhotoCollection {
     }
     
     public String getDirPath() {
-        return dirName;
+        return dirPath;
     }
     
 }

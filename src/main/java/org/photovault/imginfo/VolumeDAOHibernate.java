@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007 Harri Kaimio
+  Copyright (c) 2007-2011 Harri Kaimio
  
   This file is part of Photovault.
  
@@ -22,6 +22,7 @@ package org.photovault.imginfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import org.hibernate.Query;
 import org.photovault.common.PhotovaultException;
@@ -54,6 +55,23 @@ public class VolumeDAOHibernate
         Query q = getSession().createQuery( "from VolumeBase where id = :id" );
         q.setParameter( "id", id );
         return (VolumeBase) q.uniqueResult();
+    }
+
+    private static final String subfolderQueryStr =
+            "select distinct dir_name from pv_image_locations where volume_id = :vol and dir_name like :dir || '%' order by dir_name";
+
+    public List<String> getSubdirs( ExternalVolume vol, String parentDir ) {
+        Query q = getSession().createSQLQuery( subfolderQueryStr )
+                        .setString( "vol", vol.getId().toString() )
+                        .setString( "dir", parentDir );
+        return q.list();
+        
+    }
+
+    private static final String treeDeleteQueryStr =
+            "select distinct dir_name from pv_image_locations where volume_id = :vol order by dir_name";
+    public void removeTree( ExternalVolume vol, String topDir ) {
+        
     }
     
 }

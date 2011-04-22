@@ -20,10 +20,13 @@
 
 package org.photovault.swingui.indexer;
 
+import java.io.File;
 import org.photovault.command.CommandHandler;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.folder.ExternalDir;
 import org.photovault.folder.PhotoFolder;
+import org.photovault.imginfo.ExternalVolume;
+import org.photovault.imginfo.VolumeManager;
 import org.photovault.imginfo.indexer.DirTreeIndexerTask;
 import org.photovault.imginfo.indexer.DirectoryIndexer;
 import org.photovault.swingui.Photovault;
@@ -46,8 +49,9 @@ public class CurrentFolderIndexer implements TaskProducer {
 
     
     DirectoryIndexer currentIndexer = null;
-    
-    PhotoFolder currentFolder = null;
+        
+    File currentDir = null;
+    ExternalVolume currentVol = null;
     
     /**
      State of the indexing
@@ -101,7 +105,9 @@ public class CurrentFolderIndexer implements TaskProducer {
     public void updateFolder( PhotoFolder folder ) {
         ExternalDir ed = folder.getExternalDir();
         if ( ed != null ) {
-            currentFolder = folder;
+            currentVol = folder.getExternalDir().getVolume();
+            currentDir = new File( currentVol.getBaseDir(), 
+                    folder.getExternalDir().getPath() );
             currentIndexer = null;
             phase = IndexingPhase.NOT_STARTED;
             if ( sched != null ) {
@@ -112,19 +118,30 @@ public class CurrentFolderIndexer implements TaskProducer {
         
     }
     
+    public void updateDir( ExternalVolume vol, String path ) {
+        if( VolumeManager.instance().getVolumeMountPoint( vol ) != null ) {
+            currentVol = vol;
+            currentDir = new File( currentVol.getBaseDir(), path );
+            currentIndexer = null;
+            phase = IndexingPhase.NOT_STARTED;
+            if ( sched != null ) {
+                sched.registerTaskProducer( this,
+                        TaskPriority.INDEX_CURRENT_DIR.getPriority() );
+            }
+            
+        }
+    }
+    
     public BackgroundTask requestTask() {
         BackgroundTask ret = null;
-        ExternalDir ed = null;
         switch ( phase ) {
         case NOT_STARTED:
-            ed = currentFolder.getExternalDir();
-            ret = new DirTreeIndexerTask( ed.getDirectory(), currentFolder, ed.getVolume() );
+            ret = new DirTreeIndexerTask( currentDir, currentVol );
             phase = IndexingPhase.TREE_INDEX;
             break;
         case TREE_INDEX:
             // The directory tree has been updated, index the files in this directory
-            ed = currentFolder.getExternalDir();
-            currentIndexer = new DirectoryIndexer(ed.getDirectory(), currentFolder, ed.getVolume() );
+            currentIndexer = new DirectoryIndexer(currentDir, currentVol );
             currentIndexer.setCommandHandler( cmdHandler );
             phase = IndexingPhase.FILE_INDEX;
             ret = currentIndexer.getNextFileIndexer();
@@ -145,15 +162,9 @@ public class CurrentFolderIndexer implements TaskProducer {
     public IndexingPhase getState() {
         return phase;
     }
-
-    /**
-     * Get the folder that is currently being indexed
-     * @return The folder that is currently being indexed. If state is
-     * {@link IndexingPhase.INACTIVE} or {@link IndexingPhase.COMPLETE} return
-     * value is undefined.
-     */
-    public PhotoFolder getCurrentFolder() {
-        return currentFolder;
+    
+    public File getCurrentDir() {
+        return currentDir;
     }
 
     /**

@@ -34,7 +34,6 @@ import org.hibernate.context.ManagedSessionContext;
 import org.photovault.command.CommandException;
 import org.photovault.command.CommandHandler;
 import org.photovault.command.PhotovaultCommandHandler;
-import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.CopyImageDescriptor;
 import org.photovault.imginfo.CreateCopyImageCommand;
 import org.photovault.imginfo.ExternalVolume;
@@ -64,7 +63,6 @@ public class ExtVolIndexer implements Runnable {
      */
     public ExtVolIndexer( ExternalVolume vol ) {
         volume = vol;
-        topFolderId = vol.getFolderId();
     }
     
     /** The volume that is indexed by this instance */
@@ -76,11 +74,6 @@ public class ExtVolIndexer implements Runnable {
         commandHandler = ch;
     }
     
-    /**
-     Folder used as top of created folder gierarchy or <code>null</code>
-     if no folders should be created
-     */
-    private UUID topFolderId = null;
     
     private ExtVolIndexerEvent currentEvent = null;
     
@@ -88,43 +81,6 @@ public class ExtVolIndexer implements Runnable {
      Etimate of current progress in indexing operation. Values 0..100
      */
     private int percentComplete;
-    
-    /**
-     The indexer can create a folder hierarchy that matches the directory hierarchy
-     in external volume if user so wants. If there already is a directory with
-     same name under this folder the indexer uses it, otherwise it creates new
-     folderst for each directory.
-     @param topFolder used as top of the structure or <code>null</code> if no folders
-     should be created.
-     */
-    public void setTopFolder(PhotoFolder topFolder) {
-        this.topFolderId = topFolder.getUuid();
-        if ( volume != null ) {
-            volume.setFolderId( topFolder.getUuid() );
-        }
-    }
-    
-    /**
-     Finds a subfolder with given name. This is classified as protected so that also
-     test code can use the same method - however, this service should really be offered
-     by PhotoFolder API.
-     @param folder The fodler to search
-     @param name The name to look for
-     @return The subfolder with matching name or <code>null</code> if none found.
-     If there are multiple subfolders with the matching name an arbitrary one will
-     be returned.
-     */
-    private PhotoFolder findSubfolderByName(PhotoFolder folder, String name ) {
-        PhotoFolder subfolder = null;
-        for ( int n = 0; n < folder.getSubfolderCount(); n++ ) {
-            PhotoFolder candidate = folder.getSubfolder( n );
-            if ( name.equals( candidate.getName() ) ) {
-                subfolder = candidate;
-                break;
-            }
-        }
-        return subfolder;
-    }
     
     /**
      Run the actual indexing operation.
@@ -137,12 +93,8 @@ public class ExtVolIndexer implements Runnable {
             oldSession = ManagedSessionContext.bind( (org.hibernate.classic.Session) photoSession);
             
             startTime = new Date();
-            PhotoFolder topFolder = null;
-            if ( topFolderId != null ) {
-                DAOFactory daoFactory = DAOFactory.instance( HibernateDAOFactory.class );
-                topFolder = daoFactory.getPhotoFolderDAO().findById( topFolderId, false );
-            }
-            DirectoryIndexer topIndexer = new DirectoryIndexer( volume.getBaseDir(), topFolder, volume );
+
+            DirectoryIndexer topIndexer = new DirectoryIndexer( volume.getBaseDir(), volume );
             indexDirectory( topIndexer, 0, 100 );
             notifyListenersIndexingComplete();
         } catch( Throwable t ) {

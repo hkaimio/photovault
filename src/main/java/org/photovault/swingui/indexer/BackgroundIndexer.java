@@ -42,10 +42,6 @@ public class BackgroundIndexer implements TaskProducer {
      */
     private ExternalVolume vol;
     /**
-     Folder that matches dir
-     */     
-    private PhotoFolder topFolder;
-    /**
      If <code>true</code> index als subdirectories of dir.
      */
     private boolean indexSubdirs = false;
@@ -70,10 +66,9 @@ public class BackgroundIndexer implements TaskProducer {
      @param indexSubdirs Should also subdirectories be indexed?
      */
     public BackgroundIndexer( File dir,
-            ExternalVolume vol, PhotoFolder folder, boolean indexSubdirs ) {
+            ExternalVolume vol, boolean indexSubdirs ) {
         this.dir = dir;
         this.vol = vol;
-        this.topFolder = folder;
     }
     
     /**
@@ -88,7 +83,7 @@ public class BackgroundIndexer implements TaskProducer {
                  We have not even started to inizialize, start by analyzing the
                  directory tree structure
                  */
-                treeIndexer = new DirTreeIndexerTask( dir, topFolder, vol, true );
+                treeIndexer = new DirTreeIndexerTask( dir, vol, true );
                 return treeIndexer;
             } else {
                 /*

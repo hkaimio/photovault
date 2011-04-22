@@ -277,17 +277,8 @@ public class SchemaUpdateAction {
                 }
             }
 
-            if ( lvol instanceof PVDatabase.LegacyExtVolume ) {
-                UUID folderId = folderUuids.get(
-                        ((PVDatabase.LegacyExtVolume) lvol).getFolderId() );
-                if ( folderId != null ) {
-                    PhotoFolder f = folderDao.findByUUID( folderId );
-                    ((ExternalVolume) vol).setFolder(
-                            folderDao.findByUUID( folderId ) );
-                    addExtVolReferences( f,(ExternalVolume) vol, "" );
-                }
-            } else {
-                defVol = (Volume) vol;
+            if ( lvol instanceof PVDatabase.LegacyVolume ) {
+               defVol = (Volume) vol;
             }
             volIds.put( vol.getName(), vol.getId() );
             vm.addMountPoint( basedir );

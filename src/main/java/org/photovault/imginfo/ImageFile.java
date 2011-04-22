@@ -68,7 +68,7 @@ import org.photovault.dcraw.RawImage;
 
 @NamedQueries({
     /*
-     Find the iamge file object that describes file in an external volume
+     Find the image file object that describes file in an external volume
      Parameters:
      volume - The external volume
      fname - Name of the file (i.e. relative path from volume base directory)
@@ -77,6 +77,18 @@ import org.photovault.dcraw.RawImage;
      name = "findImageFileByLocation",
      query = "select f from ImageFile f join f.locations loc "+
             "where loc.volume = :volume and loc.fname = :fname"
+    ),
+    /*
+     * Find all image files that have an instance stored in a certain directory
+     * in external volume
+     * Parameters:
+     * volume - the external volume
+     * dir - path to the directory
+     */
+    @NamedQuery(
+     name = "findImageFilesInDir",
+     query = "select f from ImageFile f join f.locations loc "+
+            "where loc.volume = :volume and loc.dirName = :dir"
     )
 })
 @Entity

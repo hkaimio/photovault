@@ -94,7 +94,7 @@ public class Test_DirTreeIndexerTask extends PhotovaultTestCase {
             File d = new File( d1, "subdir" + n );
             d.mkdir();
         }
-        DirTreeIndexerTask indexer = new DirTreeIndexerTask(topDir, topFolder, vol);
+        DirTreeIndexerTask indexer = new DirTreeIndexerTask(topDir, vol);
         indexer.setSession(session);
         indexer.setCommandHandler(cmdHandler);
         indexer.run();
@@ -124,7 +124,7 @@ public class Test_DirTreeIndexerTask extends PhotovaultTestCase {
         File newdir = new File( topDir, "newdir" );
         newdir.mkdir();
 
-        DirTreeIndexerTask indexer = new DirTreeIndexerTask(topDir, topFolder, vol);
+        DirTreeIndexerTask indexer = new DirTreeIndexerTask(topDir, vol);
         indexer.setSession(session);
         indexer.setCommandHandler(cmdHandler);
         indexer.run();

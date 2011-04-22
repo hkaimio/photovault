@@ -22,6 +22,8 @@ package org.photovault.imginfo.indexer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,18 +33,14 @@ import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Session;
-import org.photovault.command.CommandException;
 import org.photovault.command.CommandHandler;
 import org.photovault.command.PhotovaultCommandHandler;
-import org.photovault.folder.CreatePhotoFolderCommand;
-import org.photovault.folder.DeletePhotoFolderCommand;
 import org.photovault.folder.PhotoFolder;
-import org.photovault.imginfo.ChangePhotoInfoCommand;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.imginfo.PhotoInfo;
+import org.photovault.imginfo.VolumeDAO;
+import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
-import org.photovault.swingui.Photovault;
 import org.photovault.taskscheduler.BackgroundTask;
 
 /**
@@ -70,13 +68,7 @@ public class DirectoryIndexer {
      members of corresponding folder.
      */
     private Set<UUID> newPhotos = new HashSet<UUID>();
-    
-    /**
-     UUIDs of those folders that were not found in the volume (i.e. the corresponding
-     directories were deleted or moved.
-     */
-    private HashSet<UUID> foldersNotFound;
-    
+        
     /**
      Files currently in the directory
      */
@@ -104,10 +96,6 @@ public class DirectoryIndexer {
     private boolean isFinalized = false;
     
     /**
-     PhotoFolder that corresponds to this directory
-     */
-    private PhotoFolder folder;
-    /**
      The directory that is indexed.
      */
     private File dir;
@@ -116,6 +104,8 @@ public class DirectoryIndexer {
      Volume the directory belongs to.
      */
     private ExternalVolume volume;
+    
+    Set<String> dirsNotFound = new HashSet();
     
     /**
      Command handler used to execute commands for changing the folder hierarchy
@@ -134,9 +124,8 @@ public class DirectoryIndexer {
      @param folder The corresponding folder in Photovault database
      @param vol The volume of dir
      */
-    public DirectoryIndexer( File dir, PhotoFolder folder, ExternalVolume vol ) {
+    public DirectoryIndexer( File dir, ExternalVolume vol ) {
         this.dir = dir;
-        this.folder = folder;
         this.volume = vol;        
     }
 
@@ -177,8 +166,7 @@ public class DirectoryIndexer {
         while ( fileIter.hasNext(  ) ) {
             File f = fileIter.next(  );
             if ( f.canRead(  ) ) {
-                IndexFileTask t =
-                        new IndexFileTask( f, folder, volume, this );
+                IndexFileTask t = new IndexFileTask( f, volume, this );
                 return t;
             }
         }
@@ -238,85 +226,38 @@ public class DirectoryIndexer {
          added to the folder is found
          */
         photoInstanceCounts = new HashMap<UUID,Integer>();
-        foldersNotFound = new HashSet<UUID>();
-        if ( folder != null ) {
-            folder = 
-                    (PhotoFolder) HibernateUtil.getSessionFactory().getCurrentSession().
-                    get(PhotoFolder.class, folder.getUuid() );
-            for ( PhotoInfo photo : folder.getPhotos() ) {
-                photoInstanceCounts.put( photo.getUuid(), new Integer( 0 ) );
-            }
-            for ( PhotoFolder f : folder.getSubfolders() ) {
-                foldersNotFound.add(f.getUuid() );
-            }
-        }
+        HibernateDAOFactory df = new HibernateDAOFactory();
+        df.setSession( HibernateUtil.getSessionFactory().getCurrentSession() );
+        VolumeDAO volDao = df.getVolumeDAO();
+        String dirPath = volume.mapFileToVolumeRelativeName( dir );
+        List<String> subdirPaths = volDao.getSubdirs( volume, dirPath );
+        dirsNotFound.addAll( subdirPaths );
         
-        File[] entries = dir.listFiles(  );
-        List<File> subdirs = new ArrayList<File>(  );
+        File[] entries = dir.listFiles();
         // Count the files
         filesLeft = 0;
-        int subdirCount = 0;
         for ( File entry : entries ) {
+            String path = dirPath + "/" + entry.getName();
+            
             if ( entry.isDirectory() ) {
                 if ( !entry.getName().equals( ".photovault_volume" ) ) {
-                    subdirCount++;
-                    subdirs.add( entry );
+                    dirsNotFound.remove( path );
+                    subdirIndexers.add(
+                            new DirectoryIndexer( entry, volume ) );
                 }
             } else {
                 filesLeft++;
                 files.add( entry );
             }
         }
-        fileIter = files.iterator();
         
-        
-        // Check the subfolders
-        // Index now all subdirectories
-        for ( File subdir : subdirs ) {
-            // Create the matching folder
-            PhotoFolder subfolder = null;
-            if ( folder != null ) {
-                String folderName = subdir.getName();
-                if ( folderName.length() > PhotoFolder.NAME_LENGTH ) {
-                    folderName = folderName.substring( 0, PhotoFolder.NAME_LENGTH );
-                }
-                subfolder = findSubfolderByName( folder, folderName );
-                if ( subfolder == null ) {
-                    CreatePhotoFolderCommand createFolder =
-                            new CreatePhotoFolderCommand( folder, folderName,
-                            "imported from " + subdir.getAbsolutePath() );
-                    StringBuffer pathBuf =
-                            new StringBuffer( folder.getExternalDir().getPath() );
-                    if ( pathBuf.length() > 0 ) {
-                        pathBuf.append( "/" );
-                    }
-                    pathBuf.append( subdir.getName() );
-                    createFolder.setExtDir( volume, pathBuf.toString() );
-                    try {
-                        cmdHandler.executeCommand( createFolder );
-                    } catch (CommandException ex) {
-                        ex.printStackTrace();
-                    }
-                    subfolder = createFolder.getCreatedFolder();
-                    // newFolderCount++;
-                } else {
-                    foldersNotFound.remove( subfolder.getUuid(  ) );
-                }
-                subdirIndexers.add( 
-                        new DirectoryIndexer( subdir, subfolder, volume ) );
-            }
-        }
-        // If there were subfolders with no matching directory, delete them
-        for ( UUID folderId : foldersNotFound ) {
-            try {
-                DeletePhotoFolderCommand deleteCmd =
-                        new DeletePhotoFolderCommand( folderId );
-                cmdHandler.executeCommand( deleteCmd );
-            } catch ( CommandException ex ) {
-                log.error( "Error while deleting folder: " + ex.getMessage() );
+        Collections.sort( files, new Comparator<File>() {
+            public int compare( File o1, File o2 ) {
+                return o1.getName().compareTo( o2.getName() );
             }
             
-        }
+        });
+        fileIter = files.iterator();
         isInitialized = true;
     }
 
@@ -362,25 +303,8 @@ public class DirectoryIndexer {
             }
         }        
         if ( photoIdsNotFound.size() > 0 ) {
-            ChangePhotoInfoCommand removeFromFolderCmd = new ChangePhotoInfoCommand( photoIdsNotFound );
-            removeFromFolderCmd.removeFromFolder( folder );
-            try {
-                log.debug( "Deleting unseen photos" );
-                cmdHandler.executeCommand( removeFromFolderCmd );
-            } catch (CommandException ex) {
-                ex.printStackTrace();
-            }
         }
-        if ( newPhotos.size() > 0 ) {
-            ChangePhotoInfoCommand addToFolderCmd = new ChangePhotoInfoCommand( newPhotos );
-            addToFolderCmd.addToFolder( folder );
-            try {
-                log.debug( "Deleting unseen photos" );
-                cmdHandler.executeCommand( addToFolderCmd );
-            } catch (CommandException ex) {
-                ex.printStackTrace();
-            }
-            
+        if ( newPhotos.size() > 0 ) {            
         }
     }
     

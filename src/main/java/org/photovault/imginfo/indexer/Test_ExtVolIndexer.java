@@ -243,7 +243,6 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         session.flush();
         VolumeManager.instance().initVolume( v, extVolDir );
         ExtVolIndexer indexer = new ExtVolIndexer( v );
-        indexer.setTopFolder( topFolder );
         indexer.setCommandHandler( new PhotovaultCommandHandler( null ) );
         TestListener l = new TestListener();
         indexer.addIndexerListener( l );
@@ -344,7 +343,6 @@ public class Test_ExtVolIndexer extends PhotovaultTestCase {
         }
         
         indexer = new ExtVolIndexer( v );
-        indexer.setTopFolder( topFolder );
         indexer.setCommandHandler( new PhotovaultCommandHandler( null ) );
         
         l = new TestListener();

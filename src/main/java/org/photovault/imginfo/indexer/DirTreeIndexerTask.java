@@ -21,18 +21,9 @@
 package org.photovault.imginfo.indexer;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.photovault.command.CommandException;
-import org.photovault.folder.ChangePhotoFolderCommand;
-import org.photovault.folder.CreatePhotoFolderCommand;
-import org.photovault.folder.DeletePhotoFolderCommand;
-import org.photovault.folder.PhotoFolder;
 import org.photovault.imginfo.ExternalVolume;
 import org.photovault.taskscheduler.BackgroundTask;
 
@@ -46,7 +37,6 @@ public class DirTreeIndexerTask extends BackgroundTask {
     private static Log log = LogFactory.getLog( DirTreeIndexerTask.class.getName() );
     
     private File topDir;
-    private PhotoFolder topFolder;
     private ExternalVolume vol;
     private int folderCount = 0;
     private int newFolderCount = 0;
@@ -60,10 +50,9 @@ public class DirTreeIndexerTask extends BackgroundTask {
      @param topDir The top directory of the tree to index
      @param topFolder The folder corresponding to topDir
      */
-    public DirTreeIndexerTask( File topDir, PhotoFolder topFolder,
+    public DirTreeIndexerTask( File topDir,
             ExternalVolume vol, boolean createDirIndexers ) {
         this.topDir = topDir;
-        this.topFolder = topFolder;
         this.vol = vol;
         this.createDirIndexers = createDirIndexers;
     }
@@ -73,26 +62,15 @@ public class DirTreeIndexerTask extends BackgroundTask {
      @param topDir The top directory of the tree to index
      @param topFolder The folder corresponding to topDir
      */    
-    public DirTreeIndexerTask( File topDir, PhotoFolder topFolder,
-            ExternalVolume vol ) {
-        this( topDir, topFolder, vol, false );
+    public DirTreeIndexerTask( File topDir, ExternalVolume vol ) {
+        this( topDir, vol, false );
     }
     /**
      Run the task
      */
     @Override
     public void run() {
-        if ( topFolder.getExternalDir() == null ) {
-            try {
-                ChangePhotoFolderCommand cmd = new ChangePhotoFolderCommand( topFolder );
-                cmd.setExtDir( vol, "" );
-                cmdHandler.executeCommand( cmd );
-                topFolder = (PhotoFolder) session.merge( cmd.getChangedFolder() );
-            } catch ( CommandException ex ) {
-                log.error( "Error associating top folder with directory: ", ex );
-            }
-        }
-        indexDirectory( topDir, topFolder );
+        indexDirectory( topDir );
         
     }
 
@@ -101,60 +79,20 @@ public class DirTreeIndexerTask extends BackgroundTask {
      @param dir The top directory
      @param folder the corresponding top folder
      */
-    private void indexDirectory( File dir, PhotoFolder folder ) {
+    private void indexDirectory( File dir ) {
 
         if ( createDirIndexers ) {
-            dirIndexers.add( new DirectoryIndexer( dir, folder, vol ) );
+            dirIndexers.add( new DirectoryIndexer( dir, vol ) );
         }
 
-        Map<String, PhotoFolder> folders = new HashMap<String, PhotoFolder>();
-        for ( PhotoFolder f : folder.getSubfolders() ) {
-            folders.put( f.getName(), f );
-        }
         File[] dirEntries = dir.listFiles();
         for ( File d : dirEntries ) {
             if ( d.isDirectory() && !d.getName().equals( ".photovault_volume" ) ) {
                 folderCount++;
-                PhotoFolder f = null;
-                // Is there an existing folder for this directory?
-                if ( folders.containsKey( d.getName() ) ) {
-                    // Yep, this one is OK! Remove for unprocessed folders
-                    f = folders.remove( d.getName() );
-                } else {
-                    // No, this must be created
-                    try {
-                        CreatePhotoFolderCommand cmd = 
-                                new CreatePhotoFolderCommand( folder, d.getName(), "" );
-                        StringBuffer pathBuf = 
-                                new StringBuffer( folder.getExternalDir().getPath() );
-                        if ( pathBuf.length() > 0 ) {
-                            pathBuf.append( "/" );
-                        }
-                        pathBuf.append( d.getName() );
-                        cmd.setExtDir( folder.getExternalDir().getVolume(), 
-                                pathBuf.toString() );
-                        cmdHandler.executeCommand( cmd );
-                        f = (PhotoFolder) session.merge( cmd.getCreatedFolder() );
-                        newFolderCount++;
-                    } catch ( CommandException ex ) {
-                        log.error( "Error while creating folder", ex );
-                    }
-                }
-                indexDirectory( d, f );
+                indexDirectory( d );
             }
         }
 
-        // Delete subfolders that were not found
-        for ( PhotoFolder f : folders.values() ) {
-            try {
-                DeletePhotoFolderCommand deleteCmd =
-                        new DeletePhotoFolderCommand( f.getUuid() );
-                cmdHandler.executeCommand( deleteCmd );
-                deletedFolderCount++;
-            } catch ( CommandException ex ) {
-                log.error( "Error while deleting folder: ", ex );
-            }
-        }
     }
 
     /**
@@ -189,14 +127,6 @@ public class DirTreeIndexerTask extends BackgroundTask {
      */
     public File getTopDir() {
         return topDir;
-    }
-
-    /**
-     Get the top folder that corresponds to top directory
-     @return Top folder
-     */
-    public PhotoFolder getTopFolder() {
-        return topFolder;
     }
 
     /**
