@@ -69,8 +69,7 @@ public class ImageOpChainUserType implements UserType {
             throws HibernateException, SQLException {
         ImageOpChain chain = (ImageOpChain) value;
         byte data[] = chain.getBuilder().build().toByteArray();
-        InputStream is = new ByteArrayInputStream( data );
-        stmt.setBlob( index, is );
+        stmt.setBytes( index, data );
     }
 
     public Object deepCopy( Object obj ) throws HibernateException {

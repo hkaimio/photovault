@@ -21,7 +21,6 @@
 
 package org.photovault.swingui.volumetree;
 
-import freemarker.template.utility.Collections12;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
