@@ -377,7 +377,8 @@ implements ProtobufSupport<DCRawOp, ImageOpDto.DCRawOp, ImageOpDto.DCRawOp.Build
                 .setDlRedGreenRatio( getDaylightRedGreenRatio() )
                 .setMedianFilterPassCount( getMedianFilterPassCount() )
                 .setRedGreenRatio( getRedGreenRatio() )
-                .setWaveletDenoiseThreshold( getWaveletThreshold() );
+                .setWaveletDenoiseThreshold( getWaveletThreshold() )
+                .setHlightRecovery( getHlightRecovery() );
         return b;
     }
 
@@ -394,6 +395,7 @@ implements ProtobufSupport<DCRawOp, ImageOpDto.DCRawOp, ImageOpDto.DCRawOp.Build
         op.setMedianFilterPassCount( d.getMedianFilterPassCount() );
         op.setRedGreenRatio( d.getRedGreenRatio() );
         op.setWaveletThreshold( d.getWaveletDenoiseThreshold() );
+        op.setHlightRecovery( d.getHlightRecovery() );
         
         return op;
     }
@@ -408,7 +410,8 @@ implements ProtobufSupport<DCRawOp, ImageOpDto.DCRawOp, ImageOpDto.DCRawOp.Build
                 && this.daylightBlueGreenRatio == other.daylightBlueGreenRatio
                 && this.daylightRedGreenRatio == other.daylightRedGreenRatio
                 && this.medianFilterPassCount == other.medianFilterPassCount
-                && this.waveletThreshold == other.waveletThreshold;
+                && this.waveletThreshold == other.waveletThreshold
+                && this.hlightRecovery == other.hlightRecovery;
     }
 
    public static class ProtobufConv implements ProtobufConverter<DCRawOp> {

@@ -1442,6 +1442,13 @@ public final class ImageOpDto {
       return aberCorr_.get(index);
     }
     
+    // optional uint32 hlight_recovery = 10;
+    public static final int HLIGHT_RECOVERY_FIELD_NUMBER = 10;
+    private boolean hasHlightRecovery;
+    private int hlightRecovery_ = 0;
+    public boolean hasHlightRecovery() { return hasHlightRecovery; }
+    public int getHlightRecovery() { return hlightRecovery_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
@@ -1477,6 +1484,9 @@ public final class ImageOpDto {
       }
       for (double element : getAberCorrList()) {
         output.writeDouble(9, element);
+      }
+      if (hasHlightRecovery()) {
+        output.writeUInt32(10, getHlightRecovery());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1516,6 +1526,10 @@ public final class ImageOpDto {
         dataSize = 8 * getAberCorrList().size();
         size += dataSize;
         size += 1 * getAberCorrList().size();
+      }
+      if (hasHlightRecovery()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(10, getHlightRecovery());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1703,6 +1717,9 @@ public final class ImageOpDto {
           }
           result.aberCorr_.addAll(other.aberCorr_);
         }
+        if (other.hasHlightRecovery()) {
+          setHlightRecovery(other.getHlightRecovery());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -1763,6 +1780,10 @@ public final class ImageOpDto {
                 addAberCorr(input.readDouble());
               }
               input.popLimit(limit);
+              break;
+            }
+            case 80: {
+              setHlightRecovery(input.readUInt32());
               break;
             }
           }
@@ -1909,6 +1930,24 @@ public final class ImageOpDto {
       }
       public Builder clearAberCorr() {
         result.aberCorr_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // optional uint32 hlight_recovery = 10;
+      public boolean hasHlightRecovery() {
+        return result.hasHlightRecovery();
+      }
+      public int getHlightRecovery() {
+        return result.getHlightRecovery();
+      }
+      public Builder setHlightRecovery(int value) {
+        result.hasHlightRecovery = true;
+        result.hlightRecovery_ = value;
+        return this;
+      }
+      public Builder clearHlightRecovery() {
+        result.hasHlightRecovery = false;
+        result.hlightRecovery_ = 0;
         return this;
       }
       
@@ -3867,21 +3906,22 @@ public final class ImageOpDto {
       "\030\001 \002(\t\022\014\n\004sink\030\002 \002(\t\"\207\001\n\007ImageOp\022\014\n\004name" +
       "\030\001 \002(\t\022\027\n\005rawOp\030\002 \001(\0132\010.DCRawOp\022\035\n\010rawMa" +
       "pOp\030\003 \001(\0132\013.DCRawMapOp\022\035\n\tchanMapOp\030\004 \001(" +
-      "\0132\n.ChanMapOp\022\027\n\006cropOp\030\005 \001(\0132\007.CropOp\"\315" +
+      "\0132\n.ChanMapOp\022\027\n\006cropOp\030\005 \001(\0132\007.CropOp\"\346" +
       "\001\n\007DCRawOp\022\027\n\017red_green_ratio\030\003 \002(\001\022\030\n\020b" +
       "lue_green_ratio\030\004 \002(\001\022\033\n\023dl_blue_green_r" +
       "atio\030\005 \002(\001\022\032\n\022dl_red_green_ratio\030\006 \002(\001\022 ",
       "\n\030median_filter_pass_count\030\007 \002(\r\022!\n\031wave" +
       "let_denoise_threshold\030\010 \002(\001\022\021\n\taber_corr" +
-      "\030\t \003(\001\"U\n\nDCRawMapOp\022\r\n\005white\030\001 \002(\r\022\r\n\005b" +
-      "lack\030\002 \002(\r\022\026\n\013hlightCompr\030\003 \001(\001:\0010\022\021\n\006ev" +
-      "Corr\030\004 \001(\001:\0010\"0\n\tChanMapOp\022#\n\016channel_cu" +
-      "rves\030\001 \003(\0132\013.ColorCurve\"%\n\rPoint2Ddouble" +
-      "\022\t\n\001x\030\001 \002(\001\022\t\n\001y\030\002 \002(\001\":\n\nColorCurve\022\014\n\004" +
-      "name\030\001 \002(\t\022\036\n\006points\030\002 \003(\0132\016.Point2Ddoub" +
-      "le\"P\n\006CropOp\022\014\n\004minx\030\001 \002(\001\022\014\n\004miny\030\002 \002(\001" +
-      "\022\014\n\004maxx\030\003 \002(\001\022\014\n\004maxy\030\004 \002(\001\022\016\n\003rot\030\005 \001(",
-      "\001:\0010B\031\n\024org.photovault.image\210\001\000"
+      "\030\t \003(\001\022\027\n\017hlight_recovery\030\n \001(\r\"U\n\nDCRaw" +
+      "MapOp\022\r\n\005white\030\001 \002(\r\022\r\n\005black\030\002 \002(\r\022\026\n\013h" +
+      "lightCompr\030\003 \001(\001:\0010\022\021\n\006evCorr\030\004 \001(\001:\0010\"0" +
+      "\n\tChanMapOp\022#\n\016channel_curves\030\001 \003(\0132\013.Co" +
+      "lorCurve\"%\n\rPoint2Ddouble\022\t\n\001x\030\001 \002(\001\022\t\n\001" +
+      "y\030\002 \002(\001\":\n\nColorCurve\022\014\n\004name\030\001 \002(\t\022\036\n\006p" +
+      "oints\030\002 \003(\0132\016.Point2Ddouble\"P\n\006CropOp\022\014\n" +
+      "\004minx\030\001 \002(\001\022\014\n\004miny\030\002 \002(\001\022\014\n\004maxx\030\003 \002(\001\022",
+      "\014\n\004maxy\030\004 \002(\001\022\016\n\003rot\030\005 \001(\001:\0010B\031\n\024org.pho" +
+      "tovault.image\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -3917,7 +3957,7 @@ public final class ImageOpDto {
           internal_static_DCRawOp_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_DCRawOp_descriptor,
-              new java.lang.String[] { "RedGreenRatio", "BlueGreenRatio", "DlBlueGreenRatio", "DlRedGreenRatio", "MedianFilterPassCount", "WaveletDenoiseThreshold", "AberCorr", },
+              new java.lang.String[] { "RedGreenRatio", "BlueGreenRatio", "DlBlueGreenRatio", "DlRedGreenRatio", "MedianFilterPassCount", "WaveletDenoiseThreshold", "AberCorr", "HlightRecovery", },
               org.photovault.image.ImageOpDto.DCRawOp.class,
               org.photovault.image.ImageOpDto.DCRawOp.Builder.class);
           internal_static_DCRawMapOp_descriptor =

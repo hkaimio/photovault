@@ -139,6 +139,7 @@ public class Test_ImageOp {
         DCRawOp op1 = new DCRawOp( chain, "dcraw" );
         op1.setWhite( 32000 );
         op1.setBlack( 30 );
+        op1.setHlightRecovery( 1 );
         Source op1out = op1.getOutputPort( "out" );
         DCRawMapOp op2 = new DCRawMapOp( chain, "op2" );
         op2.setBlack( 25 );
@@ -177,6 +178,7 @@ public class Test_ImageOp {
         ImageOpDto.ImageOpChain dto = ImageOpDto.ImageOpChain.parseFrom( data );
         ImageOpChain chain2 = new ImageOpChain( dto );
         assertEquals( chain, chain2 );
+        assertEquals( 1, ((DCRawOp)chain2.getOperation( "dcraw" )).getHlightRecovery() );
 
 //        XStream xs = new XStream();
 //        xs.processAnnotations( ImageOp.class );

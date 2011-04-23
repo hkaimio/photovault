@@ -31,6 +31,7 @@ message DCRawOp {
     required uint32 median_filter_pass_count = 7;
     required double wavelet_denoise_threshold = 8;
     repeated double aber_corr = 9;
+    optional uint32 hlight_recovery = 10;
 }
 
 message DCRawMapOp {

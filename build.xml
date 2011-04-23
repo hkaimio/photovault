@@ -117,7 +117,7 @@
     </target>
 
 
-    <target name="init" depends="resolve">
+    <target name="init" depends="/noresolve,resolve">
     <!-- Create the time stamp -->
         <tstamp/>
     <!-- Create the build directory structure used by compile -->
