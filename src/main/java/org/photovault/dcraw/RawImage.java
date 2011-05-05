@@ -527,13 +527,14 @@ public class RawImage extends PhotovaultImage {
             pb.set( black, 1 );
             pb.set( highlightCompression, 2 );
             rawConverter = JAI.createRenderable( "RawConv", pb, nonCachedHints );
+            rawConverter.setProperty( "org.photovault.opname", "raw_toneadj_image");
             applyExposureSettings();
 
             // Convert from linear to gamma corrected
             createGammaLut();
             LookupTableJAI jailut = new LookupTableJAI( gammaLut );
             correctedImage = LookupDescriptor.createRenderable( rawConverter, jailut, null );
-            
+            correctedImage.setProperty( "org.photovault.opname", "gamma_lut_image" );
             // Store the color model of the image
             ColorSpace cs = ColorSpace.getInstance( ColorSpace.CS_sRGB );
             cm = new ComponentColorModel( cs, new int[]{8,8,8},
@@ -628,7 +629,6 @@ public class RawImage extends PhotovaultImage {
         this.width = lrd.sizes.width;
         this.height = lrd.sizes.height;
         short[] rawData = lrd.image.getShortArray( 0, rawImageSize );
-
         lr.libraw_dcraw_process( lrd );
         log.debug(  "processed " + (System.currentTimeMillis()-startTime) );
         int procWidth = lrd.sizes.width;
@@ -694,10 +694,12 @@ public class RawImage extends PhotovaultImage {
                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_USHORT );
             rawImage = new TiledImage( new BufferedImage( targetCM, r, 
                     true, null ), 256, 256 );
+            rawImage.setProperty( "org.photovault.opname", "dcraw_data" );
             
             if ( preRotation.getJaiTransposeType() != null ) {
                 rawImage = TransposeDescriptor.create(
                         rawImage, preRotation.getJaiTransposeType(), null );
+                rawImage.setProperty( "org.photovault.opname", "orientation_adjustment" );
             }
 
             
@@ -745,6 +747,7 @@ public class RawImage extends PhotovaultImage {
             wbAdjustedRawImage = 
                     BandCombineDescriptor.createRenderable( rawImageRenderable, 
                     colorCorrMat, nonCachedHints );
+            wbAdjustedRawImage.setProperty( "org.photovault.opname", "wb_adjusted_image" );
             
 //            reader.getImageMetadata( 0 );
 //            rawIsHalfSized = dcraw.ishalfSize();
@@ -872,7 +875,8 @@ public class RawImage extends PhotovaultImage {
         lrd.output_params.highlight = hlightRecovery == 0 ? 0 : hlightRecovery+2;
         lrd.output_params.thereshold = waveletThreshold;
         lrd.output_params.med_passes = medianPassCount;
-        
+        lrd.output_params.use_camera_wb = 1;
+
         if ( subsample == 2 ) {
             log.debug( "subsample 2" );
         }
@@ -1102,9 +1106,10 @@ public class RawImage extends PhotovaultImage {
     private void applyWbCorrection() {
         double rgb[] = colorTempToRGB( ctemp );
         colorCorr = new double[3];
-        colorCorr[0] = 1.0/rgb[0];
-        colorCorr[1] = greenGain/rgb[1];
-        colorCorr[2] = 1.0/rgb[2];
+        colorCorr[0] = (daylightMultipliers[0]/cameraMultipliers[0]*1024.0)/rgb[0];
+        colorCorr[1] = (daylightMultipliers[1]/cameraMultipliers[1]*1024.0) * greenGain/rgb[1];
+        colorCorr[2] = (daylightMultipliers[2]/cameraMultipliers[2]*1024.0)/rgb[2];
+        log.debug( "New color correction: " + colorCorr[0] + ", " + colorCorr[1] + ", " + colorCorr[2] + ", ");
         double colorCorrMat[][] = new double[][] {
             {colorCorr[0], 0.0, 0.0, 0.0 },
             {0.0, colorCorr[1], 0.0, 0.0 },

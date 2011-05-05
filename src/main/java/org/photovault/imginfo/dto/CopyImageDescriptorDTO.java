@@ -25,6 +25,8 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.photovault.dcraw.RawConversionSettings;
+import org.photovault.image.ChannelMapOperation;
 import org.photovault.common.ProtobufHelper;
 import org.photovault.common.Types;
 import org.photovault.image.ImageOpChain;
