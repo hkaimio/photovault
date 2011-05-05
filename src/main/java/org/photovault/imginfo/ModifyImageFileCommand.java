@@ -169,7 +169,7 @@ public class ModifyImageFileCommand extends DataAccessCommand {
                     photoEditor.setShutterSpeed( img.getShutterSpeed() );
                     photoEditor.setFocalLength( img.getFocalLength() );
                     String camera = img.getCamera();
-                    if ( camera.length() > PhotoInfo.CAMERA_LENGTH ) {
+                    if ( camera != null && camera.length() > PhotoInfo.CAMERA_LENGTH ) {
                         camera = camera.substring( 0, PhotoInfo.CAMERA_LENGTH );
                     }
                     photoEditor.setCamera( camera );

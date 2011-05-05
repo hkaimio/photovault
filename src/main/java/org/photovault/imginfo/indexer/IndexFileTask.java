@@ -273,6 +273,7 @@ public class IndexFileTask extends BackgroundTask {
                 cmd = new ModifyImageFileCommand( img, hash );
                 result = IndexingResult.NEW_FILE;
             } catch ( Exception e ) {
+                log.warn( "Error creating image: ", e );
                 result = IndexingResult.ERROR;
                 return;
             }

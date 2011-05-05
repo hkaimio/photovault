@@ -51,7 +51,13 @@ public class OrigImageRefResolver
             return null;
         }
         ImageFileDTO ifileDto = dto.getFileDto();
-        ImageFile ifile = getIfileResovler().getObjectFromDto( ifileDto );
+        ImageFile ifile = null;
+        if ( ifileDto != null ) {
+            ifile = getIfileResovler().getObjectFromDto( ifileDto );
+        } else {
+            ifile = (ImageFile) getSession().get( 
+                    ImageFile.class, dto.getFileUuid() );
+        }
         return (OriginalImageDescriptor) ifile.getImage( dto.getLocator() );
     }
 

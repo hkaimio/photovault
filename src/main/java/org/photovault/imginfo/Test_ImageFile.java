@@ -20,6 +20,7 @@
 
 package org.photovault.imginfo;
 
+import java.util.Arrays;
 import com.google.protobuf.ByteString;
 import org.photovault.imginfo.dto.ImageProtos;
 import org.photovault.imginfo.dto.ImageFileDtoResolver;
@@ -38,10 +39,13 @@ import org.hibernate.Transaction;
 import org.photovault.command.PhotovaultCommandHandler;
 import org.photovault.common.JUnitHibernateManager;
 import org.photovault.common.PhotovaultException;
+import org.photovault.common.ProtobufHelper;
 import org.photovault.image.ChannelMapOperation;
 import org.photovault.image.ChannelMapOperationFactory;
 import org.photovault.image.ColorCurve;
 import org.photovault.imginfo.dto.ImageFileProtobufResolver;
+import org.photovault.imginfo.dto.OrigImageRefDTO;
+import org.photovault.imginfo.dto.OrigImageRefResolver;
 import org.photovault.persistence.DAOFactory;
 import org.photovault.persistence.HibernateDAOFactory;
 import org.photovault.persistence.HibernateUtil;
@@ -79,6 +83,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         session = HibernateUtil.getSessionFactory().openSession();
         daoFactory = (HibernateDAOFactory) DAOFactory.instance( HibernateDAOFactory.class );    
         daoFactory.setSession( session );
+        Transaction tx = session.beginTransaction();
         ifDAO = daoFactory.getImageFileDAO();
         try {
 
@@ -97,6 +102,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
             session.save( vol2 );
             VolumeManager.instance().initVolume( vol2, tmpdir );
             session.flush();
+            tx.commit();
         } catch ( Exception ex) {
             fail( "exception while creating volumes" );
         }
@@ -122,6 +128,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         ImageFile i = new ImageFile();
         i.setId( UUID.randomUUID() );
         i.setFileSize( 1000000 );
+        i.setHash( new byte[]{1,2,3});
         Date lastChecked = new Date();
         FileLocation location = new FileLocation( vol1, "testfile1" );
         location.setLastChecked( lastChecked );
@@ -175,8 +182,11 @@ public class Test_ImageFile extends PhotovaultTestCase {
         ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
         ImageFile f1 = new ImageFile();
         f1.setId( UUID.randomUUID() );
+        f1.setHash( new byte[]{1,2,3});
         ImageFile f2 = new ImageFile();
         f2.setId( UUID.randomUUID() );
+        f2.setHash( new byte[]{1,2,3});
+        
         ifDAO.makePersistent( f1 );
         ifDAO.makePersistent( f2 );
         
@@ -267,10 +277,12 @@ public class Test_ImageFile extends PhotovaultTestCase {
     
     @Test
     public void testDto() throws InstantiationException, IllegalAccessException {
+        Transaction tx = session.beginTransaction();
         PhotoInfoDAO photoDAO = daoFactory.getPhotoInfoDAO();
         ImageDescriptorDAO idDAO = daoFactory.getImageDescriptorDAO();
         ImageFile f1 = new ImageFile();
         f1.setId( UUID.randomUUID() );
+        f1.setHash( new byte[] {1,2,3} );
         ifDAO.makePersistent( f1 );
         
         OriginalImageDescriptor i11 = new OriginalImageDescriptor( f1, "image#0" );
@@ -290,18 +302,21 @@ public class Test_ImageFile extends PhotovaultTestCase {
         // Create another ImageFile but don't persist it, just create mathcihng DTO
         ImageFile f2 = new ImageFile();
         f2.setId( UUID.randomUUID() );
+        f2.setHash( new byte[]{1, 2, 3} );
+        ifDAO.makePersistent( f2 );
+        
         CopyImageDescriptor i21 = new CopyImageDescriptor( f2, "image#0", i11 );
         i21.setWidth( 2000 );
         i21.setHeight( 3000 );
-
+        tx.commit();
         // ii1 is not corrupted as it has reference to nonpersistent i21
         session.clear();
         f1 = ifDAO.findById( f1.getId(), false );
         i11 = (OriginalImageDescriptor) f1.getImage( "image#0" );
         
         ImageFileDTO fdto1 = new ImageFileDTO( f2 );
-        assertEquals(  fdto1.getUuid() ,f2.getId() );
-        assertEquals(  fdto1.getHash() ,f2.getHash() );        
+        assertEquals(  fdto1.getUuid() ,f2.getId() );    
+        assertTrue(  Arrays.equals( fdto1.getHash() ,f2.getHash() ) );        
         assertEquals(  fdto1.getSize() ,f2.getFileSize() );
 
                 
@@ -369,6 +384,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
 
     @Test
     public void testFindByLocation() throws IOException, PhotovaultException {
+        Transaction tx = session.beginTransaction();
         File testDir = new File( System.getProperty( "basedir" ), "testfiles" );
         File testFileOrig = new File( testDir, "test2.jpg" );
         File testFile2Orig = new File( testDir, "test3.jpg" );
@@ -383,6 +399,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         ifDAO.makePersistent( imgFile );
         ifDAO.makePersistent( imgFile2 );
         session.flush();
+        tx.commit();
         assertEquals( imgFile, ifDAO.findFileInLocation( (ExternalVolume) vol2, "test2.jpg"  ) );
         assertEquals( imgFile2, ifDAO.findFileInLocation( (ExternalVolume) vol2, "test3.jpg"  ) );
         assertNull( ifDAO.findFileInLocation( (ExternalVolume) vol2, "test4.jpg"  ) );
@@ -418,7 +435,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         ImageProtos.ImageFile.Builder fb = ImageProtos.ImageFile.newBuilder();
         UUID fileId1 = UUID.randomUUID();
         fb.setUuid( uuidBuf( fileId1 ) );
-        fb.setMd5Hash( ByteString.EMPTY );
+        fb.setMd5Hash( ByteString.copyFromUtf8( "testmd5" ) );
         fb.setSize( 100000 );
         ImageProtos.Volume.Builder vb = ImageProtos.Volume.newBuilder();
         vb.setType( ImageProtos.VolumeType.EXTERNAL );
@@ -441,7 +458,7 @@ public class Test_ImageFile extends PhotovaultTestCase {
         ImageProtos.ImageFile.Builder fb2 = ImageProtos.ImageFile.newBuilder();
         UUID fileId2 = UUID.randomUUID();
         fb2.setUuid( uuidBuf( fileId2 ) )
-                .setMd5Hash( ByteString.EMPTY )
+                .setMd5Hash( ByteString.copyFromUtf8( "md5test2" ) )
                 .setSize( 20000 )
                 .addLocations( ImageProtos.FileLocation.newBuilder()
                      .setVolume( v )
@@ -466,6 +483,15 @@ public class Test_ImageFile extends PhotovaultTestCase {
         ImageFile f2 = resolver.getObjectFromDto( fb2.build() );
         CopyImageDescriptor copy = (CopyImageDescriptor) f2.getImage( "image#2" );
         assertTrue( copy.getOriginal() == orig );
+        
+        ImageProtos.ImageRef ref = ImageProtos.ImageRef.newBuilder()
+                .setFileUuid( ProtobufHelper.uuidBuf( f.getId() ) )
+                .setLocator( "image#1" ).build();
+        OrigImageRefDTO refDto = new OrigImageRefDTO( ref );
+        OrigImageRefResolver refResolver = new OrigImageRefResolver();
+        refResolver.setSession( session );
+        OriginalImageDescriptor refOrig = refResolver.getObjectFromDto( refDto );
+        assertTrue( orig == refOrig );
     }
     
     private void assertMatchesDb( ImageFile i, Session session ) {

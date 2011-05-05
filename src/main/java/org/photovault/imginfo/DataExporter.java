@@ -387,28 +387,35 @@ public class DataExporter {
             s = ((HibernateDAOFactory) df).getSession();
         }
 
+        int fileCount = 0;
+        int changeCount = 0;
+        int changedObjectCount = 0;
         ImageProtos.PhotovaultData d =
-                ImageProtos.PhotovaultData.parseFrom( is );
+                ImageProtos.PhotovaultData.parseDelimitedFrom( is );
         while ( d != null ) {
+            long startTime = System.currentTimeMillis();
+            Transaction tx = null;
+            if ( s != null ) {
+                tx = s.beginTransaction();
+            }
             for ( ImageProtos.ImageFile fp : d.getFilesList() ) {
-                log.debug( "Importing file " + fp );
-                Transaction tx = null;
-                if ( s != null ) {
-                    tx = s.beginTransaction();
-                }
                 fdr.getObjectFromDto( fp );
                 if ( tx != null ) {
                     s.flush();
-                    tx.commit();
-                    s.clear();
                 }
+                fileCount++;
+            }
+            if ( tx != null ) {
+                s.flush();
+                tx.commit();
+                s.clear();
             }
 
             ObjectHistoryDTO h = null;
             UUID targetId= null;
             Class targetClass = null;
             for ( ChangeProtos.ChangeEnvelope cep : d.getChangesList() ) {
-                log.debug( "Importing new change " + cep );
+                changeCount++;
                 ChangeProtos.Change chp =
                         ChangeProtos.Change.parseFrom(cep.getSerializedChange() );
                 UUID newTargetId = ProtobufHelper.uuid( chp.getTargetUUID() );
@@ -427,6 +434,7 @@ public class DataExporter {
                         h = null;
                         continue;
                     }
+                    changedObjectCount++;
                 }
                 ChangeDTO dto = ChangeDTO.createChange(
                         cep.getSerializedChange().toByteArray(), targetClass );
@@ -441,8 +449,11 @@ public class DataExporter {
             if ( h != null ) {
                 addHistory( h, df );
             }
-            d = ImageProtos.PhotovaultData.parseFrom( is );
+            log.debug( "Imported " + fileCount + " files & " + changeCount + " changes to " + changedObjectCount + " objects." );
+            log.debug( "last batch took " + (System.currentTimeMillis() - startTime) + " ms." );
+            d = ImageProtos.PhotovaultData.parseDelimitedFrom( is );
         }
+        log.debug( "import finished" );
     }
 
 
@@ -510,6 +521,7 @@ public class DataExporter {
         }
         GenericDAO dao = getDaoForClass( targetClass, df );
         DTOResolverFactory drf = df.getDTOResolverFactory();
+        ChangeFactory cf = new ChangeFactory( df.getChangeDAO() );
         Transaction tx = null;
         Session s = null;
         if ( df instanceof HibernateDAOFactory ) {
@@ -522,8 +534,27 @@ public class DataExporter {
         if ( targetObj == null ) {
             log.debug(  "  Target object not found." );
             try {
-                pe = new VersionedObjectEditor( h, drf );
+                /*
+                 * Workaround for cases in which history creates other objects
+                 * that reference the object now created. As VersionedObjectEditor
+                 * does not currently persist the created object, this can cause 
+                 * foreign key violations. Therefore we must first create the object
+                 * and then apply the whole history.
+                 * 
+                 */
+                ObjectHistoryDTO createHistory = new ObjectHistoryDTO( targetClass, h.getTargetUuid() );
+                createHistory.addChange( (ChangeDTO)h.getChanges().get( 0 ) );
+                pe = new VersionedObjectEditor( createHistory, drf );
                 pe.apply();
+                targetObj = pe.getTarget();
+                dao.makePersistent( targetObj );
+                
+                pe = new VersionedObjectEditor( targetObj, drf );
+                try {
+                    pe.addToHistory( h, cf );
+                } catch ( IOException e ) {
+                    log.warn( e );
+                }
             } catch ( InstantiationException ex ) {
                 log.error( ex );
                 if ( tx != null ) tx.rollback();
@@ -541,15 +572,11 @@ public class DataExporter {
                 if ( tx != null ) tx.rollback();
                 return;
             }
-            targetObj = pe.getTarget();
-            dao.makePersistent( targetObj );
         } else {
             log.debug(  "  Target object found" );
             pe = new VersionedObjectEditor( targetObj, df.getDTOResolverFactory() );
             ObjectHistory hist = pe.getHistory();
             try {
-                ChangeFactory cf =
-                        new ChangeFactory( df.getChangeDAO() );
                 Change oldVersion = hist.getVersion();
                 boolean wasAtHead = hist.getHeads().contains( oldVersion );
                 pe.addToHistory( h, cf );

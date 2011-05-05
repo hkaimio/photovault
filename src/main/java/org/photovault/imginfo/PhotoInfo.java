@@ -394,6 +394,10 @@ public class PhotoInfo implements PhotoEditor {
             if ( maw/mah < aspectRatio ) {
                 mah = maw / aspectRatio;
             }
+            miw = Math.floor( miw );
+            mih = Math.floor( mih );
+            maw = Math.ceil( maw );
+            mah = Math.ceil( mah );
             minScale = ((double)miw) / ((double)croppedSize.getWidth());
             maxScale = ((double)maw) / ((double)croppedSize.getWidth());
         }
@@ -873,6 +877,16 @@ public class PhotoInfo implements PhotoEditor {
     @Transient
     public FuzzyDate getFuzzyShootTime() {
         return new FuzzyDate( shootTime, timeAccuracy );
+    }
+    
+    public void setShootTimeRange( FuzzyDate t ) {
+        setFuzzyShootTime( t );
+    }
+    
+    @ValueField
+    @Transient
+    public FuzzyDate getShootTimeRange() {
+        return getFuzzyShootTime();
     }
     
     /**

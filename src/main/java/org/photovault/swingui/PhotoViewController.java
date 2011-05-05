@@ -70,6 +70,7 @@ import org.photovault.imginfo.PhotoCollection;
 import org.photovault.imginfo.PhotoInfo;
 import org.photovault.imginfo.PhotoInfoDAO;
 import org.photovault.imginfo.indexer.IndexFileTask;
+import org.photovault.imginfo.indexer.IndexingResult;
 import org.photovault.replication.Change;
 import org.photovault.replication.ChangeDAO;
 import org.photovault.replication.ChangeDTO;
@@ -188,6 +189,10 @@ public class PhotoViewController extends PersistenceController {
                     BackgroundTask task = event.getPayload();
                     if ( task instanceof IndexFileTask ) {
                         IndexFileTask ifTask = (IndexFileTask) task;
+                        if ( ifTask.getResult() == IndexingResult.ERROR || 
+                                ifTask.getResult() == IndexingResult.NOT_IMAGE ) {
+                            return;
+                        }
                         UUID volId = ifTask.getVolume().getId();
                         FileLocation loc = ifTask.getFileLocation();
                         Set<PhotoInfo> photos = ifTask.getPhotosFound();

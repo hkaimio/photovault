@@ -51,6 +51,8 @@ public class PhotoFolderDAOHibernate
         return findById( PhotoFolder.ROOT_UUID, false );
     }
 
+    
+    
     public PhotoFolder findByUUID(UUID uuid) {
         Query q = getSession().createQuery( "from PhotoFolder where uuid = :uuid" );
         q.setParameter("uuid", uuid );

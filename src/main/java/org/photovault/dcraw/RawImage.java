@@ -876,7 +876,8 @@ public class RawImage extends PhotovaultImage {
         if ( subsample == 2 ) {
             log.debug( "subsample 2" );
         }
-        if ( lr.libraw_open_file( lrd, f.getAbsolutePath() ) != 0 ) {
+        int ret = lr.libraw_open_file( lrd, f.getAbsolutePath() );
+        if ( ret != 0 ) {
             this.validRawFile = false;
             return;
         }

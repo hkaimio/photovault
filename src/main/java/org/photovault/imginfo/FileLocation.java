@@ -49,6 +49,21 @@ public class FileLocation {
     int dirLevel = 0;
     
     /**
+     * Helper function to create a properly populated FileLocation
+     * @param vol Volume of the file
+     * @param path Path to the file in volume
+     * @param lastModified Last modified time (in milliseconds)
+     * @return The created FileLocation object
+     */
+    public static FileLocation createFileLocation( 
+            VolumeBase vol, String path, long lastModified ) {
+        FileLocation loc = new FileLocation();
+        loc.setVolume( vol );
+        loc.setFname( path );
+        return loc;
+    }
+    
+    /**
      Default constructor for persistence layer.
      */
     protected FileLocation() {
@@ -69,7 +84,7 @@ public class FileLocation {
             File f = volume.mapFileName( fname );
             lastModified = f.lastModified();
         } catch ( FileNotFoundException ex ) {
-            log.warn( "file " + fname + " in volume " + volume.getId() + "does not exist" );
+            log.info( "file " + fname + " in volume " + volume.getId() + "does not exist" );
         }
     }
 

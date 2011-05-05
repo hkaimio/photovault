@@ -23,6 +23,7 @@ package org.photovault.imginfo.dto;
 
 import com.google.protobuf.Message;
 import java.io.Serializable;
+import java.util.UUID;
 import org.photovault.imginfo.ProtobufConverter;
 import org.photovault.common.ProtobufHelper;
 import org.photovault.common.ProtobufSupport;
@@ -57,17 +58,32 @@ public class OrigImageRefDTO implements Serializable,
     private String locator;
     
     /**
+     * UUID of the file (used of fileDto is not stored in this reference
+     */
+    private UUID fileUuid;
+    
+    /**
      Constructs a reference DTO for image
      @param orig The image
      */
     OrigImageRefDTO( OriginalImageDescriptor orig ) {
         fileDto = new ImageFileDTO( orig.getFile() );
         locator = orig.getLocator();
+        fileUuid = fileDto.getUuid();
     }
 
-    OrigImageRefDTO( ImageProtos.ImageRef proto ) {
+    public OrigImageRefDTO( ImageProtos.ImageRef proto ) {
         locator = proto.getLocator();
-        fileDto = new ImageFileDTO( proto.getOriginalFile() );
+        if ( proto.hasOriginalFile() ) {
+            fileDto = new ImageFileDTO( proto.getOriginalFile() );
+
+        } else if ( proto.hasFileUuid() ) {
+            fileUuid = ProtobufHelper.uuid( proto.getFileUuid() );
+        } else {
+            throw new IllegalArgumentException( 
+                    "ImageRef proto must have either file UUID or file itself defined" );
+        }
+        
     }
     
     /**
@@ -86,11 +102,19 @@ public class OrigImageRefDTO implements Serializable,
         return locator;
     }
 
+    /**
+     * Returns UUID of the file.
+     */
+    public UUID getFileUuid() {
+        return fileUuid;
+    }
+    
     public Builder getBuilder() {
         return ImageProtos.ImageRef.newBuilder()
                 .setFileUuid( ProtobufHelper.uuidBuf( this.fileDto.getUuid() ) )
                 .setLocator( locator )
-                .setOriginalFile( fileDto.getBuilder() );
+                .setOriginalFile( fileDto.getBuilder() )
+                .setFileUuid( ProtobufHelper.uuidBuf( fileUuid ) );
     }
 
    public static class ProtobufConv implements ProtobufConverter<OrigImageRefDTO> {

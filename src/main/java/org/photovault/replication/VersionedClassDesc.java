@@ -242,10 +242,12 @@ public class VersionedClassDesc {
     void applyChange( Object target, FieldChange change,
             DTOResolverFactory resolverFactory ) {
         FieldDesc fd = fields.get( change.getName() );
-        if ( fd == null ) {
-            log.error( "Unknown field " + change.getName() + " in object " + target );
+        if ( fd != null ) {
+            fd.applyChange( target, change, resolverFactory );
+        } else {
+            log.error( "Unknown field " + change.getName() + " in object "
+                    + target );
         }
-        fd.applyChange( target, change, resolverFactory );
     }
     
     /**

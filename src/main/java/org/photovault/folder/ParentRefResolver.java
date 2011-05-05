@@ -41,6 +41,7 @@ public class ParentRefResolver extends HibernateDTOResolver<PhotoFolder, UUID> {
     Log log = LogFactory.getLog( ParentRefResolver.class.getName() );
     
     public PhotoFolder getObjectFromDto( UUID dto ) {
+        log.debug(  "Resolving " + dto );
         if ( dto == null ) {
             return null;
         }
@@ -53,6 +54,7 @@ public class ParentRefResolver extends HibernateDTOResolver<PhotoFolder, UUID> {
                 fe = new VersionedObjectEditor<PhotoFolder>( PhotoFolder.class, dto, rf );
                 fe.apply();
                 f = fe.getTarget();
+                getSession().saveOrUpdate( f );
             } catch ( Exception ex ) {
                 log.error( "Cannot isntantiate local copy of folder " + dto );
             }

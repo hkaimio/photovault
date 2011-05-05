@@ -22,6 +22,7 @@ package org.photovault.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -148,8 +149,10 @@ public class BrowserWindow extends AbstractController {
 
         VolumeTreeController volTreeCtrl = new VolumeTreeController( this );
         JTree volumeTree = volTreeCtrl.getView();
-        tabPane.addTab( "Volumes", volumeTree );
-        //	viewPane = new TableCollectionView();
+        JScrollPane voltreeScrollPane = new JScrollPane( volumeTree );
+	voltreeScrollPane.setPreferredSize( new Dimension( 200, 500 ) );
+	tabPane.add( "Volumes", voltreeScrollPane );
+
 
         // TODO: get rid of this!!!!
         EditSelectionColorsAction colorAction =
