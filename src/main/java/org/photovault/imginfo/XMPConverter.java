@@ -241,6 +241,11 @@ public class XMPConverter {
               meta.appendArrayItem( NS_DC, "subject",
                       subjectOptions, shootingPlace, null );
           }
+          
+          for ( Tag tag : p.getTags() ) {
+              meta.appendArrayItem( NS_DC, "subject",
+                      subjectOptions, tag.getName(), null );
+          }
 
           double expTime = p.getShutterSpeed();
           if ( expTime > 0.0 ) {

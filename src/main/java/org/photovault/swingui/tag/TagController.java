@@ -42,7 +42,7 @@ import org.photovault.swingui.selection.PhotoSelectionView;
  */
 public class TagController {
 
-    ListModel listModel;
+    DefaultListModel listModel;
     private final PhotoSelectionController parentCtrl;
     Set<Tag> addedTags = new HashSet();
     Set<Tag> removedTags = new HashSet();
@@ -60,8 +60,28 @@ public class TagController {
          * Is tag assigned to all photos in model
          */
         boolean isForAll = false;
+        @Override
         public String toString() {
             return tag.toString() + (isForAll ? "*" : "" );
+        }
+        
+        @Override
+        public boolean equals( Object o ) {
+            if ( o == null ) {
+                return false;
+            }
+            if ( ! (o instanceof TagInfo) ) {
+                return false;
+            }
+            TagInfo ti = (TagInfo) o;
+            return ti.tag.equals( tag ) && isForAll == ti.isForAll;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 29 * hash + (this.tag != null ? this.tag.hashCode() : 0);
+            return hash;
         }
     }
 
@@ -97,6 +117,8 @@ public class TagController {
             TagInfo ti = new TagInfo();
             ti.tag = tag;
             ti.isForAll = true;
+            listModel.addElement( ti );
+            
         }
         updateAllViews();
     }

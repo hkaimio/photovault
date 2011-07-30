@@ -49,7 +49,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -79,7 +78,7 @@ import org.photovault.swingui.folderpane.FolderTreePane;
 import org.photovault.swingui.selection.PhotoSelectionController;
 import org.photovault.swingui.selection.PhotoSelectionView;
 import org.photovault.swingui.selection.FieldController;
-import org.photovault.swingui.tag.TagList;
+import org.photovault.swingui.tag.TagList2;
 
 /** PhotoInfoEditor provides a GUI interface for creating of modifying PhotoInfo records in the database.
     Use can either edit an existing record or create a completely new record.
@@ -159,7 +158,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 
         // Tags
         JLabel tagLabel = new JLabel( "Tags" );
-        tagList = new TagList( ctrl.getTagController() );
+        tagList = new TagList2( ctrl.getTagController() );
         tagList.setBackground( generalPane.getBackground() );
 
 	// Description text
@@ -193,6 +192,8 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
 	addLabelTextRows( labels, fields, layout, generalPane );
         c = layout.getConstraints( tagList );
         c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 0.0;
+        c.weighty = 1.0;
         layout.setConstraints( tagList, c);
 
 	
@@ -608,7 +609,7 @@ public class PhotoInfoEditor extends JPanel implements PhotoSelectionView, Actio
     String qualityStrings[] = { "Unevaluated", "Top", "Good", "OK", "Poor", "Unusable" };
     JComboBox qualityField = null;
 
-    JList tagList = null;
+    TagList2 tagList = null;
 
     JTextField cameraField = null;
     Document cameraDoc = null;
